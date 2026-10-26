@@ -146,6 +146,13 @@ export const DATABASE_ACADEMY_CONTROL_RLS_TABLES = Object.freeze([
   "academy_enrollment_audit_logs",
   "academy_payment_events",
 ] as const);
+/** SmartCheck document and worker pipeline tables migrated in 0027 with FORCE RLS. */
+export const DATABASE_SMARTCHECK_PIPELINE_RLS_TABLES = Object.freeze([
+  "documents",
+  "document_processing_runs",
+  "document_processing_artifacts",
+  "normalized_quantity_rows",
+] as const);
 export const DATABASE_PUBLIC_RESTRICTED_TABLE_ACL = Object.freeze({
   companies: Object.freeze({ bimmetraj_app: Object.freeze(["SELECT"]), bimmetraj_control: Object.freeze(["DELETE", "INSERT", "SELECT", "UPDATE"]), bimmetraj_worker: Object.freeze([]) }),
   subscriptions: Object.freeze({ bimmetraj_app: Object.freeze(["SELECT"]), bimmetraj_control: Object.freeze(["DELETE", "INSERT", "SELECT", "UPDATE"]), bimmetraj_worker: Object.freeze([]) }),

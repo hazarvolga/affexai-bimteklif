@@ -190,6 +190,15 @@
       "when": 1791417600026,
       "tag": "0026_academy_control_rls",
       "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1791417600027,
+      "tag": "0027_smartcheck_pipeline_rls",
+      "breakpoints": true,
+      "sha256": "c1a02e7e7c46da4a68a395f7097d1822b980b4f2f18d19873ffdc60d2ffc2534",
+      "snapshotSha256": "7891f429d5976f8ddb0f6563d3e60acc09d312e3ce3a2e2983b8b756f630e945"
     }
   ]
 }

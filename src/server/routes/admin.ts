@@ -1,6 +1,7 @@
 import { Router, type Express } from "express";
 import { authenticate, checkSuperAdmin } from "../middleware/auth";
 import { db } from "../../db";
+import { withAppTenant, withAppTenantTransaction, withSuperAdminQueueRead } from "../../db/app-tenant";
 import { getControlDatabase } from "../../db/control-plane";
 import {
   adminAuditLogs,
@@ -78,7 +79,7 @@ export function registerAdminRoutes(app: Express) {
   });
 
   // 1. Dashboard Metrics
-  router.get("/dashboard", async (_req, res) => {
+  router.get("/dashboard", async (req, res) => {
     try {
       // Toplam tenant sayısı (aktif/askıda vb.)
       const tenantsRes = await getControlDatabase().db.execute(sql`
@@ -122,14 +123,14 @@ export function registerAdminRoutes(app: Express) {
       const totalIfcThisMonth = Number(usageRes.rows[0]?.total_ifcs || 0);
 
       // Kuyruk Sağlık Metrikleri
-      const queueRes = await db.execute(sql`
+      const queueRes = await withSuperAdminQueueRead(req.user.userId, (queueDb) => queueDb.execute(sql`
         SELECT
           COUNT(CASE WHEN status = 'queued' THEN 1 END) as queued_count,
           COUNT(CASE WHEN status = 'running' THEN 1 END) as running_count,
           COUNT(CASE WHEN status = 'failed' AND completed_at >= clock_timestamp() - INTERVAL '24 hours' THEN 1 END) as failed_24h,
           COUNT(CASE WHEN status = 'succeeded' AND completed_at >= clock_timestamp() - INTERVAL '24 hours' THEN 1 END) as succeeded_24h
         FROM document_processing_runs
-      `);
+      `));
 
       const queueStats = {
         queued: Number(queueRes.rows[0]?.queued_count || 0),
@@ -209,23 +210,27 @@ export function registerAdminRoutes(app: Express) {
         .limit(6);
 
       // Recent IFC/Processing runs
-      const recentRuns = await db
-        .select({
-          runId: documentProcessingRuns.id,
-          documentId: documentProcessingRuns.documentId,
-          fileName: documents.originalFileName,
-          status: documentProcessingRuns.status,
-          currentStage: documentProcessingRuns.currentStage,
-          errorCode: documentProcessingRuns.errorCode,
-          errorMessage: documentProcessingRuns.errorMessage,
-          createdAt: documentProcessingRuns.createdAt,
-          completedAt: documentProcessingRuns.completedAt,
-        })
-        .from(documentProcessingRuns)
-        .innerJoin(documents, eq(documents.id, documentProcessingRuns.documentId))
-        .where(eq(documentProcessingRuns.companyId, companyId))
-        .orderBy(desc(documentProcessingRuns.createdAt))
-        .limit(10);
+      const recentRuns = await withAppTenant(
+        { companyId, userId: req.user.userId },
+        (tenantDb) => tenantDb
+          .select({
+            runId: documentProcessingRuns.id,
+            documentId: documentProcessingRuns.documentId,
+            fileName: documents.originalFileName,
+            status: documentProcessingRuns.status,
+            currentStage: documentProcessingRuns.currentStage,
+            errorCode: documentProcessingRuns.errorCode,
+            errorMessage: documentProcessingRuns.errorMessage,
+            createdAt: documentProcessingRuns.createdAt,
+            completedAt: documentProcessingRuns.completedAt,
+          })
+          .from(documentProcessingRuns)
+          .innerJoin(documents, eq(documents.id, documentProcessingRuns.documentId))
+          .where(eq(documentProcessingRuns.companyId, companyId))
+          .orderBy(desc(documentProcessingRuns.createdAt))
+          .limit(10),
+        { readOnly: true },
+      );
 
       return res.json({
         company,
@@ -518,37 +523,6 @@ export function registerAdminRoutes(app: Express) {
       const runningMinutes = processingRunningStaleMinutes();
       const queuedMinutes = processingQueuedStaleMinutes();
 
-      // Compute summary metrics across the entire table via SQL aggregation
-      const summaryExec = await db.execute<{
-        pending: string;
-        running: string;
-        stale: string;
-        failed24h: string;
-        completed24h: string;
-      }>(sql`
-        SELECT
-          COUNT(*) FILTER (WHERE ${documentProcessingRuns.status} = 'queued') AS pending,
-          COUNT(*) FILTER (WHERE ${documentProcessingRuns.status} = 'running') AS running,
-          COUNT(*) FILTER (
-            WHERE (${documentProcessingRuns.status} = 'running' AND COALESCE(${documentProcessingRuns.updatedAt}, ${documentProcessingRuns.startedAt}, ${documentProcessingRuns.createdAt}) <= NOW() - interval '1 minute' * ${runningMinutes})
-               OR (${documentProcessingRuns.status} = 'queued' AND COALESCE(${documentProcessingRuns.updatedAt}, ${documentProcessingRuns.createdAt}) <= NOW() - interval '1 minute' * ${queuedMinutes})
-          ) AS stale,
-          COUNT(*) FILTER (WHERE ${documentProcessingRuns.status} = 'failed' AND ${documentProcessingRuns.completedAt} >= NOW() - interval '24 hours') AS failed24h,
-          COUNT(*) FILTER (WHERE ${documentProcessingRuns.status} = 'succeeded' AND ${documentProcessingRuns.completedAt} >= NOW() - interval '24 hours') AS completed24h
-        FROM ${documentProcessingRuns}
-      `);
-      const summaryResult = summaryExec.rows[0];
-
-      const summary = {
-        queued: Number(summaryResult?.pending ?? 0),
-        pending: Number(summaryResult?.pending ?? 0),
-        running: Number(summaryResult?.running ?? 0),
-        stale: Number(summaryResult?.stale ?? 0),
-        failed24h: Number(summaryResult?.failed24h ?? 0),
-        completed24h: Number(summaryResult?.completed24h ?? 0),
-        succeeded24h: Number(summaryResult?.completed24h ?? 0),
-      };
-
       const whereConditions: SQL[] = [];
 
       if (companyId) {
@@ -585,38 +559,74 @@ export function registerAdminRoutes(app: Express) {
 
       const whereClause = whereConditions.length > 0 ? and(...whereConditions) : undefined;
 
-      const [{ total }] = await db
-        .select({ total: sql<number>`count(*)::int` })
-        .from(documentProcessingRuns)
-        .innerJoin(documents, eq(documents.id, documentProcessingRuns.documentId))
-        .innerJoin(companies, eq(companies.id, documentProcessingRuns.companyId))
-        .where(whereClause);
+      const [companyRows, { summaryExec, total, rawRuns }] = await Promise.all([
+        getControlDatabase().db.select({ id: companies.id, name: companies.name }).from(companies),
+        withSuperAdminQueueRead(req.user.userId, async (queueDb) => {
+          const summaryExec = await queueDb.execute<{
+            pending: string;
+            running: string;
+            stale: string;
+            failed24h: string;
+            completed24h: string;
+          }>(sql`
+            SELECT
+              COUNT(*) FILTER (WHERE ${documentProcessingRuns.status} = 'queued') AS pending,
+              COUNT(*) FILTER (WHERE ${documentProcessingRuns.status} = 'running') AS running,
+              COUNT(*) FILTER (
+                WHERE (${documentProcessingRuns.status} = 'running' AND COALESCE(${documentProcessingRuns.updatedAt}, ${documentProcessingRuns.startedAt}, ${documentProcessingRuns.createdAt}) <= NOW() - interval '1 minute' * ${runningMinutes})
+                   OR (${documentProcessingRuns.status} = 'queued' AND COALESCE(${documentProcessingRuns.updatedAt}, ${documentProcessingRuns.createdAt}) <= NOW() - interval '1 minute' * ${queuedMinutes})
+              ) AS stale,
+              COUNT(*) FILTER (WHERE ${documentProcessingRuns.status} = 'failed' AND ${documentProcessingRuns.completedAt} >= NOW() - interval '24 hours') AS failed24h,
+              COUNT(*) FILTER (WHERE ${documentProcessingRuns.status} = 'succeeded' AND ${documentProcessingRuns.completedAt} >= NOW() - interval '24 hours') AS completed24h
+            FROM ${documentProcessingRuns}
+          `);
+          const [{ total }] = await queueDb
+            .select({ total: sql<number>`count(*)::int` })
+            .from(documentProcessingRuns)
+            .innerJoin(documents, eq(documents.id, documentProcessingRuns.documentId))
+            .where(whereClause);
+          const rawRuns = await queueDb
+            .select({
+              runId: documentProcessingRuns.id,
+              companyId: documentProcessingRuns.companyId,
+              documentId: documentProcessingRuns.documentId,
+              fileName: documents.originalFileName,
+              fileSizeBytes: documents.fileSizeBytes,
+              status: documentProcessingRuns.status,
+              currentStage: documentProcessingRuns.currentStage,
+              progressPercent: documentProcessingRuns.progressPercent,
+              errorCode: documentProcessingRuns.errorCode,
+              errorMessage: documentProcessingRuns.errorMessage,
+              createdAt: documentProcessingRuns.createdAt,
+              updatedAt: documentProcessingRuns.updatedAt,
+              startedAt: documentProcessingRuns.startedAt,
+              completedAt: documentProcessingRuns.completedAt,
+            })
+            .from(documentProcessingRuns)
+            .innerJoin(documents, eq(documents.id, documentProcessingRuns.documentId))
+            .where(whereClause)
+            .orderBy(desc(documentProcessingRuns.createdAt))
+            .limit(limitNum)
+            .offset(offset);
+          return { summaryExec, total, rawRuns };
+        }),
+      ]);
 
-      const runs = await db
-        .select({
-          runId: documentProcessingRuns.id,
-          companyId: documentProcessingRuns.companyId,
-          companyName: companies.name,
-          documentId: documentProcessingRuns.documentId,
-          fileName: documents.originalFileName,
-          fileSizeBytes: documents.fileSizeBytes,
-          status: documentProcessingRuns.status,
-          currentStage: documentProcessingRuns.currentStage,
-          progressPercent: documentProcessingRuns.progressPercent,
-          errorCode: documentProcessingRuns.errorCode,
-          errorMessage: documentProcessingRuns.errorMessage,
-          createdAt: documentProcessingRuns.createdAt,
-          updatedAt: documentProcessingRuns.updatedAt,
-          startedAt: documentProcessingRuns.startedAt,
-          completedAt: documentProcessingRuns.completedAt,
-        })
-        .from(documentProcessingRuns)
-        .innerJoin(documents, eq(documents.id, documentProcessingRuns.documentId))
-        .innerJoin(companies, eq(companies.id, documentProcessingRuns.companyId))
-        .where(whereClause)
-        .orderBy(desc(documentProcessingRuns.createdAt))
-        .limit(limitNum)
-        .offset(offset);
+      const companyNameById = new Map(companyRows.map((c) => [c.id, c.name]));
+      const summaryResult = summaryExec.rows[0];
+      const summary = {
+        queued: Number(summaryResult?.pending ?? 0),
+        pending: Number(summaryResult?.pending ?? 0),
+        running: Number(summaryResult?.running ?? 0),
+        stale: Number(summaryResult?.stale ?? 0),
+        failed24h: Number(summaryResult?.failed24h ?? 0),
+        completed24h: Number(summaryResult?.completed24h ?? 0),
+        succeeded24h: Number(summaryResult?.completed24h ?? 0),
+      };
+      const runs = rawRuns.map((r) => ({
+        ...r,
+        companyName: companyNameById.get(r.companyId) ?? "Bilinmeyen Firma",
+      }));
 
       const now = new Date();
       const enrichedRuns = runs.map((r) => {
@@ -657,49 +667,64 @@ export function registerAdminRoutes(app: Express) {
         return res.status(400).json({ error: "Geçersiz işlem ID" });
       }
 
-      const result = await db.transaction(async (tx) => {
-        const [run] = await tx
-          .select()
-          .from(documentProcessingRuns)
-          .where(eq(documentProcessingRuns.id, runId))
-          .for("update");
-
-        if (!run) throw new AdminChangeError(404, "İşlem bulunamadı");
-        if (!isProcessingRunStale(run)) {
-          throw new AdminChangeError(400, "İşlem stale durumda değil");
-        }
-
-        await removePendingJob(tx, run.id);
-        const now = new Date();
-        const [updatedRun] = await tx
-          .update(documentProcessingRuns)
-          .set({
-            status: "failed",
-            currentStage: "failed",
-            errorCode: "WORKER_STALE",
-            errorMessage: "Süper admin tarafından stale olarak işaretlendi",
-            workerJobId: null,
-            workerLeaseToken: null,
-            completedAt: now,
-            updatedAt: now,
+      const [targetRun] = await withSuperAdminQueueRead(req.user.userId, (queueDb) =>
+        queueDb
+          .select({
+            id: documentProcessingRuns.id,
+            companyId: documentProcessingRuns.companyId,
+            documentId: documentProcessingRuns.documentId,
           })
-          .where(eq(documentProcessingRuns.id, run.id))
-          .returning();
+          .from(documentProcessingRuns)
+          .where(eq(documentProcessingRuns.id, runId)),
+      );
+      if (!targetRun) throw new AdminChangeError(404, "İşlem bulunamadı");
 
-        await tx
-          .update(documents)
-          .set({ status: "failed", updatedAt: now })
-          .where(eq(documents.id, run.documentId));
+      const result = await withAppTenantTransaction(
+        { companyId: targetRun.companyId, userId: req.user.userId },
+        async (tx) => {
+          const [run] = await tx
+            .select()
+            .from(documentProcessingRuns)
+            .where(eq(documentProcessingRuns.id, runId))
+            .for("update");
 
-        await tx.insert(adminAuditLogs).values({
-          adminId: req.user.userId,
-          targetCompanyId: run.companyId,
-          action: "processing_stale_recovered",
-          details: { runId: run.id, documentId: run.documentId },
-        });
+          if (!run) throw new AdminChangeError(404, "İşlem bulunamadı");
+          if (!isProcessingRunStale(run)) {
+            throw new AdminChangeError(400, "İşlem stale durumda değil");
+          }
 
-        return updatedRun;
-      });
+          await removePendingJob(tx, run.id);
+          const now = new Date();
+          const [updatedRun] = await tx
+            .update(documentProcessingRuns)
+            .set({
+              status: "failed",
+              currentStage: "failed",
+              errorCode: "WORKER_STALE",
+              errorMessage: "Süper admin tarafından stale olarak işaretlendi",
+              workerJobId: null,
+              workerLeaseToken: null,
+              completedAt: now,
+              updatedAt: now,
+            })
+            .where(eq(documentProcessingRuns.id, run.id))
+            .returning();
+
+          await tx
+            .update(documents)
+            .set({ status: "failed", updatedAt: now })
+            .where(eq(documents.id, run.documentId));
+
+          await tx.insert(adminAuditLogs).values({
+            adminId: req.user.userId,
+            targetCompanyId: run.companyId,
+            action: "processing_stale_recovered",
+            details: { runId: run.id, documentId: run.documentId },
+          });
+
+          return updatedRun;
+        },
+      );
 
       return res.json({ success: true, run: result });
     } catch (error) {
@@ -723,14 +748,16 @@ export function registerAdminRoutes(app: Express) {
         return res.status(400).json({ error: "Geçersiz işlem ID" });
       }
 
-      const [run] = await db
-        .select({
-          id: documentProcessingRuns.id,
-          companyId: documentProcessingRuns.companyId,
-          documentId: documentProcessingRuns.documentId,
-        })
-        .from(documentProcessingRuns)
-        .where(eq(documentProcessingRuns.id, runId));
+      const [run] = await withSuperAdminQueueRead(req.user.userId, (queueDb) =>
+        queueDb
+          .select({
+            id: documentProcessingRuns.id,
+            companyId: documentProcessingRuns.companyId,
+            documentId: documentProcessingRuns.documentId,
+          })
+          .from(documentProcessingRuns)
+          .where(eq(documentProcessingRuns.id, runId)),
+      );
 
       if (!run) {
         return res.status(404).json({ error: "İşlem bulunamadı" });

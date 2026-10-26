@@ -1,9 +1,9 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-25.77",
+  version: "BIM-CALC-2026-10-25.78",
   updatedOn: "25 Ekim 2026",
-  implementationBaseline: "826311701cb3ce93f3119551c5b91037ea24bdae",
-  approvalStatus: "Rev. 83, T41 S4b (0026_academy_control_rls) kapsamında 6 Academy ve sertifika tablosunu (allplan_certificates, academy_enrollments, academy_learner_profiles, academy_activation_events, academy_enrollment_audit_logs, academy_payment_events) ENABLE+FORCE RLS altına alır (63/72 company_id tablosu FORCE RLS altında); Rev. 82 T41 S4a (7 Allplan öğrenci tablosu FORCE RLS), Rev. 81 T41 S2 (8 fiyat/kaynak/mevzuat tablosu FORCE RLS), Rev. 80 T41 S1 (6 teklif çekirdeği tablosu FORCE RLS) ve database-role-provision.pgtest.ts düzeltmesini, Rev. 79 T43 CI sistem Python çözümlemesini, Rev. 78 T42 yetki/kaynak sınırı regresyonunu tamamlamıştır. Gerçek banka/dekont mutabakatı, bağımsız uzman imzası, gerçek vendor dosyası, T43 %80 eşiği, T44/T45 kanıtı ve kalan S3/S5 tenant RLS dilimleri tamamlanmadığından T41/T42/T43 ve Faz 7 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
+  implementationBaseline: "4a301358645a1ba0e01ec391abbc90e721421581",
+  approvalStatus: "Rev. 84, T41 S3 (0027_smartcheck_pipeline_rls) kapsamında 4 SmartCheck belge ve worker işlem hattı tablosunu (documents, document_processing_runs, document_processing_artifacts, normalized_quantity_rows) ENABLE+FORCE RLS altına alır (67/72 company_id tablosu FORCE RLS altında); Rev. 83 T41 S4b (6 Academy ve sertifika tablosu FORCE RLS), Rev. 82 T41 S4a (7 Allplan öğrenci tablosu FORCE RLS), Rev. 81 T41 S2 (8 fiyat/kaynak/mevzuat tablosu FORCE RLS), Rev. 80 T41 S1 (6 teklif çekirdeği tablosu FORCE RLS) ve database-role-provision.pgtest.ts düzeltmesini, Rev. 79 T43 CI sistem Python çözümlemesini, Rev. 78 T42 yetki/kaynak sınırı regresyonunu tamamlamıştır. Gerçek banka/dekont mutabakatı, bağımsız uzman imzası, gerçek vendor dosyası, T43 %80 eşiği, T44/T45 kanıtı ve kalan S5 tenant RLS dilimi tamamlanmadığından T41/T42/T43 ve Faz 7 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
 };
 
 export interface ModuleRevisionNote {
@@ -1799,6 +1799,38 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
         before: "allplan_certificates ve 5 academy_* control-plane tablosunda FORCE RLS yoktu; sertifika doğrulama rotası ve kayıt/öğrenci profili okumaları tenant GUC bağlamı kullanmıyordu.",
         after: "0026_academy_control_rls ile 6 Academy/sertifika tablosu FORCE RLS altına alındı; tüm 13 Allplan/Academy company_id tablosu (S4a + S4b) artık veritabanı düzeyinde izoledir.",
         basis: "Faz 7 T41 S4b — Academy control-plane ve halka açık sertifika doğrulama RLS izolasyonu",
+      },
+    },
+  },
+  {
+    revision: "Rev. 84",
+    version: "BIM-CALC-2026-10-25.78",
+    date: "25 Ekim 2026",
+    commit: "4a301358645a1ba0e01ec391abbc90e721421581",
+    trigger: "GAP planı T41 S3 dilimi (0027_smartcheck_pipeline_rls — 4 SmartCheck belge ve worker işlem hattı tablosu FORCE RLS).",
+    beforeSummary: "documents, document_processing_runs, document_processing_artifacts ve normalized_quantity_rows tablolarında FORCE RLS yoktu; smartcheck.ts, upload-quota.ts, service.ts, market-intelligence.ts ve admin.ts kuyruk rotaları paylaşılan app havuzundan doğrudan çalışıyor ve GET /api/admin/queue rotası FORCE RLS altındaki companies tablosunu bimmetraj_app ile birleştirdiği için 0 satır dönüyordu.",
+    afterSummary: "0027_smartcheck_pipeline_rls.sql ile 4 SmartCheck pipeline tablosu ENABLE+FORCE RLS altına alındı (app tenant ALL + worker ALL + backup SELECT + migrator-owner ALL; documents ve document_processing_runs için ayrıca bimmetraj.super_admin_user_id UUID GUC SELECT; 67/72 company_id tablosu FORCE RLS altında); smartcheck.ts, upload-quota.ts, service.ts, market-intelligence.ts ve admin.ts sorguları withAppTenant, withAppTenantTransaction ve withSuperAdminQueueRead sınırına taşındı; GET /api/admin/queue üzerindeki companies FORCE RLS gizli hatası getControlDatabase().db ile kapatıldı; tenant-business-rls.pgtest.ts 45 tablo için 1/1 PASS, artifacts.test.ts 17/17 PASS ve verify.integration.test.ts 14/14 PASS olarak doğrulandı. Hesap yöntemleri değişmedi.",
+    affectedModules: ["ifc-metraj", "satir-dogrulama", "epys-on-kontrol", "pdfa"],
+    moduleDetails: {
+      "ifc-metraj": {
+        before: "SmartCheck belge (documents), işlem koşusu (document_processing_runs), artifact (document_processing_artifacts) ve normalize metraj satırı (normalized_quantity_rows) tablolarında FORCE RLS yoktu.",
+        after: "0027_smartcheck_pipeline_rls ile 4 SmartCheck işlem hattı tablosu FORCE RLS altına alındı; uygulama tenant GUC bağlamı, worker işlem erişimi ve super-admin salt-okunur kuyruk denetimi veritabanı düzeyinde zorunlu kılındı.",
+        basis: "Faz 7 T41 S3 — SmartCheck belge ve worker işlem hattı RLS izolasyonu",
+      },
+      "satir-dogrulama": {
+        before: "normalized_quantity_rows inceleme ve toplu onay rotaları paylaşılan app havuzundan tenant GUC bağlamı olmadan çalışıyordu.",
+        after: "normalized_quantity_rows satır okumaları, tekil/toplu inceleme kararları ve tedarikçi teklifine aktarım sorguları withAppTenant / withAppTenantTransaction sınırına taşındı.",
+        basis: "Faz 7 T41 S3 — Normalize metraj satırı RLS izolasyonu",
+      },
+      "epys-on-kontrol": {
+        before: "e-PYS preflight artifact ve işlem koşusu okumaları FORCE RLS koruması olmadan çalışıyordu.",
+        after: "document_processing_runs ve document_processing_artifacts okumaları tenant GUC ve worker RLS politikalarıyla sınırlandı.",
+        basis: "Faz 7 T41 S3 — SmartCheck artifact RLS izolasyonu",
+      },
+      pdfa: {
+        before: "PDF preflight ve veraPDF doğrulama artifact okumaları FORCE RLS koruması olmadan çalışıyordu.",
+        after: "PDF/A doğrulama artifact ve durum sorguları FORCE RLS altında withAppTenant ile çalışır.",
+        basis: "Faz 7 T41 S3 — PDF/A artifact RLS izolasyonu",
       },
     },
   },

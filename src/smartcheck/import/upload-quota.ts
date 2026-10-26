@@ -40,8 +40,8 @@ export async function lockTenantUploads(tx: Transaction, companyId: string) {
 export async function reserveUpload<T>(input: typeof documents.$inferInsert,
   createTarget: (document: typeof documents.$inferSelect) => Promise<T>) {
   const platformLimits = uploadQuotaLimits();
-  const { db } = await import('../../db');
-  return db.transaction(async tx => {
+  const { withAppTenantTransaction } = await import('../../db/app-tenant');
+  return withAppTenantTransaction({ companyId: input.companyId, userId: input.uploadedByUserId }, async tx => {
     await lockTenantUploads(tx, input.companyId);
     const [plan] = await tx.select({ storageMaxBytes: plans.storageMaxBytes, maxDocuments: plans.maxDocuments })
       .from(subscriptions).innerJoin(plans, eq(plans.id, subscriptions.planId)).where(eq(subscriptions.companyId, input.companyId));

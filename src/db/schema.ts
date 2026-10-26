@@ -107,6 +107,19 @@ const appCatalogReadPolicy = (name: string) => pgPolicy(`${name}_app_read`, {
   using: sql`current_user = 'bimmetraj_app'`,
 });
 
+const workerAccessPolicy = (name: string) => pgPolicy(`${name}_worker_access`, {
+  for: "all",
+  to: "public",
+  using: sql`current_user = 'bimmetraj_worker'`,
+  withCheck: sql`current_user = 'bimmetraj_worker'`,
+});
+
+const appSuperAdminQueueReadPolicy = (name: string) => pgPolicy(`${name}_app_super_admin_read`, {
+  for: "select",
+  to: "public",
+  using: sql`current_user = 'bimmetraj_app' AND nullif(current_setting('bimmetraj.super_admin_user_id', true), '')::uuid IS NOT NULL`,
+});
+
 // ─── GLOBAL ENUMS ───
 export const currencyEnum = pgEnum("currency", ["TRY", "USD", "EUR"]);
 export const quoteStatusEnum = pgEnum("quote_status", ["draft", "sent", "negotiation", "won", "lost", "archived"]);
@@ -1069,8 +1082,13 @@ export const documents = pgTable("documents", {
       "documents_archive_consistency_check",
       sql`(${table.status} = 'archived' AND ${table.archivedAt} IS NOT NULL) OR (${table.status} != 'archived' AND ${table.archivedAt} IS NULL)`
     ),
+    appTenantPolicy: appTenantPolicy("documents", table.companyId),
+    appSuperAdminReadPolicy: appSuperAdminQueueReadPolicy("documents"),
+    workerAccessPolicy: workerAccessPolicy("documents"),
+    backupReadPolicy: backupReadPolicy("documents"),
+    ownerMigrationPolicy: ownerMigrationPolicy("documents"),
   };
-});
+}).enableRLS();
 
 export const documentProcessingRuns = pgTable("document_processing_runs", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -1105,8 +1123,13 @@ export const documentProcessingRuns = pgTable("document_processing_runs", {
     idxRunsLookup: index("idx_processing_runs_lookup").on(table.companyId, table.documentId, table.status),
     pipelineVersionCheck: check("document_processing_runs_pipeline_version_check", sql`${table.pipelineVersion} > 0`),
     progressPercentCheck: check("document_processing_runs_progress_percent_check", sql`${table.progressPercent} >= 0 AND ${table.progressPercent} <= 100`),
+    appTenantPolicy: appTenantPolicy("document_processing_runs", table.companyId),
+    appSuperAdminReadPolicy: appSuperAdminQueueReadPolicy("document_processing_runs"),
+    workerAccessPolicy: workerAccessPolicy("document_processing_runs"),
+    backupReadPolicy: backupReadPolicy("document_processing_runs"),
+    ownerMigrationPolicy: ownerMigrationPolicy("document_processing_runs"),
   };
-});
+}).enableRLS();
 
 export const documentProcessingArtifacts = pgTable("document_processing_artifacts", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -1130,7 +1153,11 @@ export const documentProcessingArtifacts = pgTable("document_processing_artifact
     foreignColumns: [documentProcessingRuns.id, documentProcessingRuns.documentId, documentProcessingRuns.companyId],
   }).onDelete("cascade"),
   sizeCheck: check("document_processing_artifacts_size_check", sql`${table.sizeBytes} >= 0`),
-}));
+  appTenantPolicy: appTenantPolicy("document_processing_artifacts", table.companyId),
+  workerAccessPolicy: workerAccessPolicy("document_processing_artifacts"),
+  backupReadPolicy: backupReadPolicy("document_processing_artifacts"),
+  ownerMigrationPolicy: ownerMigrationPolicy("document_processing_artifacts"),
+})).enableRLS();
 
 export const normalizedQuantityRows = pgTable("normalized_quantity_rows", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -1177,7 +1204,11 @@ export const normalizedQuantityRows = pgTable("normalized_quantity_rows", {
   }).onDelete("restrict"),
   reviewStatusCheck: check("normalized_quantity_rows_review_status_check", sql`${table.reviewStatus} in ('pending_review', 'approved', 'accepted_exception', 'rejected')`),
   confidenceCheck: check("normalized_quantity_rows_confidence_check", sql`${table.mappingConfidence} >= 0 AND ${table.mappingConfidence} <= 1`),
-}));
+  appTenantPolicy: appTenantPolicy("normalized_quantity_rows", table.companyId),
+  workerAccessPolicy: workerAccessPolicy("normalized_quantity_rows"),
+  backupReadPolicy: backupReadPolicy("normalized_quantity_rows"),
+  ownerMigrationPolicy: ownerMigrationPolicy("normalized_quantity_rows"),
+})).enableRLS();
 
 // ============================================================
 // SMARTCHECK PHASE 5 — IMMUTABLE CALM → QUOTATION TRANSFER

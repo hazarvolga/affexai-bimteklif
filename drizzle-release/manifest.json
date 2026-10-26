@@ -190,6 +190,13 @@
       "sha256": "c84366717353631ed6df1e8d8198b3ba907d5e922fe44ae46b33d97c39470743",
       "snapshotSha256": "e50a25604a94e879a4671279c7454f3342750aab4fe7cd7dfd46a0b6b515ac5f",
       "statements": 36
+    },
+    {
+      "idx": 27,
+      "tag": "0027_smartcheck_pipeline_rls",
+      "sha256": "c1a02e7e7c46da4a68a395f7097d1822b980b4f2f18d19873ffdc60d2ffc2534",
+      "snapshotSha256": "7891f429d5976f8ddb0f6563d3e60acc09d312e3ce3a2e2983b8b756f630e945",
+      "statements": 26
     }
   ]
 }

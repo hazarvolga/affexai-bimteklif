@@ -10,6 +10,7 @@ import {
   DATABASE_PRICING_REGULATIONS_RLS_TABLES,
   DATABASE_QUOTATION_CORE_RLS_TABLES,
   DATABASE_ROLE_SPECS,
+  DATABASE_SMARTCHECK_PIPELINE_RLS_TABLES,
   DATABASE_TENANT_BUSINESS_RLS_TABLES,
 } from "../../scripts/database-roles/contract";
 import {
@@ -19,6 +20,7 @@ import {
   inspectPricingRegulationsRlsViolations,
   inspectQuotationCoreRlsViolations,
   inspectRoleBoundaries,
+  inspectSmartcheckPipelineRlsViolations,
   inspectTenantBusinessRlsViolations,
 } from "../../scripts/database-roles/inspect";
 import { provisionDatabaseRoles } from "../../scripts/database-roles/provision";
@@ -35,15 +37,18 @@ const allProtectedTables = [
   ...DATABASE_PRICING_REGULATIONS_RLS_TABLES,
   ...DATABASE_ALLPLAN_LEARNER_RLS_TABLES,
   ...DATABASE_ACADEMY_CONTROL_RLS_TABLES,
+  ...DATABASE_SMARTCHECK_PIPELINE_RLS_TABLES,
 ] as const;
 const academyControlReadOnlyAppTables = new Set<string>(
   DATABASE_ACADEMY_CONTROL_RLS_TABLES.filter((table) => table !== "allplan_certificates"),
 );
+const smartcheckPipelineWorkerTables = new Set<string>(DATABASE_SMARTCHECK_PIPELINE_RLS_TABLES);
 type Credentials = Record<typeof roles[number], string>;
 type Table = typeof allProtectedTables[number];
 const ids = {
   companyA: "11111111-1111-4111-8111-111111111111", companyB: "22222222-2222-4222-8222-222222222222",
   userA: "33333333-3333-4333-8333-333333333333", userB: "44444444-4444-4444-8444-444444444444",
+  superAdminUser: "77777777-7777-4777-8777-777777777777",
   clientA: "55555555-5555-4555-8555-555555555555", clientB: "66666666-6666-4666-8666-666666666666",
 } as const;
 const actorA: TenantContext = { companyId: ids.companyA, userId: ids.userA };
@@ -92,6 +97,10 @@ const rowSql: Record<Table, string> = {
   academy_activation_events: "insert into academy_activation_events(company_id,user_id,event_type,lesson_slug) values($1,gen_random_uuid(),'first_lesson_opened',$2)",
   academy_enrollment_audit_logs: "insert into academy_enrollment_audit_logs(company_id,enrollment_id,actor_user_id,action,reason) values($1,gen_random_uuid(),gen_random_uuid(),'granted',$2)",
   academy_payment_events: "insert into academy_payment_events(company_id,user_id,enrollment_id,provider,event_id,event_type,payment_reference,payload_hash) values($1,gen_random_uuid(),gen_random_uuid(),'stripe',$2,'academy.purchase.completed',$2,repeat('a',64))",
+  documents: "insert into documents(company_id,uploaded_by_user_id,original_file_name,display_name,mime_type,file_size_bytes,storage_key,checksum_sha256) values($1,gen_random_uuid(),$2,$2,'application/pdf',1024,$2,repeat('a',64))",
+  document_processing_runs: "insert into document_processing_runs(company_id,document_id,idempotency_key) values($1,gen_random_uuid(),$2)",
+  document_processing_artifacts: "insert into document_processing_artifacts(company_id,document_id,processing_run_id,artifact_type,storage_key,checksum_sha256,content_type,size_bytes) values($1,gen_random_uuid(),gen_random_uuid(),'normalized_rows',$2,repeat('a',64),'application/json',128)",
+  normalized_quantity_rows: "insert into normalized_quantity_rows(company_id,document_id,processing_run_id,sheet_name,source_row_number,source_cell_range) values($1,gen_random_uuid(),gen_random_uuid(),$2,1,'A1:F1')",
 };
 const rowParams = (table: Table, companyId: string, tag: string) => rowSql[table].includes("$2") ? [companyId, tag] : [companyId];
 
@@ -143,6 +152,7 @@ test("tenant business tables enforce FORCE RLS, pool-safe tenant context and CRM
     assert.deepEqual(await inspectPricingRegulationsRlsViolations(admin), []);
     assert.deepEqual(await inspectAllplanLearnerRlsViolations(admin), []);
     assert.deepEqual(await inspectAcademyControlRlsViolations(admin), []);
+    assert.deepEqual(await inspectSmartcheckPipelineRlsViolations(admin), []);
     assertRoleBoundaries(await inspectRoleBoundaries(admin));
     const states = await admin.query<{ relname: string; rls: boolean; force_rls: boolean; owner: string }>(`select c.relname, c.relrowsecurity rls, c.relforcerowsecurity force_rls, pg_get_userbyid(c.relowner) owner
       from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relname=any($1::text[]) order by c.relname`, [allProtectedTables]);
@@ -150,7 +160,7 @@ test("tenant business tables enforce FORCE RLS, pool-safe tenant context and CRM
     for (const state of states.rows) assert.deepEqual(state, { relname: state.relname, rls: true, force_rls: true, owner: "bimmetraj_owner" });
 
     await admin.query("insert into companies(id,name) values($1,'A'),($2,'B')", [ids.companyA, ids.companyB]);
-    await admin.query("insert into users(id,email,full_name) values($1,'a@business.test','A'),($2,'b@business.test','B')", [ids.userA, ids.userB]);
+    await admin.query("insert into users(id,email,full_name,is_super_admin) values($1,'a@business.test','A',false),($2,'b@business.test','B',false),($3,'superadmin@business.test','Super Admin',true)", [ids.userA, ids.userB, ids.superAdminUser]);
     await admin.query("insert into memberships(user_id,company_id,role) values($1,$2,'owner'),($3,$4,'owner')", [ids.userA, ids.companyA, ids.userB, ids.companyB]);
     await admin.query("insert into clients(id,company_id,name,type) values($1,$2,'Client A','company'),($3,$4,'Client B','company')", [ids.clientA, ids.companyA, ids.clientB, ids.companyB]);
     // Seed one row per tenant and table; FK triggers are bypassed only for this superuser seed.
@@ -193,9 +203,13 @@ test("tenant business tables enforce FORCE RLS, pool-safe tenant context and CRM
         await denied(() => controlPlane.query(`select * from ${quote(table)} limit 1`));
       }
       assert.equal(await adminCount(table, ids.companyB), 1, `${table}: tenant B row survives tenant A writes`);
-      await deniedOrNoRows(() => worker.query(`select * from ${quote(table)}`));
-      await denied(() => worker.query(rowSql[table], rowParams(table, ids.companyA, `worker-${table}`)));
-      await deniedOrNoRows(() => worker.query(`delete from ${quote(table)}`));
+      if (smartcheckPipelineWorkerTables.has(table)) {
+        assert.equal((await worker.query(`select count(*)::int count from ${quote(table)}`)).rows[0].count, 2, `${table}: worker reads pipeline rows`);
+      } else {
+        await deniedOrNoRows(() => worker.query(`select * from ${quote(table)}`));
+        await denied(() => worker.query(rowSql[table], rowParams(table, ids.companyA, `worker-${table}`)));
+        await deniedOrNoRows(() => worker.query(`delete from ${quote(table)}`));
+      }
       assert.equal((await backup.query(`select count(*)::int count from ${quote(table)}`)).rows[0].count, 2, `${table}: backup reads every tenant`);
       await denied(() => backup.query(rowSql[table], rowParams(table, ids.companyA, `backup-${table}`)));
     }
@@ -208,6 +222,20 @@ test("tenant business tables enforce FORCE RLS, pool-safe tenant context and CRM
       assert.deepEqual(verifiedRows.map(row => row.company_id), [ids.companyA]);
       await verifyClient.query("commit");
       assert.equal((await verifyClient.query("select count(*)::int count from allplan_certificates")).rows[0].count, 0);
+      // Super-admin queue GUC rejects malformed UUIDs, allows read-only access on documents & document_processing_runs, and denies writes or artifact/row reads.
+      await verifyClient.query("begin");
+      await verifyClient.query("select set_config('bimmetraj.super_admin_user_id', 'not-a-uuid', true)");
+      await assert.rejects(() => verifyClient.query("select count(*)::int count from documents"), (error: unknown) => error instanceof pg.DatabaseError && error.code === "22P02");
+      await verifyClient.query("rollback");
+      await verifyClient.query("begin");
+      await verifyClient.query("select set_config('bimmetraj.super_admin_user_id', $1, true)", [ids.superAdminUser]);
+      assert.equal((await verifyClient.query("select count(*)::int count from documents")).rows[0].count, 2);
+      assert.equal((await verifyClient.query("select count(*)::int count from document_processing_runs")).rows[0].count, 2);
+      assert.equal((await verifyClient.query("select count(*)::int count from normalized_quantity_rows")).rows[0].count, 0);
+      assert.equal((await verifyClient.query("select count(*)::int count from document_processing_artifacts")).rows[0].count, 0);
+      assert.equal((await verifyClient.query("update document_processing_runs set progress_message='tamper'")).rowCount, 0);
+      await verifyClient.query("commit");
+      assert.equal((await verifyClient.query("select count(*)::int count from document_processing_runs")).rows[0].count, 0);
     } finally {
       verifyClient.release();
     }
@@ -291,6 +319,10 @@ test("tenant business tables enforce FORCE RLS, pool-safe tenant context and CRM
       "alter table academy_enrollments no force row level security",
       "drop policy allplan_certificates_app_verify_read on allplan_certificates",
       "delete from teklifpro_release.migrations where tag='0026_academy_control_rls'",
+      "alter table documents no force row level security",
+      "drop policy document_processing_runs_app_super_admin_read on document_processing_runs",
+      "drop policy normalized_quantity_rows_worker_access on normalized_quantity_rows",
+      "delete from teklifpro_release.migrations where tag='0027_smartcheck_pipeline_rls'",
     ]) {
       await admin.query("begin");
       try {
@@ -301,10 +333,11 @@ test("tenant business tables enforce FORCE RLS, pool-safe tenant context and CRM
           ...(await inspectPricingRegulationsRlsViolations(admin)),
           ...(await inspectAllplanLearnerRlsViolations(admin)),
           ...(await inspectAcademyControlRlsViolations(admin)),
+          ...(await inspectSmartcheckPipelineRlsViolations(admin)),
         ];
         assert.ok(violations.length > 0, mutation);
         const drift = await inspectRoleBoundaries(admin);
-        assert.throws(() => assertRoleBoundaries(drift), /tenant business|quotation core|pricing regulations|allplan learner|academy control|boundary violations/i);
+        assert.throws(() => assertRoleBoundaries(drift), /tenant business|quotation core|pricing regulations|allplan learner|academy control|smartcheck pipeline|boundary violations/i);
       } finally { await admin.query("rollback"); }
     }
     await admin.query("alter policy activities_app_tenant on activities rename to activities_app_tenant_missing");

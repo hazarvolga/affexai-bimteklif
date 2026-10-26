@@ -97,7 +97,11 @@ export function registerMarketIntelligenceRoutes(app: Express) {
     const documentId = textValue(body.documentId, 80) || null;
     let document: typeof documents.$inferSelect | undefined;
     if (documentId) {
-      [document] = await db.select().from(documents).where(and(eq(documents.id, documentId), eq(documents.companyId, req.user.companyId)));
+      [document] = await withAppTenant(
+        tenantOf(req.user),
+        (tenantDb) => tenantDb.select().from(documents).where(and(eq(documents.id, documentId), eq(documents.companyId, req.user.companyId))),
+        { readOnly: true },
+      );
       if (!document) return res.status(404).json({ error: "Kaynak doküman bulunamadı." });
       if (document.checksumSha256 === "pending") return res.status(409).json({ error: "Kaynak doküman yüklemesi tamamlanmalı." });
     }
@@ -193,7 +197,11 @@ export function registerMarketIntelligenceRoutes(app: Express) {
     if (submission.status === "approved" || submission.status === "rejected") return res.status(409).json({ error: "Karara bağlanmış tedarikçi teklifine satır aktarılamaz." });
     const requestedRowIds = Array.isArray(req.body?.rowIds) ? req.body.rowIds.filter((id: unknown): id is string => typeof id === "string" && id.length > 0) : [];
     if (requestedRowIds.length > 5000) return res.status(400).json({ error: "En fazla 5000 SmartCheck satırı aktarılabilir." });
-    const rows = await db.select().from(normalizedQuantityRows).where(and(eq(normalizedQuantityRows.companyId, req.user.companyId), eq(normalizedQuantityRows.documentId, submission.documentId)));
+    const rows = await withAppTenant(
+      tenantOf(req.user),
+      (tenantDb) => tenantDb.select().from(normalizedQuantityRows).where(and(eq(normalizedQuantityRows.companyId, req.user.companyId), eq(normalizedQuantityRows.documentId, submission.documentId))),
+      { readOnly: true },
+    );
     const rowById = new Map(rows.map((row) => [row.id, row]));
     if (requestedRowIds.some((id) => !rowById.has(id))) return res.status(404).json({ error: "Bir veya daha fazla SmartCheck satırı bu şirkete/kaynağa ait değil." });
     const selected = (requestedRowIds.length ? requestedRowIds.map((id) => rowById.get(id)!) : rows.filter((row) => row.reviewStatus === "approved" || row.reviewStatus === "accepted_exception"));

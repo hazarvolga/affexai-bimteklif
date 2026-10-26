@@ -258,7 +258,7 @@ export const ROADMAP_SECTIONS: DocSection[] = [
         ["14 — GAP kapatma Faz 5: güvenli çıktı ve inceleme", "Kısmi / veraPDF 1.30.3 imajda hazır (25 Ekim 2026 · Rev. 76)", "T30, T31, T33 ve T34 kod/test kapsamı tamamlandı: ortak güvenli CSV/XLSX, sınırlı PDF imza yapısal preflight'ı, kaynak kimlikli 3B IFC inceleme pilotu ve immutable ardıl teklif aktarımı devrede. T32'de ifc-worker imajına sabitlenmiş veraPDF 1.30.3 (SHA-256 b512bf24…9a59, GPLv3+/MPLv2+ çift lisans) gömüldü, ham XML rapor verapdf_report_xml artifact'ı olarak saklanıyor ve 7 vakalık PDF/A-2b fixture matrisi imaj içinde doğrulandı; izinli gerçek dosya matrisi ve dönüşüm sağlayıcısı kararı açık."],
         ["15 — GAP kapatma Faz 6: hakediş, Yeşil Defter kanıtı ve ihale savunması", "Kısmi / pilot L2 (24 Ekim 2026 · Rev. 46)", "T35 dönemsel/kümülatif hakediş çekirdeği kod/test kapsamında tamamlandı. T36 kaynak bağlı ölçüm-review çekirdeği tamamlandı; resmî Yeşil Defter/ataşman kabulü açık. T37 deterministik çekirdeğe sahiptir; bağımsız teknik ofis fikstürü eksik. T38 yalnız candidate/internal_roundtrip ve compatible=false üretir; lisanslı vendor native import kabulü yoktur. T39 yalnız provenance/manifest yardımcısıdır; adlı ihale uzmanı imzası yoktur. Faz 6 PARTIAL, varsayılan kapalı, production'a dağıtılmamış ve L3 değildir."],
         ["16 — GAP kapatma Faz 7: PostgreSQL görev ayrımı (T40)", "Canlı rol geçişi tamamlandı; kabul kanıtı açık (25 Ekim 2026 · Rev. 72)", "Rev. 47 canonical rol/ACL/RLS/provenance sözleşmesini kurdu. Rev. 51 yerel runtime credentiallarını ayırdı; Rev. 72 rol kurulumunu Coolify deploy'una (db-bootstrap → migrate → db-provision) taşıdı ve Hazar 25 Ekim 2026'da DB parolalarını döndürdü. Production role-model-smoke, canary, restore/parity ve rollback kanıtı açık."],
-        ["17 — GAP kapatma Faz 7: tenant RLS (T41)", "Kısmi / 63 tenant tablosu + control-plane ayrımı + pilot audit/global katalog yüzeyleri PG16 kanıtlı (25 Ekim 2026 · Rev. 83)", "Rev. 48 beş CDE, Rev. 52 on hakediş, Rev. 53 iki SmartCheck pilot, Rev. 54 company_industry_settings, Rev. 55 CRM leads/companies/subscriptions/usage_logs, Rev. 76 (0022_tenant_business_rls) 14 iş tablosu, Rev. 80 (0023_quotation_core_rls — S1 teklif çekirdeği: 6 tablo), Rev. 81 (0024_pricing_regulations_rls — S2 fiyat/kaynak/mevzuat: 8 tablo), Rev. 82 (0025_allplan_learner_rls — S4a Allplan öğrenci verisi: 7 tablo) ve Rev. 83 (0026_academy_control_rls — S4b Academy control-plane ve sertifika doğrulama: allplan_certificates, academy_enrollments, academy_learner_profiles, academy_activation_events, academy_enrollment_audit_logs, academy_payment_events: 6 tablo) olmak üzere toplam 63 tenant tablosunu (63/72) FORCE RLS ile korur; database-role-provision.pgtest.ts pre-schema modu da 1/1 PASS durumundadır. Kalan 9 tablo (S3 ve S5 dilimleri), worker canary/drain ve canlı negatif kanıt açık olduğundan T41 PARTIAL'dır."],
+        ["17 — GAP kapatma Faz 7: tenant RLS (T41)", "Kısmi / 67 tenant tablosu + control-plane/worker ayrımı + pilot audit/global katalog yüzeyleri PG16 kanıtlı (25 Ekim 2026 · Rev. 84)", "Rev. 48 beş CDE, Rev. 52 on hakediş, Rev. 53 iki SmartCheck pilot, Rev. 54 company_industry_settings, Rev. 55 CRM leads/companies/subscriptions/usage_logs, Rev. 76 (0022_tenant_business_rls) 14 iş tablosu, Rev. 80 (0023_quotation_core_rls — S1 teklif çekirdeği: 6 tablo), Rev. 81 (0024_pricing_regulations_rls — S2 fiyat/kaynak/mevzuat: 8 tablo), Rev. 82 (0025_allplan_learner_rls — S4a Allplan öğrenci verisi: 7 tablo), Rev. 83 (0026_academy_control_rls — S4b Academy control-plane ve sertifika doğrulama: 6 tablo) ve Rev. 84 (0027_smartcheck_pipeline_rls — S3 SmartCheck belge ve worker işlem hattı: documents, document_processing_runs, document_processing_artifacts, normalized_quantity_rows: 4 tablo) olmak üzere toplam 67 tenant tablosunu (67/72) FORCE RLS ile korur; database-role-provision.pgtest.ts pre-schema modu da 1/1 PASS durumundadır. Kalan 5 tablo (S5 yetki ve denetim dilimi), worker canary/drain ve canlı negatif kanıt açık olduğundan T41 PARTIAL'dır."],
         ["18 — GAP kapatma Faz 7: Ödeme/abonelik ve worker transaction güvenliği (T42)", "Kısmi / manuel havale, SmartCheck worker, Academy yetki ve orphan lease dilimleri PG16/test kanıtlı (25 Ekim 2026 · Rev. 78)", "Rev. 49 manuel ödeme yaşam döngüsünü; Rev. 50 SmartCheck queued→running claim, per-delivery lease, stale-owner fencing, atomik canonical publish ve release worker-drain kapısını; Rev. 78 Academy entitlement özellik bayrağı/rol sınırını, 15 dk orphan lease devralmayı ve boş sektör kataloğunda teklif kaydı güvenliğini tamamladı. Canlı banka ekstresi mutabakatı ve production rollout açık olduğundan T42 PARTIAL'dır."],
         ["19 — GAP kapatma Faz 7: Kapsam kapısı ve gerçek tarayıcı E2E (T43)", "Kısmi / c8 kapsam ratchet + Playwright E2E CI'da (25 Ekim 2026 · Rev. 76)", "c8 tüm-dosya kapsam raporu, 7 kritik kapsam tabanı, REQUIRE_TEST_DATABASE=true ve 6 gerçek tarayıcı Playwright E2E senaryosu (giriş, teklif+PDF, SmartCheck IFC, admin roadmap) CI hattına bağlandı. Proje satır kapsamı %46,80 ölçüldü; %80 eşiğine R+1..R+4 ratchet planıyla çıkılacaktır."],
       ] },
@@ -274,17 +274,17 @@ export const ROADMAP_SECTIONS: DocSection[] = [
   },
   {
     id: "revizyon-gunlugu",
-    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 83 · 13–25 Ekim 2026)",
+    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 84 · 13–25 Ekim 2026)",
     blocks: [
       {
         type: "callout",
         tone: "info",
-        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 83)",
-        text: "Bu bölüm, BIMMetraj'ın teknik evrimini Rev. 0'dan 25 Ekim 2026 Rev. 83 · BIM-CALC-2026-10-25.77 sürümüne kadar katı kronolojik sırayla kaydeder. Rev. 67 bağımsız uzman denemesi için kabul kapılarını ve kanıt sırasını /admin/roadmap/expert-review rotasında görünür kılar; uzman onayı değildir. Harici fixture lisansı, T45 gerçek dosya/p95/VPS kanıtı, T43 %80 eşiği, T44 ve kalan tenant RLS dilimleri açık olduğundan T40, T41, T42 ve Faz 7 PARTIAL kalır.",
+        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 84)",
+        text: "Bu bölüm, BIMMetraj'ın teknik evrimini Rev. 0'dan 25 Ekim 2026 Rev. 84 · BIM-CALC-2026-10-25.78 sürümüne kadar katı kronolojik sırayla kaydeder. Rev. 67 bağımsız uzman denemesi için kabul kapılarını ve kanıt sırasını /admin/roadmap/expert-review rotasında görünür kılar; uzman onayı değildir. Harici fixture lisansı, T45 gerçek dosya/p95/VPS kanıtı, T43 %80 eşiği, T44 ve kalan tenant RLS dilimi (S5) açık olduğundan T40, T41, T42 ve Faz 7 PARTIAL kalır.",
       },
       {
         type: "p",
-        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 83):",
+        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 84):",
       },
       {
         type: "table",
@@ -790,16 +790,22 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "T41 S4a dilimi (0025_allplan_learner_rls) tamamlandı: 1) allplan_lesson_progress, allplan_lesson_activity, allplan_lesson_notes, allplan_lesson_bookmarks, allplan_checkpoint_attempts, allplan_exam_attempts ve allplan_certificate_audit_logs (7 tablo) ENABLE + FORCE RLS ve exact CDE 3-policy matrisine alındı; böylece company_id taşıyan 72 tablonun 57'si (%79,2) FORCE RLS altındadır. 2) src/server/routes/academy.ts içindeki kimlik doğrulamalı tüm Allplan öğrenci ilerleme, etkinlik, not, yer imi, checkpoint, sınav, sertifika düzenleme/iptal ve ekip raporu sorguları withAppTenant / withAppTenantTransaction içine taşındı. 3) tenant-business-rls.pgtest.ts 35 tablo (0022 + 0023 + 0024 + 0025) için 1/1 PASS, artifacts.test.ts 15/15 PASS ve verify.integration.test.ts 14/14 PASS olarak doğrulandı.",
           ],
           [
-            "Rev. 83 (Güncel geliştirme)",
+            "Rev. 83",
             "25 Ekim 2026 (T41 S4b Academy Control-Plane ve Sertifika Doğrulama 0026_academy_control_rls FORCE RLS)",
-            "BIM-CALC-2026-10-25.77",
+            "BIM-CALC-2026-10-25.77 (4a30135)",
             "T41 S4b dilimi (0026_academy_control_rls) tamamlandı: 1) allplan_certificates (app tenant ALL + bimmetraj.certificate_number GUC ile app verify SELECT + backup SELECT + migrator-owner ALL) ve academy_enrollments, academy_learner_profiles, academy_activation_events, academy_enrollment_audit_logs, academy_payment_events (app tenant SELECT + control ALL + backup SELECT + migrator-owner ALL) olmak üzere 6 tablo ENABLE + FORCE RLS altına alındı; böylece company_id taşıyan 72 tablonun 63'ü (%87,5) FORCE RLS altındadır (kalan 9 tablo S3 ve S5 dilimlerinde). 2) academyEntitlement.ts, academy.ts (kayıt/aktivasyon/öğrenci profili/sertifika doğrulama ve platform aktivasyon özeti) ve auth.ts (login/me öğrenci profili okumaları) withAppTenant, getControlDatabase().db ve transaction-local GUC sınırına taşındı. 3) tenant-business-rls.pgtest.ts 41 tablo (0022–0026) için 1/1 PASS, artifacts.test.ts 16/16 PASS ve verify.integration.test.ts 14/14 PASS olarak doğrulandı.",
+          ],
+          [
+            "Rev. 84 (Güncel geliştirme)",
+            "25 Ekim 2026 (T41 S3 SmartCheck Belge ve Worker İşlem Hattı 0027_smartcheck_pipeline_rls FORCE RLS)",
+            "BIM-CALC-2026-10-25.78",
+            "T41 S3 dilimi (0027_smartcheck_pipeline_rls) tamamlandı: 1) documents, document_processing_runs, document_processing_artifacts ve normalized_quantity_rows (4 tablo) ENABLE + FORCE RLS altına alındı (app tenant ALL + worker ALL + backup SELECT + migrator-owner ALL; documents ve document_processing_runs üzerinde ayrıca bimmetraj.super_admin_user_id UUID GUC ile app super-admin queue SELECT); böylece company_id taşıyan 72 tablonun 67'si (%93,1) FORCE RLS altındadır (kalan 5 tablo S5 yetki/denetim diliminde). 2) smartcheck.ts, upload-quota.ts, service.ts, market-intelligence.ts ve admin.ts (kuyruk sağlığı, kuyruk listesi, recover ve retry) sorguları withAppTenant, withAppTenantTransaction ve withSuperAdminQueueRead sınırına taşındı; GET /api/admin/queue üzerindeki companies FORCE RLS gizli hatası getControlDatabase().db ile kapatıldı. 3) tenant-business-rls.pgtest.ts 45 tablo (0022–0027) için 1/1 PASS, artifacts.test.ts 17/17 PASS ve verify.integration.test.ts 14/14 PASS olarak doğrulandı.",
           ],
         ],
       },
       {
         type: "p",
-        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 83 · Önceki Durum → Yeni Durum):",
+        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 84 · Önceki Durum → Yeni Durum):",
       },
       {
         type: "table",
@@ -1484,11 +1490,18 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "drizzle-release/0025_allplan_learner_rls.sql, src/db/schema.ts, scripts/database-roles/contract.ts, scripts/database-roles/inspect.ts, scripts/release-migrations/data-transitions.ts, scripts/release-migrations/stage-signatures.ts, src/contracts/tenant-business-rls.pgtest.ts, src/server/routes/academy.ts",
           ],
           [
-            "Rev. 83 · 25 Ekim 2026 (T41 S4b 0026_academy_control_rls: 6 Academy control-plane ve sertifika tablosu FORCE RLS)",
+            "Rev. 83 · 25 Ekim 2026 · 4a30135 (T41 S4b 0026_academy_control_rls: 6 Academy control-plane ve sertifika tablosu FORCE RLS)",
             "GAP planı T41 S4b dilimi (6 Academy & sertifika tablosu FORCE RLS)",
             "allplan_certificates, academy_enrollments, academy_learner_profiles, academy_activation_events, academy_enrollment_audit_logs ve academy_payment_events tablolarında FORCE RLS yoktu; halka açık sertifika doğrulama rotası ve auth/academy okumaları tenant GUC bağlamı olmadan çalışıyordu.",
             "0026_academy_control_rls.sql ile allplan_certificates (app tenant ALL + bimmetraj.certificate_number GUC verify SELECT + backup SELECT + migrator-owner ALL) ve 5 academy_* tablosuna (app tenant SELECT + control ALL + backup SELECT + migrator-owner ALL) ENABLE+FORCE RLS eklendi (63/72 company_id tablosu FORCE RLS altında); academyEntitlement.ts, academy.ts ve auth.ts sorguları withAppTenant, getControlDatabase().db ve sertifika GUC sınırına taşındı; PG16 kontratı 41 tablo için doğrulandı.",
             "drizzle-release/0026_academy_control_rls.sql, src/db/schema.ts, scripts/database-roles/contract.ts, scripts/database-roles/inspect.ts, scripts/release-migrations/data-transitions.ts, scripts/release-migrations/stage-signatures.ts, src/contracts/tenant-business-rls.pgtest.ts, src/server/middleware/academyEntitlement.ts, src/server/routes/academy.ts, src/server/routes/auth.ts",
+          ],
+          [
+            "Rev. 84 · 25 Ekim 2026 (T41 S3 0027_smartcheck_pipeline_rls: 4 SmartCheck belge ve worker işlem hattı tablosu FORCE RLS)",
+            "GAP planı T41 S3 dilimi (4 SmartCheck pipeline tablosu FORCE RLS)",
+            "documents, document_processing_runs, document_processing_artifacts ve normalized_quantity_rows tablolarında FORCE RLS yoktu; smartcheck.ts, upload-quota.ts, service.ts, market-intelligence.ts ve admin.ts kuyruk rotaları paylaşılan app havuzundan doğrudan çalışıyor ve GET /api/admin/queue rotası FORCE RLS altındaki companies tablosunu bimmetraj_app ile birleştirdiği için 0 satır dönüyordu.",
+            "0027_smartcheck_pipeline_rls.sql ile 4 SmartCheck pipeline tablosuna ENABLE+FORCE RLS (app tenant ALL + worker ALL + backup SELECT + migrator-owner ALL; documents ve document_processing_runs için ayrıca bimmetraj.super_admin_user_id UUID GUC SELECT) eklendi (67/72 company_id tablosu FORCE RLS altında); smartcheck.ts, upload-quota.ts, service.ts, market-intelligence.ts ve admin.ts sorguları withAppTenant, withAppTenantTransaction ve withSuperAdminQueueRead sınırına taşındı; PG16 kontratı 45 tablo için doğrulandı.",
+            "drizzle-release/0027_smartcheck_pipeline_rls.sql, src/db/schema.ts, src/db/app-tenant.ts, scripts/database-roles/contract.ts, scripts/database-roles/inspect.ts, scripts/release-migrations/data-transitions.ts, scripts/release-migrations/stage-signatures.ts, src/contracts/tenant-business-rls.pgtest.ts, src/smartcheck/import/upload-quota.ts, src/smartcheck/import/service.ts, src/server/routes/smartcheck.ts, src/server/routes/market-intelligence.ts, src/server/routes/admin.ts",
           ],
         ],
       },

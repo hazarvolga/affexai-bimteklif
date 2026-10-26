@@ -3,6 +3,7 @@ import { detectAndValidateFile } from './file-security';
 import crypto from 'node:crypto';
 import { and, desc, eq, sql } from 'drizzle-orm';
 import { db } from '../../db';
+import { withAppTenant, withAppTenantTransaction } from '../../db/app-tenant';
 import { adminAuditLogs, documents, documentProcessingRuns, plans, smartcheckAuditLogs, subscriptions, usageRecords } from '../../db/schema';
 import { processingIdempotencyKey } from './processor';
 import type { ColumnMapping } from './normalize';
@@ -60,7 +61,11 @@ export async function changeProcessingRun(input: {
 
   let kind: "ifc" | "xlsx" | "csv" | "pdf" = "ifc";
   if (action !== "recover") {
-    const docInfo = await db.select({ storageKey: documents.storageKey, originalFileName: documents.originalFileName, mimeType: documents.mimeType, checksumSha256: documents.checksumSha256 }).from(documents).where(and(eq(documents.id, documentId), eq(documents.companyId, companyId))).then(rows => rows[0]);
+    const docInfo = await withAppTenant(
+      { companyId, userId },
+      (tenantDb) => tenantDb.select({ storageKey: documents.storageKey, originalFileName: documents.originalFileName, mimeType: documents.mimeType, checksumSha256: documents.checksumSha256 }).from(documents).where(and(eq(documents.id, documentId), eq(documents.companyId, companyId))).then(rows => rows[0]),
+      { readOnly: true },
+    );
     if (!docInfo) throw new ProcessingConflict("DOCUMENT_NOT_FOUND", 404);
     if (docInfo.checksumSha256 === "pending") throw new ProcessingConflict("UPLOAD_INCOMPLETE");
 
@@ -69,7 +74,7 @@ export async function changeProcessingRun(input: {
     kind = detectAndValidateFile(sample, docInfo.originalFileName, docInfo.mimeType);
   }
 
-  return db.transaction(async (tx) => {
+  return withAppTenantTransaction({ companyId, userId }, async (tx) => {
     // Advisory locks at the VERY BEGINNING of the transaction, before document row lock.
     // 1. Company-level advisory lock (serializes tenant processing runs & IFC concurrency checks)
     await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext('smartcheck_company'), hashtext(${companyId}))`);

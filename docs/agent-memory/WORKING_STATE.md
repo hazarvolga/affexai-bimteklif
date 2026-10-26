@@ -29,17 +29,25 @@ history to `archive/` (latest: `archive/WORKING_STATE_until_2026-10-24.md`).
 
 ## Code (main / working branch)
 
-- Latest roadmap revision: **Rev. 75** (`BIM-CALC-2026-10-25.69`): site JSON-LD generated from the
+- Latest roadmap revision: **Rev. 84** (`BIM-CALC-2026-10-25.78`): T41 S3 (`0027_smartcheck_pipeline_rls`) — 4 SmartCheck pipeline tables (`documents`, `document_processing_runs`, `document_processing_artifacts`, `normalized_quantity_rows`) under FORCE RLS (`67/72` `company_id` tables under FORCE RLS); `withSuperAdminQueueRead` and `getControlDatabase().db` for `/api/admin/queue` & `/api/admin/dashboard`.
+  Rev. 83 (`BIM-CALC-2026-10-25.77`): T41 S4b (`0026_academy_control_rls`) — 6 Academy control-plane & certificate tables under FORCE RLS (`63/72`).
+  Rev. 82 (`BIM-CALC-2026-10-25.76`): T41 S4a (`0025_allplan_learner_rls`) — 7 Allplan learner tables under FORCE RLS (`57/72`).
+  Rev. 81 (`BIM-CALC-2026-10-25.75`): T41 S2 (`0024_pricing_regulations_rls`) — 8 pricing, source intelligence, and regulation tables under FORCE RLS (`50/72`).
+  Rev. 80 (`BIM-CALC-2026-10-25.74`): T41 S1 (`0023_quotation_core_rls`) — 6 quotation core tables under FORCE RLS (`42/72`) + `database-role-provision.pgtest.ts` pre-schema role contract fix.
+  Rev. 79 (`BIM-CALC-2026-10-25.73`): T43 CI system Python resolution for `server-path.e2e.test.ts`.
+  Rev. 78 (`BIM-CALC-2026-10-25.72`): T42 authority/resource boundary, §8.4 industry default fallback, and 15m orphan lease takeover.
+  Rev. 77 (`BIM-CALC-2026-10-25.71`): T46 single-source copy closure (`LegislationView`, `BimGlossary`, `BimDashboard`, `AdminDashboard`, `PricingSources`) + platform owner (`hazarvolga@gmail.com`) super-admin guard.
+  Rev. 76 (`BIM-CALC-2026-10-25.70`): T41 (`0022_tenant_business_rls` 14 tables), T32 (`veraPDF 1.30.3` in `ifc-worker` + `verapdf_report_xml` + 7/7 PDF/A fixture matrix), and T43 (`c8` coverage ratchet + 6 Playwright E2E tests).
+  Rev. 75 (`BIM-CALC-2026-10-25.69`): site JSON-LD generated from the
   registry and plan catalog, landing claims trimmed, public-copy guard test, `areaServed` TR.
-  Not deployed yet.
   Rev. 74 (`BIM-CALC-2026-10-25.68`): T46 first slice (llms.txt
   capabilities only from the registry, package prices from the plan catalog) and T48 (server
-  text prerendered inside `#root` instead of `<noscript>`). Not deployed yet.
+  text prerendered inside `#root` instead of `<noscript>`).
   Rev. 73 (`BIM-CALC-2026-10-25.67`): Faz 8 SEO/GEO code items
   (T47/T49): no fixed sitemap lastmod, PUBLIC_APP_URL fail-fast pinned by tests, route JSON-LD
   for calculators and the glossary, explicit AI crawler groups in robots.txt
   (`ROBOTS_AI_TRAINING=disallow` closes training crawlers; default allows), llms links in
-  `index.html`. Not deployed yet.
+  `index.html`.
   Rev. 72 (`BIM-CALC-2026-10-25.66`): role setup runs inside the
   Coolify deploy (db-bootstrap -> migrate -> db-provision); clean-install steps in
   `docs/operations/database-role-model.md`.
@@ -63,8 +71,8 @@ history to `archive/` (latest: `archive/WORKING_STATE_until_2026-10-24.md`).
 - GAP programme (`docs/audits/GAP_KAPATMA_VE_KANIT_YOL_HARITASI_2026-10-23.md`):
   Faz 0–4 code/test done; Faz 5–6 partial (progress payments default-off,
   pilot L2); Faz 7 T40 role cutover live since Rev. 72 (canary, restore and
-  rollback evidence open), T41 partial (22 tenant tables under RLS),
-  T42 partial, T43–T45 open; Faz 8–11 open. Expert trial guide:
+  rollback evidence open), T41 partial (67/72 tenant `company_id` tables under FORCE RLS),
+  T42 partial (code/test done), T43 partial (`c8` 46.80% + Playwright 6/6 in CI), T44–T45 open; Faz 8 T46–T49 code/test done; Faz 9–11 open. Expert trial guide:
   `/admin/roadmap/expert-review`.
 - Role and tenant models: `docs/operations/database-role-model.md`,
   `docs/operations/tenant-rls-model.md`.

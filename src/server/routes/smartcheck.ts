@@ -238,7 +238,11 @@ export function registerSmartCheckRoutes(app: Express) {
 
   app.put("/api/smartcheck/documents/:id/content", authenticate, requireVerifiedEmail, featureGate, rateLimit, canReview, uploadBody, async (req, res) => {
     if (process.env.NODE_ENV === "production") return res.status(404).end();
-    const [document] = await db.select().from(documents).where(and(eq(documents.id, req.params.id), eq(documents.companyId, req.user.companyId)));
+    const [document] = await withAppTenant(
+      tenantOf(req.user),
+      (tenantDb) => tenantDb.select().from(documents).where(and(eq(documents.id, req.params.id), eq(documents.companyId, req.user.companyId))),
+      { readOnly: true },
+    );
     if (!document) return res.status(404).json({ error: "Doküman bulunamadı." });
     if (document.checksumSha256 !== "pending") return res.status(409).json({ error: "Dosya zaten tamamlandı.", code: "UPLOAD_ALREADY_COMPLETED" });
     if (Date.now() - document.createdAt.getTime() >= UPLOAD_MAX_TTL_MS) return res.status(410).json({ error: "Yükleme süresi doldu.", code: "UPLOAD_EXPIRED" });
@@ -254,7 +258,11 @@ export function registerSmartCheckRoutes(app: Express) {
     const parsedRequest = smartcheckCompleteRequestSchema.safeParse(req.body);
     if (!parsedRequest.success) return res.status(400).json({ error: "Geçersiz SHA-256 checksum." });
     const checksum = parsedRequest.data.checksumSha256;
-    const [document] = await db.select().from(documents).where(and(eq(documents.id, req.params.id), eq(documents.companyId, req.user.companyId)));
+    const [document] = await withAppTenant(
+      tenantOf(req.user),
+      (tenantDb) => tenantDb.select().from(documents).where(and(eq(documents.id, req.params.id), eq(documents.companyId, req.user.companyId))),
+      { readOnly: true },
+    );
     if (!document) return res.status(404).json({ error: "Doküman bulunamadı." });
     if (document.checksumSha256 !== "pending") return res.status(409).json({ error: "Dosya zaten tamamlandı.", code: "UPLOAD_ALREADY_COMPLETED" });
     if (Date.now() - document.createdAt.getTime() >= UPLOAD_MAX_TTL_MS) return res.status(410).json({ error: "Yükleme süresi doldu.", code: "UPLOAD_EXPIRED" });
@@ -315,7 +323,10 @@ export function registerSmartCheckRoutes(app: Express) {
       if (kind === "ifc" || kind === "pdf") {
         await audit(req, "upload_completed", "document", document.id, { checksum, kind, processingStatus: "ifc_worker_enabled" });
       }
-      const [updated] = await db.update(documents).set({ checksumSha256: checksum, updatedAt: new Date() }).where(and(eq(documents.id, document.id), eq(documents.companyId, req.user.companyId))).returning();
+      const [updated] = await withAppTenant(
+        tenantOf(req.user),
+        (tenantDb) => tenantDb.update(documents).set({ checksumSha256: checksum, updatedAt: new Date() }).where(and(eq(documents.id, document.id), eq(documents.companyId, req.user.companyId))).returning(),
+      );
       if (kind !== "ifc" && kind !== "pdf") await audit(req, "upload_completed", "document", document.id, { checksum, kind });
       return res.json(updated);
     } catch (error: unknown) {
@@ -325,7 +336,10 @@ export function registerSmartCheckRoutes(app: Express) {
 
       await Promise.allSettled([
         storage.delete(document.storageKey),
-        db.update(documents).set({ status: 'failed', updatedAt: new Date() }).where(and(eq(documents.id, document.id), eq(documents.companyId, req.user.companyId)))
+        withAppTenant(
+          tenantOf(req.user),
+          (tenantDb) => tenantDb.update(documents).set({ status: 'failed', updatedAt: new Date() }).where(and(eq(documents.id, document.id), eq(documents.companyId, req.user.companyId))),
+        )
       ]);
 
       if (error instanceof IfcNotAvailableError) {
@@ -362,7 +376,11 @@ export function registerSmartCheckRoutes(app: Express) {
   });
 
   app.get("/api/smartcheck/documents/:id/preview", authenticate, featureGate, readRateLimit, async (req, res) => {
-    const [document] = await db.select().from(documents).where(and(eq(documents.id, req.params.id), eq(documents.companyId, req.user.companyId)));
+    const [document] = await withAppTenant(
+      tenantOf(req.user),
+      (tenantDb) => tenantDb.select().from(documents).where(and(eq(documents.id, req.params.id), eq(documents.companyId, req.user.companyId))),
+      { readOnly: true },
+    );
     if (!document) return res.status(404).json({ error: "Doküman bulunamadı." });
     if (document.checksumSha256 === "pending") return res.status(409).json({ error: "Önizleme için yükleme tamamlanmalı." });
     if (document.originalFileName.toLowerCase().endsWith(".ifc") || document.mimeType === "application/ifc") {
@@ -389,34 +407,53 @@ export function registerSmartCheckRoutes(app: Express) {
   });
 
   app.get("/api/smartcheck/documents/:id/status", authenticate, featureGate, readRateLimit, async (req, res) => {
-    const [document] = await db.select().from(documents).where(and(eq(documents.id, req.params.id), eq(documents.companyId, req.user.companyId)));
+    const { document, run } = await withAppTenant(tenantOf(req.user), async (tenantDb) => {
+      const [document] = await tenantDb.select().from(documents).where(and(eq(documents.id, req.params.id), eq(documents.companyId, req.user.companyId)));
+      if (!document) return { document: undefined, run: undefined };
+      const [run] = await tenantDb.select({
+        id: documentProcessingRuns.id,
+        documentId: documentProcessingRuns.documentId,
+        status: documentProcessingRuns.status,
+        currentStage: documentProcessingRuns.currentStage,
+        pipelineVersion: documentProcessingRuns.pipelineVersion,
+        provider: documentProcessingRuns.provider,
+        model: documentProcessingRuns.model,
+        progressPercent: documentProcessingRuns.progressPercent,
+        progressMessage: documentProcessingRuns.progressMessage,
+        quotaConsumed: documentProcessingRuns.quotaConsumed,
+        errorCode: documentProcessingRuns.errorCode,
+        errorMessage: documentProcessingRuns.errorMessage,
+        startedAt: documentProcessingRuns.startedAt,
+        completedAt: documentProcessingRuns.completedAt,
+        createdAt: documentProcessingRuns.createdAt,
+        updatedAt: documentProcessingRuns.updatedAt,
+      }).from(documentProcessingRuns).where(and(eq(documentProcessingRuns.documentId, document.id), eq(documentProcessingRuns.companyId, req.user.companyId))).orderBy(desc(documentProcessingRuns.createdAt)).limit(1);
+      return { document, run };
+    }, { readOnly: true });
     if (!document) return res.status(404).json({ error: "Doküman bulunamadı." });
-    const [run] = await db.select({
-      id: documentProcessingRuns.id,
-      documentId: documentProcessingRuns.documentId,
-      status: documentProcessingRuns.status,
-      currentStage: documentProcessingRuns.currentStage,
-      pipelineVersion: documentProcessingRuns.pipelineVersion,
-      provider: documentProcessingRuns.provider,
-      model: documentProcessingRuns.model,
-      progressPercent: documentProcessingRuns.progressPercent,
-      progressMessage: documentProcessingRuns.progressMessage,
-      quotaConsumed: documentProcessingRuns.quotaConsumed,
-      errorCode: documentProcessingRuns.errorCode,
-      errorMessage: documentProcessingRuns.errorMessage,
-      startedAt: documentProcessingRuns.startedAt,
-      completedAt: documentProcessingRuns.completedAt,
-      createdAt: documentProcessingRuns.createdAt,
-      updatedAt: documentProcessingRuns.updatedAt,
-    }).from(documentProcessingRuns).where(and(eq(documentProcessingRuns.documentId, document.id), eq(documentProcessingRuns.companyId, req.user.companyId))).orderBy(desc(documentProcessingRuns.createdAt)).limit(1);
     res.json({ document, run: run ?? null });
   });
 
   app.get("/api/smartcheck/documents/:id/viewer-context", authenticate, featureGate, readRateLimit, canReview, viewerContextRateLimit, viewerContextAdmission, async (req, res) => {
-    const [document] = await db.select().from(documents).where(and(
-      eq(documents.id, req.params.id),
-      eq(documents.companyId, req.user.companyId),
-    ));
+    const { document, latestRun, artifact } = await withAppTenant(tenantOf(req.user), async (tenantDb) => {
+      const [document] = await tenantDb.select().from(documents).where(and(
+        eq(documents.id, req.params.id),
+        eq(documents.companyId, req.user.companyId),
+      ));
+      if (!document) return { document: undefined, latestRun: undefined, artifact: undefined };
+      const [latestRun] = await tenantDb.select({ id: documentProcessingRuns.id }).from(documentProcessingRuns).where(and(
+        eq(documentProcessingRuns.companyId, req.user.companyId),
+        eq(documentProcessingRuns.documentId, document.id),
+        eq(documentProcessingRuns.status, "succeeded"),
+      )).orderBy(desc(documentProcessingRuns.completedAt), desc(documentProcessingRuns.createdAt)).limit(1);
+      const [artifact] = latestRun ? await tenantDb.select().from(documentProcessingArtifacts).where(and(
+        eq(documentProcessingArtifacts.companyId, req.user.companyId),
+        eq(documentProcessingArtifacts.documentId, document.id),
+        eq(documentProcessingArtifacts.processingRunId, latestRun.id),
+        eq(documentProcessingArtifacts.artifactType, "ifc_evidence"),
+      )).limit(1) : [];
+      return { document, latestRun, artifact };
+    }, { readOnly: true });
     if (!document) return res.status(404).json({ error: "Doküman bulunamadı." });
     if (!document.originalFileName.toLowerCase().endsWith(".ifc") && document.mimeType !== "application/ifc" && document.mimeType !== "model/ifc") {
       return res.status(415).json({ error: "3B inceleme yalnız IFC kaynaklarında kullanılabilir.", code: "IFC_VIEWER_REQUIRES_IFC" });
@@ -424,18 +461,7 @@ export function registerSmartCheckRoutes(app: Express) {
     if (document.fileSizeBytes > IFC_VIEWER_MAX_FILE_BYTES) {
       return res.status(413).json({ error: "IFC 3B inceleme sınırı 50 MiB'dir.", code: "IFC_VIEWER_FILE_BUDGET_EXCEEDED" });
     }
-    const [latestRun] = await db.select({ id: documentProcessingRuns.id }).from(documentProcessingRuns).where(and(
-      eq(documentProcessingRuns.companyId, req.user.companyId),
-      eq(documentProcessingRuns.documentId, document.id),
-      eq(documentProcessingRuns.status, "succeeded"),
-    )).orderBy(desc(documentProcessingRuns.completedAt), desc(documentProcessingRuns.createdAt)).limit(1);
     if (!latestRun) return res.status(409).json({ error: "Başarılı IFC işleme kanıtı bulunamadı.", code: "IFC_VIEWER_SUCCESSFUL_RUN_REQUIRED" });
-    const [artifact] = await db.select().from(documentProcessingArtifacts).where(and(
-      eq(documentProcessingArtifacts.companyId, req.user.companyId),
-      eq(documentProcessingArtifacts.documentId, document.id),
-      eq(documentProcessingArtifacts.processingRunId, latestRun.id),
-      eq(documentProcessingArtifacts.artifactType, "ifc_evidence"),
-    )).limit(1);
     if (!artifact) return res.status(409).json({ error: "IFC kimlik kanıtı bulunamadı.", code: "IFC_VIEWER_EVIDENCE_REQUIRED" });
     const controller = new AbortController();
     const abortRead = () => controller.abort(new Error("IFC_VIEWER_CLIENT_ABORTED"));
@@ -482,20 +508,24 @@ export function registerSmartCheckRoutes(app: Express) {
   });
 
   app.get("/api/smartcheck/documents/:id/viewer-content", authenticate, featureGate, readRateLimit, canReview, viewerContentRateLimit, viewerContentAdmission, async (req, res) => {
-    const [document] = await db.select().from(documents).where(and(
-      eq(documents.id, req.params.id),
-      eq(documents.companyId, req.user.companyId),
-    ));
+    const { document, latestRun } = await withAppTenant(tenantOf(req.user), async (tenantDb) => {
+      const [document] = await tenantDb.select().from(documents).where(and(
+        eq(documents.id, req.params.id),
+        eq(documents.companyId, req.user.companyId),
+      ));
+      if (!document) return { document: undefined, latestRun: undefined };
+      const [latestRun] = await tenantDb.select({ id: documentProcessingRuns.id }).from(documentProcessingRuns).where(and(
+        eq(documentProcessingRuns.companyId, req.user.companyId),
+        eq(documentProcessingRuns.documentId, document.id),
+        eq(documentProcessingRuns.status, "succeeded"),
+      )).orderBy(desc(documentProcessingRuns.completedAt), desc(documentProcessingRuns.createdAt)).limit(1);
+      return { document, latestRun };
+    }, { readOnly: true });
     if (!document) return res.status(404).json({ error: "Doküman bulunamadı." });
     if ((!document.originalFileName.toLowerCase().endsWith(".ifc") && document.mimeType !== "application/ifc" && document.mimeType !== "model/ifc") || document.checksumSha256 === "pending") {
       return res.status(409).json({ error: "Doğrulanmış IFC kaynağı bulunamadı.", code: "IFC_VIEWER_SOURCE_INVALID" });
     }
     if (document.fileSizeBytes > IFC_VIEWER_MAX_FILE_BYTES) return res.status(413).json({ error: "IFC 3B inceleme sınırı 50 MiB'dir.", code: "IFC_VIEWER_FILE_BUDGET_EXCEEDED" });
-    const [latestRun] = await db.select({ id: documentProcessingRuns.id }).from(documentProcessingRuns).where(and(
-      eq(documentProcessingRuns.companyId, req.user.companyId),
-      eq(documentProcessingRuns.documentId, document.id),
-      eq(documentProcessingRuns.status, "succeeded"),
-    )).orderBy(desc(documentProcessingRuns.completedAt), desc(documentProcessingRuns.createdAt)).limit(1);
     if (!latestRun) return res.status(409).json({ error: "Başarılı IFC işleme kanıtı bulunamadı.", code: "IFC_VIEWER_SUCCESSFUL_RUN_REQUIRED" });
     const storage = createStorageAdapter();
     if (!storage.getStream) return res.status(503).json({ error: "IFC akış servisi kullanılamıyor.", code: "IFC_VIEWER_STREAM_UNAVAILABLE" });
@@ -538,7 +568,10 @@ export function registerSmartCheckRoutes(app: Express) {
     }
     if (mapping.profileId && !getMappingProfile(mapping.profileId)) return res.status(400).json({ error: "Bilinmeyen MEP eşleme profili." });
     if (mappingRequest.headerRow !== undefined) mapping.headerRow = mappingRequest.headerRow;
-    const [document] = await db.update(documents).set({ importMappingJson: mapping, updatedAt: new Date() }).where(and(eq(documents.id, req.params.id), eq(documents.companyId, req.user.companyId))).returning();
+    const [document] = await withAppTenant(
+      tenantOf(req.user),
+      (tenantDb) => tenantDb.update(documents).set({ importMappingJson: mapping, updatedAt: new Date() }).where(and(eq(documents.id, req.params.id), eq(documents.companyId, req.user.companyId))).returning(),
+    );
     if (!document) return res.status(404).json({ error: "Doküman bulunamadı." });
     await audit(req, "mapping_updated", "document", document.id, { mapping });
     res.json({ mapping });
@@ -574,7 +607,7 @@ export function registerSmartCheckRoutes(app: Express) {
   }
 
   app.get("/api/smartcheck/queue", authenticate, featureGate, readRateLimit, canReview, async (req, res) => {
-    const queue = await db.select({
+    const queue = await withAppTenant(tenantOf(req.user), (tenantDb) => tenantDb.select({
       id: documentProcessingRuns.id,
       documentId: documentProcessingRuns.documentId,
       status: documentProcessingRuns.status,
@@ -586,24 +619,28 @@ export function registerSmartCheckRoutes(app: Express) {
       createdAt: documentProcessingRuns.createdAt,
       updatedAt: documentProcessingRuns.updatedAt,
       fileName: documents.originalFileName,
-    }).from(documentProcessingRuns).leftJoin(documents, and(eq(documents.id, documentProcessingRuns.documentId), eq(documents.companyId, req.user.companyId))).where(eq(documentProcessingRuns.companyId, req.user.companyId)).orderBy(desc(documentProcessingRuns.createdAt)).limit(25);
+    }).from(documentProcessingRuns).leftJoin(documents, and(eq(documents.id, documentProcessingRuns.documentId), eq(documents.companyId, req.user.companyId))).where(eq(documentProcessingRuns.companyId, req.user.companyId)).orderBy(desc(documentProcessingRuns.createdAt)).limit(25), { readOnly: true });
     res.json(queue.map((run) => ({ ...run, isStale: isProcessingRunStale(run) })));
   });
 
   // Latest RG 33331 e-PYS pre-check (EK-9) for the document; advisory, tenant-scoped.
   app.get("/api/smartcheck/documents/:id/epys-preflight", authenticate, featureGate, readRateLimit, async (req, res) => {
-    const [document] = await db.select({ id: documents.id }).from(documents).where(and(eq(documents.id, req.params.id), eq(documents.companyId, req.user.companyId)));
+    const { document, latestRun, artifact } = await withAppTenant(tenantOf(req.user), async (tenantDb) => {
+      const [document] = await tenantDb.select({ id: documents.id }).from(documents).where(and(eq(documents.id, req.params.id), eq(documents.companyId, req.user.companyId)));
+      if (!document) return { document: undefined, latestRun: undefined, artifact: undefined };
+      const [latestRun] = await tenantDb.select({ id: documentProcessingRuns.id, status: documentProcessingRuns.status, errorCode: documentProcessingRuns.errorCode }).from(documentProcessingRuns)
+        .where(and(eq(documentProcessingRuns.documentId, document.id), eq(documentProcessingRuns.companyId, req.user.companyId)))
+        .orderBy(desc(documentProcessingRuns.createdAt)).limit(1);
+      const [artifact] = latestRun ? await tenantDb.select({ metadataJson: documentProcessingArtifacts.metadataJson, createdAt: documentProcessingArtifacts.createdAt, processingRunId: documentProcessingArtifacts.processingRunId })
+        .from(documentProcessingArtifacts)
+        .where(and(eq(documentProcessingArtifacts.documentId, document.id), eq(documentProcessingArtifacts.companyId, req.user.companyId), eq(documentProcessingArtifacts.processingRunId, latestRun.id), eq(documentProcessingArtifacts.artifactType, "epys_preflight")))
+        .orderBy(desc(documentProcessingArtifacts.createdAt)).limit(1) : [];
+      return { document, latestRun, artifact };
+    }, { readOnly: true });
     if (!document) return res.status(404).json({ error: "Doküman bulunamadı." });
-    const [latestRun] = await db.select({ id: documentProcessingRuns.id, status: documentProcessingRuns.status, errorCode: documentProcessingRuns.errorCode }).from(documentProcessingRuns)
-      .where(and(eq(documentProcessingRuns.documentId, document.id), eq(documentProcessingRuns.companyId, req.user.companyId)))
-      .orderBy(desc(documentProcessingRuns.createdAt)).limit(1);
     if (!latestRun || latestRun.status === "queued" || latestRun.status === "running") {
       return res.status(409).json({ error: "Son işleme tamamlanmadı.", code: "PREFLIGHT_RUN_NOT_SUCCEEDED" });
     }
-    const [artifact] = await db.select({ metadataJson: documentProcessingArtifacts.metadataJson, createdAt: documentProcessingArtifacts.createdAt, processingRunId: documentProcessingArtifacts.processingRunId })
-      .from(documentProcessingArtifacts)
-      .where(and(eq(documentProcessingArtifacts.documentId, document.id), eq(documentProcessingArtifacts.companyId, req.user.companyId), eq(documentProcessingArtifacts.processingRunId, latestRun.id), eq(documentProcessingArtifacts.artifactType, "epys_preflight")))
-      .orderBy(desc(documentProcessingArtifacts.createdAt)).limit(1);
     if (!artifact) {
       if (latestRun.status !== "succeeded") return res.status(409).json({ error: "Son işleme tamamlanmadı.", code: "PREFLIGHT_RUN_NOT_SUCCEEDED" });
       return res.status(404).json({ error: "Bu doküman için e-PYS ön kontrolü bulunmuyor.", code: "EPYS_PREFLIGHT_NOT_FOUND" });
@@ -612,46 +649,58 @@ export function registerSmartCheckRoutes(app: Express) {
   });
 
   app.get("/api/smartcheck/documents/:id/pdf-preflight", authenticate, featureGate, readRateLimit, async (req, res) => {
-    const [document] = await db.select({ id: documents.id }).from(documents).where(and(eq(documents.id, req.params.id), eq(documents.companyId, req.user.companyId)));
+    const { document, latestRun, artifact } = await withAppTenant(tenantOf(req.user), async (tenantDb) => {
+      const [document] = await tenantDb.select({ id: documents.id }).from(documents).where(and(eq(documents.id, req.params.id), eq(documents.companyId, req.user.companyId)));
+      if (!document) return { document: undefined, latestRun: undefined, artifact: undefined };
+      const [latestRun] = await tenantDb.select({ id: documentProcessingRuns.id, status: documentProcessingRuns.status }).from(documentProcessingRuns)
+        .where(and(eq(documentProcessingRuns.documentId, document.id), eq(documentProcessingRuns.companyId, req.user.companyId)))
+        .orderBy(desc(documentProcessingRuns.createdAt)).limit(1);
+      const [artifact] = latestRun && latestRun.status === "succeeded" ? await tenantDb.select({ metadataJson: documentProcessingArtifacts.metadataJson, createdAt: documentProcessingArtifacts.createdAt, processingRunId: documentProcessingArtifacts.processingRunId })
+        .from(documentProcessingArtifacts)
+        .where(and(eq(documentProcessingArtifacts.documentId, document.id), eq(documentProcessingArtifacts.companyId, req.user.companyId), eq(documentProcessingArtifacts.processingRunId, latestRun.id), eq(documentProcessingArtifacts.artifactType, "pdf_preflight")))
+        .orderBy(desc(documentProcessingArtifacts.createdAt)).limit(1) : [];
+      return { document, latestRun, artifact };
+    }, { readOnly: true });
     if (!document) return res.status(404).json({ error: "Doküman bulunamadı." });
-    const [latestRun] = await db.select({ id: documentProcessingRuns.id, status: documentProcessingRuns.status }).from(documentProcessingRuns)
-      .where(and(eq(documentProcessingRuns.documentId, document.id), eq(documentProcessingRuns.companyId, req.user.companyId)))
-      .orderBy(desc(documentProcessingRuns.createdAt)).limit(1);
     if (!latestRun || latestRun.status !== "succeeded") return res.status(409).json({ error: "Son işleme tamamlanmadı.", code: "PREFLIGHT_RUN_NOT_SUCCEEDED" });
-    const [artifact] = await db.select({ metadataJson: documentProcessingArtifacts.metadataJson, createdAt: documentProcessingArtifacts.createdAt, processingRunId: documentProcessingArtifacts.processingRunId })
-      .from(documentProcessingArtifacts)
-      .where(and(eq(documentProcessingArtifacts.documentId, document.id), eq(documentProcessingArtifacts.companyId, req.user.companyId), eq(documentProcessingArtifacts.processingRunId, latestRun.id), eq(documentProcessingArtifacts.artifactType, "pdf_preflight")))
-      .orderBy(desc(documentProcessingArtifacts.createdAt)).limit(1);
     if (!artifact) return res.status(404).json({ error: "Bu doküman için PDF/A ön kontrolü bulunmuyor.", code: "PDF_PREFLIGHT_NOT_FOUND" });
     res.json({ ...artifact.metadataJson, processingRunId: artifact.processingRunId, createdAt: artifact.createdAt });
   });
 
   app.get("/api/smartcheck/documents/:id/pdfa-validation", authenticate, featureGate, readRateLimit, async (req, res) => {
-    const [document] = await db.select({ id: documents.id }).from(documents).where(and(eq(documents.id, req.params.id), eq(documents.companyId, req.user.companyId)));
+    const { document, latestRun, artifact } = await withAppTenant(tenantOf(req.user), async (tenantDb) => {
+      const [document] = await tenantDb.select({ id: documents.id }).from(documents).where(and(eq(documents.id, req.params.id), eq(documents.companyId, req.user.companyId)));
+      if (!document) return { document: undefined, latestRun: undefined, artifact: undefined };
+      const [latestRun] = await tenantDb.select({ id: documentProcessingRuns.id, status: documentProcessingRuns.status }).from(documentProcessingRuns)
+        .where(and(eq(documentProcessingRuns.documentId, document.id), eq(documentProcessingRuns.companyId, req.user.companyId)))
+        .orderBy(desc(documentProcessingRuns.createdAt)).limit(1);
+      const [artifact] = latestRun && latestRun.status === "succeeded" ? await tenantDb.select({ metadataJson: documentProcessingArtifacts.metadataJson, createdAt: documentProcessingArtifacts.createdAt, processingRunId: documentProcessingArtifacts.processingRunId })
+        .from(documentProcessingArtifacts)
+        .where(and(eq(documentProcessingArtifacts.documentId, document.id), eq(documentProcessingArtifacts.companyId, req.user.companyId), eq(documentProcessingArtifacts.processingRunId, latestRun.id), eq(documentProcessingArtifacts.artifactType, "verapdf_validation")))
+        .orderBy(desc(documentProcessingArtifacts.createdAt)).limit(1) : [];
+      return { document, latestRun, artifact };
+    }, { readOnly: true });
     if (!document) return res.status(404).json({ error: "Doküman bulunamadı." });
-    const [latestRun] = await db.select({ id: documentProcessingRuns.id, status: documentProcessingRuns.status }).from(documentProcessingRuns)
-      .where(and(eq(documentProcessingRuns.documentId, document.id), eq(documentProcessingRuns.companyId, req.user.companyId)))
-      .orderBy(desc(documentProcessingRuns.createdAt)).limit(1);
     if (!latestRun || latestRun.status !== "succeeded") return res.status(409).json({ error: "Son işleme tamamlanmadı.", code: "PDFA_VALIDATION_RUN_NOT_SUCCEEDED" });
-    const [artifact] = await db.select({ metadataJson: documentProcessingArtifacts.metadataJson, createdAt: documentProcessingArtifacts.createdAt, processingRunId: documentProcessingArtifacts.processingRunId })
-      .from(documentProcessingArtifacts)
-      .where(and(eq(documentProcessingArtifacts.documentId, document.id), eq(documentProcessingArtifacts.companyId, req.user.companyId), eq(documentProcessingArtifacts.processingRunId, latestRun.id), eq(documentProcessingArtifacts.artifactType, "verapdf_validation")))
-      .orderBy(desc(documentProcessingArtifacts.createdAt)).limit(1);
     if (!artifact) return res.status(404).json({ error: "Bu doküman için PDF/A standart doğrulaması bulunmuyor.", code: "PDFA_VALIDATION_NOT_FOUND" });
     res.json({ ...artifact.metadataJson, processingRunId: artifact.processingRunId, createdAt: artifact.createdAt });
   });
 
   app.get("/api/smartcheck/documents/:id/rows", authenticate, featureGate, readRateLimit, async (req, res) => {
-    const [document] = await db.select({ id: documents.id }).from(documents).where(and(eq(documents.id, req.params.id), eq(documents.companyId, req.user.companyId)));
-    if (!document) return res.status(404).json({ error: "Doküman bulunamadı." });
     const limit = Math.min(Math.max(parseInt(req.query.limit as string) || 5000, 1), 10000);
     const offset = Math.max(parseInt(req.query.offset as string) || 0, 0);
-    const rows = await db.select()
-      .from(normalizedQuantityRows)
-      .where(and(eq(normalizedQuantityRows.documentId, document.id), eq(normalizedQuantityRows.companyId, req.user.companyId)))
-      .orderBy(normalizedQuantityRows.sheetName, normalizedQuantityRows.sourceRowNumber)
-      .limit(limit)
-      .offset(offset);
+    const { document, rows } = await withAppTenant(tenantOf(req.user), async (tenantDb) => {
+      const [document] = await tenantDb.select({ id: documents.id }).from(documents).where(and(eq(documents.id, req.params.id), eq(documents.companyId, req.user.companyId)));
+      if (!document) return { document: undefined, rows: [] };
+      const rows = await tenantDb.select()
+        .from(normalizedQuantityRows)
+        .where(and(eq(normalizedQuantityRows.documentId, document.id), eq(normalizedQuantityRows.companyId, req.user.companyId)))
+        .orderBy(normalizedQuantityRows.sheetName, normalizedQuantityRows.sourceRowNumber)
+        .limit(limit)
+        .offset(offset);
+      return { document, rows };
+    }, { readOnly: true });
+    if (!document) return res.status(404).json({ error: "Doküman bulunamadı." });
     res.json(rows);
   });
 
@@ -659,7 +708,11 @@ export function registerSmartCheckRoutes(app: Express) {
     const parsedRequest = smartcheckRowReviewRequestSchema.safeParse(req.body);
     if (!parsedRequest.success) return res.status(400).json({ error: "Review kararı approved, accepted_exception veya rejected olmalıdır." });
     const { status } = parsedRequest.data;
-    const [current] = await db.select().from(normalizedQuantityRows).where(and(eq(normalizedQuantityRows.id, req.params.id), eq(normalizedQuantityRows.companyId, req.user.companyId)));
+    const [current] = await withAppTenant(
+      tenantOf(req.user),
+      (tenantDb) => tenantDb.select().from(normalizedQuantityRows).where(and(eq(normalizedQuantityRows.id, req.params.id), eq(normalizedQuantityRows.companyId, req.user.companyId))),
+      { readOnly: true },
+    );
     if (!current) return res.status(404).json({ error: "Satır bulunamadı." });
     const notes = parsedRequest.data.notes ?? null;
     if ((status === "rejected" || status === "accepted_exception") && !notes) return res.status(400).json({ error: `${status === "rejected" ? "Red" : "İstisna"} gerekçesi zorunludur.` });
@@ -673,30 +726,36 @@ export function registerSmartCheckRoutes(app: Express) {
       rawPrice: String(patch.price ?? current.rawPrice ?? ""), rawWastePercent: String(patch.wastePercent ?? current.rawWastePercent ?? ""), formulaJson: current.formulaJson,
     };
     const targetPositionCode = corrected.rawPositionCode.trim();
-    let isDuplicate = false;
-    if (targetPositionCode) {
-      const [dup] = await db.select({ count: sql<number>`count(*)::int` })
-        .from(normalizedQuantityRows)
-        .where(and(
-          eq(normalizedQuantityRows.documentId, current.documentId),
-          eq(normalizedQuantityRows.companyId, req.user.companyId),
-          eq(normalizedQuantityRows.rawPositionCode, targetPositionCode),
-          ne(normalizedQuantityRows.id, current.id)
-        ));
-      isDuplicate = (dup?.count ?? 0) > 0;
-    }
-    const [company] = await withAppTenant(tenantOf(req.user), (tenantDb) => tenantDb.select({ maxWaste: companies.smartcheckMaxWastePercent }).from(companies).where(eq(companies.id, req.user.companyId)));
+    const { isDuplicate, company } = await withAppTenant(tenantOf(req.user), async (tenantDb) => {
+      let isDuplicate = false;
+      if (targetPositionCode) {
+        const [dup] = await tenantDb.select({ count: sql<number>`count(*)::int` })
+          .from(normalizedQuantityRows)
+          .where(and(
+            eq(normalizedQuantityRows.documentId, current.documentId),
+            eq(normalizedQuantityRows.companyId, req.user.companyId),
+            eq(normalizedQuantityRows.rawPositionCode, targetPositionCode),
+            ne(normalizedQuantityRows.id, current.id)
+          ));
+        isDuplicate = (dup?.count ?? 0) > 0;
+      }
+      const [company] = await tenantDb.select({ maxWaste: companies.smartcheckMaxWastePercent }).from(companies).where(eq(companies.id, req.user.companyId));
+      return { isDuplicate, company };
+    }, { readOnly: true });
     const [validated] = validateRows([corrected], Number(company?.maxWaste ?? 20));
     if (!validated) return res.status(500).json({ error: "Satır yeniden doğrulanamadı." });
     if (isDuplicate && !validated.findings.some((f) => f.code === "DUPLICATE_POSITION_CODE")) {
       validated.findings.push({ code: "DUPLICATE_POSITION_CODE", severity: "medium", message: "Poz kodu dosyada tekrarlanıyor.", ruleVersion: "pilot-integrity-v1", suggestion: "Mükerrerliğin kapsam farkından kaynaklandığını doğrulayın." });
     }
     if (status === "approved" && validated.findings.length > 0) return res.status(409).json({ error: "Açık bulgular çözülmeden satır onaylanamaz.", findings: validated.findings });
-    const [updated] = await db.update(normalizedQuantityRows).set({
-      rawDescription: corrected.rawDescription, rawPositionCode: corrected.rawPositionCode, rawUnit: corrected.rawUnit, rawQuantity: corrected.rawQuantity, rawPrice: corrected.rawPrice, rawWastePercent: corrected.rawWastePercent,
-      normalizedDescription: validated.normalized.description, normalizedPositionCode: validated.normalized.positionCode, normalizedUnit: validated.normalized.unit, normalizedQuantity: validated.normalized.quantity?.toString(), normalizedPrice: validated.normalized.price?.toString(), normalizedWastePercent: validated.normalized.wastePercent.toString(), findingsJson: validated.findings,
-      reviewStatus: status, reviewerUserId: req.user.userId, reviewedAt: new Date(), reviewerNotes: notes, updatedAt: new Date(),
-    }).where(and(eq(normalizedQuantityRows.id, current.id), eq(normalizedQuantityRows.companyId, req.user.companyId))).returning();
+    const [updated] = await withAppTenant(
+      tenantOf(req.user),
+      (tenantDb) => tenantDb.update(normalizedQuantityRows).set({
+        rawDescription: corrected.rawDescription, rawPositionCode: corrected.rawPositionCode, rawUnit: corrected.rawUnit, rawQuantity: corrected.rawQuantity, rawPrice: corrected.rawPrice, rawWastePercent: corrected.rawWastePercent,
+        normalizedDescription: validated.normalized.description, normalizedPositionCode: validated.normalized.positionCode, normalizedUnit: validated.normalized.unit, normalizedQuantity: validated.normalized.quantity?.toString(), normalizedPrice: validated.normalized.price?.toString(), normalizedWastePercent: validated.normalized.wastePercent.toString(), findingsJson: validated.findings,
+        reviewStatus: status, reviewerUserId: req.user.userId, reviewedAt: new Date(), reviewerNotes: notes, updatedAt: new Date(),
+      }).where(and(eq(normalizedQuantityRows.id, current.id), eq(normalizedQuantityRows.companyId, req.user.companyId))).returning(),
+    );
     await audit(req, `row_${status}`, "normalized_quantity_row", current.id, { documentId: current.documentId, correction: patch, findingCodes: validated.findings.map((finding) => finding.code) });
     res.json(updated);
   });
@@ -707,9 +766,13 @@ export function registerSmartCheckRoutes(app: Express) {
     const { rowIds, notes } = parsedRequest.data;
     const uniqueRowIds = [...new Set(rowIds)];
     if (uniqueRowIds.length !== rowIds.length) return res.status(400).json({ error: "Tekrarlı satır seçimi yapılamaz." });
-    const [document] = await db.select({ id: documents.id }).from(documents).where(and(eq(documents.id, req.params.id), eq(documents.companyId, req.user.companyId)));
+    const { document, rows } = await withAppTenant(tenantOf(req.user), async (tenantDb) => {
+      const [document] = await tenantDb.select({ id: documents.id }).from(documents).where(and(eq(documents.id, req.params.id), eq(documents.companyId, req.user.companyId)));
+      if (!document) return { document: undefined, rows: [] };
+      const rows = await tenantDb.select().from(normalizedQuantityRows).where(and(eq(normalizedQuantityRows.documentId, document.id), eq(normalizedQuantityRows.companyId, req.user.companyId), inArray(normalizedQuantityRows.id, uniqueRowIds)));
+      return { document, rows };
+    }, { readOnly: true });
     if (!document) return res.status(404).json({ error: "Doküman bulunamadı." });
-    const rows = await db.select().from(normalizedQuantityRows).where(and(eq(normalizedQuantityRows.documentId, document.id), eq(normalizedQuantityRows.companyId, req.user.companyId), inArray(normalizedQuantityRows.id, uniqueRowIds)));
     if (rows.length !== uniqueRowIds.length) return res.status(404).json({ error: "Bir veya daha fazla satır bu şirkete/dokümana ait değil." });
     if (rows.some((row) => row.reviewStatus !== "pending_review")) return res.status(409).json({ error: "Yalnız inceleme bekleyen satırlar toplu onaylanabilir.", code: "BULK_REVIEW_STATUS_NOT_PENDING" });
     const blockedRows = rows.filter((row) => Array.isArray(row.findingsJson) && row.findingsJson.length > 0);
@@ -721,13 +784,16 @@ export function registerSmartCheckRoutes(app: Express) {
       });
     }
     const now = new Date();
-    const updated = await db.update(normalizedQuantityRows).set({
-      reviewStatus: "approved",
-      reviewerUserId: req.user.userId,
-      reviewedAt: now,
-      reviewerNotes: notes ?? "Bulgusuz satırlar toplu onaylandı.",
-      updatedAt: now,
-    }).where(and(eq(normalizedQuantityRows.documentId, document.id), eq(normalizedQuantityRows.companyId, req.user.companyId), inArray(normalizedQuantityRows.id, uniqueRowIds))).returning();
+    const updated = await withAppTenant(
+      tenantOf(req.user),
+      (tenantDb) => tenantDb.update(normalizedQuantityRows).set({
+        reviewStatus: "approved",
+        reviewerUserId: req.user.userId,
+        reviewedAt: now,
+        reviewerNotes: notes ?? "Bulgusuz satırlar toplu onaylandı.",
+        updatedAt: now,
+      }).where(and(eq(normalizedQuantityRows.documentId, document.id), eq(normalizedQuantityRows.companyId, req.user.companyId), inArray(normalizedQuantityRows.id, uniqueRowIds))).returning(),
+    );
     await audit(req, "rows_bulk_approved", "document", document.id, { rowIds: uniqueRowIds, approvedCount: updated.length });
     res.json({ approvedCount: updated.length, rows: updated });
   });
@@ -738,21 +804,23 @@ export function registerSmartCheckRoutes(app: Express) {
     if (!parsedRequest.success) return res.status(400).json({ error: "quotationId ve en az bir rowId zorunludur." });
     const { quotationId, rowIds } = parsedRequest.data;
     if (rowIds.length > 1000) return res.status(400).json({ error: "Tek seferde en fazla 1000 satır aktarılabilir." });
-    const [quotation] = await withAppTenant(tenantOf(req.user), (tenantDb) =>
-      tenantDb.select().from(quotations).where(and(eq(quotations.id, quotationId), eq(quotations.companyId, req.user.companyId), eq(quotations.status, "draft")))
-    );
+    const { quotation, documentRows } = await withAppTenant(tenantOf(req.user), async (tenantDb) => {
+      const [quotation] = await tenantDb.select().from(quotations).where(and(eq(quotations.id, quotationId), eq(quotations.companyId, req.user.companyId), eq(quotations.status, "draft")));
+      const documentRows = quotation ? await tenantDb.select().from(normalizedQuantityRows).where(and(eq(normalizedQuantityRows.documentId, req.params.id), eq(normalizedQuantityRows.companyId, req.user.companyId))) : [];
+      return { quotation, documentRows };
+    }, { readOnly: true });
     if (!quotation) return res.status(404).json({ error: "Aktarım için taslak teklif bulunamadı." });
-    const documentRows = await db.select().from(normalizedQuantityRows).where(and(eq(normalizedQuantityRows.documentId, req.params.id), eq(normalizedQuantityRows.companyId, req.user.companyId)));
     const selected = documentRows.filter((row) => rowIds.includes(row.id));
     if (selected.length !== new Set(rowIds).size) return res.status(404).json({ error: "Bir veya daha fazla satır bu şirkete/dokümana ait değil." });
     if (selected.some((row) => row.reviewStatus !== "approved" && row.reviewStatus !== "accepted_exception")) return res.status(409).json({ error: "Yalnız onaylı veya gerekçeli istisna satırlar teklife aktarılabilir." });
     const overrides = parsedRequest.data.overrides ?? {};
     const requestedSnapshotIds = selected.map((row) => typeof overrides[row.id]?.priceSnapshotId === "string" ? String(overrides[row.id].priceSnapshotId) : null).filter((id): id is string => Boolean(id));
-    const { snapshots, pricingSources, pricingSourceIds } = await withAppTenant(tenantOf(req.user), async (tenantDb) => {
+    const { snapshots, pricingSources, pricingSourceIds, sourceDocuments } = await withAppTenant(tenantOf(req.user), async (tenantDb) => {
       const snapshots = requestedSnapshotIds.length ? await tenantDb.select().from(priceSnapshots).where(and(eq(priceSnapshots.companyId, req.user.companyId), inArray(priceSnapshots.id, requestedSnapshotIds))) : [];
       const pricingSourceIds = [...new Set(snapshots.map((snapshot) => snapshot.priceSourceId))];
       const pricingSources = pricingSourceIds.length ? await tenantDb.select().from(priceSources).where(and(eq(priceSources.companyId, req.user.companyId), inArray(priceSources.id, pricingSourceIds))) : [];
-      return { snapshots, pricingSources, pricingSourceIds };
+      const sourceDocuments = await tenantDb.select({ id: documents.id, checksumSha256: documents.checksumSha256 }).from(documents).where(and(eq(documents.companyId, req.user.companyId), inArray(documents.id, [...new Set(selected.map((row) => row.documentId))])));
+      return { snapshots, pricingSources, pricingSourceIds, sourceDocuments };
     }, { readOnly: true });
     const pricingSourceById = new Map(pricingSources.map((source) => [source.id, source]));
     const invalidSnapshot = snapshots.find((snapshot) => {
@@ -760,7 +828,6 @@ export function registerSmartCheckRoutes(app: Express) {
       return snapshot.reviewStatus !== "approved" || !snapshot.reviewedAt || !snapshot.reviewedByUserId || isPriceSnapshotStale(snapshot) || !source || !source.authorizationScope || !source.authorizedAt || !source.authorizedByUserId || !evaluatePriceSourceAuthorization({ sourceType: source.sourceType, authorizationStatus: source.authorizationStatus as PriceAuthorizationStatus, authorizationEvidenceHash: source.authorizationEvidenceHash }).eligible;
     });
     if (snapshots.length !== new Set(requestedSnapshotIds).size || pricingSources.length !== pricingSourceIds.length || invalidSnapshot) return res.status(409).json({ error: "Yalnız yetkili, onaylı ve güncel fiyat snapshot seçilebilir.", code: "INVALID_PRICE_SNAPSHOT" });
-    const sourceDocuments = await db.select({ id: documents.id, checksumSha256: documents.checksumSha256 }).from(documents).where(and(eq(documents.companyId, req.user.companyId), inArray(documents.id, [...new Set(selected.map((row) => row.documentId))])));
     const documentHashById = new Map(sourceDocuments.map((document) => [document.id, document.checksumSha256]));
     const transferResult = await withAppTenantTransaction(tenantOf(req.user), async (tx) => {
       // Use the revision series lock before inspecting the current draft/items.
@@ -848,17 +915,22 @@ export function registerSmartCheckRoutes(app: Express) {
       const { rowIds } = parsedRequest.data;
       if (rowIds.length > 1000) return res.status(400).json({ error: "Tek seferde en fazla 1000 satır aktarılabilir." });
       const overrides = parsedRequest.data.overrides ?? {};
-      const documentRows = await db.select().from(normalizedQuantityRows).where(and(eq(normalizedQuantityRows.documentId, req.params.id), eq(normalizedQuantityRows.companyId, req.user.companyId)));
+      const documentRows = await withAppTenant(
+        tenantOf(req.user),
+        (tenantDb) => tenantDb.select().from(normalizedQuantityRows).where(and(eq(normalizedQuantityRows.documentId, req.params.id), eq(normalizedQuantityRows.companyId, req.user.companyId))),
+        { readOnly: true },
+      );
       const selected = documentRows.filter((row) => rowIds.includes(row.id));
       if (selected.length !== new Set(rowIds).size) return res.status(404).json({ error: "Bir veya daha fazla satır bu şirkete/dokümana ait değil." });
       if (selected.some((row) => row.reviewStatus !== "approved" && row.reviewStatus !== "accepted_exception")) return res.status(409).json({ error: "Yalnız onaylı veya gerekçeli istisna satırlar teklife aktarılabilir." });
 
       const requestedSnapshotIds = selected.map((row) => typeof overrides[row.id]?.priceSnapshotId === "string" ? String(overrides[row.id].priceSnapshotId) : null).filter((id): id is string => Boolean(id));
-      const { snapshots, pricingSources, pricingSourceIds } = await withAppTenant(tenantOf(req.user), async (tenantDb) => {
+      const { snapshots, pricingSources, pricingSourceIds, sourceDocuments } = await withAppTenant(tenantOf(req.user), async (tenantDb) => {
         const snapshots = requestedSnapshotIds.length ? await tenantDb.select().from(priceSnapshots).where(and(eq(priceSnapshots.companyId, req.user.companyId), inArray(priceSnapshots.id, requestedSnapshotIds))) : [];
         const pricingSourceIds = [...new Set(snapshots.map((snapshot) => snapshot.priceSourceId))];
         const pricingSources = pricingSourceIds.length ? await tenantDb.select().from(priceSources).where(and(eq(priceSources.companyId, req.user.companyId), inArray(priceSources.id, pricingSourceIds))) : [];
-        return { snapshots, pricingSources, pricingSourceIds };
+        const sourceDocuments = await tenantDb.select({ id: documents.id, checksumSha256: documents.checksumSha256, originalFileName: documents.originalFileName }).from(documents).where(and(eq(documents.companyId, req.user.companyId), inArray(documents.id, [...new Set(selected.map((row) => row.documentId))])));
+        return { snapshots, pricingSources, pricingSourceIds, sourceDocuments };
       }, { readOnly: true });
       const pricingSourceById = new Map(pricingSources.map((source) => [source.id, source]));
       const invalidSnapshot = snapshots.find((snapshot) => {
@@ -866,7 +938,6 @@ export function registerSmartCheckRoutes(app: Express) {
         return snapshot.reviewStatus !== "approved" || !snapshot.reviewedAt || !snapshot.reviewedByUserId || isPriceSnapshotStale(snapshot) || !source || !source.authorizationScope || !source.authorizedAt || !source.authorizedByUserId || !evaluatePriceSourceAuthorization({ sourceType: source.sourceType, authorizationStatus: source.authorizationStatus as PriceAuthorizationStatus, authorizationEvidenceHash: source.authorizationEvidenceHash }).eligible;
       });
       if (snapshots.length !== new Set(requestedSnapshotIds).size || pricingSources.length !== pricingSourceIds.length || invalidSnapshot) return res.status(409).json({ error: "Yalnız yetkili, onaylı ve güncel fiyat snapshot seçilebilir.", code: "INVALID_PRICE_SNAPSHOT" });
-      const sourceDocuments = await db.select({ id: documents.id, checksumSha256: documents.checksumSha256, originalFileName: documents.originalFileName }).from(documents).where(and(eq(documents.companyId, req.user.companyId), inArray(documents.id, [...new Set(selected.map((row) => row.documentId))])));
       const documentHashById = new Map(sourceDocuments.map((document) => [document.id, document.checksumSha256]));
       const sourceFileName = sourceDocuments[0]?.originalFileName ?? "SmartCheck dosyası";
 
@@ -1046,7 +1117,7 @@ export function registerSmartCheckRoutes(app: Express) {
         ? "Örnek PDF/A-2B ve ISO 216 ön kontrol raporu hazır (Kotadan düşmez)"
         : `Örnek ${sample.shortBadge} QTO ve EK-9 raporu hazır (Kotadan düşmez)`;
 
-      const result = await db.transaction(async (tx) => {
+      const result = await withAppTenantTransaction(tenantOf(req.user), async (tx) => {
         const [existingDoc] = await tx
           .select()
           .from(documents)
