@@ -184,6 +184,8 @@ export function SmartCheckImportWorkspace() {
   const [suggestionBusy, setSuggestionBusy] = useState(false);
   const [bulkReviewBusy, setBulkReviewBusy] = useState(false);
   const [sampleBusyId, setSampleBusyId] = useState<string | null>(null);
+  // Samples carry no IFC evidence artifact, so the server would refuse their transfer; say so up front.
+  const [sampleDocumentId, setSampleDocumentId] = useState<string | null>(null);
   const [priceSuggestionsByRow, setPriceSuggestionsByRow] = useState<Record<string, PriceSuggestionResult>>({});
   const [reviewDraft, setReviewDraft] = useState<ReviewDraft | null>(null);
   const [pilotCaseId, setPilotCaseId] = useState<string | null>(null);
@@ -287,6 +289,7 @@ export function SmartCheckImportWorkspace() {
       if (!response.ok || !body.documentId) {
         return toast.error(body.error ?? "Örnek proje yüklenemedi.");
       }
+      setSampleDocumentId(body.documentId);
       await Promise.all([
         openQueueDocument(body.documentId, body.fileName ?? null, "succeeded"),
         loadQueue(),
@@ -818,6 +821,9 @@ export function SmartCheckImportWorkspace() {
               setTransferredQuotationId(null);
             }}
             onTransferToQuote={transferCalmToQuotation}
+            transferUnavailableReason={documentId && documentId === sampleDocumentId
+              ? "Örnek projeden teklif oluşturulmaz; fiyatlandırmayı burada deneyebilirsiniz. Teklif için kendi IFC modelinizi yükleyin."
+              : undefined}
             transferBusy={calmTransferBusy}
             transferredQuotationId={transferredQuotationId}
             showTechnicalToggle={true}

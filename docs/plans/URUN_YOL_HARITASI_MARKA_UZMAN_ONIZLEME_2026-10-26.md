@@ -121,6 +121,25 @@ Süreler (`marka.md` §23.2) yerelde ölçülür ve kaydedilir.
 - **Ek düzeltme:** Tek giriş akışına geçerken paneldeki KİK sınır değer ve 4735 fiyat farkı bağlantıları ile `public-procurement` tur hedefi kaybolmuştu; "Diğer araçlar" satırına geri eklendi.
 - **Faz 1'de kalan:** C-4, M-17.3, M-17.4/12.6, M-12.4, M-12.5, M-14.5, M-13.3/13.4, M-10.x ve M-15.2 (`dosyadan-teklif-demo` rotasının kaderi). Üç persona kabul akışı da bu maddelerden sonra yürütülecek. IFC → teklif uçtan uca tarayıcı akışı için onaylı fiyat kaydı gerekir (M-17.4 ile birlikte).
 
+### Faz 1 durumu — fiyat eksikliği dilimi (26 Ekim 2026, dal `feat/faz1-fiyat-eksik`)
+
+- **Bulgu:** Firma kataloğundan içe aktarılan fiyatlar "advisory" durumunda kalıyordu; arayüzde onaylayan bir ekran yoktu. KDV durumu da "bilinmiyor" geliyordu. İcmal aktarımı ise onaylı ve "KDV hariç, oran belirtilmiş" fiyat istiyor. Bu yüzden katalog yükleyen kullanıcı IFC icmalini hiçbir zaman fiyatlandıramıyordu. "Kataloğa fiyat ekle" bağlantıları da tedarikçi teklifleri ekranına gidiyordu.
+- **Kapandı:**
+  - M-17.3: yeni `/app/fiyat-katalogu` sayfası ve 5 adımlı ilk görev: şablon, dosya, sütun eşleştirme, birim/geçerlilik/KDV incelemesi, onaylayıp kaydetme.
+    - Sunucu firma fiyatını içe aktarımda onaylar (`reviewDecision: "approved"`). Koşullar: yalnız `company_actual`, sahiplik beyanı ve KDV hariç oranı.
+    - Tedarikçi ve manuel fiyat kuralları değişmedi.
+    - Panel şeridi, sonuç özeti ve icmal bağlantıları bu sayfaya yönlendirildi; menüye ve tura eklendi.
+  - M-17.4: icmalde fiyatı eksik her kalemde doğrudan eylemler var:
+    - "Firma fiyatı ekle": satır içinde, KDV oranıyla, onaylı olarak kaydeder.
+    - "Katalogdaki fiyatı eşleştir": yalnız aynı poz, aynı birim ve TL'de, açıklama farkı uyarısıyla sunulur. Kullanıcının bağladığı fiyat yeniden çözümde korunur.
+    - "Uzman incelemesine al": poz çözülemediyse uzman doğrulama modunu o kalemle açar.
+  - Örnek projeler IFC kanıtı taşımadığından aktarım seçeneği yerine "Örnek projeden teklif oluşturulmaz" notu gösterilir.
+- **Kanıt:** `scripts/faz1-price-gap-smoke.ts` gerçek tarayıcıda katalog sihirbazı, otomatik eşleşme, elle eşleştirme, satır içi fiyat ve yeni teklif adımlarını sınar. Sonuç: Rev. 2 teklifte üç kalemin her biri onaylı ve KDV oranı belirtilmiş fiyat kaydına bağlı.
+- **Doğrulama:** Tam paket boş PG16 üzerinde ve üretim derlemesiyle çalıştı: 1503 testten 1488 geçti, 0 hata, 15 atlandı. Kapsam eşiği geçti (proje satır kapsamı %82,73, arayüz %74,69). Giriş paketi 107,6 KB, sınır 120 KB.
+- **PR #23 notu:** `feat/faz1-excel-akis` dalının üretim derlemesinde SmartCheck rota paketi exceljs parçasını doğrudan referanslıyor (T45-2 ihlali). Sebebi, katalog okuyucunun yalnız SmartCheck tarafından içe aktarılıp rota paketine gömülmesi. Bu dalda katalog sayfası aynı modülü paylaştığı için okuyucu ayrı parçaya ayrıldı ve ihlal kalktı. #23 tek başına birleştirilmemeli.
+- **M-12.6 kalan:** Yeni Teklif ekranındaki "Onaylı Rayiçler" platformun ortak rayiç havuzunu okur, firma kataloğunu değil. Oraya katalog bağlantısı koymak yanıltıcı olacağı için eklenmedi. Elle teklif satırlarının firma kataloğundan fiyat alması (fiyat kaydına bağlama dahil) ayrı dilimdir.
+- **Gözlem (karar gerekiyor):** İcmal özet kartındaki "Genel toplam (KDV hariç)" müteahhitlik kârı ve genel gider yüzdesini (%15 varsayılan) içerir. Aktarılan teklif ise katalog birim fiyatlarıyla oluşur, bu yüzdeyi içermez. Kullanıcı iki farklı toplam görür.
+
 ### Faz 1 kalan dilimler — kararlar (26 Ekim 2026)
 
 Kaynak: NotebookLM araştırma defteri, bağımsız web araştırmasıyla karşılaştırıldı. Doğrulanamayan iddialar karar gerekçesi olarak kullanılmadı.

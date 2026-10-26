@@ -3,7 +3,7 @@
  *
  *   giriş -> "Nereden başlayacaksınız?" dört seçenek -> Excel seçeneği Yeni Teklif'i Excel alanına açar ->
  *   .xlsx şablonu iner (ZIP imzası) -> .xls yüklemesi dönüştürme talimatı verir -> örnek proje seçeneği
- *   SmartCheck örneğini açar -> maliyet adımında "Yeni teklif oluştur" / "Mevcut teklife revizyon ekle" ayrımı
+ *   SmartCheck örneğini açar -> örnekten teklif oluşturulamayacağı maliyet adımında açıkça yazılır
  *
  * İzole PostgreSQL şeması kullanır. Kullanım:
  *   PUPPETEER_EXECUTABLE_PATH=<chrome> pnpm exec tsx scripts/faz1-excel-flow-smoke.ts [ekran-görüntüsü-klasörü]
@@ -132,27 +132,15 @@ try {
   await page.waitForSelector('[data-testid="result-summary"]', { timeout: 60_000 });
   assert.equal(await page.evaluate(() => new URLSearchParams(location.search).get('ornek')), null, 'sample param is consumed once');
 
-  step = 'new quotation vs revision';
-  // M-14.3: the icmal can open a new quotation or add a revision; no "create a quotation first" dead end.
+  step = 'sample cannot become a quotation';
+  // A quota-free sample carries no IFC evidence, so the server would refuse a transfer. The cost step says so up
+  // front instead of offering a target; the new quotation / revision choice is covered by faz1-price-gap-smoke.
   await clickByText('3. Maliyet');
-  await page.waitForSelector('[data-testid="calm-transfer-target"]', { timeout: 10_000 });
+  await page.waitForSelector('[data-testid="calm-transfer-unavailable"]', { timeout: 10_000 });
+  assert.match(await page.$eval('[data-testid="calm-transfer-unavailable"]', element => element.textContent ?? ''), /Örnek projeden teklif oluşturulmaz/);
+  assert.equal(await page.$('[data-testid="calm-transfer-target"]'), null);
   assert.doesNotMatch(await text(), /Aktarım için önce mevcut bir teklif oluşturulmalıdır/);
-  const checked = () => page.$$eval('[data-transfer-mode]', elements => elements.map(element => [element.getAttribute('data-transfer-mode'), element.getAttribute('aria-checked')]));
-  assert.deepEqual(await checked(), [['new', 'true'], ['revision', 'false']]);
-  const submit = async () => page.$eval('[data-testid="calm-transfer-submit"]', element => ({ disabled: (element as HTMLButtonElement).disabled, label: element.textContent?.trim() ?? '', title: element.getAttribute('title') ?? '' }));
-  assert.equal((await submit()).label, 'İcmalden yeni teklif oluştur');
-  await page.type('#calm-new-client', 'Örnek Müteahhitlik Ltd.');
-  const afterName = await submit();
-  // Sample catalogue is empty, so the transfer stays blocked for the price reason, not for the target.
-  assert.equal(afterName.disabled, true);
-  assert.match(afterName.title, /fiyatı firma kataloğunuzda/);
-  await (await page.$('[data-testid="calm-transfer-target"]'))!.scrollIntoView();
-  await (await page.$('[data-testid="calm-transfer-target"]'))!.screenshot({ path: `${output}/4-target-new.png` });
-  await page.click('[data-transfer-mode="revision"]');
-  assert.deepEqual(await checked(), [['new', 'false'], ['revision', 'true']]);
-  assert.equal((await submit()).label, 'İcmali seçili teklife revizyon olarak ekle');
-  assert.match(await text(), /Henüz teklifiniz yok/);
-  await (await page.$('[data-testid="calm-transfer-target"]'))!.screenshot({ path: `${output}/5-target-revision.png` });
+  await (await page.$('[data-testid="calm-transfer-unavailable"]'))!.screenshot({ path: `${output}/4-sample-transfer-note.png` });
 
   step = 'browser preview';
   await page.goto(`${base}/app/ifc-parser`, { waitUntil: 'networkidle0' });

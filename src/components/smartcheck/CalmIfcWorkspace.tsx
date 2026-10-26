@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Download, FileSpreadsheet, ArrowRight, SlidersHorizontal, Upload } from "lucide-react";
 import type { CalmIcmalItem, CalmIfcDataset } from "@/ifc/calm-icmal";
 import type { ApartmentUnitScheduleItem } from "@/ifc/types";
@@ -37,6 +37,8 @@ import { serializeCsv, type TabularCell } from "@/lib/tabular-data";
 import { IfcReviewViewer } from "@/components/smartcheck/viewer/IfcReviewViewer";
 import { calmTransferTargetHint, isCalmTransferTargetReady, type CalmTransferTarget, type CalmTransferUiItem } from "./calm-transfer-ui";
 import { CalmTransferTargetPicker } from "./CalmTransferTargetPicker";
+import { MissingPriceActions } from "./MissingPriceActions";
+import { matchableCandidate, publicPozCode, type PriceSuggestionCandidate, type PriceSuggestionResult } from "./missing-price";
 import { Link } from "react-router-dom";
 
 export interface CalmIfcWorkspaceProps {
@@ -46,6 +48,8 @@ export interface CalmIfcWorkspaceProps {
   transferTarget?: CalmTransferTarget;
   onTransferTargetChange?: (target: CalmTransferTarget) => void;
   onTransferToQuote?: (items: CalmTransferUiItem[]) => Promise<void> | void;
+  /** Why this icmal cannot become a quotation (e.g. a quota-free sample without IFC evidence). */
+  transferUnavailableReason?: string;
   transferBusy?: boolean;
   transferredQuotationId?: string | null;
   onToggleTechnicalView?: () => void;
@@ -58,7 +62,6 @@ type CalmStep = "icmal" | "daireler" | "maliyet";
 const DEFAULT_TRANSFER_TARGET: CalmTransferTarget = { mode: "new", clientName: "", projectName: "" };
 type ResolvedPriceEvidence = { snapshotId: string; sourceId: string; sourceName: string; sourceDocumentHash: string; currency: "TRY"; amount: number; capturedAt: string | null };
 
-const publicPozCode = (value: string) => value.startsWith("UNRESOLVED:") ? "" : value;
 
 function formatTrNumber(val: number, decimals = 2): string {
   return new Intl.NumberFormat("tr-TR", {
@@ -87,6 +90,7 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
   transferTarget = DEFAULT_TRANSFER_TARGET,
   onTransferTargetChange,
   onTransferToQuote,
+  transferUnavailableReason,
   transferBusy = false,
   transferredQuotationId,
   onToggleTechnicalView,
@@ -125,6 +129,10 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
   const [unitPrices, setUnitPrices] = useState<Record<string, number>>({});
   const [priceEvidence, setPriceEvidence] = useState<Record<string, ResolvedPriceEvidence>>({});
   const [priceResolutionStatus, setPriceResolutionStatus] = useState<"idle" | "loading" | "ready" | "blocked">("idle");
+  const [matchCandidates, setMatchCandidates] = useState<Record<string, PriceSuggestionCandidate>>({});
+  const [priceRefreshKey, setPriceRefreshKey] = useState(0);
+  // Prices the user bound by hand survive a re-resolution, but only while the same snapshot is still offered.
+  const boundSnapshotByItem = useRef<Record<string, string>>({});
   const [overheadPercent, setOverheadPercent] = useState<number>(15);
 
   const selectedItem: CalmIcmalItem | undefined = useMemo(
@@ -207,10 +215,21 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
           }),
         });
         if (!response.ok) throw new Error("price resolver unavailable");
-        const body = await response.json() as { suggestions?: Array<{ rowId: string; decision: string; bestSuggestion: null | { snapshot: { id: string; amount: string | number; currency: string; sourceDocumentHash: string; capturedAt?: string | null }; source: { id: string; name: string } } }> };
+        const body = await response.json() as { suggestions?: PriceSuggestionResult[] };
         const nextPrices: Record<string, number> = {};
         const nextEvidence: Record<string, ResolvedPriceEvidence> = {};
+        const nextCandidates: Record<string, PriceSuggestionCandidate> = {};
+        const itemById = new Map(allItems.map((item) => [item.id, item]));
         for (const suggestion of body.suggestions ?? []) {
+          const item = itemById.get(suggestion.rowId);
+          const candidate = item ? matchableCandidate(item, suggestion) : null;
+          if (candidate && boundSnapshotByItem.current[suggestion.rowId] === candidate.snapshot.id) {
+            const boundAmount = Number(candidate.snapshot.amount);
+            nextPrices[suggestion.rowId] = boundAmount;
+            nextEvidence[suggestion.rowId] = { snapshotId: candidate.snapshot.id, sourceId: candidate.source.id, sourceName: candidate.source.name, sourceDocumentHash: candidate.snapshot.sourceDocumentHash, currency: "TRY", amount: boundAmount, capturedAt: candidate.snapshot.capturedAt ?? null };
+            continue;
+          }
+          if (candidate) nextCandidates[suggestion.rowId] = candidate;
           const match = suggestion.decision === "safe_candidate" ? suggestion.bestSuggestion : null;
           const amount = Number(match?.snapshot.amount);
           if (!match || match.snapshot.currency !== "TRY" || !Number.isFinite(amount) || amount < 0) continue;
@@ -219,6 +238,7 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
         }
         setUnitPrices(nextPrices);
         setPriceEvidence(nextEvidence);
+        setMatchCandidates(nextCandidates);
         setPriceResolutionStatus("ready");
       } catch (error) {
         if (controller.signal.aborted) return;
@@ -229,7 +249,25 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
     };
     void resolvePrices();
     return () => controller.abort();
-  }, [allItems, priceLicenseMode]);
+  }, [allItems, priceLicenseMode, priceRefreshKey]);
+
+  /** The user looked at a same-poz, same-unit catalogue price and binds it; transfer re-checks poz, unit and amount. */
+  const bindMatchCandidate = (itemId: string, candidate: PriceSuggestionCandidate) => {
+    boundSnapshotByItem.current = { ...boundSnapshotByItem.current, [itemId]: candidate.snapshot.id };
+    const amount = Number(candidate.snapshot.amount);
+    setUnitPrices((current) => ({ ...current, [itemId]: amount }));
+    setPriceEvidence((current) => ({
+      ...current,
+      [itemId]: { snapshotId: candidate.snapshot.id, sourceId: candidate.source.id, sourceName: candidate.source.name, sourceDocumentHash: candidate.snapshot.sourceDocumentHash, currency: "TRY", amount, capturedAt: candidate.snapshot.capturedAt ?? null },
+    }));
+    setMatchCandidates(({ [itemId]: _bound, ...rest }) => rest);
+  };
+
+  const reviewItem = (itemId: string) => {
+    setSelectedItemId(itemId);
+    setExpertMode(true);
+    setActiveStep("icmal");
+  };
   // Faz 2.5: 4735 Fiyat Farkı & ÇŞB 2026 – TÜİK 21 Alt Endeks Simülatörü (sıfır uydurma girdi)
   const [selectedTuikIndex, setSelectedTuikIndex] = useState<TuikSubIndexCode>("TUIK-23.6-HAZIR-BETON");
   const [tuikBaseIndexInput, setTuikBaseIndexInput] = useState<string>("");
@@ -540,7 +578,7 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
 
   const allPricesResolved = priceResolutionStatus === "ready" && allItems.length > 0 && allItems.every((item) => Boolean(priceEvidence[item.id]));
   const targetReady = isCalmTransferTargetReady(transferTarget);
-  const transferBlocked = !allPricesResolved || !onTransferToQuote || !targetReady || transferBusy || Boolean(transferredQuotationId);
+  const transferBlocked = Boolean(transferUnavailableReason) || !allPricesResolved || !onTransferToQuote || !targetReady || transferBusy || Boolean(transferredQuotationId);
   const transferLabel = transferredQuotationId
     ? transferTarget.mode === "new" ? "Yeni teklif oluşturuldu" : "Yeni revizyon oluşturuldu"
     : transferBusy ? "İcmal aktarılıyor…"
@@ -1294,7 +1332,7 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
                     : "Fiyatlar kataloğunuzdan gelir"}
                 </span>
                 {costSummary.missingItemCount > 0 && (
-                  <Link to="/app/market-intelligence" className="text-[11px] font-semibold text-primary underline">
+                  <Link to="/app/fiyat-katalogu?kaynak=smartcheck" className="text-[11px] font-semibold text-primary underline">
                     Kataloğa fiyat ekle
                   </Link>
                 )}
@@ -1331,11 +1369,21 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
                         <div className="col-span-5 pr-3">
                           <div className="text-sm font-semibold text-foreground">{item.title}</div>
                           <div className="font-mono text-[10px] text-muted-foreground">Poz: {publicPozCode(item.pozCode) || "Çözülmedi"}</div>
-                          <div className="font-mono text-[10px] text-muted-foreground">
-                            {priceEvidence[item.id]
-                              ? `Kaynak: ${priceEvidence[item.id].sourceName} · fiyat kaydı ${priceEvidence[item.id].snapshotId.slice(0, 8)}`
-                              : "Fiyat bulunamadı · kataloğa eklenmeli"}
-                          </div>
+                          {priceEvidence[item.id] ? (
+                            <div className="font-mono text-[10px] text-muted-foreground">
+                              Kaynak: {priceEvidence[item.id].sourceName} · fiyat kaydı {priceEvidence[item.id].snapshotId.slice(0, 8)}
+                            </div>
+                          ) : priceResolutionStatus === "ready" ? (
+                            <MissingPriceActions
+                              item={item}
+                              candidate={matchCandidates[item.id] ?? null}
+                              onPriceAdded={() => setPriceRefreshKey((key) => key + 1)}
+                              onUseCandidate={(candidate) => bindMatchCandidate(item.id, candidate)}
+                              onReviewItem={() => reviewItem(item.id)}
+                            />
+                          ) : (
+                            <div className="font-mono text-[10px] text-muted-foreground">Fiyat bulunamadı</div>
+                          )}
                         </div>
                         <div className="col-span-2 text-right font-mono text-xs text-muted-foreground tabular-nums">
                           {formatTrNumber(item.netQuantity)} {item.unit}
@@ -1447,7 +1495,11 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
               </div>
             </div>
 
-            {!onTransferToQuote ? (
+            {transferUnavailableReason ? (
+              <p className="mt-4 border border-border bg-card p-3 text-xs leading-relaxed text-muted-foreground" data-testid="calm-transfer-unavailable">
+                {transferUnavailableReason}
+              </p>
+            ) : !onTransferToQuote ? (
               <p className="mt-4 border border-border bg-card p-3 text-xs leading-relaxed text-muted-foreground" data-testid="calm-transfer-unavailable">
                 Bu ekran tarayıcıda hızlı ön incelemedir; teklife aktarım yapılmaz. Teklif için modeli{" "}
                 <Link className="font-semibold text-primary underline" to="/app/smartcheck">SmartCheck</Link>'e yükleyin.
