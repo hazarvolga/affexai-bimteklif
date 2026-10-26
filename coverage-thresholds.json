@@ -1,9 +1,9 @@
 {
   "target": 80,
   "project": {
-    "lines": 52,
-    "branches": 78,
-    "functions": 84
+    "lines": 82,
+    "branches": 75,
+    "functions": 71
   },
   "critical": [
     {
@@ -23,8 +23,8 @@
       "paths": [
         "src/services/billing/"
       ],
-      "lines": 95,
-      "branches": 83,
+      "lines": 96,
+      "branches": 84,
       "functions": 98
     },
     {
@@ -40,7 +40,7 @@
         "src/lib/price-escalation.ts"
       ],
       "lines": 96,
-      "branches": 81,
+      "branches": 82,
       "functions": 98
     },
     {
@@ -51,9 +51,9 @@
         "src/ifc/parser/",
         "src/domain/quantity/"
       ],
-      "lines": 89,
-      "branches": 81,
-      "functions": 95
+      "lines": 90,
+      "branches": 82,
+      "functions": 96
     },
     {
       "name": "database schema and tenant context",
@@ -82,9 +82,9 @@
         "src/App.tsx",
         "src/main.tsx"
       ],
-      "lines": 12,
-      "branches": 46,
-      "functions": 22
+      "lines": 74,
+      "branches": 60,
+      "functions": 42
     }
   ]
 }

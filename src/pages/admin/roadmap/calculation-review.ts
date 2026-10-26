@@ -1,9 +1,9 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-25.83",
+  version: "BIM-CALC-2026-10-25.84",
   updatedOn: "26 Ekim 2026",
-  implementationBaseline: "4e9d95fdb3e9713e56c19cdc1536d454084c7991",
-  approvalStatus: "Rev. 89, Faz 10 T53 kaynaklı pazar envanteri ve T54 karşılaştırılabilir 6-halkalı yetenek matrisini (12 ürün: OSKA masaüstü, OSKABULUT web, AMP Kurumsal/Bulut, İhale Pro, BEXEL Manager + CDE, RIB CostX & CostX Cloud, Autodesk Takeoff & ACC, Kreo, Glodon Cubicost, ALLPLAN 2026 + Bimplus + Solibri, açık kaynak ifc-ruhsat MIT ve BIMMetraj; unverified_publicly / pilot_l2_unapproved ayrımı ve singleClaimPermitted=false kapısı; t53-t54-market-inventory.test.ts 4/4 PASS ve phase-0-evidence-validator.test.ts 23/23 PASS) tamamlar; Rev. 88 T45 performans ve işletim bütçesini (5/5 PASS), Rev. 87 T43 R+1 kapsam ratchet dilimini (proje %53,04 ≥ %52, HTTP API route %81,31 ≥ %80), Rev. 86 T44 5-sütunlu kurtarma tatbikatını ve Rev. 80–85 72/72 company_id tablosunun tamamını (67 FORCE RLS + 5 S5 Exact-ACL) doğrulamıştır. Gerçek banka/dekont mutabakatı, bağımsız uzman imzası (T50), gerçek izinli büyük müşteri dosyaları (T51), T55 hukuk/reklam incelemesi, T43 %80 eşiği (R+2..R+4) ve canlı deploy sonrası role-model-smoke/container digest/VPS yük doğrulaması (T52) tamamlanmadığından Faz 7 ve Faz 10 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
+  implementationBaseline: "4502ced68ef1fc0de3441dc25a0ba27f758b5f86",
+  approvalStatus: "Rev. 90, Faz 7 T43 R+2..R+4 JSDOM UI/bileşen kapsam dilimini (src/pages/t43-ui-pages-and-components.test.ts 6/6 PASS, 1434 testte 1427 PASS / 0 FAIL / 7 SKIP: proje satır kapsamı %53,04 → %82,58 ≥ %80 hedefi +2,58 puan aşıldı, UI %12,30 → %74,77 ≥ %74, coverage-thresholds.json project.lines: 82 kilitlendi ve T43 [x] kapatıldı), Dashboard.tsx React Rules-of-Hooks hatası düzeltmesini (D11) ve Faz 11 T56 nihai izlenebilirlik matrisini (docs/audits/phase-11/final-evidence-matrix.json + t56-final-evidence-matrix.test.ts 3/3 PASS: 56 To-Do + 31 ID + 6 motor + 11 oturum kusuru) tamamlar; böylece dış girdi gerektirmeyen tüm teknik adımlar kapatılmıştır. Gerçek banka/dekont mutabakatı, bağımsız uzman imzası (T50), gerçek izinli büyük müşteri dosyaları (T51), T55 hukuk/reklam incelemesi ve canlı deploy sonrası role-model-smoke/container digest/VPS yük doğrulaması (T52) tamamlanmadığından Faz 7, Faz 9, Faz 10 ve Faz 11 dış kabuller tamamlanana dek PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
 };
 
 export interface ModuleRevisionNote {
@@ -1966,6 +1966,38 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
         before: "capability-claim-register.json içinde multi-user-cde-approval-workflow modül yolu ve registryVersion güncel CAPABILITY_REGISTRY (BIM-CAP-2026-10-23.12) ile senkronize değildi.",
         after: "capability-claim-register.json ve open-source-fixture-register.json güncellenerek phase-0-evidence-validator.test.ts (23/23 PASS) ve t53-t54-market-inventory.test.ts (4/4 PASS) ile doğrulandı.",
         basis: "Faz 0 T03 & Faz 10 T54 — Tek kaynaklı yetenek ve iddia kaydı tutarlılığı",
+      },
+    },
+  },
+  {
+    revision: "Rev. 90",
+    version: "BIM-CALC-2026-10-25.84",
+    date: "26 Ekim 2026",
+    commit: "4502ced68ef1fc0de3441dc25a0ba27f758b5f86",
+    trigger: "GAP planı Faz 7 T43 R+2..R+4 JSDOM UI/bileşen kapsam dilimi (proje %53,04 → %82,58 ≥ %80 kapanışı), Dashboard.tsx React Rules-of-Hooks düzeltmesi (D11) ve Faz 11 T56 nihai izlenebilirlik matrisi.",
+    beforeSummary: "UI katmanı (164 dosya, ~41.000 satır) c8 birim/entegrasyon koşusunda %12,30 satır kapsamında kaldığı için proje genel satır kapsamı %53,04 seviyesindeydi ve T43 %80 kabul eşiği açıktı. Ayrıca src/pages/Dashboard.tsx içinde user?.isSuperAdmin erken dönüşü useEffect kancasından önce çalıştığı için /api/auth/me yanıtı döndüğünde React Rules-of-Hooks ('Rendered fewer hooks than expected') hatası fırlatıyordu; Faz 11 T56 kapsamında 56 To-Do, 31 denetim bulgusu, 6 hesap motoru ve oturum kusurlarını tek makine-okunur matriste doğrulayan kontrat testi yoktu.",
+    afterSummary: "src/pages/t43-ui-pages-and-components.test.ts (6 dilim, 6/6 PASS) ile 90+ sayfa ve mühendislik bileşeni (PriceEscalationCalculatorPage, KatKarsiligiCalculatorPage, KikAdtCalculatorPage, YambisCalculatorPage, CalmIfcWorkspace, SmartCheckImportWorkspace, BimIfcParser, PreBimFeasibilityPanel, CalculationMethods, ExpertReview dahil) JSDOM altında render edilip form/sekme etkileşimleriyle doğrulandı; 1434 testte 1427 PASS / 0 FAIL / 7 SKIP elde edildi; UI satır kapsamı %12,30 → %74,77 (floor %74), proje satır kapsamı %53,04 → %82,58 (floor %82) seviyesine yükseltilerek T43 [x] kapatıldı. Dashboard.tsx içindeki erken dönüş useEffect sonrasına taşındı (D11). docs/audits/phase-11/final-evidence-matrix.json, PHASE_11_T56_FINAL_EVIDENCE_MATRIX_2026-10-26.md ve src/contracts/t56-final-evidence-matrix.test.ts (3/3 PASS) ile T56 izlenebilirlik matrisi kuruldu. Hesap yöntemleri değişmedi.",
+    affectedModules: ["eskalasyon", "kik-adt", "on-teklif-fizibilite", "ifc-metraj"],
+    moduleDetails: {
+      eskalasyon: {
+        before: "PriceEscalationCalculatorPage.tsx arayüz bileşeni c8 birim/entegrasyon kapsam koşusunda JSDOM altında doğrudan render edilip form girdileriyle çalıştırılmamıştı.",
+        after: "t43-ui-pages-and-components.test.ts (Dilim 3) ile PriceEscalationCalculatorPage JSDOM altında render edildi ve tüm form girdi/seçim olayları doğrulandı.",
+        basis: "Faz 7 T43 R+2..R+4 — 4735 fiyat farkı hesaplayıcı arayüzü JSDOM kapsam doğrulaması",
+      },
+      "kik-adt": {
+        before: "KikAdtCalculatorPage.tsx ve YambisCalculatorPage.tsx arayüz bileşenleri c8 kapsam koşusunda JSDOM altında doğrudan render edilip form girdileriyle çalıştırılmamıştı.",
+        after: "t43-ui-pages-and-components.test.ts (Dilim 3) ile KikAdtCalculatorPage ve YambisCalculatorPage JSDOM altında render edilip form etkileşimleriyle doğrulandı.",
+        basis: "Faz 7 T43 R+2..R+4 — KİK ADT ve YAMBİS hesaplayıcı arayüzleri JSDOM kapsam doğrulaması",
+      },
+      "on-teklif-fizibilite": {
+        before: "KatKarsiligiCalculatorPage.tsx ve PreBimFeasibilityPanel.tsx bileşenleri c8 kapsam koşusunda JSDOM altında doğrudan render edilmemişti.",
+        after: "t43-ui-pages-and-components.test.ts (Dilim 3 & 4) ile KatKarsiligiCalculatorPage (%87 satır) ve PreBimFeasibilityPanel (%73,4 satır) JSDOM altında render edilip form etkileşimleriyle doğrulandı.",
+        basis: "Faz 7 T43 R+2..R+4 — Kat karşılığı ve Pre-BIM imar fizibilitesi arayüzleri JSDOM kapsam doğrulaması",
+      },
+      "ifc-metraj": {
+        before: "CalmIfcWorkspace, SmartCheckImportWorkspace, BimIfcParser, MetrajCetveliSheet, CalculationTraceSection ve ExpertLineVerification bileşenleri c8 kapsam koşusunda JSDOM altında doğrudan render edilmemişti.",
+        after: "t43-ui-pages-and-components.test.ts (Dilim 4) ile tüm IFC/SmartCheck inceleme bileşenleri JSDOM altında sentetik 100+ elemanlı veri setiyle render edilip sekme ve filtre etkileşimleriyle doğrulandı.",
+        basis: "Faz 7 T43 R+2..R+4 — IFC/SmartCheck mühendislik arayüzleri JSDOM kapsam doğrulaması",
       },
     },
   },

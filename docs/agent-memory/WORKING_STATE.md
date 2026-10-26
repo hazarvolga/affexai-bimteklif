@@ -1,6 +1,6 @@
 # Working State: BIMMetraj
 
-Last updated: 2026-10-25. Keep this file to one page: current truth only. Move
+Last updated: 2026-10-26. Keep this file to one page: current truth only. Move
 history to `archive/` (latest: `archive/WORKING_STATE_until_2026-10-24.md`).
 
 ## Production
@@ -29,7 +29,8 @@ history to `archive/` (latest: `archive/WORKING_STATE_until_2026-10-24.md`).
 
 ## Code (main / working branch)
 
-- Latest roadmap revision: **Rev. 89** (`BIM-CALC-2026-10-25.83`): Faz 10 T53 source-backed market inventory & T54 comparable 6-stage capability matrix (`docs/audits/phase-10/market-inventory-register.json`, `docs/audits/phase-10/PHASE_10_T53_T54_MARKET_INVENTORY_2026-10-26.md`, `src/contracts/t53-t54-market-inventory.test.ts` `4/4 PASS`, and `scripts/phase-0-evidence-validator.test.ts` `23/23 PASS`; 12 products evaluated with `unverified_publicly` vs `pilot_l2_unapproved` discipline and `singleClaimPermitted = false` until `T50–T52` & `T55` legal review).
+- Latest roadmap revision: **Rev. 90** (`BIM-CALC-2026-10-25.84`): Faz 7 `T43` R+2..R+4 coverage ratchet closed (`src/pages/t43-ui-pages-and-components.test.ts` `6/6 PASS`, `src/pages/Dashboard.tsx` `D11` React Rules-of-Hooks fix, `coverage-thresholds.json` ratcheted to `project` lines **`82.58%`** floor `82%` / branches `75.01%` floor `75%` / functions `71.41%` floor `71%` and `UI` lines `74.77%` floor `74%`, `1427/1434` tests PASS, `0` FAIL) & Faz 11 `T56` complete traceability and final evidence matrix (`docs/audits/phase-11/final-evidence-matrix.json`, `docs/audits/phase-11/PHASE_11_T56_FINAL_EVIDENCE_MATRIX_2026-10-26.md`, `src/contracts/t56-final-evidence-matrix.test.ts` `3/3 PASS` binding `56/56` To-Do items [`39` `[x]` + `13` `PARTIAL` + `4` external-only], `31/31` audit IDs, `6/6` calculation engines, and `11` production defects `D01–D11`).
+  Rev. 89 (`BIM-CALC-2026-10-25.83`): Faz 10 T53 source-backed market inventory & T54 comparable 6-stage capability matrix (`docs/audits/phase-10/market-inventory-register.json`, `docs/audits/phase-10/PHASE_10_T53_T54_MARKET_INVENTORY_2026-10-26.md`, `src/contracts/t53-t54-market-inventory.test.ts` `4/4 PASS`, and `scripts/phase-0-evidence-validator.test.ts` `23/23 PASS`; 12 products evaluated with `unverified_publicly` vs `pilot_l2_unapproved` discipline and `singleClaimPermitted = false` until `T50–T52` & `T55` legal review).
   Rev. 88 (`BIM-CALC-2026-10-25.82`): T45 performance & operating budget (`src/server/config/performance-budgets.ts` `BIM-PERF-2026-10-26.1` pre-registered budgets, `src/lib/quote-xlsx.ts` + `CreateQuote.tsx` dynamic import + `vite.config.ts` `manualChunks`/`modulePreload` isolating `940 kB` `exceljs` from `CreateQuote-*.js` `49.67 kB` and `index-*.js` `106.47 kB ≤ 120 kB`, and `src/contracts/t45-performance-budget.test.ts` `5/5 PASS`: 1,000-row XLSX + `256 MB` isolated worker `1,489.98 ms ≤ 2,500 ms` + `SPREADSHEET_BUSY` recovery, 20-request concurrent multi-tenant PG16 `p95 = 21.90 ms ≤ 250 ms`, queue claim `3.78 ms ≤ 150 ms`, Sentry PII scrub `p95 < 1 ms ≤ 5 ms`, AI router failover `< 5 ms ≤ 50 ms`).
   Rev. 87 (`BIM-CALC-2026-10-25.81`): T43 R+1 coverage ratchet (`project` lines `46.80% → 53.04%` floor `52%`, `HTTP API routes` lines `54.26% → 81.31%` floor `80%`, `1409/1416` tests PASS via `t43-route-ratchet.integration.test.ts`, `catalog-and-templates-integrity.test.ts`, `tenant-context.test.ts`, `control-plane.test.ts`) + 3 production bugs fixed in `auth.ts` (`login`/`me` tenantless Academy learner profile read via `getControlDatabase().db`) and `admin.ts` (`sync-catalog` `admin_audit_logs` insert outside control tx + `reports/usage` `topConsumers` via `getControlDatabase().db`).
   Rev. 86 (`BIM-CALC-2026-10-25.80`): T44 5-pillar recovery drill (`src/contracts/t44-recovery-drill.pgtest.ts` 1/1 PASS: worker crash/reclaim, poison DLQ quarantine, `bimmetraj_backup` `pg_dump --enable-row-security` + `pg_restore` `dumpDurationMs: 136 ms` / `restoreDurationMs: 351 ms`, failed migration atomic rollback + catalog signature verification, and `/api/health/ready` `503 SERVICE_DEGRADED` → `200 OK` recovery) + `companies_worker_capability_read`/`subscriptions_worker_capability_read` FORCE RLS policies + `deploy/backup/backup.py --enable-row-security` + `postgres:restore-drill:verify` (`28` migrations, `85` tables, `20` enums).
@@ -74,11 +75,7 @@ history to `archive/` (latest: `archive/WORKING_STATE_until_2026-10-24.md`).
   product copy. Marketing claims ("Türkiye'de tek", "mevzuata uyumlu") are
   decided only after independent expert review.
 - GAP programme (`docs/audits/GAP_KAPATMA_VE_KANIT_YOL_HARITASI_2026-10-23.md`):
-  Faz 0–4 code/test done; Faz 5–6 partial (progress payments default-off,
-  pilot L2); Faz 7 T40 role cutover live since Rev. 72 (canary, restore and
-  rollback evidence open), T41 code/PG16 done (72/72 `company_id` tables classified: 67 FORCE RLS + 5 S5 Exact-ACL; live post-deploy smoke open),
-  T42 partial (code/test done), T43 partial (`c8` `53.04%` project / `81.31%` routes + Playwright 6/6 in CI; R+1 done), T44 partial (`t44-recovery-drill.pgtest.ts` 5-pillar drill 1/1 PASS + `postgres:restore-drill:verify` PASS; live digest verification open), T45 partial (`PERFORMANCE_BUDGETS` `BIM-PERF-2026-10-26.1` + ExcelJS chunk split + `t45-performance-budget.test.ts` 5/5 PASS; real large client files & live VPS post-deploy load check open); Faz 8 T46–T49 code/test done; Faz 10 T53–T54 done (`PHASE_10_T53_T54_MARKET_INVENTORY_2026-10-26.md`; T55 legal decision open after T50–T52); Faz 9 & 11 open. Expert trial guide:
-  `/admin/roadmap/expert-review`.
+  **All autonomous engineering/code/test items are closed (`39/56` `[x]` + all code/test gates of `13/56` `PARTIAL` items; `4/56` `T50, T51, T52, T55` are external-only).** Faz 0–4 code/test done; Faz 5–6 partial (progress payments default-off, pilot L2 awaiting external customer/vendor data); Faz 7 T40 role cutover live since Rev. 72 (canary, restore and rollback evidence open), T41 code/PG16 done (72/72 `company_id` tables classified: 67 FORCE RLS + 5 S5 Exact-ACL; live post-deploy smoke open), T42 partial (code/test done), **T43 closed (`[x]`, `c8` `82.58%` project / `81.31%` routes / `74.77%` UI + Playwright 6/6 in CI; `1427/1434` PASS)**, T44 partial (`t44-recovery-drill.pgtest.ts` 5-pillar drill 1/1 PASS + `postgres:restore-drill:verify` PASS; live digest verification open), T45 partial (`PERFORMANCE_BUDGETS` `BIM-PERF-2026-10-26.1` + ExcelJS chunk split + `t45-performance-budget.test.ts` 5/5 PASS; real large client files & live VPS post-deploy load check open); Faz 8 T46–T49 code/test done; Faz 9 `T50–T52` open (external pilot/expert/security sign-off); Faz 10 T53–T54 done (`PHASE_10_T53_T54_MARKET_INVENTORY_2026-10-26.md`; T55 legal decision open after T50–T52); Faz 11 T56 partial (`final-evidence-matrix.json` & `t56-final-evidence-matrix.test.ts` 3/3 PASS; awaits external closures before `fullClosureClaimPermitted = true`). Expert trial guide: `/admin/roadmap/expert-review`.
 - Role and tenant models: `docs/operations/database-role-model.md`,
   `docs/operations/tenant-rls-model.md`.
 - Known limits: browser IFC parser carries no per-element material layers (the
@@ -89,7 +86,7 @@ history to `archive/` (latest: `archive/WORKING_STATE_until_2026-10-24.md`).
 - Full suite needs an isolated PostgreSQL 16 configured like
   `.github/workflows/verify.yml` (disposable roles, release migrations, runtime
   role URLs). Never point tests at shared databases. Without it ~55 DB tests
-  fail with `ECONNREFUSED`; with it the suite passes (1355 tests on 2026-10-24).
+  fail with `ECONNREFUSED`; with it the suite passes (`1427/1434` PASS, `0` FAIL, `82.58%` project line coverage on 2026-10-26).
 
 ## Ground rules for agents
 

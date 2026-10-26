@@ -68,11 +68,6 @@ export function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
-  // Redirect super admins to their operational dashboard
-  if (user?.isSuperAdmin) {
-    return <Navigate to="/admin" replace />;
-  }
-
   const loadQuotes = () => {
     setLoading(true);
     setError(false);
@@ -92,8 +87,15 @@ export function Dashboard() {
   };
 
   useEffect(() => {
-    loadQuotes();
-  }, []);
+    if (!user?.isSuperAdmin) {
+      loadQuotes();
+    }
+  }, [user?.isSuperAdmin]);
+
+  // Redirect super admins to their operational dashboard
+  if (user?.isSuperAdmin) {
+    return <Navigate to="/admin" replace />;
+  }
 
   const primaryCurrency = company?.defaultCurrency ?? 'TRY';
   const primary = quotes.filter((q) => q.currency === primaryCurrency);
