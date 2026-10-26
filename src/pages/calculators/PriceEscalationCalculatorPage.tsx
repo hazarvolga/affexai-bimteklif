@@ -1,6 +1,7 @@
 import React, { useMemo, useRef, useState } from "react";
 import { evaluateEscalationForm, type EscalationFormState, type EscalationRowState } from "@/lib/calculators/escalation-form";
 import { CSB_2026_TUIK_SUB_INDICES } from "@/lib/price-escalation";
+import { CalculationFeedback } from "@/features/expert-feedback/CalculationFeedback";
 import { CalcField, CalculatorShell, calcInputClass, fmtNum, fmtTry } from "./CalculatorShell";
 
 const emptyRow = (): EscalationRowState => ({
@@ -248,6 +249,18 @@ export const PriceEscalationCalculatorPage: React.FC = () => {
           )}
         </div>
       </section>
+
+      <CalculationFeedback
+        engineId="price_escalation_4735"
+        inputs={form}
+        result={outcome.status === "ok" ? {
+          fiyatFarkiTl: outcome.result.priceDifferenceTl,
+          pn: outcome.result.pnFactor,
+          sabitKatsayi: outcome.result.constantWeight,
+          guncelToplamTl: outcome.result.adjustedTotalTl,
+          etkinArtisYuzde: outcome.result.effectiveEscalationPct,
+        } : { durum: outcome.status }}
+      />
     </CalculatorShell>
   );
 };

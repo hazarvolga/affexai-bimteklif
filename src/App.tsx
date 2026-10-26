@@ -57,6 +57,10 @@ const Regulations = page(() => import('@/pages/Regulations'), 'Regulations');
 const MarketIntelligence = page(() => import('@/pages/MarketIntelligence'), 'MarketIntelligence');
 const PilotEvidence = page(() => import('@/pages/PilotEvidence'), 'PilotEvidence');
 const HowItWorks = page(() => import('@/pages/HowItWorks'), 'HowItWorks');
+// Expert preview only: signed-in routes for calculators awaiting expert sign-off (not public, sitemap or llms.txt).
+const ExpertPreview = page(() => import('@/pages/ExpertPreview'), 'ExpertPreview');
+const YambisCalculatorPage = page(() => import('@/pages/calculators/YambisCalculatorPage'), 'YambisCalculatorPage');
+const KatKarsiligiCalculatorPage = page(() => import('@/pages/calculators/KatKarsiligiCalculatorPage'), 'KatKarsiligiCalculatorPage');
 const CRM = page(() => import('@/pages/CRM'), 'CRM');
 const DealDetail = page(() => import('@/pages/DealDetail'), 'DealDetail');
 const AIAssistant = page(() => import('@/pages/AIAssistant'), 'AIAssistant');
@@ -164,6 +168,9 @@ function AppRoutes() {
           <Route path="market-intelligence" element={<MarketIntelligence />} />
           <Route path="pilot-evidence" element={<PilotEvidence />} />
           <Route path="nasil-calisir" element={<HowItWorks />} />
+          <Route path="uzman-onizleme" element={<ExpertPreview />} />
+          <Route path="uzman-onizleme/yambis" element={<YambisCalculatorPage />} />
+          <Route path="uzman-onizleme/kat-karsiligi" element={<KatKarsiligiCalculatorPage />} />
           <Route path="crm" element={<CRM />} />
           <Route path="crm/deals/:id" element={<DealDetail />} />
           <Route path="ai" element={<AIAssistant />} />

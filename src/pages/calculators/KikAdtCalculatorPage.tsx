@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { evaluateKikForm, type KikFormState } from "@/lib/calculators/kik-form";
+import { CalculationFeedback } from "@/features/expert-feedback/CalculationFeedback";
 import { CalcField, CalculatorShell, calcInputClass, fmtNum, fmtTry } from "./CalculatorShell";
 
 export const KikAdtCalculatorPage: React.FC = () => {
@@ -147,6 +148,21 @@ export const KikAdtCalculatorPage: React.FC = () => {
           )}
         </div>
       </section>
+
+      <CalculationFeedback
+        engineId="kik_adt"
+        inputs={form}
+        result={outcome.status === "ok" ? {
+          sinirDegerTry: outcome.result.boundaryValueTry,
+          tOrt1Try: outcome.result.firstMeanTry,
+          standartSapmaTry: outcome.result.standardDeviationTry,
+          tOrt2Try: outcome.result.correctedMeanTry,
+          cOrani: outcome.result.cRatio,
+          kKatsayisi: outcome.result.kFactor,
+          nKatsayisi: outcome.result.nCoefficient,
+          asiriDusuk: outcome.hasOurBid ? outcome.result.isAbnormallyLow : null,
+        } : { durum: outcome.status }}
+      />
 
       <section className="space-y-3 text-sm text-muted-foreground">
         <h2 className="font-display-serif text-2xl text-foreground">Hesap nasıl yapılır?</h2>

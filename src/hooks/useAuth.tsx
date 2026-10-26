@@ -26,7 +26,8 @@ interface AuthContextType {
   exitImpersonation: () => void;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+/** Exported for tests that render auth-aware components without a live session. */
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const DEFAULT_DEMO_USER: User = {
   id: 'demo-user-id',
@@ -156,6 +157,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       {children}
     </AuthContext.Provider>
   );
+}
+
+/** For components that also render on public pages outside AuthProvider; returns undefined there. */
+export function useOptionalAuth(): AuthContextType | undefined {
+  return useContext(AuthContext);
 }
 
 export function useAuth(): AuthContextType {
