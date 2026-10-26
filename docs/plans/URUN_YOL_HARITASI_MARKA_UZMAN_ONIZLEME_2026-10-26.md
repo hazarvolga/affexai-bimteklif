@@ -59,6 +59,21 @@ Gerekçe: Uzman bu hataları görürse asıl hesap doğruluğu yerine bunları r
 - Her durum için birim testi.
 - Örnek IFC'lerle (3 örnek proje ve boş fiyat kataloğu) gerçek tarayıcıda sonuç ekranı kanıtı.
 
+### Faz 0 durumu (26 Ekim 2026, dal `feat/faz0-guven`)
+
+- **Kapandı:**
+  - M-14.1, M-14.2, M-13.6, M-13.7, M-13.8, M-13.9, M-20.2 ve M-20.3 (sonuç özeti).
+  - M-12.2, M-12.3, M-12.7, M-10.5, M-5.6, M-13.2, M-11.6 ve M-7.11.
+  - M-7.7, M-18.2 ve M-18.3 (etiketler).
+  - M-14.4, M-17.2 ve M-5.3/9.3, müşteriye görünen ekranlarda (yönetim ekranları hariç).
+- **Kanıt:**
+  - Tam test paketi: 1476 testten 1466 geçti, 0 hata, 10 atlandı. Kapsam eşiği geçti (proje satır kapsamı %82,61).
+  - Gerçek tarayıcı: `scripts/faz0-trust-ui-smoke.ts`.
+- **Açık:** M-7.6, aynı teklif sürümünün yeniden PDF'inin kotadan düşmemesi.
+  - `usage_logs` tablosunda teklif bağlantısı olmadığı için yeni bir migrasyon (0028) gerektirir.
+  - Canlı RLS geçişinden önce ek migrasyon kararı Hazar'da.
+- **Faz 1'e kalan:** "Aktarım için önce mevcut bir teklif oluşturulmalıdır" (M-14.3) ve fiyat kataloğu boş durum akışı (M-17.3, kısmen yapıldı).
+
 ## 3. Faz 1 — Excel önce ve ana iş akışı
 
 | Kimlik | Madde | Yapılacak | Konum |
