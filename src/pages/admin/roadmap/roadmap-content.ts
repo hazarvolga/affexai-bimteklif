@@ -185,7 +185,7 @@ export const ROADMAP_SECTIONS: DocSection[] = [
   },
   {
     id: "durum",
-    title: "Uygulama durumu (26 Ekim 2026 · Rev. 89 geliştirme)",
+    title: "Uygulama durumu (27 Ekim 2026 · Rev. 95 geliştirme)",
     blocks: [
       { type: "table", columns: ["Yetenek", "Durum", "Not"], rows: [
         ["RG 33331 IFC ön kontrolü (EK-1/2/3/5/6/7/9)", "Hazır (Tam Kapsam)", "EK-1 6 haneli proje kodu–dosya adı eşleşmesi, EK-2 Tablo 2.1–2.14, EK-3 Tablo 3.1–3.2 (~130 mahal), EK-5 (69 zorunlu + 67 isteğe bağlı sınıf), EK-6 (Tablo 6.1–6.68) ve EK-7 Tablo 7.1–7.9 (IfcAnnotation SURVEY dahil) sunucuda çalışır; gerçek yüklenen dosya adı (dosya_adi) ve iç içe IfcComplexProperty kümeleri de denetlenir"],
@@ -198,6 +198,9 @@ export const ROADMAP_SECTIONS: DocSection[] = [
         ["3×3 kural paketi + IFC özellik girdileri", "Hazır", "LoadBearing, IsExternal/ExposureClass, Cover (paspayı), Disiplin ve ExpectedVolume IFC'den kural motoruna uçtan uca aktarılır"],
         ["TS 500 Yapısal Metraj Sihirbazı (E-7), Kiriş–Döşeme Kesişimi ve CSB_2026_V1 Minha Motoru (E-8)", "Hazır", "Kolon/kiriş/döşeme/temel beton-kalıp-donatı hesabı, kiriş–döşeme ortak hacim/kalıp düşümü (computeBeamSlabIntersectionDeduction) ve ÇŞB ölçü esaslarına (0,50 / 2,00 / 1,00 m² eşikleri + söve/yan yüzey) göre boşluk düşümü canlıda"],
         ["Reviewer disiplin yetkisi (E-9), Runtime DB rol ayrımı (T40) ve tenant RLS (T41)", "Reviewer hazır · DB rol ayrımı canlıda (Rev. 72) · 72/72 company_id tablosu sınıflandırıldı (67 FORCE RLS + 5 Exact-ACL · Rev. 85)", "Reviewer disiplin kapsamı sunucuda doğrulanır. Coolify deploy içindeki db-bootstrap → migrate → db-provision zinciriyle runtime DB rol ayrımı canlıda çalışır. 0022_tenant_business_rls (14 iş tablosu), 0023_quotation_core_rls (S1 6 teklif çekirdeği tablosu), 0024_pricing_regulations_rls (S2 8 fiyat/kaynak/mevzuat tablosu), 0025_allplan_learner_rls (S4a 7 Allplan öğrenci tablosu), 0026_academy_control_rls (S4b 6 Academy control-plane ve sertifika doğrulama tablosu) ve 0027_smartcheck_pipeline_rls (S3 4 SmartCheck belge ve worker işlem hattı tablosu) ile 67 tablo FORCE RLS altına alınmış, kalan 5 S5 tablosu (memberships, invitations, pilot_applications, admin_audit_logs, usage_records) exact least-privilege ACL kontratı ile kilitlenerek 72/72 company_id tablosunun tamamı PG16 üzerinde doğrulanmıştır; canlı deploy sonrası role-model-smoke ve worker canary/drain açıktır."],
+        ["Firma fiyat kataloğu sihirbazı ve eksik fiyat eylemleri (marka.md M-17.3 / M-17.4)", "Hazır (Rev. 94)", "/app/fiyat-katalogu: şablon → dosya → sütun eşleştirme → birim/geçerlilik/KDV incelemesi → onay. Firma fiyatı KDV hariç ve oran belirtilmiş olarak içe aktarımda onaylanır; icmalde fiyatı eksik kalem için 'Firma fiyatı ekle', 'Katalogdaki fiyatı eşleştir' (yalnız aynı poz/birim/TL) ve 'Uzman incelemesine al' eylemleri vardır"],
+        ["Müteahhitlik kârı ve genel gider (release 0029)", "Hazır (Rev. 94)", "Teklif düzeyinde yüzde; pay her satırın netine uygulanır, KDV pay dahil matrah üzerinden hesaplanır. Kalem birim fiyatları fiyat kaydına eşit kalır. Teklif, detay, üç PDF şablonu ve Excel çıktısı ayrı satır gösterir; ÇŞB fiyat modunda %0 başlar (ÇŞB fiyatlarına %25 dahildir)"],
+        ["Excel önce akış ve Excel çıktısı (marka.md C-1..C-4, M-11.4, M-14.3, M-15.2)", "Hazır (Rev. 93 · Rev. 95)", ".xlsx şablonları, .xls yönlendirmesi, 'Nereden başlayacaksınız?' girişi, IFC icmalinden yeni teklif / mevcut teklife revizyon, teklif ve icmal .xlsx dışa aktarımı; sabit fiyatlı dosyadan-teklif-demo kaldırıldı"],
         ["ÇŞB 2026 Resmî PDF Katalog Mühürleme & Gece Fiyat Takip Mimarisi", "Hazır", "Yüksek Fen Kurulu 2026 PDF/CSV katalogları SHA-256 ile mühürlenerek içe aktarılır; her gece 03:00'te TCMB/TÜİK/resmî sayfa taraması ve fiyat farkı simülasyonu çalışır"],
         ["Paket Kataloğu v6, 4 Dönemli Havale/EFT İskontosu & Abone Göçü", "Hazır", "Sunucu RAM/CPU korumalı v6 kotaları (25–85 MB IFC, tarayıcı önizleme 50 MiB, açık boyut aşımı hata kodu FILE_SIZE_LIMIT_EXCEEDED), rakip kalibrasyonlu fiyatlar, 4 dönemli taahhüt iskontosu ve pasife alınan paketlerdeki aboneleri alternatif pakete atomik taşıma canlıda"],
         ["Manuel Havale/EFT Yaşam Döngüsü Yarış ve Replay Kapısı (T42)", "Kod ve izole PG16 kanıtı hazır (Rev. 49)", "Sipariş init tekilleştirilir; requestId zorunludur; plan/dönem/tutar snapshotı değişmez; dekont NFKC+dar ASCII ile global tekilleşir; submit/review ortak request kilidi kullanır; approve/reject terminaldir; pasif paket onayı kapanır ve ikinci gerçek ödeme aktif aynı-plan dönemini resetlemek yerine uzatır. Production deploy veya banka mutabakat entegrasyonu yapılmadı."],
@@ -278,17 +281,17 @@ export const ROADMAP_SECTIONS: DocSection[] = [
   },
   {
     id: "revizyon-gunlugu",
-    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 90 · 13–26 Ekim 2026)",
+    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 95 · 13–27 Ekim 2026)",
     blocks: [
       {
         type: "callout",
         tone: "info",
-        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 90)",
-        text: "Bu bölüm, BIMMetraj'ın teknik evrimini Rev. 0'dan 26 Ekim 2026 Rev. 90 · BIM-CALC-2026-10-25.84 sürümüne kadar katı kronolojik sırayla kaydeder. Rev. 90 ile T43 ≥%80 proje kapsam hedefi (%82,58) ve T56 nihai izlenebilirlik matrisi tamamlanarak dış girdi gerektirmeyen tüm teknik adımlar kapatılmıştır. Harici fixture lisansı, T45 izinli gerçek büyük müşteri dosyası/VPS post-deploy kanıtı, T50–T52 uzman/müşteri/canlı kabulü ve T55 hukuk incelemesi açık olduğundan Faz 7, Faz 9, Faz 10 ve Faz 11 dış kabuller tamamlanana dek PARTIAL kalır.",
+        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 95)",
+        text: "Bu bölüm, BIMMetraj'ın teknik evrimini Rev. 0'dan 27 Ekim 2026 Rev. 95 · BIM-CALC-2026-10-27.89 sürümüne kadar katı kronolojik sırayla kaydeder. Rev. 91–95, marka.md ürün incelemesinden çıkan uzman önizlemesi, Faz 0 güven düzeltmeleri ve Faz 1 Excel önce / fiyat eksikliği / dışa aktarım dilimleridir; bu dallar main'e birleşip canlıya alınana kadar geliştirme durumundadır. Rev. 90 ile T43 ≥%80 proje kapsam hedefi (%82,58) ve T56 nihai izlenebilirlik matrisi tamamlanarak dış girdi gerektirmeyen tüm teknik adımlar kapatılmıştır. Harici fixture lisansı, T45 izinli gerçek büyük müşteri dosyası/VPS post-deploy kanıtı, T50–T52 uzman/müşteri/canlı kabulü ve T55 hukuk incelemesi açık olduğundan Faz 7, Faz 9, Faz 10 ve Faz 11 dış kabuller tamamlanana dek PARTIAL kalır.",
       },
       {
         type: "p",
-        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 90):",
+        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 95):",
       },
       {
         type: "table",
@@ -836,16 +839,46 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "Faz 10 T53 ve T54 dilimi tamamlandı: 1) docs/audits/phase-10/market-inventory-register.json ve PHASE_10_T53_T54_MARKET_INVENTORY_2026-10-26.md ile OSKA e-Hakediş Pro / HakedişPlus (masaüstü) ve OSKABULUT (bulut/web) ayrı satırlarda, AMP Kurumsal / AMP Bulut, İhale Pro, BEXEL Manager + CDE, RIB CostX & CostX Cloud, Autodesk Takeoff & ACC, Kreo 2D/BIM Takeoff, Glodon Cubicost, ALLPLAN 2026 + Bimplus + Solibri, açık kaynak ifc-ruhsat (MIT) ve BIMMetraj olmak üzere 12 ürün T03 protokolüyle tarandı. 2) 6 halkalı yetenek zincirinde (S1 IFC QTO → S2 RG 33331 e-PYS & PDF/A → S3 ÇŞB/BYOL Poz & Minha → S4 4734 KİK & 4735 Fiyat Farkı → S5 Çok Dönemli Hakediş & Yeşil Defter → S6 ISO 19650 CDE) ticari rakiplerin açık belgelerinde görülmeyen özellikler 'yok' yerine 'doğrulanamadı' (unverified_publicly) olarak korundu; BIMMetraj satırı CAPABILITY_REGISTRY (0 Canlı/L3, 15 Pilot/L2, 4 Yol Haritası/L1) ile birebir aynı kanıt eşiğine (pilot_l2_unapproved) tabi tutuldu ve singleClaimPermitted=false kapısı src/contracts/t53-t54-market-inventory.test.ts (4/4 PASS) ile kilitlendi. 3) docs/audits/phase-0/capability-claim-register.json ve open-source-fixture-register.json güncel CAPABILITY_REGISTRY_VERSION (BIM-CAP-2026-10-23.12) ve worker script SHA-256 özetleriyle senkronize edilerek scripts/phase-0-evidence-validator.test.ts (23/23 PASS) doğrulandı.",
           ],
           [
-            "Rev. 90 (Güncel geliştirme)",
+            "Rev. 90",
             "26 Ekim 2026 (T43 ≥%80 Kapsam Ratchet Kapanışı: Proje %53,04 → %82,58, UI %12,30 → %74,77 + Dashboard Rules-of-Hooks Düzeltmesi + Faz 11 T56 Nihai Kanıt Matrisi)",
             "BIM-CALC-2026-10-25.84",
             "Dış girdi gerektirmeyen tüm teknik GAP maddeleri tamamlandı: 1) T43 R+2..R+4 JSDOM UI/bileşen kapsam dilimi (src/pages/t43-ui-pages-and-components.test.ts: 6 dilimde 90+ sayfa/bileşen render ve form/sekme etkileşimi, 6/6 PASS) ile 1434 testte 1427 PASS / 0 FAIL / 7 SKIP sağlandı; proje genel satır kapsamı %53,04 → %82,58 (76.835/93.041 satır, +29,54 puan, ≥%80 nihai eşiği +2,58 puan aşıldı, coverage-thresholds.json project.lines: 82 kilitlendi), UI (src/pages + src/components + src/hooks) satır kapsamı %12,30 → %74,77 (+62,47 puan, floor %74, dal %60,19, fonksiyon %42,71) seviyesine çıkarılarak T43 maddesi [x] olarak kapatıldı. 2) UI kapsam koşusu sırasında src/pages/Dashboard.tsx içinde yakalanan canlı React Rules-of-Hooks hatası (user?.isSuperAdmin erken dönüşünün useEffect kancasından önce yer alması nedeniyle /api/auth/me yanıtı döndüğünde 'Rendered fewer hooks than expected' fırlatması) erken dönüşün useEffect sonrasına taşınmasıyla giderildi (D11). 3) Faz 11 T56 kapsamında docs/audits/phase-11/final-evidence-matrix.json, PHASE_11_T56_FINAL_EVIDENCE_MATRIX_2026-10-26.md ve src/contracts/t56-final-evidence-matrix.test.ts (3/3 PASS) oluşturularak 56 To-Do (39 [x] + 13 PARTIAL + 4 dış kabul), 31 denetim bulgusu (9 KOD + 6 BUG + 8 GAP + 5 SEO + 3 GEO), 6 hesap motoru ve oturumda kapatılan 11 üretim kusuru (D01–D11) eksiksiz izlenebilirlik matrisine bağlandı.",
+          ],
+          [
+            "Rev. 91",
+            "26 Ekim 2026 (Uzman Önizlemesi ve Uygulama İçi Hesap Geri Bildirimi)",
+            "BIM-CALC-2026-10-26.85 (b6a45b3)",
+            "Davetli uzmanların hesap sonucunu uygulama içinden değerlendirmesi için POST /api/expert-feedback (doğrulanmış kullanıcı, saatte 10 sınır, girdiler yalnız açık izinle), KİK ADT ve 4735 hesaplayıcılarında 'Bu sonuç sizin hesabınızla tutuyor mu?' kartı ve her ekranda 'Geri Bildirim' paneli eklendi. YAMBİS ve kat karşılığı/KDV yalnız /app/uzman-onizleme içinde doğrulanmamış önizleme notuyla açıldı. Tarayıcı smoke: scripts/expert-feedback-ui-smoke.ts.",
+          ],
+          [
+            "Rev. 92",
+            "26 Ekim 2026 (Faz 0 Güven Düzeltmeleri ve Release 0028)",
+            "BIM-CALC-2026-10-26.86 (34338ff)",
+            "marka.md incelemesinin Faz 0 maddeleri kapatıldı: IFC maliyet sekmesi eksik fiyatı 0 TL değil 'fiyat bekliyor' olarak gösterir, sonuç özeti her kontrolün kendi durumunu bildirir, müşteriye görünen ekranlarda doğrulanmamış iddialar kaldırıldı, plan ve kullanım etiketleri dürüstleştirildi, varsayılan PDF şablonu firma adını ve gerçek geçerlilik tarihini gösterir. Release 0028 (usage_logs.quotation_id + quotation_version_key) ile aynı teklif sürümünün PDF'i ayda bir kez sayılır. Tarayıcı smoke: scripts/faz0-trust-ui-smoke.ts.",
+          ],
+          [
+            "Rev. 93",
+            "26 Ekim 2026 (Faz 1: Excel Önce, Tek Giriş Akışı, Yeni Teklif / Revizyon Ayrımı)",
+            "BIM-CALC-2026-10-26.87 (b5b2bad)",
+            "Teklif, fiyat kataloğu ve parsel için .xlsx şablonları; .xls için dönüştürme talimatı; panelde 'Nereden başlayacaksınız?' (Excel / IFC / elle / örnek proje); IFC icmalinden 'Yeni teklif oluştur' veya 'Mevcut teklife revizyon ekle'. Yeni teklif tek işlemde boş Rev. 1 açıp icmali Rev. 2'ye aktarır; şema değişikliği yoktur. Tarayıcı smoke: scripts/faz1-excel-flow-smoke.ts.",
+          ],
+          [
+            "Rev. 94",
+            "27 Ekim 2026 (Fiyat Kataloğu Sihirbazı, Eksik Fiyat Eylemleri, Kâr ve Genel Gider · Release 0029)",
+            "BIM-CALC-2026-10-27.88 (1d0f99b)",
+            "Firma kataloğu yükleyen kullanıcının icmali hiç fiyatlandıramadığı boşluk kapatıldı: 5 adımlı katalog sihirbazı, içe aktarımda onay (yalnız company_actual, KDV hariç ve oran belirtilmiş), icmalde fiyatı eksik kalem için doğrudan eylemler. Release 0029 teklife müteahhitlik kârı ve genel gider yüzdesini ekler; pay satır neti üzerinden, KDV pay dahil matrah üzerinden hesaplanır, kalem fiyatları fiyat kaydına eşit kalır. Uçtan uca tarayıcı: katalog → icmal → yeni teklif, 102.396,00 TL (scripts/faz1-price-gap-smoke.ts).",
+          ],
+          [
+            "Rev. 95 (Güncel geliştirme)",
+            "27 Ekim 2026 (Teklif ve İcmal Excel Çıktısı, Sabit Fiyatlı Demo Rotasının Kaldırılması)",
+            "BIM-CALC-2026-10-27.89 (bda207b)",
+            "Teklif detayında .xlsx çıktısı (PDF ile aynı toplamlar, formülsüz); icmalin birincil indirmesi .xlsx (sade icmal + daire icmali + ayrı Fiyat Kaynakları sayfası), teknik CSV ikincil. İcmal CSV'sindeki tam lira yuvarlaması kuruşa düzeltildi. /app/dosyadan-teklif-demo kaldırılıp SmartCheck'e yönlendirildi. 1515 testte 1500 PASS / 0 FAIL / 15 SKIP.",
           ],
         ],
       },
       {
         type: "p",
-        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 90 · Önceki Durum → Yeni Durum):",
+        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 95 · Önceki Durum → Yeni Durum):",
       },
       {
         type: "table",
@@ -1584,6 +1617,41 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "1) UI katmanı (164 dosya, ~41.000 satır) c8 birim/entegrasyon koşusunda %12,30 satır kapsamında kaldığı için proje genel satır kapsamı %53,04 seviyesindeydi ve T43 %80 kabul eşiği açıktı. 2) src/pages/Dashboard.tsx içinde user?.isSuperAdmin erken dönüşü useEffect kancasından önce çalıştığı için /api/auth/me yanıtı döndüğünde React Rules-of-Hooks ('Rendered fewer hooks than expected') hatası fırlatıyordu. 3) Faz 11 T56 kapsamında 56 To-Do, 31 denetim bulgusu, 6 hesap motoru ve oturum kusurlarını tek makine-okunur matriste doğrulayan kontrat testi yoktu.",
             "1) src/pages/t43-ui-pages-and-components.test.ts (6 dilim, 6/6 PASS) ile 90+ sayfa ve mühendislik bileşeni JSDOM altında render edilip form/sekme etkileşimleriyle doğrulandı; 1434 testte 1427 PASS / 0 FAIL / 7 SKIP sağlandı; UI satır kapsamı %12,30 → %74,77 (floor %74), proje satır kapsamı %53,04 → %82,58 (floor %82) seviyesine yükseltilerek T43 [x] kapatıldı. 2) Dashboard.tsx içindeki erken dönüş useEffect sonrasına taşındı (D11). 3) docs/audits/phase-11/final-evidence-matrix.json, PHASE_11_T56_FINAL_EVIDENCE_MATRIX_2026-10-26.md ve src/contracts/t56-final-evidence-matrix.test.ts (3/3 PASS) ile T56 izlenebilirlik matrisi kuruldu.",
             "src/pages/Dashboard.tsx, src/pages/t43-ui-pages-and-components.test.ts, coverage-thresholds.json, docs/audits/phase-7/PHASE_7_T43_COVERAGE_E2E_2026-10-25.md, docs/audits/phase-11/final-evidence-matrix.json, docs/audits/phase-11/PHASE_11_T56_FINAL_EVIDENCE_MATRIX_2026-10-26.md, src/contracts/t56-final-evidence-matrix.test.ts",
+          ],
+          [
+            "Rev. 91 · 26 Ekim 2026 · b6a45b3 (Uzman Önizlemesi ve Uygulama İçi Hesap Geri Bildirimi)",
+            "Faz 9 T50/T51 kanıt toplama — davetli uzman geri bildirimi",
+            "Uzmanların hesap sonucunu doğrulayıp ürün ekibine iletebileceği bir kanal yoktu; YAMBİS ve kat karşılığı/KDV yalnız yol haritasında (L1) duruyordu.",
+            "Yapılandırılmış e-posta ile tek inceleme kutusuna ulaşan /api/expert-feedback, hesaplayıcı geri bildirim kartı ve ekran geri bildirim paneli; /app/uzman-onizleme görev sayfası; YAMBİS ve kat karşılığı yalnız oturum arkasında, önizleme notuyla. Yeni tablo yoktur.",
+            "src/server/routes/expert-feedback.ts, src/features/expert-feedback/, src/pages/ExpertPreview.tsx, src/capabilities/registry.test.ts, docs/operations/UZMAN_ONIZLEME_DEPLOY_VE_GERI_BILDIRIM_2026-10-26.md, scripts/expert-feedback-ui-smoke.ts",
+          ],
+          [
+            "Rev. 92 · 26 Ekim 2026 · 7450d8c..34338ff (Faz 0 Güven Düzeltmeleri ve Release 0028)",
+            "marka.md M-13.x, M-14.1/14.2/14.4, M-12.2/12.3/12.7, M-7.6/7.7/7.11, M-18.2/18.3",
+            "IFC maliyet sekmesi eksik fiyatı 0 TL sayıyordu; sonuç ekranında doğrulanmamış 'doğrulandı' ifadeleri vardı; kapalı seçim kutuları ham değer gösteriyordu; kullanım ekranında USD işlem maliyeti görünüyordu; aynı teklif sürümünün PDF'i her indirmede kotadan düşüyordu; PDF şablonunda eski marka ve sabit '7 gün geçerli' metni vardı.",
+            "summarizeCost eksik fiyatı toplam dışında tutar; ResultSummaryPanel kontrol durumlarını ayrı bildirir; ui-terms sözlüğü kullanıcı dilini tekleştirir; release 0028 PDF kotasını teklif sürümü başına aya bir kez sayar; PDF şablonu firma adı ve gerçek geçerlilik tarihini gösterir.",
+            "src/ifc/pricing/cost-summary.ts, src/ifc/result-summary.ts, src/components/smartcheck/ResultSummaryPanel.tsx, src/i18n/ui-terms.ts, src/services/billing/feature-quota.ts, src/server/middleware/usage.ts, drizzle-release/0028_usage_quotation_version.sql, src/services/pdf/templates.ts, scripts/faz0-trust-ui-smoke.ts",
+          ],
+          [
+            "Rev. 93 · 26 Ekim 2026 · 01a404f..b5b2bad (Faz 1: Excel Önce, Tek Giriş Akışı, Yeni Teklif / Revizyon Ayrımı)",
+            "marka.md C-1, C-2, C-3, M-11.4, M-12.1, M-14.3, M-15.1 (kısmen)",
+            "Şablonlar yalnız CSV'ydi; .xls seçilebiliyor ama okunamıyordu; panel kullanıcıya yaşam evresini soruyordu; IFC için beş ayrı giriş vardı; icmal yalnız mevcut bir teklife revizyon olarak aktarılabiliyordu ('önce teklif oluşturun' çıkmazı).",
+            "spreadsheet-templates.ts (.xlsx şablonları), spreadsheet-format.ts (.xls tespiti), price-catalog-import.ts (.xlsx katalog), ContractorWorkflowHub 'Nereden başlayacaksınız?', CalmTransferTargetPicker ve transferCalmRowsToNewQuotation (boş Rev. 1 + icmal Rev. 2, bir kota, idempotent). KİK ve 4735 bağlantıları panelde korundu.",
+            "src/lib/spreadsheet-templates.ts, src/lib/spreadsheet-format.ts, src/lib/price-catalog-import.ts, src/components/dashboard/ContractorWorkflowHub.tsx, src/components/smartcheck/CalmTransferTargetPicker.tsx, src/services/quotations/calm-transfer.ts, src/server/routes/smartcheck.ts, scripts/faz1-excel-flow-smoke.ts",
+          ],
+          [
+            "Rev. 94 · 27 Ekim 2026 · e1254d2..1d0f99b (Fiyat Kataloğu Sihirbazı, Eksik Fiyat Eylemleri, Kâr ve Genel Gider · Release 0029)",
+            "marka.md M-17.3, M-17.4; Hazar kararı 27 Ekim 2026 (kâr ve genel gider teklife yansısın)",
+            "İçe aktarılan firma fiyatları 'advisory' kalıyor, KDV durumu 'bilinmiyor' geliyor ve onaylayan bir ekran olmadığı için icmal hiç fiyatlandırılamıyordu; 'Kataloğa fiyat ekle' tedarikçi teklifleri ekranına gidiyordu; icmal %15 kâr ve genel gideri gösterirken teklif bunu içermiyordu; örnek projeden aktarım sunucuda 'IFC kanıtı yok' hatasıyla duruyordu.",
+            "POST /api/pricing/catalog/import reviewDecision 'approved' (yalnız company_actual + sahiplik beyanı + KDV hariç oran); /app/fiyat-katalogu 5 adımlı sihirbaz; MissingPriceActions; quotations.overhead_profit_percent / overhead_profit_total (0029, katalog imzası boş PG16'da sabitlendi); teklif formu, detay, üç PDF şablonu ayrı satır; kârlılık payı gelir sayar; ÇŞB modunda %0 + çift sayım uyarısı; örnek projede aktarım yerine açıklama notu.",
+            "src/server/routes/pricing.ts, src/pages/PriceCatalog.tsx, src/components/pricing/PriceCatalogWizard.tsx, src/lib/price-catalog-review.ts, src/components/smartcheck/MissingPriceActions.tsx, src/components/smartcheck/missing-price.ts, src/lib/calculations.ts, src/lib/financial-calculations.ts, drizzle-release/0029_quotation_overhead_profit.sql, src/services/pdf/templates.ts, scripts/faz1-price-gap-smoke.ts",
+          ],
+          [
+            "Rev. 95 · 27 Ekim 2026 · bda207b (Teklif ve İcmal Excel Çıktısı, Sabit Fiyatlı Demo Rotasının Kaldırılması)",
+            "marka.md C-4, M-15.2",
+            "Teklif yalnız PDF olarak alınabiliyordu; icmalin 'Excel İndir' düğmesi teknik sütunlu CSV veriyor ve satır tutarlarını tam liraya yuvarlıyordu; dosyadan-teklif-demo sabit beton/donatı/kalıp fiyatları taşıyordu.",
+            "quote-export-xlsx.ts (PDF ile aynı toplamlar) ve icmal-export-xlsx.ts (sade icmal, daire icmali, ayrı Fiyat Kaynakları); CSV kuruş yuvarlaması; exceljs yalnız tıklamada yüklenir (T45); demo rotası /app/smartcheck'e yönlenir.",
+            "src/lib/quote-export-xlsx.ts, src/lib/icmal-export-xlsx.ts, src/lib/export-xlsx.test.ts, src/pages/QuoteDetail.tsx, src/components/smartcheck/CalmIfcWorkspace.tsx, src/App.tsx",
           ],
         ],
       },

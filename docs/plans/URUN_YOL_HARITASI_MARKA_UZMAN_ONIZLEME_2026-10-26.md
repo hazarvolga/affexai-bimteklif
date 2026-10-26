@@ -146,6 +146,17 @@ Süreler (`marka.md` §23.2) yerelde ölçülür ve kaydedilir.
   - ÇŞB birim fiyat modunda yüzde 0'dan başlar; elle girilirse çift sayım uyarısı çıkar. ÇŞB'nin resmi birim fiyat analizlerinde (2020, 2024, 2025, 2026) her kalem "%25 yüklenici kârı ve genel giderler dahil" olarak verilir.
   - Yüzde 0 iken mevcut tüm teklif toplamları birebir aynıdır.
 
+### Faz 1 durumu — Excel çıktısı ve demo rotası (27 Ekim 2026, dal `feat/faz1-excel-cikti`)
+
+- **C-4 kapandı:**
+  - Teklif detayında "Excel (.xlsx)" düğmesi var. Dosyada tek sayfa bulunur: başlık bilgisi, kalemler ve toplamlar (kâr ve genel gider dahil). Toplamlar PDF ile aynı hesap motorundan gelir; Excel formülü kullanılmaz.
+  - İcmalde birincil düğme "Excel İndir (.xlsx)" oldu. Dosyada üç sayfa var: sade "Metraj İcmali", varsa "Daire İcmali" ve teknik iz için ayrı "Fiyat Kaynakları". Fiyatı eksik kaleme tutar yazılmaz; toplamın eksik olduğu yazılır.
+  - Teknik CSV ikincil bağlantı olarak kalır.
+  - **Hata düzeltmesi:** CSV'deki satır tutarları tam liraya yuvarlanıyordu (`Math.round`); artık kuruşa yuvarlanıyor.
+  - Exceljs yalnız düğmeye basılınca yüklenir (T45: SmartCheck ve teklif detay paketleri exceljs'i referanslamaz).
+- **M-15.2 kapandı:** `dosyadan-teklif-demo` sayfası (sabit beton 2.450, donatı 24.500, kalıp 1.250 TL) kaldırıldı. Eski adres `/app/smartcheck`'e yönlenir.
+- **Kanıt:** `export-xlsx.test.ts`. Gerçek tarayıcıda `faz1-price-gap-smoke.ts` icmal ve teklif dosyalarını indirip toplamları doğrular (teklif dosyası 102.396,00 TL, PDF ile aynı). `faz1-excel-flow-smoke.ts` yönlendirmeyi doğrular.
+
 ### Faz 1 kalan dilimler — kararlar (26 Ekim 2026)
 
 Kaynak: NotebookLM araştırma defteri, bağımsız web araştırmasıyla karşılaştırıldı. Doğrulanamayan iddialar karar gerekçesi olarak kullanılmadı.
