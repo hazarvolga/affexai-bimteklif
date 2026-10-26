@@ -18,6 +18,8 @@ import type { ParsedIfcElement } from "@/ifc/types";
 import type { ColumnMapping } from "@/smartcheck/import/normalize";
 import { buildCalmTransferSelection, getOrCreateCalmTransferAttempt, type CalmTransferUiItem } from "./calm-transfer-ui";
 import { buildTenantPriceCatalogImportPayload, type TenantPriceCatalogRow } from "@/smartcheck/pricing/catalog-import";
+import { parsePriceCatalogCsv } from "@/lib/price-catalog-import";
+import { isLegacyXls, LEGACY_XLS_MESSAGE, readFileHead, spreadsheetKind } from "@/lib/spreadsheet-format";
 
 type Finding = { code: string; message: string; ruleVersion: string; suggestion: string };
 
@@ -123,85 +125,6 @@ async function readJsonBody<T extends Record<string, unknown> = Record<string, u
   } catch {
     return { error: "Sunucu JSON olmayan bir cevap döndürdü." } as unknown as T;
   }
-}
-
-function splitCsvLine(line: string, delimiter: string): string[] {
-  const values: string[] = [];
-  let current = "";
-  let quoted = false;
-  for (let index = 0; index < line.length; index += 1) {
-    const character = line[index];
-    const next = line[index + 1];
-    if (character === '"' && quoted && next === '"') {
-      current += '"';
-      index += 1;
-    } else if (character === '"') {
-      quoted = !quoted;
-    } else if (!quoted && character === delimiter) {
-      values.push(current.trim());
-      current = "";
-    } else {
-      current += character;
-    }
-  }
-  values.push(current.trim());
-  return values;
-}
-
-function normalizeHeader(value: string) {
-  return value
-    .toLocaleLowerCase("tr-TR")
-    .replace(/[ıİ]/g, "i")
-    .replace(/[ğĞ]/g, "g")
-    .replace(/[üÜ]/g, "u")
-    .replace(/[şŞ]/g, "s")
-    .replace(/[öÖ]/g, "o")
-    .replace(/[çÇ]/g, "c")
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]/g, "");
-}
-
-function parseCatalogAmount(value: string): number {
-  const raw = value.trim().replace(/\s/g, "");
-  const normalized = raw.includes(",") ? raw.replace(/\./g, "").replace(",", ".") : raw.replace(/,/g, "");
-  return Number(normalized);
-}
-
-function parsePriceCatalogCsv(text: string): PriceCatalogImportRow[] {
-  const lines = text.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
-  if (lines.length < 2) throw new Error("CSV en az başlık ve bir fiyat satırı içermeli.");
-  const headerLine = lines[0];
-  const delimiter = headerLine.includes(";") ? ";" : headerLine.includes("\t") ? "\t" : ",";
-  const headers = splitCsvLine(headerLine, delimiter).map(normalizeHeader);
-  const headerIndex = (candidates: string[]) => candidates.map((candidate) => headers.indexOf(candidate)).find((index) => index >= 0) ?? -1;
-  const indexes = {
-    positionCode: headerIndex(["poz", "pozno", "positioncode", "position", "code"]),
-    description: headerIndex(["aciklama", "description", "malzeme", "item", "kalem"]),
-    unit: headerIndex(["birim", "unit"]),
-    amount: headerIndex(["birimfiyat", "fiyat", "amount", "unitprice", "price"]),
-    currency: headerIndex(["parabirimi", "currency", "doviz"]),
-    validUntil: headerIndex(["gecerlilik", "gecerliliktarihi", "validuntil", "validto"]),
-    externalReference: headerIndex(["referans", "externalreference", "ref"]),
-  };
-  if (indexes.description < 0 || indexes.unit < 0 || indexes.amount < 0) throw new Error("CSV başlıklarında açıklama, birim ve fiyat kolonları zorunlu.");
-  return lines.slice(1).map((line, index) => {
-    const cells = splitCsvLine(line, delimiter);
-    const amount = parseCatalogAmount(cells[indexes.amount] ?? "");
-    if (!Number.isFinite(amount) || amount <= 0) throw new Error(`${index + 2}. CSV satırında fiyat geçersiz.`);
-    const description = (cells[indexes.description] ?? "").trim();
-    const unit = (cells[indexes.unit] ?? "").trim();
-    if (!description || !unit) throw new Error(`${index + 2}. CSV satırında açıklama ve birim zorunlu.`);
-    return {
-      positionCode: indexes.positionCode >= 0 ? cells[indexes.positionCode]?.trim() || undefined : undefined,
-      description,
-      unit,
-      amount,
-      currency: indexes.currency >= 0 ? cells[indexes.currency]?.trim().toUpperCase() || "TRY" : "TRY",
-      validUntil: indexes.validUntil >= 0 ? cells[indexes.validUntil]?.trim() || undefined : undefined,
-      externalReference: indexes.externalReference >= 0 ? cells[indexes.externalReference]?.trim() || undefined : undefined,
-    };
-  });
 }
 
 export function SmartCheckImportWorkspace() {
@@ -592,21 +515,34 @@ export function SmartCheckImportWorkspace() {
     toast.success("Manuel fiyat kaydedildi. Teklifte kullanmak için farklı bir yetkili tarafından onaylanmalıdır.");
   };
 
-  const readPriceCatalogCsv = async (selectedFile: File | null) => {
+  const readPriceCatalogFile = async (selectedFile: File | null) => {
     if (!selectedFile) return;
     setCatalogOwnershipConfirmed(false);
     try {
-      const parsedRows = parsePriceCatalogCsv(await selectedFile.text());
+      const kind = spreadsheetKind(selectedFile.name, await readFileHead(selectedFile));
+      if (kind === "xls") throw new Error(LEGACY_XLS_MESSAGE);
+      const parsedRows = kind === "xlsx"
+        ? await import("@/lib/price-catalog-import").then(({ parsePriceCatalogXlsx }) => selectedFile.arrayBuffer().then(parsePriceCatalogXlsx))
+        : parsePriceCatalogCsv(await selectedFile.text());
       setCatalogImportRows(parsedRows);
       setCatalogImportDraft((current) => ({
         ...current,
         fileName: selectedFile.name,
         sourceName: current.sourceName || selectedFile.name.replace(/\.[^.]+$/, ""),
       }));
-      toast.success(`${parsedRows.length} CSV fiyat satırı hazır.`);
+      toast.success(`${parsedRows.length} fiyat satırı hazır.`);
     } catch (error) {
       setCatalogImportRows([]);
-      toast.error(error instanceof Error ? error.message : "CSV fiyat kataloğu okunamadı.");
+      toast.error(error instanceof Error ? error.message : "Fiyat kataloğu dosyası okunamadı.", { duration: 12000 });
+    }
+  };
+
+  const downloadPriceCatalogTemplate = async () => {
+    try {
+      const { buildPriceCatalogXlsxTemplate, downloadXlsx } = await import("@/lib/spreadsheet-templates");
+      downloadXlsx(await buildPriceCatalogXlsxTemplate(), "bimmetraj-fiyat-katalogu-sablonu.xlsx");
+    } catch {
+      toast.error("Excel şablonu hazırlanamadı.");
     }
   };
 
@@ -794,23 +730,23 @@ export function SmartCheckImportWorkspace() {
   const catalogImportCard = (
     <div className="mt-4 rounded-2xl border border-border bg-background p-4">
       <div className="mb-3 flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
-        <div><p className="text-xs font-bold text-sky-100">CSV fiyat listesi içe aktarma</p><p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">Başlık örneği: Poz No;Açıklama;Birim;Birim Fiyat;Para Birimi. Bu genel akış yalnız firmanızın kendi gerçekleşen fiyat hafızası içindir; tedarikçi teklifleri ayrı lisans ve yetkilendirme incelemesine tabidir. İçe aktarılan fiyatlar öneri niteliğindedir; onay veya satıra bağlama kararı mühendiste kalır.</p></div>
+        <div><p className="text-xs font-bold text-sky-100">Fiyat listesi içe aktarma (Excel veya CSV)</p><button type="button" onClick={() => void downloadPriceCatalogTemplate()} className="mt-1 text-[11px] font-semibold text-sky-300 underline">Excel şablonunu indir (.xlsx)</button><p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">Başlıklar: Poz No, Açıklama, Birim, Birim Fiyat, Para Birimi. Bu genel akış yalnız firmanızın kendi gerçekleşen fiyat hafızası içindir; tedarikçi teklifleri ayrı lisans ve yetkilendirme incelemesine tabidir. İçe aktarılan fiyatlar öneri niteliğindedir; onay veya satıra bağlama kararı mühendiste kalır.</p></div>
         {catalogImportRows.length > 0 && <Badge className="w-fit border-emerald-500/20 bg-emerald-500/10 text-emerald-400">{catalogImportRows.length} satır hazır</Badge>}
       </div>
       <div className="grid gap-2 md:grid-cols-[1fr_1fr_1fr_auto]">
         <Input aria-label="CSV fiyat katalog kaynak adı" placeholder="Kaynak adı / firma fiyat hafızası" value={catalogImportDraft.sourceName} onChange={(event) => { setCatalogOwnershipConfirmed(false); setCatalogImportDraft((value) => ({ ...value, sourceName: event.target.value })); }} className="border-border bg-background" />
         <Input aria-label="CSV fiyat katalog bölgesi" placeholder="Bölge (opsiyonel)" value={catalogImportDraft.region} onChange={(event) => { setCatalogOwnershipConfirmed(false); setCatalogImportDraft((value) => ({ ...value, region: event.target.value })); }} className="border-border bg-background" />
         <Input aria-label="CSV fiyat katalog geçerlilik tarihi" type="date" value={catalogImportDraft.validUntil} onChange={(event) => { setCatalogOwnershipConfirmed(false); setCatalogImportDraft((value) => ({ ...value, validUntil: event.target.value })); }} className="border-border bg-background" />
-        <Button disabled={!catalogImportRows.length || !catalogOwnershipConfirmed || catalogImportBusy} onClick={importPriceCatalog} className="bg-sky-600 text-white hover:bg-sky-700">{catalogImportBusy ? <Loader2 className="animate-spin" size={15} /> : "CSV kataloğu aktar"}</Button>
+        <Button disabled={!catalogImportRows.length || !catalogOwnershipConfirmed || catalogImportBusy} onClick={importPriceCatalog} className="bg-sky-600 text-white hover:bg-sky-700">{catalogImportBusy ? <Loader2 className="animate-spin" size={15} /> : "Kataloğu aktar"}</Button>
       </div>
       <label className="mt-3 flex items-start gap-2 text-[10px] leading-relaxed text-muted-foreground">
         <input aria-label="Firma gerçekleşen fiyat sahiplik beyanı" type="checkbox" checked={catalogOwnershipConfirmed} onChange={(event) => setCatalogOwnershipConfirmed(event.target.checked)} className="mt-0.5" />
-        <span>Bu CSV'nin firmamıza ait gerçekleşen fiyat verisi olduğunu ve tedarikçi teklifi olmadığını beyan ediyorum.</span>
+        <span>Bu dosyanın firmamıza ait gerçekleşen fiyat verisi olduğunu ve tedarikçi teklifi olmadığını beyan ediyorum.</span>
       </label>
       <label className="mt-3 flex cursor-pointer flex-col gap-2 rounded-xl border border-dashed border-border p-4 text-[11px] text-muted-foreground hover:border-sky-500/50">
-        <span className="font-bold text-foreground dark:text-muted-foreground">{catalogImportDraft.fileName || "CSV fiyat katalog dosyası seçin"}</span>
-        <span>Desteklenen format CSV; poz, açıklama, birim ve birim fiyat kolonlarını içerir.</span>
-        <input aria-label="CSV fiyat katalog dosyası" className="sr-only" type="file" accept=".csv,text/csv" onChange={(event) => void readPriceCatalogCsv(event.target.files?.[0] ?? null)} />
+        <span className="font-bold text-foreground dark:text-muted-foreground">{catalogImportDraft.fileName || "Fiyat kataloğu dosyası seçin (Excel veya CSV)"}</span>
+        <span>Excel (.xlsx) veya CSV; poz, açıklama, birim ve birim fiyat kolonlarını içerir.</span>
+        <input aria-label="Fiyat kataloğu dosyası (Excel veya CSV)" className="sr-only" type="file" accept=".xlsx,.xls,.csv,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" onChange={(event) => { const selected = event.target.files?.[0] ?? null; event.target.value = ""; void readPriceCatalogFile(selected); }} />
       </label>
       <div className="mt-3 grid gap-2 md:grid-cols-[1fr_auto]">
         <textarea aria-label="CSV fiyat katalog metni" placeholder="Excel/CSV satırlarını buraya yapıştırın" value={catalogImportText} onChange={(event) => { setCatalogOwnershipConfirmed(false); setCatalogImportText(event.target.value); }} className="min-h-24 rounded-xl border border-border bg-background p-3 text-[11px] text-foreground outline-none focus:border-sky-500/60" />
@@ -933,8 +869,14 @@ export function SmartCheckImportWorkspace() {
                     className="sr-only"
                     type="file"
                     accept=".xlsx,.csv,.ifc,.pdf,text/csv,model/ifc,application/ifc,application/pdf,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                    onChange={(event) => {
-                      setFile(event.target.files?.[0] ?? null);
+                    onChange={async (event) => {
+                      const selected = event.target.files?.[0] ?? null;
+                      if (selected && isLegacyXls(selected.name, await readFileHead(selected))) {
+                        event.target.value = "";
+                        toast.error(LEGACY_XLS_MESSAGE, { duration: 12000 });
+                        return;
+                      }
+                      setFile(selected);
                       setOpenedFileName(null);
                       setDocumentId(null);
                       setPilotCaseId(null);

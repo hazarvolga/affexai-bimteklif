@@ -11,6 +11,7 @@ import {
   type QuoteImportResult,
   type SheetCell,
 } from "./quote-excel-import";
+import { isLegacyXls, LEGACY_XLS_MESSAGE } from "./spreadsheet-format";
 
 function cellToValue(value: unknown): SheetCell {
   if (value === null || value === undefined) return null;
@@ -44,6 +45,11 @@ export async function parseQuoteXlsx(
       warnings: [],
       errors: [`Dosya ${Math.round(MAX_QUOTE_IMPORT_BYTES / 1024 / 1024)} MB sınırını aşıyor.`],
     };
+  }
+
+  const head = new Uint8Array(data instanceof ArrayBuffer ? data.slice(0, 8) : data.slice(0, 8));
+  if (isLegacyXls(fileName, head)) {
+    return { items: [], totalImported: 0, skippedRowCount: 0, warnings: [], errors: [LEGACY_XLS_MESSAGE] };
   }
 
   const ExcelJS = (await import("exceljs")).default;

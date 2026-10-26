@@ -5,7 +5,7 @@ import { benchmarkQuoteItem } from '../services/pricing/benchmark-policy';
  */
 
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { fetchWithAuth } from '@/lib/api';
 import { 
@@ -68,6 +68,7 @@ import { calculateLineItemTotal, calculateQuotationTotals } from '@/lib/calculat
 import { calculateQuotationFinancials } from '@/lib/financial-calculations';
 import { parsePreBimQuoteDraft, PRE_BIM_DRAFT_STORAGE_KEY } from '@/lib/pre-bim-quote-draft';
 import { parseQuoteCsv, buildQuoteCsvTemplate } from '@/lib/quote-excel-import';
+import { isLegacyXls, LEGACY_XLS_MESSAGE, readFileHead } from '@/lib/spreadsheet-format';
 
 // Base UI shows the raw value in a closed Select unless `items` maps values to labels (marka.md M-12.3).
 const CURRENCY_LABELS: Record<string, string> = { [Currency.TRY]: "Türk Lirası (₺)", [Currency.USD]: "Dolar ($)", [Currency.EUR]: "Euro (€)" };
@@ -105,6 +106,15 @@ export function CreateQuote() {
     warnings: string[];
   } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  // Dashboard "Excel metrajım var" opens this screen at the Excel import (marka.md M-12.1, M-11.4).
+  const [searchParams] = useSearchParams();
+  const startFromExcel = searchParams.get('kaynak') === 'excel';
+  const excelImportRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!startFromExcel) return;
+    excelImportRef.current?.scrollIntoView({ block: 'center' });
+    excelImportRef.current?.querySelector<HTMLButtonElement>('button')?.focus();
+  }, [startFromExcel]);
   const [importingFile, setImportingFile] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -328,9 +338,14 @@ export function CreateQuote() {
 
   const handleQuoteFileImport = async (file: File | null) => {
     if (!file) return;
+    if (isLegacyXls(file.name, await readFileHead(file))) {
+      toast.error(LEGACY_XLS_MESSAGE, { duration: 12000 });
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
     setImportingFile(true);
     try {
-      const isXlsx = file.name.toLowerCase().endsWith('.xlsx') || file.name.toLowerCase().endsWith('.xls');
+      const isXlsx = file.name.toLowerCase().endsWith('.xlsx');
       let result;
       if (isXlsx) {
         const { parseQuoteXlsx } = await import('@/lib/quote-xlsx');
@@ -369,6 +384,15 @@ export function CreateQuote() {
     } finally {
       setImportingFile(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleDownloadXlsxTemplate = async () => {
+    try {
+      const { buildQuoteXlsxTemplate, downloadXlsx } = await import('@/lib/spreadsheet-templates');
+      downloadXlsx(await buildQuoteXlsxTemplate(), 'bimmetraj-teklif-sablonu.xlsx');
+    } catch {
+      toast.error('Excel şablonu hazırlanamadı. CSV şablonunu kullanabilirsiniz.');
     }
   };
 
@@ -926,14 +950,23 @@ export function CreateQuote() {
                     </TableBody>
                   </Table>
                 </div>
-                <div className="p-3 border-t border-border bg-muted/20 flex flex-wrap items-center justify-between gap-2 px-4">
-                  <div className="flex items-center gap-2">
+                <div
+                  ref={excelImportRef}
+                  data-testid="quote-excel-import"
+                  className={`p-3 border-t border-border flex flex-wrap items-center justify-between gap-2 px-4 ${startFromExcel ? 'bg-primary/10 ring-2 ring-primary/40' : 'bg-muted/20'}`}
+                >
+                  <div className="flex flex-wrap items-center gap-2">
+                    {startFromExcel && (
+                      <p className="w-full text-xs text-foreground">
+                        Excel metrajınızı yükleyin. Şablonu indirip doldurabilir veya kendi dosyanızı (başlıklarında açıklama ve miktar olan) doğrudan seçebilirsiniz.
+                      </p>
+                    )}
                     <input
                       ref={fileInputRef}
                       id="quote-file-upload"
                       aria-label="Excel veya CSV teklif dosyası yükle"
                       type="file"
-                      accept=".xlsx,.xls,.csv,text/csv"
+                      accept=".xlsx,.xls,.csv,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                       className="sr-only"
                       onChange={(e) => void handleQuoteFileImport(e.target.files?.[0] ?? null)}
                     />
@@ -949,11 +982,19 @@ export function CreateQuote() {
                     </Button>
                     <Button
                       type="button"
+                      variant="outline"
+                      onClick={() => void handleDownloadXlsxTemplate()}
+                      className="font-mono text-xs h-8 px-3 gap-1.5 border-border bg-background hover:bg-card text-foreground shadow-none"
+                    >
+                      <Download size={13} /> Excel Şablonu İndir (.xlsx)
+                    </Button>
+                    <Button
+                      type="button"
                       variant="ghost"
                       onClick={handleDownloadCsvTemplate}
                       className="text-muted-foreground hover:text-foreground font-mono text-[11px] h-8 px-2.5 gap-1"
                     >
-                      <Download size={12} /> Şablon İndir (CSV)
+                      CSV şablonu
                     </Button>
                   </div>
                   <Button variant="ghost" onClick={addItem} className="text-primary hover:bg-primary/10 font-mono text-xs h-8 px-5 gap-1.5">

@@ -10,6 +10,7 @@ import {
   type ShareBase,
 } from "@/lib/pre-bim-feasibility";
 import { buildPreBimQuoteDraft, PRE_BIM_DRAFT_STORAGE_KEY } from "@/lib/pre-bim-quote-draft";
+import { isLegacyXls, LEGACY_XLS_MESSAGE, readFileHead } from "@/lib/spreadsheet-format";
 
 interface ParcelRow {
   id: number;
@@ -43,6 +44,11 @@ const fmtTry = (v: number | null) =>
 
 const inputCls =
   "w-full border border-border bg-card px-2 py-1 text-xs font-mono text-foreground text-right tabular-nums focus:border-primary focus:outline-none";
+
+async function downloadParcelXlsxTemplate() {
+  const { buildParcelXlsxTemplate, downloadXlsx } = await import("@/lib/spreadsheet-templates");
+  downloadXlsx(await buildParcelXlsxTemplate(), "bimmetraj-parsel-sablonu.xlsx");
+}
 
 function download(filename: string, content: string) {
   const blob = new Blob([content], { type: "text/csv;charset=utf-8" });
@@ -148,6 +154,10 @@ export const PreBimFeasibilityPanel: React.FC = () => {
 
   const onCsv = async (file: File | undefined) => {
     if (!file) return;
+    if (isLegacyXls(file.name, await readFileHead(file))) {
+      setCsvMessage(LEGACY_XLS_MESSAGE);
+      return;
+    }
     const isXlsx = /\.xlsx$/i.test(file.name);
     let parsed;
     if (isXlsx) {
@@ -202,12 +212,15 @@ export const PreBimFeasibilityPanel: React.FC = () => {
             <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
               <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Parseller</span>
               <div className="flex flex-wrap gap-2 text-[10px] font-mono">
-                <button type="button" className="underline text-primary" onClick={() => download("parsel-sablonu.csv", buildParcelCsvTemplate())}>
-                  CSV şablonu indir
+                <button type="button" className="underline text-primary" onClick={() => void downloadParcelXlsxTemplate().catch(() => setCsvMessage("Excel şablonu hazırlanamadı. CSV şablonunu kullanabilirsiniz."))}>
+                  Excel şablonu indir (.xlsx)
+                </button>
+                <button type="button" className="underline text-muted-foreground" onClick={() => download("parsel-sablonu.csv", buildParcelCsvTemplate())}>
+                  CSV şablonu
                 </button>
                 <label htmlFor="parcel-file-upload" className="underline text-primary cursor-pointer">
                   Excel / CSV'den içe aktar
-                  <input id="parcel-file-upload" aria-label="Parsel şablonu Excel veya CSV dosyası yükle" type="file" accept=".xlsx,.csv,text/csv" className="sr-only" onChange={(e) => void onCsv(e.target.files?.[0])} />
+                  <input id="parcel-file-upload" aria-label="Parsel şablonu Excel veya CSV dosyası yükle" type="file" accept=".xlsx,.xls,.csv,text/csv" className="sr-only" onChange={(e) => void onCsv(e.target.files?.[0])} />
                 </label>
               </div>
             </div>
