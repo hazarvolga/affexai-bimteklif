@@ -1,9 +1,9 @@
 {
   "target": 80,
   "project": {
-    "lines": 46,
-    "branches": 77,
-    "functions": 82
+    "lines": 52,
+    "branches": 78,
+    "functions": 84
   },
   "critical": [
     {
@@ -14,17 +14,17 @@
         "src/server/middleware/",
         "src/services/auth/"
       ],
-      "lines": 96,
-      "branches": 91,
-      "functions": 96
+      "lines": 99,
+      "branches": 92,
+      "functions": 97
     },
     {
       "name": "billing, plans, quota",
       "paths": [
         "src/services/billing/"
       ],
-      "lines": 94,
-      "branches": 81,
+      "lines": 95,
+      "branches": 83,
       "functions": 98
     },
     {
@@ -51,9 +51,9 @@
         "src/ifc/parser/",
         "src/domain/quantity/"
       ],
-      "lines": 87,
+      "lines": 89,
       "branches": 81,
-      "functions": 94
+      "functions": 95
     },
     {
       "name": "database schema and tenant context",
@@ -61,17 +61,17 @@
         "src/db/"
       ],
       "lines": 99,
-      "branches": 94,
-      "functions": 66
+      "branches": 95,
+      "functions": 71
     },
     {
       "name": "HTTP API routes",
       "paths": [
         "src/server/routes/"
       ],
-      "lines": 54,
-      "branches": 62,
-      "functions": 92
+      "lines": 80,
+      "branches": 63,
+      "functions": 95
     },
     {
       "name": "UI (pages, components, hooks) — E2E-covered",
@@ -82,7 +82,7 @@
         "src/App.tsx",
         "src/main.tsx"
       ],
-      "lines": 11,
+      "lines": 12,
       "branches": 46,
       "functions": 22
     }

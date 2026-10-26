@@ -1,8 +1,8 @@
 # Faz 7 / T43 — kapsam ölçümü, kritik alan takibi ve gerçek tarayıcı E2E
 
-**Tarih:** 25 Ekim 2026
-**Kod baseline:** `0399ac7` (main) + bu dalın commit'leri
-**Karar:** **PARTIAL — ölçüm, ratchet kapısı ve Playwright E2E CI'da; proje %80 eşiği sağlanmıyor (bugün %46,80 satır)**
+**Tarih:** 25–26 Ekim 2026 (Rev. 87 / R+1 Ratchet Güncellemesi)
+**Kod baseline:** `0399ac7` → `e1eb7f9` + Rev. 87 (`BIM-CALC-2026-10-25.81`)
+**Karar:** **PARTIAL (R+1 Tamamlandı) — ölçüm, ratchet kapısı ve Playwright E2E CI'da; R+1 hedefi (route ≥ %70, proje ≥ %52) aşılarak route %81,31 ve proje %53,04 seviyesine kilitlendi (%80 nihai eşiğe kalan fark: 26,96 satır puanı)**
 
 ## 1. Ne ölçülüyor
 
@@ -12,33 +12,43 @@
 - CI: `verify` işinde `pnpm run verify` üçe bölündü (lint → test:coverage → build) ki tam suite bir kez, c8 altında koşsun. Rapor `coverage-report` artifact'ı (lcov + json-summary) ve GitHub step summary tablosu olarak yayımlanır.
 - `REQUIRE_TEST_DATABASE=true` CI'da DB-bağımlı integration testlerinin "DB yok → skip" yolunu hataya çevirir (`src/server/routes/test-db-reachability.ts`). Zorunlu senaryo sessizce atlanamaz.
 
-## 2. Bugünkü ölçüm (yerel, izole PostgreSQL 16, IfcOpenShell 0.8.4 venv)
+## 2. Güncel ölçüm (Rev. 87 / R+1 — izole PostgreSQL 16, 3 rol: `bimmetraj_app` / `bimmetraj_control` / `bimmetraj_worker`, IfcOpenShell 0.8.4 venv)
 
-Tam suite: 1381 test — 1371 pass, 0 fail, 10 skip.
+Tam suite: **1416 test — 1409 pass, 0 fail, 7 skip** (`45,86 s`).
 
-| Kapsam | Dosya | Satır | Dal | Fonksiyon | Floor (satır/dal/fn) |
-|---|---:|---:|---:|---:|---|
-| Proje (`src/**`) | 440 | **46,80%** | 77,98% | 82,91% | 46 / 77 / 82 |
-| Auth, oturum, CSRF, güvenlik | 14 | 96,45% | 91,44% | 96,42% | 96 / 91 / 96 |
-| Billing, plan, kota | 17 | 94,18% | 81,69% | 98,52% | 94 / 81 / 98 |
-| Teklif, fiyat, hakediş matematiği | 21 | 96,78% | 81,55% | 98,79% | 96 / 81 / 98 |
-| SmartCheck kuralları, IFC import ve metraj | 40 | 89,07% | 81,22% | 96,17% | 87 / 81 / 94 |
-| DB şema ve tenant context | 6 | 99,01% | 94,18% | 66,66% | 99 / 94 / 66 |
-| HTTP API route'ları | 25 | 54,26% | 62,05% | 92,10% | 54 / 62 / 92 |
-| UI (pages/components/hooks) | 164 | 11,42% | 46,80% | 22,39% | 11 / 46 / 22 |
+| Kapsam | Dosya | Önceki Satır (R0) | Güncel Satır (R+1) | Dal (R+1) | Fonksiyon (R+1) | Yeni Floor (`coverage-thresholds.json`) |
+|---|---:|---:|---:|---:|---:|---|
+| Proje (`src/**`) | 445 | 46,80% | **53,04%** | **78,05%** | **84,53%** | **52 / 78 / 84** (önceki: 46 / 77 / 82) |
+| Auth, oturum, CSRF, güvenlik | 17 | 96,45% | **99,61%** | **92,67%** | **97,97%** | **99 / 92 / 97** (önceki: 96 / 91 / 96) |
+| Billing, plan, kota | 17 | 94,18% | **95,53%** | **83,68%** | **100,00%** | **95 / 83 / 98** (önceki: 94 / 81 / 98) |
+| Teklif, fiyat, hakediş matematiği | 21 | 96,78% | **96,81%** | **81,81%** | **98,80%** | **96 / 81 / 98** |
+| SmartCheck kuralları, IFC import ve metraj | 41 | 89,07% | **89,13%** | **81,97%** | **95,77%** | **89 / 81 / 95** (önceki: 87 / 81 / 94) |
+| DB şema ve tenant context | 6 | 99,01% | **99,67%** | **95,76%** | **71,42%** | **99 / 95 / 71** (önceki: 99 / 94 / 66) |
+| HTTP API route'ları | 25 | 54,26% | **81,31%** | **63,66%** | **95,54%** | **80 / 63 / 95** (önceki: 54 / 62 / 92) |
+| UI (pages/components/hooks) | 164 | 11,42% | **12,30%** | **46,80%** | **22,39%** | **12 / 46 / 22** (önceki: 11 / 46 / 22) |
 
-Floor'lar `coverage-thresholds.json` içindedir ve ölçülen değerin tam sayıya aşağı yuvarlanmışıdır. CI ilk koşusu farklı çıkarsa floor yalnız yukarı çekilir.
+Floor'lar `coverage-thresholds.json` içindedir ve ölçülen değerin tam sayıya aşağı yuvarlanmışıdır.
+
+### Rev. 87 (R+1) kapsamında eklenen testler ve yakalanıp kapatılan 3 canlı üretim hatası
+
+1. **Yeni Entegrasyon ve Birim Testleri:**
+   - `src/server/routes/t43-route-ratchet.integration.test.ts`: `admin.ts` (`%25,19 → %68,59`), `pricing-file-import.ts` (`%24,03 → %77,62`), `academy.ts` (`%24,53 → %87,83`), `billing.ts` (`%36,27 → %77,94`), `company.ts` (`%52,33 → %87,53`), `quotations.ts` (`%47,16 → %79,24`), `profit.ts` (`%15,59 → %93,57`), `crm.ts` (`%49,74 → %73,36`) ve `smartcheck.ts` (`%52,25 → %75,55`) uçlarını 3 rollü gerçek PostgreSQL izolasyonunda uçtan uca doğrular.
+   - `src/academy/catalog-and-templates-integrity.test.ts`: Academy alt rehberleri (`subGuidesData.ts`), kaynak veri modelleri (`sourceData.ts`), Allplan sabitleri (`allplanConstants.ts`), ders içerikleri (`lessonsContent.ts`), PDF şablonları (`services/pdf/templates.ts`) ve işlem e-postası şablonlarını (`server/auth/email-templates.ts`) XSS kaçışı ve yapısal bütünlük açısından doğrular.
+2. **R+1 Entegrasyon Koşusunda Yakalanıp Kapatılan 3 Üretim Hatası:**
+   - **`src/server/routes/auth.ts` (Firmasız Academy Öğrencisi `accountType` Hatası):** `POST /api/auth/login` ve `GET /api/auth/me` uçlarında `companyId === null` olan firmasız Academy öğrencileri için `withAppTenant` çağrılmadığı için `learner = null` dönüyor ve hesap tipi yanlışlıkla `'workspace'` olarak işaretleniyordu (`company-invitation.integration.test.ts` hatası). `companyId === null` durumunda `getControlDatabase().db.query.academyLearnerProfiles.findFirst` sorgusu eklendi.
+   - **`src/server/routes/admin.ts` (`POST /api/admin/plans/sync-catalog` `42501` Yetki Hatası):** `sync-catalog` ucu `getControlDatabase().db.transaction` içinde `admin_audit_logs` tablosuna `INSERT` yapmaya çalışıyordu; oysa `bimmetraj_control` rolünün `admin_audit_logs` üzerinde yalnızca `SELECT` yetkisi vardır (`INSERT` yetkisi `bimmetraj_app` rolündedir). Denetim kaydı yazımı transaction sonrasına (`db.insert(adminAuditLogs)`) taşındı.
+   - **`src/server/routes/admin.ts` (`GET /api/admin/reports/usage` `topConsumers` FORCE RLS Hatası):** `topConsumers` sorgusu `companies` tablosunu `db.execute` (`bimmetraj_app`, tenant GUC olmadan) ile okuyordu; `companies` üzerinde `FORCE RLS` aktif olduğundan sorgu 0 satır dönüyordu. Sorgu `getControlDatabase().db.execute` (`bimmetraj_control`) üzerinden çalıştırılacak şekilde düzeltildi.
 
 ## 3. Açık: %80 proje eşiği
 
-**Gap: 33,20 satır puanı.** Eşik sahte değerle karşılanmadı; kapı bugünkü değerde. Açığın kaynağı:
+**Gap: 26,96 satır puanı (R0'daki 33,20 puandan 6,24 puan düşürüldü).** Eşik sahte değerle karşılanmadı; kapı bugünkü değerde. Açığın kaynağı:
 
-- UI katmanı (164 dosya, ~41.000 satır) birim testiyle değil gerçek tarayıcıyla doğrulanıyor; c8 Playwright koşusunu ölçmüyor. Tek başına bu katman proje sayısını ~%47'de tutuyor.
-- HTTP route'ları %54: yalnız route-level integration testi olan uç noktalar sayılıyor.
+- UI katmanı (164 dosya, ~41.000 satır) birim testiyle değil gerçek tarayıcıyla doğrulanıyor; c8 Playwright koşusunu ölçmüyor. Tek başına bu katman proje sayısını ~%53'te tutuyor.
+- HTTP route'ları %81,31 seviyesine çıkarıldı (`coverage-thresholds.json` floor: `80`).
 
 **Ratchet planı (her release adayında floor yeniden ölçülür, düşemez):**
 
-1. R+1: route integration testleri (admin, pricing, smartcheck yazma uçları) → route kapsamı ≥ %70; proje ≥ %52.
+1. ~~R+1: route integration testleri (admin, pricing, smartcheck yazma uçları) → route kapsamı ≥ %70; proje ≥ %52.~~ **→ TAMAMLANDI (Rev. 87: route %81,31 ≥ %80, proje %53,04 ≥ %52).**
 2. R+2: E2E koşusunu V8 coverage ile topla (Playwright `page.coverage` → istanbul merge) ve UI kapsamını raporla; proje ≥ %60.
 3. R+3: kalan büyük UI dosyaları için bileşen testleri (jsdom) + kritik alanlarda dal ≥ %85; proje ≥ %70.
 4. R+4: proje ≥ %80 — ancak o zaman T43 kapsam kabul kriteri kapanır.

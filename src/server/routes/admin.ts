@@ -393,15 +393,15 @@ export function registerAdminRoutes(app: Express) {
               },
             });
         }
+      });
 
-        await tx.insert(adminAuditLogs).values({
-          adminId: req.user.userId,
-          action: "plan_catalog.synced",
-          details: {
-            version: PLAN_CATALOG_VERSION,
-            syncedPlanIds: canonicalPlans.map((p) => p.id),
-          },
-        });
+      await db.insert(adminAuditLogs).values({
+        adminId: req.user.userId,
+        action: "plan_catalog.synced",
+        details: {
+          version: PLAN_CATALOG_VERSION,
+          syncedPlanIds: canonicalPlans.map((p) => p.id),
+        },
       });
 
       return res.json({
@@ -793,7 +793,7 @@ export function registerAdminRoutes(app: Express) {
   router.get("/reports/usage", async (_req, res) => {
     try {
       // Top 10 consumers this month
-      const topConsumers = await db.execute(sql`
+      const topConsumers = await getControlDatabase().db.execute(sql`
         SELECT
           c.id, c.name,
           COALESCE(SUM(ur.quote_count), 0) as total_quotes,

@@ -1,9 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { validateControlDatabaseUrls } from "./control-plane";
+import { closeControlDatabase, validateControlDatabaseUrls } from "./control-plane";
 
-test("control-plane URL requires a distinct control role on the same PostgreSQL target", () => {
+test("control-plane URL requires a distinct control role on the same PostgreSQL target", async () => {
+  await closeControlDatabase();
   const app = "postgresql://bimmetraj_app:app@postgres:5432/bimmetraj_production";
   assert.doesNotThrow(() => validateControlDatabaseUrls(
     app,
@@ -42,4 +43,12 @@ test("control-plane URL requires a distinct control role on the same PostgreSQL 
     () => validateControlDatabaseUrls(`${app}?sslmode=require&sslmode=disable`, "postgresql://bimmetraj_control:control@postgres:5432/bimmetraj_production?sslmode=require"),
     /duplicate connection option/,
   );
+  assert.throws(
+    () => validateControlDatabaseUrls(`${app}?sslmode=invalid`, "postgresql://bimmetraj_control:control@postgres:5432/bimmetraj_production?sslmode=require"),
+    /unsupported sslmode/,
+  );
+  assert.doesNotThrow(() => validateControlDatabaseUrls(
+    "postgresql://bimmetraj_app:app@postgres/bimmetraj_production",
+    "postgresql://bimmetraj_control:control@postgres/bimmetraj_production",
+  ));
 });

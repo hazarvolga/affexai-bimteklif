@@ -166,3 +166,34 @@ test("Drizzle tenant helper uses the same checked-out client after transaction-l
   assert.equal(fixture.queries.filter(({ text }) => /set_config/i.test(text)).length, 1);
   assert.match(fixture.queries.at(-1)?.text ?? "", /^\s*commit\s*$/i);
 });
+
+test("app-tenant helpers and drizzle config enforce tenant membership, super-admin UUIDs, and schema paths", async () => {
+  const prevDbUrl = process.env.DATABASE_URL;
+  if (!process.env.DATABASE_URL) {
+    process.env.DATABASE_URL = "postgresql://bimmetraj_app@127.0.0.1:5432/teklifpro_test";
+  }
+  try {
+    const [{ tenantOf, withSuperAdminQueueRead }, drizzleConfigMod] = await Promise.all([
+      import("./app-tenant"),
+      import("./drizzle.config"),
+    ]);
+
+    assert.deepEqual(tenantOf({ companyId: COMPANY_ID, userId: USER_ID }), {
+      companyId: COMPANY_ID,
+      userId: USER_ID,
+    });
+    assert.throws(() => tenantOf({ companyId: null, userId: USER_ID }), /company membership/i);
+
+    await assert.rejects(
+      withSuperAdminQueueRead("not-a-uuid", async () => "unreachable"),
+      /valid adminUserId UUID/i,
+    );
+
+    const cfg = drizzleConfigMod.default as { schema?: string; dialect?: string };
+    assert.equal(cfg.schema, "./src/db/schema.ts");
+    assert.equal(cfg.dialect, "postgresql");
+  } finally {
+    if (prevDbUrl === undefined) delete process.env.DATABASE_URL;
+    else process.env.DATABASE_URL = prevDbUrl;
+  }
+});

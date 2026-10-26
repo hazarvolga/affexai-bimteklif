@@ -1,9 +1,9 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-25.80",
+  version: "BIM-CALC-2026-10-25.81",
   updatedOn: "26 Ekim 2026",
-  implementationBaseline: "f88ca928b5a16488a6cda73e2ea49bcfbb4164b0",
-  approvalStatus: "Rev. 86, T44 5-sütunlu kurtarma tatbikatını (src/contracts/t44-recovery-drill.pgtest.ts 1/1 PASS: worker crash/reclaim, DLQ karantinası, bimmetraj_backup ile pg_dump --enable-row-security + pg_restore RTO/RPO ölçümü, bozuk migration atomik rollback + katalog imzası doğrulaması ve /api/health/ready 503 SERVICE_DEGRADED → 200 OK kurtarma) ve PG16 üzerinde yakalanan companies/subscriptions_worker_capability_read FORCE RLS politikaları ile backup.py --enable-row-security düzeltmesini tamamlar; Rev. 80–85 ise 72/72 company_id tablosunun tamamını (67 FORCE RLS + 5 S5 Exact-ACL) yerel PG16 üzerinde doğrulamıştır. Gerçek banka/dekont mutabakatı, bağımsız uzman imzası, gerçek vendor dosyası, T43 %80 eşiği, T45 kanıtı ve canlı deploy sonrası role-model-smoke/container digest doğrulaması tamamlanmadığından T41/T42/T43/T44 ve Faz 7 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
+  implementationBaseline: "e1eb7f9a3eb22f9309b2dc5e74f4c855ef050e87",
+  approvalStatus: "Rev. 87, T43 R+1 kapsam ratchet dilimini (proje satır kapsamı %46,80 → %53,04 ≥ %52, HTTP API route satır kapsamı %54,26 → %81,31 ≥ %80, 1416 testte 1409 PASS / 0 FAIL / 7 SKIP) ve 3-rol PG16 entegrasyon testlerinde yakalanan 3 canlı üretim hatasının (auth.ts login/me şirketsiz Academy öğrenci profili FORCE RLS hatası, admin.ts sync-catalog control-plane admin_audit_logs 42501 hatası ve admin.ts reports/usage topConsumers companies FORCE RLS boş liste hatası) düzeltmesini tamamlar; Rev. 86 T44 5-sütunlu kurtarma tatbikatını ve Rev. 80–85 72/72 company_id tablosunun tamamını (67 FORCE RLS + 5 S5 Exact-ACL) yerel PG16 üzerinde doğrulamıştır. Gerçek banka/dekont mutabakatı, bağımsız uzman imzası, gerçek vendor dosyası, T43 %80 eşiği (R+2..R+4), T45 kanıtı ve canlı deploy sonrası role-model-smoke/container digest doğrulaması tamamlanmadığından T41/T42/T43/T44 ve Faz 7 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
 };
 
 export interface ModuleRevisionNote {
@@ -1880,6 +1880,38 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
         before: "3×3 kural motorunun şirket aktif standardını (active_standard) okuyan bimmetraj_worker_get_company_context fonksiyonu gerçek bimmetraj_worker oturumunda companies FORCE RLS engeline takılıyordu.",
         after: "companies_worker_capability_read RLS politikası ve worker-company-context.ts fallback'i ile bimmetraj_worker oturumunda active_standard ve smartcheck_max_waste_percent bağlamının güvenli okunması sağlandı.",
         basis: "Faz 7 T44 — Worker company-context capability FORCE RLS uyumu",
+      },
+    },
+  },
+  {
+    revision: "Rev. 87",
+    version: "BIM-CALC-2026-10-25.81",
+    date: "26 Ekim 2026",
+    commit: "e1eb7f9a3eb22f9309b2dc5e74f4c855ef050e87",
+    trigger: "GAP planı T43 R+1 kapsam ratchet dilimi (proje %46,80 → %53,04 ≥ %52, HTTP API rotaları %54,26 → %81,31 ≥ %80) + 3-rol PG16 route entegrasyon testlerinde yakalanan 3 canlı üretim hatasının kapatılması.",
+    beforeSummary: "HTTP API rotaları satır kapsamı %54,26, proje genel satır kapsamı %46,80 seviyesindeydi. Ayrıca 3-rol PG16 altında: (1) auth.ts POST /api/auth/login ve GET /api/auth/me uçlarında şirketsiz (membership=null) Academy öğrencilerinin academy_learner_profiles FORCE RLS tablosunu okumadan yanlışlıkla accountType='workspace' dönmesi, (2) admin.ts POST /api/admin/plans/sync-catalog içinde getControlDatabase().db.transaction bloğunda admin_audit_logs tablosuna INSERT denemesi (42501 yetki hatası) ve (3) admin.ts GET /api/admin/reports/usage topConsumers sorgusunda FORCE RLS altındaki companies tablosunun bimmetraj_app ile birleştirilmesi nedeniyle 0 satır dönmesi hataları bulunuyordu.",
+    afterSummary: "src/server/routes/t43-route-ratchet.integration.test.ts (971 satır), src/academy/catalog-and-templates-integrity.test.ts ve src/db/tenant-context.test.ts + control-plane.test.ts eklenerek 1416 testte 1409 PASS / 0 FAIL / 7 SKIP sağlandı; HTTP API route satır kapsamı %54,26 → %81,31 (+27,05 puan, floor %54 → %80), proje satır kapsamı %46,80 → %53,04 (floor %46 → %52) seviyesine yükseltildi, coverage-thresholds.json kilitlendi ve auth.ts ile admin.ts içindeki 3 canlı üretim hatası kapatıldı. Hesap yöntemleri değişmedi.",
+    affectedModules: ["teklif-satir", "karlilik", "kota", "bindirme"],
+    moduleDetails: {
+      "teklif-satir": {
+        before: "quotations.ts (%61,51), clients.ts (%54,48) ve pricing-file-import.ts (%25,08) rotalarının pek çok CRUD, durum geçişi, CSV/XLSX fiyat içe aktarma ve doğrulama dalı 3-rol PG16 kapsam raporunda test edilmemişti.",
+        after: "t43-route-ratchet.integration.test.ts ile quotations.ts (%81,59), clients.ts (%88,69) ve pricing-file-import.ts (%89,54) rotalarının 3-rol PG16 entegrasyon kapsamı doğrulandı; HTTP API route tabanı %54 → %80 olarak kilitlendi.",
+        basis: "Faz 7 T43 R+1 — Teklif, müşteri ve fiyat içe aktarma rotaları 3-rol PG16 kapsam ratchet'i",
+      },
+      karlilik: {
+        before: "profit.ts (%46,45) kârlılık analizi, marj simülasyonu ve senaryo karşılaştırma rotaları 3-rol PG16 altında kısmen kapsanıyordu.",
+        after: "t43-route-ratchet.integration.test.ts ile profit.ts (%90,32) rotalarının 3-rol PG16 altında tam entegrasyon kapsamı doğrulandı.",
+        basis: "Faz 7 T43 R+1 — Kârlılık analizi rotaları 3-rol PG16 kapsam ratchet'i",
+      },
+      kota: {
+        before: "admin.ts POST /api/admin/plans/sync-catalog rotası control-plane transaction içinde admin_audit_logs tablosuna INSERT denediği için 42501 hatası veriyor; GET /api/admin/reports/usage topConsumers sorgusu ise companies FORCE RLS nedeniyle 0 satır dönüyordu.",
+        after: "admin.ts sync-catalog denetim kaydı yazımı db.insert(adminAuditLogs) olarak control transaction dışına taşındı; reports/usage topConsumers sorgusu getControlDatabase().db.execute ile düzeltildi; billing.ts (%85,63) ve admin.ts (%78,99) 3-rol PG16 altında doğrulandı.",
+        basis: "Faz 7 T43 R+1 — Paket kataloğu senkronizasyonu ve kullanım raporu 3-rol ACL/RLS düzeltmesi",
+      },
+      bindirme: {
+        before: "auth.ts POST /api/auth/login ve GET /api/auth/me uçlarında şirketsiz (membership=null) Academy öğrencileri için academy_learner_profiles okunmadığından accountType='workspace' dönüyordu.",
+        after: "auth.ts login ve me uçlarında membership=null olduğunda getControlDatabase().db.query.academyLearnerProfiles.findFirst ile öğrenci profili okunarak accountType='academy_student' doğru döndürüldü; academy.ts (%84,65) 3-rol PG16 altında doğrulandı.",
+        basis: "Faz 7 T43 R+1 — Şirketsiz Academy öğrencisi oturum ve kimlik doğrulama RLS düzeltmesi",
       },
     },
   },

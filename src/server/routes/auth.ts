@@ -357,7 +357,9 @@ export function registerAuthRoutes(app: Express) {
               where: and(eq(academyLearnerProfiles.userId, user.id), eq(academyLearnerProfiles.companyId, membership.companyId)),
             }),
           )
-        : null;
+        : await getControlDatabase().db.query.academyLearnerProfiles.findFirst({
+            where: eq(academyLearnerProfiles.userId, user.id),
+          });
       setSessionCookies(res, token, { isSuperAdmin: user.isSuperAdmin });
       res.json({ token: bodyToken(req, token), user: publicRegisteredUser(user), company, role: membership?.role, accountType: learner ? 'academy_learner' : 'workspace' });
     } catch (error) {
@@ -383,7 +385,9 @@ export function registerAuthRoutes(app: Express) {
               where: and(eq(academyLearnerProfiles.userId, req.user.userId), eq(academyLearnerProfiles.companyId, req.user.companyId)),
             }),
           )
-        : null;
+        : await getControlDatabase().db.query.academyLearnerProfiles.findFirst({
+            where: eq(academyLearnerProfiles.userId, req.user.userId),
+          });
       res.json({
         user: {
           ...publicRegisteredUser(user),
