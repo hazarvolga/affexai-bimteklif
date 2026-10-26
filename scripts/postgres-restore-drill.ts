@@ -103,7 +103,17 @@ async function ensureTarget(target: Target) {
     if (await hasObjects(target)) throw new Error(`Restore target ${target.database} already contains objects; refusing overwrite`);
     return;
   }
-  run("createdb", ["--host", target.host, "--port", target.port, "--username", target.user, target.database], maintenance(target));
+  await query(maintenance(target), `CREATE DATABASE "${TARGET_DATABASE}"`);
+}
+
+function resolveDockerContainer(serverMajor: number): string | null {
+  const container = process.env.POSTGRES_RESTORE_DRILL_CONTAINER?.trim();
+  if (!container) return null;
+  const version = execFileSync("docker", ["exec", container, "pg_dump", "--version"], { encoding: "utf8" });
+  if (Number(version.match(/PostgreSQL[^0-9]*(\d+)/)?.[1]) !== serverMajor) {
+    throw new Error(`Container ${container} pg_dump does not match PostgreSQL server major ${serverMajor}`);
+  }
+  return container;
 }
 
 function resolvePgDump(serverMajor: number) {
@@ -125,7 +135,7 @@ function resolvePgDump(serverMajor: number) {
       // Continue until a major-version-matched client is found.
     }
   }
-  throw new Error(`No pg_dump client matching PostgreSQL server major ${serverMajor} was found; set PG_DUMP explicitly`);
+  throw new Error(`No pg_dump client matching PostgreSQL server major ${serverMajor} was found; set PG_DUMP or POSTGRES_RESTORE_DRILL_CONTAINER explicitly`);
 }
 
 async function serverMajor(target: Target) {
@@ -138,26 +148,78 @@ async function serverMajor(target: Target) {
 function dumpSchema(target: Target, major: number) {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), "teklifpro-restore-drill-"));
   const dumpPath = path.join(directory, `${target.database}.sql`);
-  run(resolvePgDump(major), [
-    "--schema-only",
-    "--no-owner",
-    "--no-privileges",
-    "--exclude-schema=graphile_worker",
-    "--file",
-    dumpPath,
-    "--host",
-    target.host,
-    "--port",
-    target.port,
-    "--username",
-    target.user,
-    target.database,
-  ], target);
-  const schemaSha256 = crypto.createHash("sha256").update(fs.readFileSync(dumpPath)).digest("hex");
+  const dockerContainer = resolveDockerContainer(major);
+  if (dockerContainer) {
+    const sqlOut = execFileSync("docker", [
+      "exec",
+      ...(target.password ? ["-e", `PGPASSWORD=${target.password}`] : []),
+      dockerContainer,
+      "pg_dump",
+      "--schema-only",
+      "--no-owner",
+      "--no-privileges",
+      "--exclude-schema=graphile_worker",
+      "--exclude-schema=teklifpro_queue",
+      "--host",
+      "127.0.0.1",
+      "--port",
+      "5432",
+      "--username",
+      target.user,
+      target.database,
+    ], { encoding: "utf8", maxBuffer: 32 * 1024 * 1024 });
+    fs.writeFileSync(dumpPath, sqlOut, "utf8");
+  } else {
+    run(resolvePgDump(major), [
+      "--schema-only",
+      "--no-owner",
+      "--no-privileges",
+      "--exclude-schema=graphile_worker",
+      "--exclude-schema=teklifpro_queue",
+      "--file",
+      dumpPath,
+      "--host",
+      target.host,
+      "--port",
+      target.port,
+      "--username",
+      target.user,
+      target.database,
+    ], target);
+  }
+  const normalizedSql = fs
+    .readFileSync(dumpPath, "utf8")
+    .replace(/^\\(un)?restrict\s+[A-Za-z0-9]+\r?\n?/gm, "");
+  const schemaSha256 = crypto.createHash("sha256").update(normalizedSql, "utf8").digest("hex");
   return { directory, dumpPath, schemaSha256 };
 }
 
-function restoreSchema(dumpPath: string, target: Target) {
+function restoreSchema(dumpPath: string, target: Target, major: number) {
+  const dockerContainer = resolveDockerContainer(major);
+  if (dockerContainer) {
+    execFileSync("docker", [
+      "exec",
+      "-i",
+      ...(target.password ? ["-e", `PGPASSWORD=${target.password}`] : []),
+      dockerContainer,
+      "psql",
+      "--no-psqlrc",
+      "--host",
+      "127.0.0.1",
+      "--port",
+      "5432",
+      "--username",
+      target.user,
+      "--dbname",
+      target.database,
+      "--set",
+      "ON_ERROR_STOP=1",
+    ], {
+      input: fs.readFileSync(dumpPath),
+      stdio: ["pipe", "pipe", "pipe"],
+    });
+    return;
+  }
   run("psql", ["--host", target.host, "--port", target.port, "--username", target.user, "--dbname", target.database, "--set", "ON_ERROR_STOP=1", "--file", dumpPath], target);
 }
 
@@ -166,7 +228,7 @@ async function snapshot(target: Target, schemaSha256: string): Promise<Snapshot>
     SELECT table_schema AS schema, table_name AS table
     FROM information_schema.tables
     WHERE table_type = 'BASE TABLE'
-      AND table_schema NOT IN ('pg_catalog', 'information_schema', 'graphile_worker')
+      AND table_schema NOT IN ('pg_catalog', 'information_schema', 'graphile_worker', 'teklifpro_queue')
   `);
   let rowCount = 0;
   for (const table of tables.rows) {
@@ -197,7 +259,7 @@ async function main() {
 
   const major = await serverMajor(source);
   const sourceDump = dumpSchema(source, major);
-  if (args.prepare) restoreSchema(sourceDump.dumpPath, target);
+  if (args.prepare) restoreSchema(sourceDump.dumpPath, target, major);
   const targetDump = dumpSchema(target, major);
   const sourceSnapshot = await snapshot(source, sourceDump.schemaSha256);
   const targetSnapshot = await snapshot(target, targetDump.schemaSha256);

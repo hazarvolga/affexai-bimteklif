@@ -1,9 +1,9 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-25.79",
+  version: "BIM-CALC-2026-10-25.80",
   updatedOn: "26 Ekim 2026",
-  implementationBaseline: "0fb6d8bde319f281a676f48d5945c653c04ee4f8",
-  approvalStatus: "Rev. 85, T41 S5 dilimi (memberships, invitations, pilot_applications, admin_audit_logs, usage_records) için exact least-privilege ACL kontratını (DATABASE_AUTHORITY_AUDIT_COMPANY_TABLES ve DATABASE_PUBLIC_RESTRICTED_TABLE_ACL) kilitleyerek company_id taşıyan 72/72 tablonun tamamını (67 FORCE RLS + 5 S5 Exact-ACL) yerel PG16 üzerinde doğrular; Rev. 84 T41 S3 (4 SmartCheck belge/worker tablosu FORCE RLS), Rev. 83 T41 S4b (6 Academy ve sertifika tablosu FORCE RLS), Rev. 82 T41 S4a (7 Allplan öğrenci tablosu FORCE RLS), Rev. 81 T41 S2 (8 fiyat/kaynak/mevzuat tablosu FORCE RLS) ve Rev. 80 T41 S1 (6 teklif çekirdeği tablosu FORCE RLS) dilimlerini tamamlamıştır. Gerçek banka/dekont mutabakatı, bağımsız uzman imzası, gerçek vendor dosyası, T43 %80 eşiği, T44/T45 kanıtı ve canlı deploy sonrası role-model-smoke tamamlanmadığından T41/T42/T43 ve Faz 7 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
+  implementationBaseline: "f88ca928b5a16488a6cda73e2ea49bcfbb4164b0",
+  approvalStatus: "Rev. 86, T44 5-sütunlu kurtarma tatbikatını (src/contracts/t44-recovery-drill.pgtest.ts 1/1 PASS: worker crash/reclaim, DLQ karantinası, bimmetraj_backup ile pg_dump --enable-row-security + pg_restore RTO/RPO ölçümü, bozuk migration atomik rollback + katalog imzası doğrulaması ve /api/health/ready 503 SERVICE_DEGRADED → 200 OK kurtarma) ve PG16 üzerinde yakalanan companies/subscriptions_worker_capability_read FORCE RLS politikaları ile backup.py --enable-row-security düzeltmesini tamamlar; Rev. 80–85 ise 72/72 company_id tablosunun tamamını (67 FORCE RLS + 5 S5 Exact-ACL) yerel PG16 üzerinde doğrulamıştır. Gerçek banka/dekont mutabakatı, bağımsız uzman imzası, gerçek vendor dosyası, T43 %80 eşiği, T45 kanıtı ve canlı deploy sonrası role-model-smoke/container digest doğrulaması tamamlanmadığından T41/T42/T43/T44 ve Faz 7 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
 };
 
 export interface ModuleRevisionNote {
@@ -1853,6 +1853,33 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
         before: "SmartCheck IFC kota sayacı (usage_records) üzerinde worker ve app rollerinin DELETE yetkisi açıktı.",
         after: "usage_records tablosunda worker ve app rolleri yalnızca SELECT/INSERT/UPDATE ile sınırlandı; control rolü SELECT-only olarak kilitlendi.",
         basis: "Faz 7 T41 S5 — IFC kota sayacı tablosu en-az-yetki ACL izolasyonu",
+      },
+    },
+  },
+  {
+    revision: "Rev. 86",
+    version: "BIM-CALC-2026-10-25.80",
+    date: "26 Ekim 2026",
+    commit: "f88ca928b5a16488a6cda73e2ea49bcfbb4164b0",
+    trigger: "GAP planı T44 — Worker, runtime ve 5-sütunlu kurtarma tatbikatı + companies/subscriptions worker capability FORCE RLS ve backup.py --enable-row-security düzeltmesi.",
+    beforeSummary: "1) companies ve subscriptions tablolarında FORCE RLS açık olduğundan SECURITY DEFINER worker capability fonksiyonları (bimmetraj_worker_get_company_context ve bimmetraj_worker_get_entitlement) gerçek bimmetraj_worker oturumunda 0 satır dönüyor ve TENANT_COMPANY_MISSING hatası fırlatıyordu. 2) deploy/backup/backup.py içinde pg_dump varsayılan row_security=off ile çalıştığından NOBYPASSRLS bimmetraj_backup rolü 67 RLS tablosunu yedeklerken hata veriyordu. 3) 5 kurtarma sütununu gerçek PG16 rolleriyle tek seferde kanıtlayan kontrat testi yoktu.",
+    afterSummary: "1) 0027_smartcheck_pipeline_rls.sql ve src/db/schema.ts içine companies_worker_capability_read ve subscriptions_worker_capability_read (session_user = 'bimmetraj_worker' AND current_user = 'bimmetraj_owner') RLS politikaları ile worker-company-context.ts test fallback'i eklendi. 2) deploy/backup/backup.py içine --enable-row-security bayrağı eklendi (test_backup.py 6/6 PASS). 3) src/contracts/t44-recovery-drill.pgtest.ts (1/1 PASS: dump 136 ms, restore 351 ms, RPO 0 kayıp) ve scripts/postgres-restore-drill.ts (28 migration, 85 tablo, 20 enum PASS) ile 5 kurtarma sütunu doğrulandı. Hesap yöntemleri değişmedi.",
+    affectedModules: ["ifc-metraj", "satir-dogrulama", "uc-x-uc"],
+    moduleDetails: {
+      "ifc-metraj": {
+        before: "Gerçek bimmetraj_worker oturumunda companies ve subscriptions tablolarındaki FORCE RLS nedeniyle SECURITY DEFINER capability fonksiyonları 0 satır dönüyor; ayrıca bimmetraj_backup rolüyle pg_dump RLS açık tablolarda hata veriyordu.",
+        after: "companies_worker_capability_read ve subscriptions_worker_capability_read RLS politikaları ile backup.py --enable-row-security bayrağı eklendi; 5-sütunlu kurtarma tatbikatı (t44-recovery-drill.pgtest.ts 1/1 PASS) doğrulandı.",
+        basis: "Faz 7 T44 — Worker capability FORCE RLS uyumu ve yedekleme/kurtarma tatbikatı",
+      },
+      "satir-dogrulama": {
+        before: "Bayatlamış (stale) SmartCheck koşusunun bıraktığı kısmi normalized_quantity_rows satırlarının devralma (reclaim) ve yedekten geri yükleme (pg_restore) sonrası bütünlüğü gerçek worker/backup rolleriyle test edilmemişti.",
+        after: "t44-recovery-drill.pgtest.ts ile yarıda kalan koşunun kısmi satırlarının temizlendiği (supersededRunRowCount = 0), yeni koşunun tamamlandığı (recoveredRowCount = 1) ve pg_restore sonrasında birebir korunduğu doğrulandı.",
+        basis: "Faz 7 T44 — Worker crash/reclaim ve RPO=0 geri yükleme kanıtı",
+      },
+      "uc-x-uc": {
+        before: "3×3 kural motorunun şirket aktif standardını (active_standard) okuyan bimmetraj_worker_get_company_context fonksiyonu gerçek bimmetraj_worker oturumunda companies FORCE RLS engeline takılıyordu.",
+        after: "companies_worker_capability_read RLS politikası ve worker-company-context.ts fallback'i ile bimmetraj_worker oturumunda active_standard ve smartcheck_max_waste_percent bağlamının güvenli okunması sağlandı.",
+        basis: "Faz 7 T44 — Worker company-context capability FORCE RLS uyumu",
       },
     },
   },

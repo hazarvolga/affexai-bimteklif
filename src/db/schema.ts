@@ -120,6 +120,12 @@ const appSuperAdminQueueReadPolicy = (name: string) => pgPolicy(`${name}_app_sup
   using: sql`current_user = 'bimmetraj_app' AND nullif(current_setting('bimmetraj.super_admin_user_id', true), '')::uuid IS NOT NULL`,
 });
 
+const workerCapabilityReadPolicy = (name: string) => pgPolicy(`${name}_worker_capability_read`, {
+  for: "select",
+  to: "public",
+  using: sql`session_user = 'bimmetraj_worker' AND current_user = 'bimmetraj_owner'`,
+});
+
 // ─── GLOBAL ENUMS ───
 export const currencyEnum = pgEnum("currency", ["TRY", "USD", "EUR"]);
 export const quoteStatusEnum = pgEnum("quote_status", ["draft", "sent", "negotiation", "won", "lost", "archived"]);
@@ -291,6 +297,7 @@ export const companies = pgTable("companies", {
   controlAccessPolicy: controlAccessPolicy("companies"),
   backupReadPolicy: backupReadPolicy("companies"),
   ownerMigrationPolicy: ownerMigrationPolicy("companies"),
+  workerCapabilityReadPolicy: workerCapabilityReadPolicy("companies"),
 })).enableRLS();
 
 export const memberships = pgTable("memberships", {
@@ -356,6 +363,7 @@ export const subscriptions = pgTable("subscriptions", {
   controlAccessPolicy: controlAccessPolicy("subscriptions"),
   backupReadPolicy: backupReadPolicy("subscriptions"),
   ownerMigrationPolicy: ownerMigrationPolicy("subscriptions"),
+  workerCapabilityReadPolicy: workerCapabilityReadPolicy("subscriptions"),
 })).enableRLS();
 
 

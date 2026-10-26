@@ -4463,6 +4463,15 @@
           ],
           "using": "session_user = 'bimmetraj_migrator' AND current_user = 'bimmetraj_owner'",
           "withCheck": "session_user = 'bimmetraj_migrator' AND current_user = 'bimmetraj_owner'"
+        },
+        "companies_worker_capability_read": {
+          "name": "companies_worker_capability_read",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "public"
+          ],
+          "using": "session_user = 'bimmetraj_worker' AND current_user = 'bimmetraj_owner'"
         }
       },
       "checkConstraints": {
@@ -16264,6 +16273,15 @@
           ],
           "using": "session_user = 'bimmetraj_migrator' AND current_user = 'bimmetraj_owner'",
           "withCheck": "session_user = 'bimmetraj_migrator' AND current_user = 'bimmetraj_owner'"
+        },
+        "subscriptions_worker_capability_read": {
+          "name": "subscriptions_worker_capability_read",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "public"
+          ],
+          "using": "session_user = 'bimmetraj_worker' AND current_user = 'bimmetraj_owner'"
         }
       },
       "checkConstraints": {

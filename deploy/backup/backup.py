@@ -85,7 +85,7 @@ def execute(directory=pathlib.Path('/backups')):
         aws = ['aws', '--endpoint-url', endpoint, 's3api']
         completed = False
         try:
-            run(['pg_dump', '--format=custom', '--no-owner', '--no-acl', '--file', str(partial)], env)
+            run(['pg_dump', '--format=custom', '--no-owner', '--no-acl', '--enable-row-security', '--file', str(partial)], env)
             if not partial.is_file() or partial.stat().st_size == 0: raise BackupError('empty backup')
             run(['pg_restore', '--list', str(partial)], env)
             partial.rename(dump)

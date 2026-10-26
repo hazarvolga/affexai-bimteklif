@@ -6,6 +6,8 @@ ALTER TABLE "documents" ENABLE ROW LEVEL SECURITY;
 --> statement-breakpoint
 ALTER TABLE "normalized_quantity_rows" ENABLE ROW LEVEL SECURITY;
 --> statement-breakpoint
+CREATE POLICY "companies_worker_capability_read" ON "companies" AS PERMISSIVE FOR SELECT TO public USING (session_user = 'bimmetraj_worker' AND current_user = 'bimmetraj_owner');
+--> statement-breakpoint
 CREATE POLICY "document_processing_artifacts_app_tenant" ON "document_processing_artifacts" AS PERMISSIVE FOR ALL TO public USING (current_user = 'bimmetraj_app' AND "document_processing_artifacts"."company_id" = nullif(current_setting('bimmetraj.company_id', true), '')::uuid) WITH CHECK (current_user = 'bimmetraj_app' AND "document_processing_artifacts"."company_id" = nullif(current_setting('bimmetraj.company_id', true), '')::uuid);
 --> statement-breakpoint
 CREATE POLICY "document_processing_artifacts_worker_access" ON "document_processing_artifacts" AS PERMISSIVE FOR ALL TO public USING (current_user = 'bimmetraj_worker') WITH CHECK (current_user = 'bimmetraj_worker');
@@ -41,6 +43,8 @@ CREATE POLICY "normalized_quantity_rows_worker_access" ON "normalized_quantity_r
 CREATE POLICY "normalized_quantity_rows_backup_read" ON "normalized_quantity_rows" AS PERMISSIVE FOR SELECT TO public USING (current_user = 'bimmetraj_backup');
 --> statement-breakpoint
 CREATE POLICY "normalized_quantity_rows_owner_migration" ON "normalized_quantity_rows" AS PERMISSIVE FOR ALL TO public USING (session_user = 'bimmetraj_migrator' AND current_user = 'bimmetraj_owner') WITH CHECK (session_user = 'bimmetraj_migrator' AND current_user = 'bimmetraj_owner');
+--> statement-breakpoint
+CREATE POLICY "subscriptions_worker_capability_read" ON "subscriptions" AS PERMISSIVE FOR SELECT TO public USING (session_user = 'bimmetraj_worker' AND current_user = 'bimmetraj_owner');
 --> statement-breakpoint
 ALTER TABLE "documents" FORCE ROW LEVEL SECURITY;
 --> statement-breakpoint

@@ -30,6 +30,7 @@ class BackupTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory, patch.dict(os.environ, self.env(), clear=True), patch.object(backup, 'run', side_effect=backup.BackupError('command failed')) as run, patch.object(backup, 'retention') as retention:
             with self.assertRaises(backup.BackupError): backup.execute(pathlib.Path(directory))
             self.assertEqual(run.call_args.args[0][0], 'pg_dump')
+            self.assertIn('--enable-row-security', run.call_args.args[0])
             retention.assert_not_called()
             self.assertFalse(any(pathlib.Path(directory).glob('*.dump')))
 

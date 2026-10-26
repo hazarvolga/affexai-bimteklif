@@ -5,14 +5,14 @@
   "targetDatabase": "teklifpro_restore_drill_local",
   "targetGuard": "teklifpro_restore_drill_local",
   "source": {
-    "schemaSha256": "41920c99c31a297ce0d01f420d48b840084ac7449e2609face9e7c41bf27e93a",
-    "tableCount": 64,
+    "schemaSha256": "4d0290f7a85b7c3172f919128ceb80f70bea55b73092536a880e3bf7f57b1c28",
+    "tableCount": 85,
     "enumCount": 20,
-    "rowCount": 558
+    "rowCount": 4
   },
   "target": {
-    "schemaSha256": "41920c99c31a297ce0d01f420d48b840084ac7449e2609face9e7c41bf27e93a",
-    "tableCount": 64,
+    "schemaSha256": "4d0290f7a85b7c3172f919128ceb80f70bea55b73092536a880e3bf7f57b1c28",
+    "tableCount": 85,
     "enumCount": 20,
     "rowCount": 0
   },

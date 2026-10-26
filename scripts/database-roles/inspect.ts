@@ -494,12 +494,13 @@ export async function inspectCrmLeadRlsViolations(
   const tenant = (column: "id" | "company_id") => `((CURRENT_USER = 'bimmetraj_app'::name) AND (${column} = (NULLIF(current_setting('bimmetraj.company_id'::text, true), ''::text))::uuid))`;
   const backup = "(CURRENT_USER = 'bimmetraj_backup'::name)";
   const owner = "((SESSION_USER = 'bimmetraj_migrator'::name) AND (CURRENT_USER = 'bimmetraj_owner'::name))";
+  const workerCapability = "((SESSION_USER = 'bimmetraj_worker'::name) AND (CURRENT_USER = 'bimmetraj_owner'::name))";
   const control = "(CURRENT_USER = 'bimmetraj_control'::name)";
   const expected = [
-    ["companies_app_tenant_read", "r", tenant("id"), null], ["companies_backup_read", "r", backup, null], ["companies_control_access", "*", control, control], ["companies_owner_migration", "*", owner, owner],
+    ["companies_app_tenant_read", "r", tenant("id"), null], ["companies_backup_read", "r", backup, null], ["companies_control_access", "*", control, control], ["companies_owner_migration", "*", owner, owner], ["companies_worker_capability_read", "r", workerCapability, null],
     ["leads_app_tenant_insert", "a", null, tenant("company_id")], ["leads_app_tenant_read", "r", tenant("company_id"), null],
     ["leads_backup_read", "r", backup, null], ["leads_owner_migration", "*", owner, owner],
-    ["subscriptions_app_tenant_read", "r", tenant("company_id"), null], ["subscriptions_backup_read", "r", backup, null], ["subscriptions_control_access", "*", control, control], ["subscriptions_owner_migration", "*", owner, owner],
+    ["subscriptions_app_tenant_read", "r", tenant("company_id"), null], ["subscriptions_backup_read", "r", backup, null], ["subscriptions_control_access", "*", control, control], ["subscriptions_owner_migration", "*", owner, owner], ["subscriptions_worker_capability_read", "r", workerCapability, null],
     ["usage_logs_app_tenant_insert", "a", null, tenant("company_id")], ["usage_logs_app_tenant_read", "r", tenant("company_id"), null],
     ["usage_logs_backup_read", "r", backup, null], ["usage_logs_control_access", "r", control, null],
     ["usage_logs_control_delete", "d", control, null], ["usage_logs_control_insert", "a", null, control], ["usage_logs_owner_migration", "*", owner, owner],

@@ -201,10 +201,10 @@ test('CRM leads and quota dependencies declare bounded tenant policy matrices', 
   ]);
   assert.ok(lead.indexes.idx_leads_tenant_created_id);
   assert.deepEqual(Object.keys(tables['public.companies'].policies).sort(), [
-    'companies_app_tenant_read', 'companies_backup_read', 'companies_control_access', 'companies_owner_migration',
+    'companies_app_tenant_read', 'companies_backup_read', 'companies_control_access', 'companies_owner_migration', 'companies_worker_capability_read',
   ]);
   assert.deepEqual(Object.keys(tables['public.subscriptions'].policies).sort(), [
-    'subscriptions_app_tenant_read', 'subscriptions_backup_read', 'subscriptions_control_access', 'subscriptions_owner_migration',
+    'subscriptions_app_tenant_read', 'subscriptions_backup_read', 'subscriptions_control_access', 'subscriptions_owner_migration', 'subscriptions_worker_capability_read',
   ]);
   assert.deepEqual(Object.keys(tables['public.usage_logs'].policies).sort(), [
     'usage_logs_app_tenant_insert', 'usage_logs_app_tenant_read', 'usage_logs_backup_read', 'usage_logs_control_access',

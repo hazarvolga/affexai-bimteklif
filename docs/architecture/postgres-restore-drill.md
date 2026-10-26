@@ -29,7 +29,7 @@ pnpm postgres:restore-drill:verify # mevcut drill hedefini yeniden doğrula
 Rapor: `docs/architecture/generated/postgres-restore-drill.json`
 
 - kaynak/hedef schema SHA-256 eşleşiyor;
-- 64 non-worker tablo ve 20 public enum eşleşiyor;
+- 85 non-worker tablo ve 20 public enum eşleşiyor;
 - hedef satır sayısı `0`;
 - durum `pass`.
 

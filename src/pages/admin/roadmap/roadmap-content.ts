@@ -185,7 +185,7 @@ export const ROADMAP_SECTIONS: DocSection[] = [
   },
   {
     id: "durum",
-    title: "Uygulama durumu (25 Ekim 2026 · Rev. 83 geliştirme)",
+    title: "Uygulama durumu (26 Ekim 2026 · Rev. 86 geliştirme)",
     blocks: [
       { type: "table", columns: ["Yetenek", "Durum", "Not"], rows: [
         ["RG 33331 IFC ön kontrolü (EK-1/2/3/5/6/7/9)", "Hazır (Tam Kapsam)", "EK-1 6 haneli proje kodu–dosya adı eşleşmesi, EK-2 Tablo 2.1–2.14, EK-3 Tablo 3.1–3.2 (~130 mahal), EK-5 (69 zorunlu + 67 isteğe bağlı sınıf), EK-6 (Tablo 6.1–6.68) ve EK-7 Tablo 7.1–7.9 (IfcAnnotation SURVEY dahil) sunucuda çalışır; gerçek yüklenen dosya adı (dosya_adi) ve iç içe IfcComplexProperty kümeleri de denetlenir"],
@@ -261,6 +261,7 @@ export const ROADMAP_SECTIONS: DocSection[] = [
         ["17 — GAP kapatma Faz 7: tenant RLS (T41)", "Kod ve yerel PG16 tamamlandı: 72/72 company_id tablosu (67 FORCE RLS + 5 S5 Exact-ACL) kanıtlı; canlı negatif kanıt açık (26 Ekim 2026 · Rev. 85)", "Rev. 48 beş CDE, Rev. 52 on hakediş, Rev. 53 iki SmartCheck pilot, Rev. 54 company_industry_settings, Rev. 55 CRM leads/companies/subscriptions/usage_logs, Rev. 76 (0022_tenant_business_rls) 14 iş tablosu, Rev. 80 (0023_quotation_core_rls — S1 teklif çekirdeği: 6 tablo), Rev. 81 (0024_pricing_regulations_rls — S2 fiyat/kaynak/mevzuat: 8 tablo), Rev. 82 (0025_allplan_learner_rls — S4a Allplan öğrenci verisi: 7 tablo), Rev. 83 (0026_academy_control_rls — S4b Academy control-plane ve sertifika doğrulama: 6 tablo) ve Rev. 84 (0027_smartcheck_pipeline_rls — S3 SmartCheck belge ve worker işlem hattı: 4 tablo) olmak üzere 67 tenant tablosunu FORCE RLS ile korur; Rev. 85 (S5 dilimi) ise kalan 5 yetki/denetim/kota tablosunu (memberships, invitations, pilot_applications, admin_audit_logs, usage_records) exact least-privilege ACL kontratı (DATABASE_AUTHORITY_AUDIT_COMPANY_TABLES ve DATABASE_PUBLIC_RESTRICTED_TABLE_ACL) altında kilitleyerek 72/72 tablonun tamamını yerel PG16 kontrat testlerinde doğrular. Canlı deploy sonrası role-model-smoke negatif kanıtı açık olduğundan T41 canlı onayı T47/T52 penceresini bekler."],
         ["18 — GAP kapatma Faz 7: Ödeme/abonelik ve worker transaction güvenliği (T42)", "Kısmi / manuel havale, SmartCheck worker, Academy yetki ve orphan lease dilimleri PG16/test kanıtlı (25 Ekim 2026 · Rev. 78)", "Rev. 49 manuel ödeme yaşam döngüsünü; Rev. 50 SmartCheck queued→running claim, per-delivery lease, stale-owner fencing, atomik canonical publish ve release worker-drain kapısını; Rev. 78 Academy entitlement özellik bayrağı/rol sınırını, 15 dk orphan lease devralmayı ve boş sektör kataloğunda teklif kaydı güvenliğini tamamladı. Canlı banka ekstresi mutabakatı ve production rollout açık olduğundan T42 PARTIAL'dır."],
         ["19 — GAP kapatma Faz 7: Kapsam kapısı ve gerçek tarayıcı E2E (T43)", "Kısmi / c8 kapsam ratchet + Playwright E2E CI'da (25 Ekim 2026 · Rev. 76)", "c8 tüm-dosya kapsam raporu, 7 kritik kapsam tabanı, REQUIRE_TEST_DATABASE=true ve 6 gerçek tarayıcı Playwright E2E senaryosu (giriş, teklif+PDF, SmartCheck IFC, admin roadmap) CI hattına bağlandı. Proje satır kapsamı %46,80 ölçüldü; %80 eşiğine R+1..R+4 ratchet planıyla çıkılacaktır."],
+        ["20 — GAP kapatma Faz 7: Worker, runtime ve kurtarma tatbikatı (T44)", "Kısmi / 5-sütunlu PG16 kurtarma tatbikatı ve restore-drill kanıtlı (26 Ekim 2026 · Rev. 86)", "src/contracts/t44-recovery-drill.pgtest.ts (1/1 PASS) ile worker crash/lease reclaim, bozuk mesaj DLQ karantinası, bimmetraj_backup rolüyle pg_dump --enable-row-security + pg_restore (dump 136 ms / restore 351 ms / RPO 0 kayıp), bozuk migration atomik rollback + katalog imzası doğrulaması ve /api/health/ready 503 SERVICE_DEGRADED → 200 OK kurtarma senaryoları gerçek PG16 üzerinde kanıtlandı; ayrıca companies/subscriptions_worker_capability_read FORCE RLS politikaları ve backup.py --enable-row-security düzeltmeleri devreye alındı. Canlı deploy penceresinde container digest doğrulaması açık olduğundan T44 PARTIAL'dır."],
       ] },
       { type: "callout", tone: "info", title: "Her geliştirmede güncellenecek mühendis inceleme kaydı", text: "Yol haritası durumuyla Hesaplama Yöntemleri birlikte güncellenir: uygulanan yöntem, girdiler/birimler, formül ve kaynak, varsayımlar, geçersiz/eksik girdi davranışı, kapsam dışı durumlar ve referans testler görünür olur. Uzman kabulü ayrı kanıt gerektirir; sayfa güncellemesi veya test başarısı mühendis onayı değildir." },
       { type: "callout", tone: "warn", title: "Uzman inceleme paketi hazırlık kapısı (T50 önkoşulu)", text: "T01–T49 arasındaki uzman onayı dışındaki teknik ve operasyon işleri tamamlandıktan veya dış lisans/vendor/gerçek dosya bağımlılığı olarak açıkça sınıflandırıldıktan sonra /admin/roadmap/expert-review oluşturulacaktır. Rehber; her T50–T51 kontrolünü disiplin, kaynak/kod/fixture hash'i, yeniden üretim adımı, beklenen sonuç, tolerans, negatif senaryo, ürün deep-link'i ve zorunlu ek ile eşleyecek; aynı baseline'dan üretilen PDF'nin SHA-256 kaydını gösterecektir. Rehber veya PDF kendi başına uzman onayı değildir; baseline, kaynak veya fixture değişirse inceleme yeniden açılır." },
@@ -274,17 +275,17 @@ export const ROADMAP_SECTIONS: DocSection[] = [
   },
   {
     id: "revizyon-gunlugu",
-    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 85 · 13–26 Ekim 2026)",
+    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 86 · 13–26 Ekim 2026)",
     blocks: [
       {
         type: "callout",
         tone: "info",
-        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 84)",
-        text: "Bu bölüm, BIMMetraj'ın teknik evrimini Rev. 0'dan 25 Ekim 2026 Rev. 84 · BIM-CALC-2026-10-25.78 sürümüne kadar katı kronolojik sırayla kaydeder. Rev. 67 bağımsız uzman denemesi için kabul kapılarını ve kanıt sırasını /admin/roadmap/expert-review rotasında görünür kılar; uzman onayı değildir. Harici fixture lisansı, T45 gerçek dosya/p95/VPS kanıtı, T43 %80 eşiği, T44 ve kalan tenant RLS dilimi (S5) açık olduğundan T40, T41, T42 ve Faz 7 PARTIAL kalır.",
+        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 86)",
+        text: "Bu bölüm, BIMMetraj'ın teknik evrimini Rev. 0'dan 26 Ekim 2026 Rev. 86 · BIM-CALC-2026-10-25.80 sürümüne kadar katı kronolojik sırayla kaydeder. Rev. 67 bağımsız uzman denemesi için kabul kapılarını ve kanıt sırasını /admin/roadmap/expert-review rotasında görünür kılar; uzman onayı değildir. Harici fixture lisansı, T45 gerçek dosya/p95/VPS kanıtı, T43 %80 eşiği ve canlı ortamda T40/T41/T44 doğrulaması açık olduğundan Faz 7 PARTIAL kalır.",
       },
       {
         type: "p",
-        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 84):",
+        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 86):",
       },
       {
         type: "table",
@@ -802,16 +803,22 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "T41 S3 dilimi (0027_smartcheck_pipeline_rls) tamamlandı: 1) documents, document_processing_runs, document_processing_artifacts ve normalized_quantity_rows (4 tablo) ENABLE + FORCE RLS altına alındı (app tenant ALL + worker ALL + backup SELECT + migrator-owner ALL; documents ve document_processing_runs üzerinde ayrıca bimmetraj.super_admin_user_id UUID GUC ile app super-admin queue SELECT); böylece company_id taşıyan 72 tablonun 67'si (%93,1) FORCE RLS altındadır (kalan 5 tablo S5 yetki/denetim diliminde). 2) smartcheck.ts, upload-quota.ts, service.ts, market-intelligence.ts ve admin.ts (kuyruk sağlığı, kuyruk listesi, recover ve retry) sorguları withAppTenant, withAppTenantTransaction ve withSuperAdminQueueRead sınırına taşındı; GET /api/admin/queue üzerindeki companies FORCE RLS gizli hatası getControlDatabase().db ile kapatıldı. 3) tenant-business-rls.pgtest.ts 45 tablo (0022–0027) için 1/1 PASS, artifacts.test.ts 17/17 PASS ve verify.integration.test.ts 14/14 PASS olarak doğrulandı.",
           ],
           [
-            "Rev. 85 (Güncel geliştirme)",
+            "Rev. 85",
             "26 Ekim 2026 (T41 S5 Yetki, Denetim ve Kota Sayacı Exact-ACL Kontratı & 72/72 Tablo Envanteri Kapanışı)",
-            "BIM-CALC-2026-10-25.79",
+            "BIM-CALC-2026-10-25.79 (f88ca92)",
             "T41 S5 dilimi ve 72/72 company_id tablo envanteri tamamlandı: 1) memberships, invitations, pilot_applications, admin_audit_logs ve usage_records (5 tablo) DATABASE_AUTHORITY_AUDIT_COMPANY_TABLES olarak tanımlandı; pilot_applications ve usage_records DATABASE_PUBLIC_RESTRICTED_TABLE_ACL matrisine eklenerek bimmetraj_app ve bimmetraj_worker rollerinden DELETE yetkisi, bimmetraj_worker rolünden pilot_applications erişimi kaldırıldı. 2) GET /api/company/team ve GET /api/invitations okumaları withAppTenant(..., { readOnly: true }) sınırına alındı. 3) tenant-business-rls.pgtest.ts içinde PostgreSQL information_schema.columns üzerinden 72/72 company_id/target_company_id/provisioned_company_id tablosunun (67 FORCE RLS + 5 S5 Exact-ACL) eksiksiz kapsandığı ve S5 negatif ACL/drift kontrollerinin geçtiği doğrulandı.",
+          ],
+          [
+            "Rev. 86 (Güncel geliştirme)",
+            "26 Ekim 2026 (T44 Worker, Runtime ve 5-Sütunlu Kurtarma Tatbikatı + Worker Capability FORCE RLS ve Backup --enable-row-security Düzeltmesi)",
+            "BIM-CALC-2026-10-25.80",
+            "T44 5-sütunlu kurtarma tatbikatı tamamlandı: 1) src/contracts/t44-recovery-drill.pgtest.ts ile gerçek PG16 üzerinde worker crash/lease reclaim, bozuk mesaj DLQ karantinası, bimmetraj_backup rolüyle pg_dump --enable-row-security + pg_restore (dumpDurationMs: 136 ms, restoreDurationMs: 351 ms, RPO 0 kayıp), bozuk migration atomik rollback + katalog imzası doğrulaması ve /api/health/ready 503 SERVICE_DEGRADED → 200 OK kurtarma senaryoları uçtan uca kanıtlandı (1/1 PASS). 2) Gerçek PG16 testinde tespit edilen iki üretim kusuru kapatıldı: companies ve subscriptions FORCE RLS altında SECURITY DEFINER worker capability fonksiyonlarının (bimmetraj_worker_get_company_context, bimmetraj_worker_get_entitlement) bloklanmasını önleyen companies_worker_capability_read / subscriptions_worker_capability_read RLS politikaları 0027_smartcheck_pipeline_rls içine eklendi; deploy/backup/backup.py içindeki pg_dump komutuna NOBYPASSRLS bimmetraj_backup rolünün 67 RLS tablosunu yedekleyebilmesi için --enable-row-security bayrağı eklendi (test_backup.py 6/6 PASS). 3) scripts/postgres-restore-drill.ts PG16.10+ \\restrict belirteç normalizasyonu ve teklifpro_queue şema dışlamasıyla güncellendi (28 migration, 85 tablo, 20 enum PASS).",
           ],
         ],
       },
       {
         type: "p",
-        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 85 · Önceki Durum → Yeni Durum):",
+        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 86 · Önceki Durum → Yeni Durum):",
       },
       {
         type: "table",
@@ -1510,11 +1517,18 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "drizzle-release/0027_smartcheck_pipeline_rls.sql, src/db/schema.ts, src/db/app-tenant.ts, scripts/database-roles/contract.ts, scripts/database-roles/inspect.ts, scripts/release-migrations/data-transitions.ts, scripts/release-migrations/stage-signatures.ts, src/contracts/tenant-business-rls.pgtest.ts, src/smartcheck/import/upload-quota.ts, src/smartcheck/import/service.ts, src/server/routes/smartcheck.ts, src/server/routes/market-intelligence.ts, src/server/routes/admin.ts",
           ],
           [
-            "Rev. 85 · 26 Ekim 2026 (T41 S5 Yetki, Denetim ve Kota Sayacı Exact-ACL Kontratı & 72/72 Tablo Envanteri Kapanışı)",
+            "Rev. 85 · 26 Ekim 2026 · f88ca92 (T41 S5 Yetki, Denetim ve Kota Sayacı Exact-ACL Kontratı & 72/72 Tablo Envanteri Kapanışı)",
             "GAP planı T41 S5 dilimi (5 yetki/denetim/kota tablosu Exact-ACL ve 72/72 mutabakatı)",
             "pilot_applications ve usage_records tabloları DATABASE_PUBLIC_RESTRICTED_TABLE_ACL matrisinde yer almadığından bimmetraj_app ve bimmetraj_worker rolleri bu tablolarda DELETE yetkisine ve bimmetraj_worker rolü pilot_applications tablosunda okuma/yazma yetkisine sahipti; ayrıca GET /api/company/team ve GET /api/invitations sorguları withAppTenant kullanmıyordu.",
             "DATABASE_AUTHORITY_AUDIT_COMPANY_TABLES (memberships, invitations, pilot_applications, admin_audit_logs, usage_records) tanımlandı; pilot_applications ve usage_records DATABASE_PUBLIC_RESTRICTED_TABLE_ACL matrisine eklenerek en-az-yetki ACL daraltması uygulandı; company.ts içindeki ekip ve davet listeleme uçları withAppTenant içine taşındı; tenant-business-rls.pgtest.ts içinde 72/72 company_id tablosunun tamamının (67 FORCE RLS + 5 Exact-ACL) kapsandığı doğrulandı.",
             "scripts/database-roles/contract.ts, src/server/routes/company.ts, src/contracts/tenant-business-rls.pgtest.ts, docs/audits/phase-7/PHASE_7_T41_REMAINING_TABLES_2026-10-25.md",
+          ],
+          [
+            "Rev. 86 · 26 Ekim 2026 (T44 Worker, Runtime ve 5-Sütunlu Kurtarma Tatbikatı)",
+            "GAP planı T44 — worker crash/reclaim, DLQ karantinası, pg_dump/pg_restore RTO/RPO, migration rollback ve bağımlılık kesintisi kurtarma tatbikatı",
+            "1) companies ve subscriptions tablolarında FORCE RLS açık olduğundan SECURITY DEFINER worker capability fonksiyonları (bimmetraj_worker_get_company_context ve bimmetraj_worker_get_entitlement) bimmetraj_worker oturumunda 0 satır dönüyor ve TENANT_COMPANY_MISSING hatası veriyordu. 2) deploy/backup/backup.py içinde pg_dump varsayılan olarak row_security=off çalıştırdığından NOBYPASSRLS bimmetraj_backup rolü 67 RLS tablosunu yedeklerken hata alıyordu. 3) 5 kurtarma sütununu tek seferde gerçek PG16 rolleriyle doğrulayan uçtan uca kontrat testi yoktu.",
+            "1) 0027_smartcheck_pipeline_rls.sql ve src/db/schema.ts içine companies_worker_capability_read ve subscriptions_worker_capability_read (session_user = 'bimmetraj_worker' AND current_user = 'bimmetraj_owner') RLS politikaları ile worker-company-context.ts test fallback'i eklendi. 2) deploy/backup/backup.py içine --enable-row-security bayrağı eklendi (test_backup.py 6/6 PASS). 3) src/contracts/t44-recovery-drill.pgtest.ts (1/1 PASS) ve scripts/postgres-restore-drill.ts (28 migration, 85 tablo, 20 enum PASS) ile 5 kurtarma sütunu doğrulandı.",
+            "src/contracts/t44-recovery-drill.pgtest.ts, deploy/backup/backup.py, deploy/backup/test_backup.py, src/smartcheck/import/worker-company-context.ts, drizzle-release/0027_smartcheck_pipeline_rls.sql, src/db/schema.ts, scripts/database-roles/inspect.ts, scripts/release-migrations/stage-signatures.ts, scripts/postgres-restore-drill.ts, docs/architecture/generated/postgres-restore-drill.json, docs/audits/phase-7/PHASE_7_T44_RECOVERY_DRILL_2026-10-26.md",
           ],
         ],
       },
