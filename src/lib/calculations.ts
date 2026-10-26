@@ -135,7 +135,7 @@ export function calculateLineItemTotal(item: LineItem): number {
 /**
  * Aggregates all line items into a full quotation summary
  */
-export function calculateQuotationTotals(items: LineItem[], options: QuotationTotalsOptions = {}): CalculationResult {
+export function calculateQuotationTotals(items: readonly LineItem[], options: QuotationTotalsOptions = {}): CalculationResult {
   const overheadProfitPercent = normalizeOverheadProfitPercent(options.overheadProfitPercent);
   let subtotal = 0;
   let discountTotal = 0;

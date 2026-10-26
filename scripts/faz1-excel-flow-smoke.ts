@@ -142,6 +142,11 @@ try {
   assert.doesNotMatch(await text(), /Aktarım için önce mevcut bir teklif oluşturulmalıdır/);
   await (await page.$('[data-testid="calm-transfer-unavailable"]'))!.screenshot({ path: `${output}/4-sample-transfer-note.png` });
 
+  step = 'retired demo route';
+  // M-15.2: the fixed-price demo is gone; old links land on the single IFC entry.
+  await page.goto(`${base}/app/dosyadan-teklif-demo`, { waitUntil: 'networkidle0' });
+  await page.waitForFunction(() => location.pathname === '/app/smartcheck', { timeout: 10_000 });
+
   step = 'browser preview';
   await page.goto(`${base}/app/ifc-parser`, { waitUntil: 'networkidle0' });
   assert.doesNotMatch(await text(), /İcmal nereye aktarılsın/);
