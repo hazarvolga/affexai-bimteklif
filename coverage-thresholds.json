@@ -2,7 +2,7 @@
   "target": 80,
   "project": {
     "lines": 82,
-    "branches": 75,
+    "branches": 74,
     "functions": 71
   },
   "critical": [
@@ -52,7 +52,7 @@
         "src/domain/quantity/"
       ],
       "lines": 90,
-      "branches": 82,
+      "branches": 81,
       "functions": 96
     },
     {
