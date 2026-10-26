@@ -21,12 +21,12 @@
     "workerScripts": {
       "ifc": {
         "localPath": "workers/ifc/ifc_extract.py",
-        "sha256": "ff7c0ba1510096ed0aa179df4a8c3109ebd4f25384601abb7a7adf1e0464ec49",
+        "sha256": "1788cb64c3d6a920e59624abe2e07e6d2c2b451a887c14b6e19ee57ee3b5da4d",
         "trackedDiffAtRun": false
       },
       "pdf": {
         "localPath": "workers/ifc/pdf_preflight.py",
-        "sha256": "7c0dd41b74da4032fd45f4246e4edf049772e975bc1de04a98836ce6b8889b09",
+        "sha256": "b5d8dae77ff4068b8407e66efa674b57baafc065fa1282eaa162cb2f415743d2",
         "trackedDiffAtRun": false
       }
     }

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "registryVersion": "BIM-CAP-2026-10-17.11",
-  "asOf": "2026-10-23",
+  "registryVersion": "BIM-CAP-2026-10-23.12",
+  "asOf": "2026-10-26",
   "count": 19,
   "capabilities": [
     {
@@ -217,18 +217,18 @@
     {
       "id": "multi-user-cde-approval-workflow",
       "title": "Çok Kullanıcılı CDE Rol Bazlı Onay Kapıları ve Kurumsal Revizyon Onay Akışı (Pilot · L2)",
-      "actualBehaviorClaim": "Proje müellifi, disiplin sorumlusu (STR/ARC/MEP) ve işveren temsilcisi arasında çok kullanıcılı CDE durum geçiş onay kapılarını destekler.",
+      "actualBehaviorClaim": "Tenant ve proje üyeliğine bağlı coordinator/approver kapılarıyla kalıcı SHARED/PUBLISHED kararları, immutable revizyon kapsamı ve denetim izi sunar.",
       "formulaAccuracyScope": "Only the behavior exercised by the referenced module and golden test; independent calculation approval is not yet recorded.",
       "regulatoryScope": "Source label: TS EN ISO 19650-2; article/scope: Madde 5.6.2 & 5.7.2 (Paylaşım ve Yayımlama Onay Kapıları). Current source access and effective-date limits remain governed by source-register.json.",
       "authorityApprovalBoundary": "Software pre-check or calculation output is not a permit, authority approval, tender decision, tax opinion, or professional signature.",
       "fieldAcceptanceBoundary": "No named independent field/customer acceptance is recorded; L2 pilot and L1 roadmap evidence cannot be represented as L3/L4.",
       "currentLevel": "L2",
       "currentStatus": "pilot",
-      "modulePath": "src/smartcheck/rules/iso19650.ts",
-      "goldenTestPath": "src/smartcheck/rules/iso19650.test.ts",
+      "modulePath": "src/services/cde/service.ts",
+      "goldenTestPath": "src/server/routes/cde.integration.test.ts",
       "evidenceRefs": [
-        "src/smartcheck/rules/iso19650.ts",
-        "src/smartcheck/rules/iso19650.test.ts",
+        "src/services/cde/service.ts",
+        "src/server/routes/cde.integration.test.ts",
         "docs/audits/phase-0/source-register.json"
       ],
       "blockers": [
@@ -418,7 +418,8 @@
     "searchMethod": "Official product documentation, public demos, pricing pages, release notes and direct vendor confirmation; absence of evidence is not evidence of absence.",
     "decisionOwner": "Product owner plus advertising/legal reviewer",
     "expiresAt": "2027-01-23",
-    "status": "not_researched",
+    "status": "researched_pending_legal_signoff",
+    "evidencePath": "docs/audits/phase-10/PHASE_10_T53_T54_MARKET_INVENTORY_2026-10-26.md",
     "rule": "Category, bundle, date and geography may not be narrowed after seeing results without a new user-approved protocol."
   }
 }

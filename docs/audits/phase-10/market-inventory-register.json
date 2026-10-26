@@ -1,0 +1,560 @@
+{
+  "schemaVersion": 1,
+  "auditIds": ["T53", "T54"],
+  "pendingDecisionId": "T55",
+  "asOfDate": "2026-10-26",
+  "baselineCommit": "4e9d95f",
+  "capabilityRegistryVersion": "BIM-CAP-2026-10-23.12",
+  "protocolBinding": {
+    "sourceFile": "docs/audits/phase-0/capability-claim-register.json",
+    "category": "Türkiye’de erişilebilen BIM tabanlı metraj, teklif, mevzuat ön-kontrolü ve ihale/hakediş yazılımları",
+    "geography": "Türkiye",
+    "featureBundle": [
+      "IFC QTO with traceable quantity evidence",
+      "dated Turkish public price provenance",
+      "e-PYS preflight",
+      "tender and progress-payment workflow",
+      "capability evidence gate"
+    ],
+    "evidenceRule": "Absence of public documentation is classified as 'unverified_publicly' (doğrulanamadı), never 'verified_absent' (yok). BIMMetraj is evaluated under the exact same evidence gate (CAPABILITY_REGISTRY: 0 live/L3, 15 pilot/L2, 4 roadmap/L1)."
+  },
+  "searchMethodology": {
+    "dateExecuted": "2026-10-26",
+    "sourcesConsulted": [
+      "Official vendor product pages, user manuals, and release notes (oska.com.tr, destek.oska.com.tr, amp.com.tr, hakediskurumsal.com, ihalepro.com, bexelmanager.com, rib-software.com, construction.autodesk.com, kreo.net, glodon.com, allplan.com, github.com/BerkantACUN/ifc-ruhsat)",
+      "Resmî Gazete 05.08.2026 / 33331 (Dijital Hazırlama ve Elektronik Teslim Yönetmelikleri, EK-1..EK-9)",
+      "Repository Phase 0–8 audit registers (docs/audits/phase-0/*, docs/audits/phase-6/PHASE_6_REPORT_2026-10-24.md, src/capabilities/registry.ts)"
+    ],
+    "excludedFallacies": [
+      "Equating desktop-only and cloud-web editions of the same vendor (e.g., OSKA e-Hakediş Pro vs. OSKABULUT; RIB CostX Desktop vs. CostX Cloud; AMP Kurumsal Desktop vs. AMP Bulut)",
+      "Treating third-party plugin/Excel export bridges as native single-application workflows",
+      "Treating unmentioned features on vendor marketing pages as 'verified_absent' (yok)",
+      "Treating BIMMetraj L2/pilot or L1/roadmap code as L3/L4 expert-verified production capabilities"
+    ]
+  },
+  "capabilitiesEvaluated": [
+    {
+      "stageId": "S1_IFC_QTO_TRACEABLE",
+      "title": "IFC2x3 / IFC4 / IFC4X3 Fiziksel Metraj (QTO), Çok Katmanlı IfcCovering ve STEP/GUID Kanıt İzi"
+    },
+    {
+      "stageId": "S2_EPYS_RG33331_PDFA",
+      "title": "RG 33331 (05.08.2026) e-PYS EK-1..EK-9 IFC Ön Kontrolü ve veraPDF PDF/A + ISO 216 Pafta Denetimi"
+    },
+    {
+      "stageId": "S3_CSB_BYOL_MINHA",
+      "title": "Tarihli/Mühürlü ÇŞB & BYOL Poz Katalogları, Birim Sözleşmesi ve ÇŞB/DIN Minha Boşluk Düşüm Motoru"
+    },
+    {
+      "stageId": "S4_KIK_4734_4735",
+      "title": "4734 KİK m.38 / Tebliğ m.45.1 Sınır Değer + %80 Pareto ve 4735 Fiyat Farkı (21 TÜİK Alt Endeksi)"
+    },
+    {
+      "stageId": "S5_PROGRESS_PAYMENT",
+      "title": "Çok Dönemli Kümülatif Hakediş, Yeşil Defter, Mukayeseli Keşif ve Kesin Hesap Döngüsü"
+    },
+    {
+      "stageId": "S6_ISO19650_CDE_GATE",
+      "title": "TS EN ISO 19650-2 Çok Kullanıcılı CDE Durum Geçiş Kapıları (WIP/SHARED/PUBLISHED) ve Kanıt Kapısı"
+    }
+  ],
+  "products": [
+    {
+      "id": "oska-e-hakedis-pro",
+      "vendor": "Oska Yazılım",
+      "productName": "e-Hakediş Pro / HakedişPlus (Masaüstü)",
+      "categoryGroup": "TR_TENDER_COST_DESKTOP",
+      "deploymentModel": "desktop",
+      "licensingTier": "Ticari lisans (donanım/yazılım kilidi + yıllık güncelleme aboneliği)",
+      "turkishRegulationSupport": "4734 KİK yaklaşık maliyet, 4735 fiyat farkı, ÇŞB/kurum birim fiyat kitapları, Yeşil Defter, ataşman, mukayeseli keşif ve kesin hesap yerleşik; Allplan/Revit metraj aktarımı köprü/eklenti ile desteklenir.",
+      "integrationType": "Masaüstü uygulama; Excel/XML/kurum formatları ve Allplan/Revit BIM metraj aktarım köprüsü",
+      "verifiedAt": "2026-10-26",
+      "sources": [
+        "https://www.oska.com.tr/pdfdokumanlar/hakedispluskullanim-kilavuzu.pdf",
+        "https://destek.oska.com.tr/hakedisplus-yardimi/hakedis-islemleri/yesil-defter/"
+      ],
+      "stageMatrix": {
+        "S1_IFC_QTO_TRACEABLE": {
+          "status": "partial_bridge",
+          "note": "Allplan/Revit eklenti ve dosya köprüsüyle BIM metrajı alabilir; tarayıcı/sunucu tabanlı doğrudan IFC4X3 STEP/IfcComplexProperty ayrıştırıcısı açık belgelerde doğrulanamadı."
+        },
+        "S2_EPYS_RG33331_PDFA": {
+          "status": "unverified_publicly",
+          "note": "Açık ürün belgelerinde RG 33331 (05.08.2026) EK-9 Tablo 9.1/9.2 IFC doğrulaması veya veraPDF PDF/A pafta denetimi yer almamaktadır (doğrulanamadı)."
+        },
+        "S3_CSB_BYOL_MINHA": {
+          "status": "verified_present",
+          "note": "ÇŞB ve diğer kamu kurumlarının resmi birim fiyat/rayiç kitapları, poz analizleri ve metraj cetveli içinde minha (boşluk düşümü) satırları yerleşiktir."
+        },
+        "S4_KIK_4734_4735": {
+          "status": "verified_present",
+          "note": "4734 yaklaşık maliyet, aşırı düşük teklif sorgulama/açıklama ve 4735 fiyat farkı hesapları yerleşiktir."
+        },
+        "S5_PROGRESS_PAYMENT": {
+          "status": "verified_present",
+          "note": "Türkiye saha standardı: çok dönemli ara hakediş, Yeşil Defter, ataşman, mukayeseli keşif ve kesin hesap tam kapsamlıdır."
+        },
+        "S6_ISO19650_CDE_GATE": {
+          "status": "unverified_publicly",
+          "note": "ISO 19650-2 WIP→SHARED→PUBLISHED bilgi konteyneri durum makinesi açık belgelerde doğrulanamadı."
+        }
+      }
+    },
+    {
+      "id": "oskabulut",
+      "vendor": "Oska Yazılım",
+      "productName": "OSKABULUT (HakedişBulut & MaliyetBulut)",
+      "categoryGroup": "TR_TENDER_COST_CLOUD",
+      "deploymentModel": "cloud_web",
+      "licensingTier": "Yıllık bulut aboneliği (modül bazlı: MaliyetBulut / HakedişBulut)",
+      "turkishRegulationSupport": "Web tarayıcısı üzerinden ÇŞB/kurum birim fiyatları, 4734 yaklaşık maliyet, 4735 fiyat farkı, Yeşil Defter ve hakediş yönetimi.",
+      "integrationType": "Web/bulut SaaS; Excel ve OSKA dosya alışverişi",
+      "verifiedAt": "2026-10-26",
+      "sources": [
+        "https://www.oska.com.tr/menu/oskabulut/"
+      ],
+      "stageMatrix": {
+        "S1_IFC_QTO_TRACEABLE": {
+          "status": "unverified_publicly",
+          "note": "Web arayüzünde doğrudan IFC2x3/IFC4/IFC4X3 yükleyip 3B QTO/IfcCovering ayrıştırma özelliği açık belgelerde doğrulanamadı."
+        },
+        "S2_EPYS_RG33331_PDFA": {
+          "status": "unverified_publicly",
+          "note": "RG 33331 e-PYS EK-9 ve PDF/A pafta ön kontrolü açık ürün sayfasında yer almamaktadır (doğrulanamadı)."
+        },
+        "S3_CSB_BYOL_MINHA": {
+          "status": "verified_present",
+          "note": "Güncel ÇŞB ve idare birim fiyat kütüphaneleri ile metraj cetveli hesapları bulut üzerinde sunulur."
+        },
+        "S4_KIK_4734_4735": {
+          "status": "verified_present",
+          "note": "4734 yaklaşık maliyet ve 4735 fiyat farkı hesapları bulut modüllerinde yerleşiktir."
+        },
+        "S5_PROGRESS_PAYMENT": {
+          "status": "verified_present",
+          "note": "Web tabanlı çok dönemli hakediş, Yeşil Defter ve kesin hesap raporlaması mevcuttur."
+        },
+        "S6_ISO19650_CDE_GATE": {
+          "status": "unverified_publicly",
+          "note": "ISO 19650-2 CDE durum geçiş motoru açık belgelerde doğrulanamadı."
+        }
+      }
+    },
+    {
+      "id": "amp-kurumsal-ve-bulut",
+      "vendor": "AMP Yazılım",
+      "productName": "AMP Kurumsal Hakediş ve Yaklaşık Maliyet / AMP Hakediş Bulut",
+      "categoryGroup": "TR_TENDER_COST_HYBRID",
+      "deploymentModel": "hybrid_desktop_cloud",
+      "licensingTier": "Kurumsal masaüstü lisansı ve Zero-Client AMP Bulut aboneliği",
+      "turkishRegulationSupport": "4734/4735 kamu ihale mevzuatı, ÇŞB ve idare birim fiyat kitapları, yaklaşık maliyet, aşırı düşük teklif, çok dönemli hakediş, Yeşil Defter ve mukayeseli keşif.",
+      "integrationType": "Masaüstü + Zero-Client Bulut; Excel, EKAP uyumlu cetveller ve BIM/CAD metraj aktarım araçları",
+      "verifiedAt": "2026-10-26",
+      "sources": [
+        "https://www.amp.com.tr/urunler/kurumsal-hakedis-ve-yaklasik-maliyet",
+        "https://www.amp.com.tr/dosyalar/kh/dokumanlar/kullanim-kilavuzu-amp-kurumsal-hakedis-ve-yaklasik-maliyet.pdf"
+      ],
+      "stageMatrix": {
+        "S1_IFC_QTO_TRACEABLE": {
+          "status": "partial_bridge",
+          "note": "BIM/Revit metraj aktarım entegrasyonları mevcuttur; web üzerinde doğrudan IFC4X3 STEP/IfcCovering ayrıştırması açık kılavuzda doğrulanamadı."
+        },
+        "S2_EPYS_RG33331_PDFA": {
+          "status": "unverified_publicly",
+          "note": "RG 33331 (05.08.2026) e-PYS EK-9 ve veraPDF PDF/A pafta ön kontrolü açık belgelerde doğrulanamadı."
+        },
+        "S3_CSB_BYOL_MINHA": {
+          "status": "verified_present",
+          "note": "ÇŞB ve tüm kamu idarelerinin birim fiyat/rayiç katalogları ve metraj düşüm (minha) cetvelleri yerleşiktir."
+        },
+        "S4_KIK_4734_4735": {
+          "status": "verified_present",
+          "note": "4734 KİK yaklaşık maliyet, sınır değer/ADT ve 4735 fiyat farkı motorları yerleşiktir."
+        },
+        "S5_PROGRESS_PAYMENT": {
+          "status": "verified_present",
+          "note": "Çok dönemli hakediş, Yeşil Defter, ataşman, mukayeseli keşif ve kesin hesap akışı tam kapsamlıdır."
+        },
+        "S6_ISO19650_CDE_GATE": {
+          "status": "unverified_publicly",
+          "note": "ISO 19650-2 CDE onay kapıları açık kılavuzda doğrulanamadı."
+        }
+      }
+    },
+    {
+      "id": "ihale-pro",
+      "vendor": "İhale Pro",
+      "productName": "İhale Pro (Bulut İhale Takip, Yaklaşık Maliyet & Hakediş)",
+      "categoryGroup": "TR_TENDER_COST_CLOUD",
+      "deploymentModel": "cloud_web",
+      "licensingTier": "SaaS abonelik",
+      "turkishRegulationSupport": "Kamu İhale Bülteni / EKAP ilan takibi, rakip/idare analizi, birim fiyat kütüphanesi ve bulut yaklaşık maliyet/hakediş araçları.",
+      "integrationType": "Web SaaS; Excel içe/dışa aktarım",
+      "verifiedAt": "2026-10-26",
+      "sources": [
+        "https://www.ihalepro.com/"
+      ],
+      "stageMatrix": {
+        "S1_IFC_QTO_TRACEABLE": {
+          "status": "unverified_publicly",
+          "note": "IFC 3B model yükleme ve QTO metraj çıkarımı açık ürün belgelerinde yer almamaktadır (doğrulanamadı)."
+        },
+        "S2_EPYS_RG33331_PDFA": {
+          "status": "unverified_publicly",
+          "note": "RG 33331 e-PYS EK-9 ve PDF/A pafta ön kontrolü açık belgelerde doğrulanamadı."
+        },
+        "S3_CSB_BYOL_MINHA": {
+          "status": "verified_present",
+          "note": "Kamu birim fiyat arama ve cetvel oluşturma desteği mevcuttur."
+        },
+        "S4_KIK_4734_4735": {
+          "status": "verified_present",
+          "note": "4734 ihale analizi, sınır değer ve yaklaşık maliyet hesaplama araçları mevcuttur."
+        },
+        "S5_PROGRESS_PAYMENT": {
+          "status": "verified_present",
+          "note": "Temel hakediş ve yaklaşık maliyet cetveli oluşturma modülleri sunulmaktadır."
+        },
+        "S6_ISO19650_CDE_GATE": {
+          "status": "unverified_publicly",
+          "note": "ISO 19650-2 CDE iş akışı açık belgelerde doğrulanamadı."
+        }
+      }
+    },
+    {
+      "id": "bexel-manager",
+      "vendor": "Bexel Consulting",
+      "productName": "BEXEL Manager + BEXEL CDE (3D/4D/5D/6D BIM)",
+      "categoryGroup": "GLOBAL_5D_BIM_ENTERPRISE",
+      "deploymentModel": "hybrid_desktop_cloud",
+      "licensingTier": "Kurumsal modüler lisans (Engineer / Manager / Viewer + BEXEL CDE Cloud)",
+      "turkishRegulationSupport": "Açık standartlı IDS ve bSDD doğrulaması ile kullanıcı tanımlı kural setleri ve maliyet veritabanları (CSV/Excel) içe aktarılabilir; yerleşik RG 33331 EK-9 veya 4734/4735 Türk kamu ihale paketi açık belgelerde doğrulanamadı.",
+      "integrationType": "Native IFC2x3/IFC4/IFC4.3 motoru, BCF, IDS, bSDD, Revit/Navisworks/Tekla/Allplan alışverişi ve BEXEL CDE",
+      "verifiedAt": "2026-10-26",
+      "sources": [
+        "https://bexelmanager.com/"
+      ],
+      "stageMatrix": {
+        "S1_IFC_QTO_TRACEABLE": {
+          "status": "verified_present",
+          "note": "Gelişmiş 3D/5D IFC QTO, formüllü metraj kuralları ve eleman bazlı görsel izlenebilirlik yerleşiktir."
+        },
+        "S2_EPYS_RG33331_PDFA": {
+          "status": "partial_customizable",
+          "note": "Genel IDS/property checker mevcuttur; ancak RG 33331 EK-1..EK-9 (Tablo 9.1/9.2) hazır Türkiye kural seti ve veraPDF PDF/A pafta kontrolü açık belgelerde doğrulanamadı."
+        },
+        "S3_CSB_BYOL_MINHA": {
+          "status": "partial_customizable",
+          "note": "Kullanıcı kendi maliyet kataloğunu (BYOL) ve QTO formüllerini tanımlayabilir; yerleşik mühürlü ÇŞB 2026 PDF/poz paketi açık belgelerde doğrulanamadı."
+        },
+        "S4_KIK_4734_4735": {
+          "status": "unverified_publicly",
+          "note": "4734 KİK m.38 sınır değer / %80 Pareto ve 4735 TÜİK 21 alt endeks fiyat farkı motoru açık belgelerde doğrulanamadı."
+        },
+        "S5_PROGRESS_PAYMENT": {
+          "status": "partial_customizable",
+          "note": "5D BIM dönemlik ilerleme (earned value / payment certificate) mevcuttur; Türk kamu standardı Yeşil Defter / mukayeseli keşif şablonu açık belgelerde doğrulanamadı."
+        },
+        "S6_ISO19650_CDE_GATE": {
+          "status": "verified_present",
+          "note": "BEXEL CDE ve ISO 19650 uyumlu belge/model yönetimi sunulmaktadır."
+        }
+      }
+    },
+    {
+      "id": "rib-costx",
+      "vendor": "RIB Software (Schneider Electric)",
+      "productName": "RIB CostX & CostX Cloud (2D/5D BIM Estimating)",
+      "categoryGroup": "GLOBAL_5D_BIM_ENTERPRISE",
+      "deploymentModel": "hybrid_desktop_cloud",
+      "licensingTier": "Kurumsal lisans (CostX Desktop/Server ve AWS tabanlı CostX Cloud SaaS)",
+      "turkishRegulationSupport": "Esnek canlı elektronik tablo (workbook) ve özel rate library desteği vardır; yerleşik RG 33331 e-PYS EK-9 veya 4734/4735 Türk kamu ihale mevzuat paketi açık belgelerde doğrulanamadı.",
+      "integrationType": "IFC/Revit/DWG/PDF 2D-3D canlı bağlantılı workbook, Excel/CSV alışverişi",
+      "verifiedAt": "2026-10-26",
+      "sources": [
+        "https://www.rib-software.com/en/rib-costx"
+      ],
+      "stageMatrix": {
+        "S1_IFC_QTO_TRACEABLE": {
+          "status": "verified_present",
+          "note": "3B BIM/IFC modelinden ve 2B PDF paftalardan eleman/ölçüm izlenebilirlikli canlı QTO çıkarımı yerleşiktir."
+        },
+        "S2_EPYS_RG33331_PDFA": {
+          "status": "unverified_publicly",
+          "note": "RG 33331 (05.08.2026) EK-9 model kalite kontrolü ve veraPDF PDF/A-2b/ISO 216 pafta uygunluk kontrolü açık belgelerde doğrulanamadı."
+        },
+        "S3_CSB_BYOL_MINHA": {
+          "status": "partial_customizable",
+          "note": "Özel fiyat kütüphaneleri (BYOL) ve workbook formülleriyle düşüm hesabı yapılabilir; yerleşik ÇŞB 2026 resmi katalog paketi açık belgelerde doğrulanamadı."
+        },
+        "S4_KIK_4734_4735": {
+          "status": "unverified_publicly",
+          "note": "4734 KİK m.38 sınır değer ve 4735 fiyat farkı motoru açık belgelerde doğrulanamadı."
+        },
+        "S5_PROGRESS_PAYMENT": {
+          "status": "partial_customizable",
+          "note": "Uluslararası interim valuation / variation yönetimi mevcuttur; Türk kamu Yeşil Defter / mukayeseli keşif formatı açık belgelerde doğrulanamadı."
+        },
+        "S6_ISO19650_CDE_GATE": {
+          "status": "unverified_publicly",
+          "note": "RIB ekosisteminde CDE ürünleri (RIB Project/Connex) ayrıdır; CostX içinde yerleşik ISO 19650 WIP→SHARED→PUBLISHED kapısı açık belgelerde doğrulanamadı."
+        }
+      }
+    },
+    {
+      "id": "autodesk-takeoff-acc",
+      "vendor": "Autodesk",
+      "productName": "Autodesk Takeoff & Autodesk Construction Cloud (ACC / Docs)",
+      "categoryGroup": "GLOBAL_5D_BIM_CLOUD",
+      "deploymentModel": "cloud_web",
+      "licensingTier": "Kullanıcı/yıllık bulut aboneliği (Autodesk Construction Cloud)",
+      "turkishRegulationSupport": "Sınıflandırma sistemleri ve birim maliyet tabloları içe aktarılabilir; yerleşik RG 33331 e-PYS EK-9 veya 4734/4735 Türk kamu ihale motoru açık belgelerde doğrulanamadı.",
+      "integrationType": "Autodesk Docs (ISO 19650 CDE), Revit/IFC/2D PDF bulut metrajı, Excel dışa aktarım",
+      "verifiedAt": "2026-10-26",
+      "sources": [
+        "https://construction.autodesk.com/products/autodesk-takeoff/"
+      ],
+      "stageMatrix": {
+        "S1_IFC_QTO_TRACEABLE": {
+          "status": "verified_present",
+          "note": "Bulutta 3B RVT/IFC model ve 2B pafta üzerinden izlenebilir metraj (takeoff) çıkarımı mevcuttur."
+        },
+        "S2_EPYS_RG33331_PDFA": {
+          "status": "unverified_publicly",
+          "note": "RG 33331 e-PYS EK-9 ve veraPDF PDF/A pafta ön kontrolü açık belgelerde doğrulanamadı."
+        },
+        "S3_CSB_BYOL_MINHA": {
+          "status": "partial_customizable",
+          "note": "Özel sınıflandırma/fiyat listesi yüklenebilir; yerleşik ÇŞB 2026 resmi katalog ve ÇŞB 0,50/2,00 m² minha profili açık belgelerde doğrulanamadı."
+        },
+        "S4_KIK_4734_4735": {
+          "status": "unverified_publicly",
+          "note": "4734 KİK ADT ve 4735 fiyat farkı motoru açık belgelerde doğrulanamadı."
+        },
+        "S5_PROGRESS_PAYMENT": {
+          "status": "partial_customizable",
+          "note": "Autodesk Build Cost Management içinde uluslararası payment application vardır; Türk kamu Yeşil Defter / 4735 hakediş standardı açık belgelerde doğrulanamadı."
+        },
+        "S6_ISO19650_CDE_GATE": {
+          "status": "verified_present",
+          "note": "Autodesk Docs üzerinde ISO 19650 uyumlu inceleme/onay iş akışları ve adlandırma standardı mevcuttur."
+        }
+      }
+    },
+    {
+      "id": "kreo-software",
+      "vendor": "Kreo Software",
+      "productName": "Kreo 2D Takeoff & BIM Takeoff",
+      "categoryGroup": "GLOBAL_5D_BIM_CLOUD",
+      "deploymentModel": "cloud_web",
+      "licensingTier": "Bulut SaaS aboneliği",
+      "turkishRegulationSupport": "Özel maliyet şablonları desteklenir; yerleşik Türkiye mevzuat (RG 33331, ÇŞB, 4734/4735) paketi açık belgelerde doğrulanamadı.",
+      "integrationType": "Web tarayıcıda PDF/CAD/IFC/Revit yükleme ve Excel/CSV raporlama",
+      "verifiedAt": "2026-10-26",
+      "sources": [
+        "https://www.kreo.net/"
+      ],
+      "stageMatrix": {
+        "S1_IFC_QTO_TRACEABLE": {
+          "status": "verified_present",
+          "note": "Bulutta IFC/BIM ve AI destekli 2B PDF üzerinden eleman/alan/hacim metrajı çıkarımı mevcuttur."
+        },
+        "S2_EPYS_RG33331_PDFA": {
+          "status": "unverified_publicly",
+          "note": "RG 33331 e-PYS EK-9 ve PDF/A pafta uygunluk kontrolü açık belgelerde doğrulanamadı."
+        },
+        "S3_CSB_BYOL_MINHA": {
+          "status": "partial_customizable",
+          "note": "Kullanıcı tanımlı fiyat tabloları desteklenir; yerleşik ÇŞB 2026 resmi katalog ve ÇŞB minha kuralları açık belgelerde doğrulanamadı."
+        },
+        "S4_KIK_4734_4735": {
+          "status": "unverified_publicly",
+          "note": "4734 KİK ADT ve 4735 fiyat farkı motoru açık belgelerde doğrulanamadı."
+        },
+        "S5_PROGRESS_PAYMENT": {
+          "status": "unverified_publicly",
+          "note": "Türk kamu standardı çok dönemli hakediş ve Yeşil Defter döngüsü açık belgelerde doğrulanamadı."
+        },
+        "S6_ISO19650_CDE_GATE": {
+          "status": "unverified_publicly",
+          "note": "ISO 19650-2 WIP→SHARED→PUBLISHED CDE onay kapıları açık belgelerde doğrulanamadı."
+        }
+      }
+    },
+    {
+      "id": "glodon-cubicost",
+      "vendor": "Glodon",
+      "productName": "Cubicost (TAS / TRB / TME / TBQ — 5D BIM Quantity Takeoff & Cost)",
+      "categoryGroup": "GLOBAL_5D_BIM_ENTERPRISE",
+      "deploymentModel": "hybrid_desktop_cloud",
+      "licensingTier": "Modüler ticari abonelik (TAS mimari/yapısal, TRB donatı, TME mekanik/elektrik, TBQ maliyet)",
+      "turkishRegulationSupport": "Yerel ölçüm kuralları özelleştirilebilir ve Türkiye distribütör/eğitim kanalları mevcuttur; yerleşik RG 33331 e-PYS EK-9 veya 4734/4735 kamu ihale paketi açık belgelerde doğrulanamadı.",
+      "integrationType": "IFC/Revit/CAD/PDF model tabanlı metraj ve TBQ BOQ entegrasyonu",
+      "verifiedAt": "2026-10-26",
+      "sources": [
+        "https://www.glodon.com/en/products/cubicost/"
+      ],
+      "stageMatrix": {
+        "S1_IFC_QTO_TRACEABLE": {
+          "status": "verified_present",
+          "note": "Betonarme, donatı (TRB), mimari (TAS) ve MEP (TME) için detaylı 3B BIM/IFC metraj çıkarımı ve düğüm kesintileri yerleşiktir."
+        },
+        "S2_EPYS_RG33331_PDFA": {
+          "status": "unverified_publicly",
+          "note": "RG 33331 e-PYS EK-9 ve PDF/A pafta ön kontrolü açık belgelerde doğrulanamadı."
+        },
+        "S3_CSB_BYOL_MINHA": {
+          "status": "partial_customizable",
+          "note": "Kapsamlı boşluk/düğüm düşüm kuralları ve özel BOQ kütüphaneleri vardır; yerleşik ÇŞB 2026 resmi katalog paketi açık belgelerde doğrulanamadı."
+        },
+        "S4_KIK_4734_4735": {
+          "status": "unverified_publicly",
+          "note": "4734 KİK m.38 sınır değer ve 4735 fiyat farkı motoru açık belgelerde doğrulanamadı."
+        },
+        "S5_PROGRESS_PAYMENT": {
+          "status": "partial_customizable",
+          "note": "TBQ içinde uluslararası hakediş/değerleme vardır; Türk kamu Yeşil Defter formatı açık belgelerde doğrulanamadı."
+        },
+        "S6_ISO19650_CDE_GATE": {
+          "status": "unverified_publicly",
+          "note": "Cubicost içinde yerleşik ISO 19650-2 CDE onay kapıları açık belgelerde doğrulanamadı."
+        }
+      }
+    },
+    {
+      "id": "allplan-bimplus-solibri",
+      "vendor": "Nemetschek Group (ALLPLAN / Solibri) & Aluplan",
+      "productName": "ALLPLAN 2026 + Bimplus + Solibri Office",
+      "categoryGroup": "BIM_AUTHORING_AND_MODEL_CHECKING",
+      "deploymentModel": "hybrid_desktop_cloud",
+      "licensingTier": "Ticari lisans / abonelik (ALLPLAN 2026, Bimplus CDE, Solibri)",
+      "turkishRegulationSupport": "ALLPLAN 2026 içinde yerel IDS doğrulama, bSDD erişimi, PythonParts ve otonom IfcCovering üretimi mevcuttur; Türkiye'ye özgü RG 33331 e-PYS kiti Aluplan/BIMMetraj iş birliğiyle harici şablon/IDS olarak hazırlanmaktadır.",
+      "integrationType": "Native BIM modelleme, IFC2x3/IFC4/IFC4.3 dışa aktarım, IDS/BCF ve OSKA/BIMMetraj metraj köprüsü",
+      "verifiedAt": "2026-10-26",
+      "sources": [
+        "https://www.allplan.com/products/allplan-2026-features/modeling-management-collaboration/",
+        "https://www.allplan.com/system/releasenotes/2026/allplan-2026/"
+      ],
+      "stageMatrix": {
+        "S1_IFC_QTO_TRACEABLE": {
+          "status": "verified_present",
+          "note": "Otonom IfcCovering üretimi, Object Layer Attributes (IfcComplexProperty) ve QTO raporlaması yerleşiktir."
+        },
+        "S2_EPYS_RG33331_PDFA": {
+          "status": "partial_customizable",
+          "note": "IDS motoru yerleşiktir; RG 33331 EK-1..EK-9 kuralları yayımlanan IDS/kit dosyası yüklendiğinde çalışır; veraPDF PDF/A pafta ön kontrolü yerleşik değildir."
+        },
+        "S3_CSB_BYOL_MINHA": {
+          "status": "partial_bridge",
+          "note": "Nitelik şablonlarıyla ÇŞB poz kodları atanabilir ve OSKA/BIMMetraj'a aktarılabilir; uygulama içinde yerleşik ÇŞB 2026 fiyat veritabanı yoktur."
+        },
+        "S4_KIK_4734_4735": {
+          "status": "verified_absent",
+          "note": "BIM müelliflik ve kalite kontrol yazılımıdır; 4734 KİK sınır değer veya 4735 fiyat farkı ihale hesap motoru içermez."
+        },
+        "S5_PROGRESS_PAYMENT": {
+          "status": "verified_absent",
+          "note": "Doğrudan Türk kamu ihale hakediş / Yeşil Defter yazılımı değildir; metraj verisini maliyet/hakediş yazılımlarına aktarır."
+        },
+        "S6_ISO19650_CDE_GATE": {
+          "status": "verified_present",
+          "note": "Bimplus CDE ve Solibri BCF iş akışı ile ISO 19650 model koordinasyonu desteklenir."
+        }
+      }
+    },
+    {
+      "id": "ifc-ruhsat-open-source",
+      "vendor": "Berkant Acun (Açık Kaynak — MIT)",
+      "productName": "ifc-ruhsat (CLI & MCP Sunucusu)",
+      "categoryGroup": "OPEN_SOURCE_EPYS_VALIDATOR",
+      "deploymentModel": "cli_library",
+      "licensingTier": "Açık kaynak (MIT Lisansı)",
+      "turkishRegulationSupport": "RG 33331 (05.08.2026) Dijital Proje Yönetmeliği EK-1..EK-9 için Python/IfcOpenShell tabanlı kural denetimi, IDS üretimi ve EK-9 Tablo 9.1 çıktısı.",
+      "integrationType": "Python CLI, kütüphane ve MCP sunucusu (BIMMetraj bu çekirdeği atıfla alıp Tablo 7.9 ve Tablo 9.2 ile genişletmiştir)",
+      "verifiedAt": "2026-10-26",
+      "sources": [
+        "https://github.com/BerkantACUN/ifc-ruhsat"
+      ],
+      "stageMatrix": {
+        "S1_IFC_QTO_TRACEABLE": {
+          "status": "verified_absent",
+          "note": "Yalnız RG 33331 e-PYS kural denetimi yapar; 5D maliyet/QTO icmal veya teklif motoru içermez."
+        },
+        "S2_EPYS_RG33331_PDFA": {
+          "status": "verified_present",
+          "note": "RG 33331 IFC kural motoru ve IDS/EK-9 üretimi mevcuttur (PDF/A veraPDF pafta kontrolü içermez)."
+        },
+        "S3_CSB_BYOL_MINHA": {
+          "status": "verified_absent",
+          "note": "ÇŞB birim fiyat kataloğu, poz fiyatlandırma veya minha düşüm motoru içermez."
+        },
+        "S4_KIK_4734_4735": {
+          "status": "verified_absent",
+          "note": "4734 KİK veya 4735 fiyat farkı ihale hesap motoru içermez."
+        },
+        "S5_PROGRESS_PAYMENT": {
+          "status": "verified_absent",
+          "note": "Hakediş veya Yeşil Defter modülü içermez."
+        },
+        "S6_ISO19650_CDE_GATE": {
+          "status": "verified_absent",
+          "note": "Çok kullanıcılı CDE veritabanı veya durum geçiş onay akışı içermez."
+        }
+      }
+    },
+    {
+      "id": "bimmetraj",
+      "vendor": "BIMMetraj (Bu Depo)",
+      "productName": "BIMMetraj (Bulut 5D BIM Metraj, e-PYS Ön Kontrolü, Teklif ve Pilot Hakediş/CDE)",
+      "categoryGroup": "TARGET_PRODUCT_UNDER_AUDIT",
+      "deploymentModel": "cloud_web",
+      "licensingTier": "SaaS abonelik (Paket Kataloğu v6 — Trial / e-PYS Denetçi / Teklif & Şantiye / 5D BIM SmartCheck / Kurumsal)",
+      "turkishRegulationSupport": "CAPABILITY_REGISTRY (BIM-CAP-2026-10-23.12) kapsamında 15 Pilot (L2) ve 4 Yol Haritası (L1) yetenek; bağımsız uzman imzası (T50) ve saha kabulü (T51) tamamlanmadığından 0 Canlı (L3/L4) yetenek.",
+      "integrationType": "React/Express/PostgreSQL 16 + Python IfcOpenShell/pypdf/veraPDF 1.30.3 worker; CSV/XLSX alışverişi (OSKA/AMP yalnız candidate/internal_roundtrip, compatible=false)",
+      "verifiedAt": "2026-10-26",
+      "sources": [
+        "src/capabilities/registry.ts",
+        "docs/audits/phase-0/capability-claim-register.json",
+        "docs/audits/phase-6/PHASE_6_REPORT_2026-10-24.md"
+      ],
+      "stageMatrix": {
+        "S1_IFC_QTO_TRACEABLE": {
+          "status": "pilot_l2_unapproved",
+          "note": "Pilot / L2 (`ifc-qto-multi-layer-icmal`): IFC2x3/IFC4/IFC4X3 QTO, çok katmanlı IfcCovering, süpürgelik mtül ve 16 daire cetveli kod/test düzeyinde hazır; izinli gerçek müşteri dosyaları ve bağımsız mühendis imzası (T50–T51) bekliyor."
+        },
+        "S2_EPYS_RG33331_PDFA": {
+          "status": "pilot_l2_unapproved",
+          "note": "Pilot / L2 (`epys-rg33331-preflight`, `pdfa-iso216-esig-preflight`): EK-1..EK-9 (Tablo 9.1 & 9.2) IFC ön kontrolü ve ifc-worker içinde veraPDF 1.30.3 + ISO 216 + /Sig yapısal ön kontrolü hazır; Ghostscript PDF/A dönüştürme (`ghostscript-verapdf-server-conversion`) L1/roadmap, gerçek imzalı/fontlu pafta matrisi ve uzman kabulü açık."
+        },
+        "S3_CSB_BYOL_MINHA": {
+          "status": "pilot_l2_unapproved",
+          "note": "Pilot / L2 (`csb-2026-official-catalogs-full`, `minha-opening-intersection-engine`): 6 ÇŞB PDF kitabından 18.848 satır yapısal ayrıştırma, tenant BYOL katalog ve ÇŞB/DIN/Özel minha motoru kod/test düzeyinde hazır; ÇŞB/YFK yazılı ticari kullanım lisansı ve bağımsız maliyet uzmanı imzası açık."
+        },
+        "S4_KIK_4734_4735": {
+          "status": "pilot_l2_unapproved",
+          "note": "Pilot / L2 (`kik-m38-teblig-m45-adt-engine`, `tuik-21-subindex-price-escalation-4735`, `free-public-calculators`) ve Roadmap / L1 (`ekap-tender-protocol-import`): KİK m.38 SD + %80 Pareto ve 4735 fiyat farkı motorları golden testli; EKAP tutanak içe aktarımı L1/roadmap ve bağımsız ihale/mali müşavir onayı açık."
+        },
+        "S5_PROGRESS_PAYMENT": {
+          "status": "pilot_l2_unapproved",
+          "note": "Pilot / L2 (Faz 6 T35–T39, varsayılan kapalı): sabit noktalı çok dönemli hakediş, kaynak bağlı ölçüm/review ve mukayeseli keşif çekirdeği kod/test düzeyinde hazır; OSKA/AMP aktarımı yalnız `candidate/internal_roundtrip` (`compatible=false`), resmî Yeşil Defter ve saha kabulü açık."
+        },
+        "S6_ISO19650_CDE_GATE": {
+          "status": "pilot_l2_unapproved",
+          "note": "Pilot / L2 (`iso19650-naming-ek2-loin`, `iso19650-cde-workflow-state-machine`, `multi-user-cde-approval-workflow`): WIP→SHARED→PUBLISHED durum makinesi, tenant FORCE RLS, maker-checker ve `CAPABILITY_REGISTRY` kanıt kapısı devrede; ISO 19650 lisanslı metin eşlemesi ve bağımsız BIM koordinatörü imzası açık."
+        }
+      }
+    }
+  ],
+  "claimDecision": {
+    "status": "pending_t50_t52_and_legal_review",
+    "singleClaimPermitted": false,
+    "prohibitedClaims": [
+      "Türkiye'de tek",
+      "Alternatifsiz",
+      "%100 mevzuata uyumlu",
+      "Resmî e-PYS onaylı",
+      "OSKA/AMP tam uyumlu"
+    ],
+    "verifiedDifferentiationSummary": "26 Ekim 2026 itibarıyla incelenen 11 rakip/referans ürün arasında: (1) OSKA ve AMP, 4734/4735 kamu ihale mevzuatı, ÇŞB birim fiyatları ve çok dönemli Yeşil Defter/hakediş döngüsünde olgunlaşmış pazar standardıdır ancak açık belgelerinde RG 33331 (05.08.2026) EK-9 IFC ön kontrolü ve veraPDF PDF/A pafta denetimi doğrulanamamıştır; (2) BEXEL Manager, RIB CostX (ve CostX Cloud), Autodesk Takeoff ve Glodon Cubicost, 3B/5D BIM metraj ve CDE süreçlerinde olgunlaşmış küresel ürünlerdir ancak açık belgelerinde yerleşik RG 33331 EK-9, mühürlü ÇŞB 2026 poz/rayiç kitapları ve 4734/4735 Türk kamu ihale hesap motorları doğrulanamamıştır; (3) ifc-ruhsat açık kaynaklı RG 33331 IFC kural çekirdeğidir ancak 5D metraj, fiyatlandırma, ihale/hakediş ve çok kullanıcılı CDE içermez. Buna karşın BIMMetraj'ın bu 6 halkayı tek web uygulamasında birleştiren mimarisi şu an Pilot (L2) ve Yol Haritası (L1) düzeyindedir (0 Canlı/L3); T50–T52 bağımsız uzman/saha kabulleri ve T55 hukuk/reklam incelemesi tamamlanmadan 'Türkiye'de tek' veya 'L3 doğrulanmış' iddiası yayımlanamaz."
+  }
+}

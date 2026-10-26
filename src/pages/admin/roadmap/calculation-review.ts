@@ -1,9 +1,9 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-25.82",
+  version: "BIM-CALC-2026-10-25.83",
   updatedOn: "26 Ekim 2026",
-  implementationBaseline: "fd7cc748857d31e53c63718d3ce8e4c5ba8c593b",
-  approvalStatus: "Rev. 88, T45 performans ve işletim bütçesi dilimini (PERFORMANCE_BUDGETS BIM-PERF-2026-10-26.1 önceden kayıtlı p95/RAM/eşzamanlılık bütçeleri, quote-xlsx.ts + CreateQuote.tsx + vite.config.ts ile 940 kB exceljs paketinin CreateQuote-*.js 49,67 kB ve index-*.js 106,47 kB ≤ 120 kB başlangıç paketlerinden ayrılması, t45-performance-budget.test.ts 5/5 PASS: 1.000 satır XLSX + 256 MB izole worker 1.489,98 ms ≤ 2.500 ms + SPREADSHEET_BUSY geri kazanımı, 20 eşzamanlı tenant PG16 p95 = 21,90 ms ≤ 250 ms, kuyruk claim 3,78 ms ≤ 150 ms, Sentry PII maskeleme p95 < 1 ms ≤ 5 ms, AI router failover < 5 ms ≤ 50 ms) tamamlar; Rev. 87 T43 R+1 kapsam ratchet dilimini (proje %53,04 ≥ %52, HTTP API route %81,31 ≥ %80), Rev. 86 T44 5-sütunlu kurtarma tatbikatını ve Rev. 80–85 72/72 company_id tablosunun tamamını (67 FORCE RLS + 5 S5 Exact-ACL) yerel PG16 üzerinde doğrulamıştır. Gerçek banka/dekont mutabakatı, bağımsız uzman imzası, gerçek izinli büyük müşteri dosyaları (T51), T43 %80 eşiği (R+2..R+4) ve canlı deploy sonrası role-model-smoke/container digest/VPS yük doğrulaması (T52) tamamlanmadığından T41/T42/T43/T44/T45 ve Faz 7 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
+  implementationBaseline: "4e9d95fdb3e9713e56c19cdc1536d454084c7991",
+  approvalStatus: "Rev. 89, Faz 10 T53 kaynaklı pazar envanteri ve T54 karşılaştırılabilir 6-halkalı yetenek matrisini (12 ürün: OSKA masaüstü, OSKABULUT web, AMP Kurumsal/Bulut, İhale Pro, BEXEL Manager + CDE, RIB CostX & CostX Cloud, Autodesk Takeoff & ACC, Kreo, Glodon Cubicost, ALLPLAN 2026 + Bimplus + Solibri, açık kaynak ifc-ruhsat MIT ve BIMMetraj; unverified_publicly / pilot_l2_unapproved ayrımı ve singleClaimPermitted=false kapısı; t53-t54-market-inventory.test.ts 4/4 PASS ve phase-0-evidence-validator.test.ts 23/23 PASS) tamamlar; Rev. 88 T45 performans ve işletim bütçesini (5/5 PASS), Rev. 87 T43 R+1 kapsam ratchet dilimini (proje %53,04 ≥ %52, HTTP API route %81,31 ≥ %80), Rev. 86 T44 5-sütunlu kurtarma tatbikatını ve Rev. 80–85 72/72 company_id tablosunun tamamını (67 FORCE RLS + 5 S5 Exact-ACL) doğrulamıştır. Gerçek banka/dekont mutabakatı, bağımsız uzman imzası (T50), gerçek izinli büyük müşteri dosyaları (T51), T55 hukuk/reklam incelemesi, T43 %80 eşiği (R+2..R+4) ve canlı deploy sonrası role-model-smoke/container digest/VPS yük doğrulaması (T52) tamamlanmadığından Faz 7 ve Faz 10 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
 };
 
 export interface ModuleRevisionNote {
@@ -1939,6 +1939,33 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
         before: "compose.coolify.yaml konteyner bellek/CPU sınırları, 20 eşzamanlı tenant PG16 sorgu gecikmesi, Sentry PII maskeleme ve AIProviderRouter failover süreleri tek bir önceden kayıtlı bütçe sözleşmesinde toplanmamıştı.",
         after: "src/server/config/performance-budgets.ts ile tüm konteyner ve çalışma zamanı bütçeleri koda kaydedildi; 20 eşzamanlı tenant PG16 (p95 = 21,90 ms ≤ 250 ms), kuyruk claim (3,78 ms ≤ 150 ms), PII scrub (p95 < 1 ms ≤ 5 ms) ve AI failover (< 5 ms ≤ 50 ms) t45-performance-budget.test.ts (5/5 PASS) ile doğrulandı.",
         basis: "Faz 7 T45 — Konteyner kaynak tavanları ve çalışma zamanı p95 işletim bütçesi",
+      },
+    },
+  },
+  {
+    revision: "Rev. 89",
+    version: "BIM-CALC-2026-10-25.83",
+    date: "26 Ekim 2026",
+    commit: "4e9d95fdb3e9713e56c19cdc1536d454084c7991",
+    trigger: "GAP planı Faz 10 T53 & T54 — Kaynaklı pazar envanteri, 6-halkalı karşılaştırılabilir yetenek matrisi ve Faz 0 kanıt kaydı senkronizasyonu.",
+    beforeSummary: "21 Ekim 2026 tarihli eski rakip tablosunda RIB CostX yalnız masaüstü yazılmış (CostX Cloud atlanmış), OSKABULUT web ürünü masaüstü e-Hakediş'ten ayrı değerlendirilmemiş ve rakiplerin açık belgelerinde görülmeyen özellikler 'yok' olarak işaretlenmişti. Ayrıca docs/audits/phase-0/capability-claim-register.json içinde uniqueClaimProtocol.status 'not_researched' ve registryVersion 'BIM-CAP-2026-10-17.11' olarak kalmış, open-source-fixture-register.json içindeki worker script SHA-256 özetleri güncellenmemişti.",
+    afterSummary: "docs/audits/phase-10/market-inventory-register.json ve PHASE_10_T53_T54_MARKET_INVENTORY_2026-10-26.md ile 12 ürün (OSKA e-Hakediş Pro masaüstü, OSKABULUT web, AMP Kurumsal/Bulut, İhale Pro, BEXEL Manager + CDE, RIB CostX & CostX Cloud, Autodesk Takeoff & ACC, Kreo, Glodon Cubicost, ALLPLAN 2026 + Bimplus + Solibri, ifc-ruhsat MIT ve BIMMetraj) dağıtım modeli, lisans/tier, kaynak URL ve 6 halkalı yetenek matrisiyle (unverified_publicly / pilot_l2_unapproved ayrımı ve singleClaimPermitted=false kapısıyla) kaydedildi; src/contracts/t53-t54-market-inventory.test.ts (4/4 PASS) eklendi ve scripts/phase-0-evidence-validator.test.ts (23/23 PASS) doğrulandı. Hesap yöntemleri değişmedi.",
+    affectedModules: ["hakedis-donem", "epys-on-kontrol", "iso19650"],
+    moduleDetails: {
+      "hakedis-donem": {
+        before: "OSKA (masaüstü vs. OSKABULUT bulut), AMP (Kurumsal vs. Bulut) ve uluslararası 5D BIM araçlarının çok dönemli hakediş/Yeşil Defter yetenekleri tek bir makine-doğrulamalı T53/T54 envanterinde kayıtlı değildi.",
+        after: "market-inventory-register.json ve t53-t54-market-inventory.test.ts ile OSKA/AMP'nin doğrulanmış saha standardı ile BIMMetraj'ın Pilot/L2 (default-off, OSKA/AMP compatible=false) durumu aynı kanıt eşiğinde karşılaştırıldı.",
+        basis: "Faz 10 T53 & T54 — Kaynaklı pazar envanteri ve hakediş karşılaştırma sınırı",
+      },
+      "epys-on-kontrol": {
+        before: "Ticari rakiplerin kamuya açık belgelerinde RG 33331 (05.08.2026) EK-9 ön kontrolünün görülmemesi eski raporda doğrudan 'yok' olarak yazılmıştı.",
+        after: "T03 protokolü uyarınca ticari rakiplerde açık belge kanıtı bulunmayan RG 33331 EK-9 ve PDF/A hücreleri 'unverified_publicly' (doğrulanamadı) olarak sınıflandırıldı; açık kaynak ifc-ruhsat (MIT) ve ALLPLAN 2026 IDS kiti rolleri ayrıştırıldı.",
+        basis: "Faz 10 T53 & T54 — Kanıt yokluğu ≠ yokluk kanıtı ilkesi",
+      },
+      iso19650: {
+        before: "capability-claim-register.json içinde multi-user-cde-approval-workflow modül yolu ve registryVersion güncel CAPABILITY_REGISTRY (BIM-CAP-2026-10-23.12) ile senkronize değildi.",
+        after: "capability-claim-register.json ve open-source-fixture-register.json güncellenerek phase-0-evidence-validator.test.ts (23/23 PASS) ve t53-t54-market-inventory.test.ts (4/4 PASS) ile doğrulandı.",
+        basis: "Faz 0 T03 & Faz 10 T54 — Tek kaynaklı yetenek ve iddia kaydı tutarlılığı",
       },
     },
   },
