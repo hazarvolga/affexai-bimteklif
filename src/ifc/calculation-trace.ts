@@ -37,8 +37,20 @@ function countBy<T>(items: readonly T[], keyOf: (item: T) => string): Map<string
   return counts;
 }
 
+/**
+ * Modelin kapı/pencere (boşluk) bilgisi: present = liste var ve dolu, none_in_model = liste var ama boş,
+ * unknown = kayıt bu bilgiyi taşımıyor. "Boşluk yok" yalnız ilk iki durumda söylenebilir (marka.md M-13.7).
+ */
+export type OpeningsAvailability = "present" | "none_in_model" | "unknown";
+
+export function openingsAvailability(openings: readonly unknown[] | undefined): OpeningsAvailability {
+  if (openings === undefined) return "unknown";
+  return openings.length > 0 ? "present" : "none_in_model";
+}
+
 /** Kalemin hesap adımları; her adım tek cümle, sayılar Türkçe biçimde. */
-export function explainIcmalItem(item: CalmIcmalItem): string[] {
+export function explainIcmalItem(item: CalmIcmalItem, context: { openings?: OpeningsAvailability } = {}): string[] {
+  const openings = context.openings ?? "unknown";
   const unit = item.unit;
   const contributions = item.contributions;
   const steps: string[] = [];
@@ -59,8 +71,14 @@ export function explainIcmalItem(item: CalmIcmalItem): string[] {
     steps.push(
       `Brüt ${formatQuantity(item.grossQuantity)} ${unit} − boşluk ${formatQuantity(item.deductedOpeningQuantity)} ${unit} = net ${formatQuantity(item.netQuantity)} ${unit}. Boşluklar modeldeki değerlerdir.`,
     );
-  } else if (item.grossAvailable) {
+  } else if (item.grossAvailable && openings === "present") {
     steps.push(`Bu kalemde düşülecek boşluk yok; net miktar ${formatQuantity(item.netQuantity)} ${unit}.`);
+  } else if (item.grossAvailable && openings === "none_in_model") {
+    steps.push(`Modelde kapı/pencere yok; düşülecek boşluk yok. Net miktar ${formatQuantity(item.netQuantity)} ${unit}.`);
+  } else if (item.grossAvailable) {
+    steps.push(
+      `Modelde kapı/pencere bilgisi bulunamadı; boşluk düşümü değerlendirilemedi. Net miktar ${formatQuantity(item.netQuantity)} ${unit} brüt miktara eşittir.`,
+    );
   } else {
     steps.push(
       `Modelde bu kalem için brüt ve boşluk verisi yok; net ${formatQuantity(item.netQuantity)} ${unit} doğrudan elemanların net miktarlarının toplamıdır. Hiçbir değer çarpanla üretilmedi.`,

@@ -37,7 +37,8 @@ export function getOrCreateCalmTransferAttempt(
   storage: StorageLike,
   documentId: string,
   quotationId: string,
-  selection: CalmTransferSelection,
+  /** Everything the server hashes for this attempt; a change starts a new attempt with a new key. */
+  selection: CalmTransferSelection & { overheadProfitPercent?: number },
   createKey: () => string,
 ) {
   const signature = JSON.stringify(selection);
@@ -51,4 +52,27 @@ export function getOrCreateCalmTransferAttempt(
   const record: CalmTransferAttemptRecord = { signature, idempotencyKey: createKey() };
   storage.setItem(storageKey, JSON.stringify(record));
   return { storageKey, record };
+}
+
+/** Where an IFC icmal goes: a brand-new quotation series, or a new revision of an existing quotation (Faz 1, M-14.3). */
+export type CalmTransferTarget =
+  | { mode: "new"; clientName: string; projectName: string }
+  | { mode: "revision"; quotationId: string };
+
+export function isCalmTransferTargetReady(target: CalmTransferTarget): boolean {
+  return target.mode === "new" ? target.clientName.trim().length > 0 : target.quotationId.trim().length > 0;
+}
+
+/**
+ * Idempotency scope for the browser retry record. A new-quotation attempt is scoped by what the server hashes
+ * (client and project), so editing the client name starts a fresh attempt instead of an idempotency conflict.
+ */
+export function calmTransferAttemptScope(target: CalmTransferTarget): string {
+  if (target.mode === "revision") return target.quotationId;
+  return `new:${JSON.stringify([target.clientName.trim(), target.projectName.trim()])}`;
+}
+
+export function calmTransferTargetHint(target: CalmTransferTarget): string | null {
+  if (isCalmTransferTargetReady(target)) return null;
+  return target.mode === "new" ? "Yeni teklif için müşteri adını yazın." : "Revizyon eklenecek teklifi seçin.";
 }

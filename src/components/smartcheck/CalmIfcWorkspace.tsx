@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Download, FileSpreadsheet, ArrowRight, SlidersHorizontal, Upload } from "lucide-react";
 import type { CalmIcmalItem, CalmIfcDataset } from "@/ifc/calm-icmal";
 import type { ApartmentUnitScheduleItem } from "@/ifc/types";
@@ -8,11 +8,15 @@ import { ApartmentSubcontractorShieldCard } from "@/components/smartcheck/Apartm
 import { AuthoringAdvisoryBanner } from "@/components/smartcheck/AuthoringAdvisoryBanner";
 import { IfcCoverageCard } from "@/components/smartcheck/IfcCoverageCard";
 import { CalculationTraceSection } from "@/components/smartcheck/CalculationTraceSection";
+import { ResultSummaryPanel } from "@/components/smartcheck/ResultSummaryPanel";
+import { buildResultSummary } from "@/ifc/result-summary";
+import { openingsAvailability } from "@/ifc/calculation-trace";
 import { ExpertLineVerification } from "@/components/smartcheck/ExpertLineVerification";
 import { ExpertVerificationBar } from "@/components/smartcheck/ExpertVerificationBar";
 import { VERIFICATION_STATUS_LABEL } from "@/ifc/expert-verification";
 import { useExpertVerification } from "@/hooks/useExpertVerification";
 import { evaluateKikAbnormallyLowBid, type KikWorkCategory } from "@/lib/kik-adt";
+import { isPriced, summarizeCost } from "@/ifc/pricing/cost-summary";
 import {
   evaluateIso19650Compliance,
   parseContainerIdentity,
@@ -30,17 +34,24 @@ import {
 } from "@/lib/price-escalation";
 import { fetchWithAuth } from "@/lib/api";
 import { serializeCsv, type TabularCell } from "@/lib/tabular-data";
+import { roundMoney } from "@/lib/calculations";
+import { toast } from "sonner";
 import { IfcReviewViewer } from "@/components/smartcheck/viewer/IfcReviewViewer";
-import type { CalmTransferUiItem } from "./calm-transfer-ui";
+import { calmTransferTargetHint, isCalmTransferTargetReady, type CalmTransferTarget, type CalmTransferUiItem } from "./calm-transfer-ui";
+import { CalmTransferTargetPicker } from "./CalmTransferTargetPicker";
+import { MissingPriceActions } from "./MissingPriceActions";
+import { matchableCandidate, publicPozCode, type PriceSuggestionCandidate, type PriceSuggestionResult } from "./missing-price";
 import { Link } from "react-router-dom";
 
 export interface CalmIfcWorkspaceProps {
   dataset: CalmIfcDataset;
   documentId?: string | null;
   quotations?: Array<{ id: string; quoteNumber: string; projectName: string; status: string }>;
-  selectedQuotationId?: string;
-  onSelectedQuotationIdChange?: (quotationId: string) => void;
-  onTransferToQuote?: (items: CalmTransferUiItem[]) => Promise<void> | void;
+  transferTarget?: CalmTransferTarget;
+  onTransferTargetChange?: (target: CalmTransferTarget) => void;
+  onTransferToQuote?: (items: CalmTransferUiItem[], options: { overheadProfitPercent: number }) => Promise<void> | void;
+  /** Why this icmal cannot become a quotation (e.g. a quota-free sample without IFC evidence). */
+  transferUnavailableReason?: string;
   transferBusy?: boolean;
   transferredQuotationId?: string | null;
   onToggleTechnicalView?: () => void;
@@ -50,9 +61,16 @@ export interface CalmIfcWorkspaceProps {
 }
 
 type CalmStep = "icmal" | "daireler" | "maliyet";
+
+/** Profit and overhead entered in the icmal: 0–100 with two decimals, as stored on the quotation (release 0029). */
+function clampOverheadPercent(raw: string): number {
+  const value = parseFloat(raw);
+  if (!Number.isFinite(value) || value < 0) return 0;
+  return Math.round(Math.min(value, 100) * 100) / 100;
+}
+const DEFAULT_TRANSFER_TARGET: CalmTransferTarget = { mode: "new", clientName: "", projectName: "" };
 type ResolvedPriceEvidence = { snapshotId: string; sourceId: string; sourceName: string; sourceDocumentHash: string; currency: "TRY"; amount: number; capturedAt: string | null };
 
-const publicPozCode = (value: string) => value.startsWith("UNRESOLVED:") ? "" : value;
 
 function formatTrNumber(val: number, decimals = 2): string {
   return new Intl.NumberFormat("tr-TR", {
@@ -78,9 +96,10 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
   dataset,
   documentId,
   quotations = [],
-  selectedQuotationId = "",
-  onSelectedQuotationIdChange,
+  transferTarget = DEFAULT_TRANSFER_TARGET,
+  onTransferTargetChange,
   onTransferToQuote,
+  transferUnavailableReason,
   transferBusy = false,
   transferredQuotationId,
   onToggleTechnicalView,
@@ -119,6 +138,10 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
   const [unitPrices, setUnitPrices] = useState<Record<string, number>>({});
   const [priceEvidence, setPriceEvidence] = useState<Record<string, ResolvedPriceEvidence>>({});
   const [priceResolutionStatus, setPriceResolutionStatus] = useState<"idle" | "loading" | "ready" | "blocked">("idle");
+  const [matchCandidates, setMatchCandidates] = useState<Record<string, PriceSuggestionCandidate>>({});
+  const [priceRefreshKey, setPriceRefreshKey] = useState(0);
+  // Prices the user bound by hand survive a re-resolution, but only while the same snapshot is still offered.
+  const boundSnapshotByItem = useRef<Record<string, string>>({});
   const [overheadPercent, setOverheadPercent] = useState<number>(15);
 
   const selectedItem: CalmIcmalItem | undefined = useMemo(
@@ -131,36 +154,30 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
     [dataset.apartments, selectedUnitCode],
   );
 
-  const costSummary = useMemo(() => {
-    const groupTotals = dataset.groups.map((grp) => {
-      const subtotal = grp.items.reduce((sum, it) => {
-        const price = unitPrices[it.id] ?? 0;
-        return sum + it.netQuantity * price;
-      }, 0);
-      return {
-        key: grp.key,
-        title: grp.title,
-        subtotal,
-      };
-    });
-    const directTotal = groupTotals.reduce((s, g) => s + g.subtotal, 0);
-    const overheadAmount = directTotal * (overheadPercent / 100);
-    const grandTotal = directTotal + overheadAmount;
-    const perApartment = dataset.residentialUnitCount > 0 ? grandTotal / dataset.residentialUnitCount : grandTotal;
-    const perGrossM2 =
-      grossTotals.totalGeneralGrossM2 !== null && grossTotals.totalGeneralGrossM2 > 0
-        ? grandTotal / grossTotals.totalGeneralGrossM2
-        : null;
-
-    return {
-      groupTotals,
-      directTotal,
-      overheadAmount,
-      grandTotal,
-      perApartment,
-      perGrossM2,
-    };
-  }, [dataset.groups, dataset.residentialUnitCount, grossTotals.totalGeneralGrossM2, overheadPercent, unitPrices]);
+  // A missing price is unknown, not zero (marka.md M-14.1): totals cover priced items only.
+  const costSummary = useMemo(() => summarizeCost({
+    groups: dataset.groups,
+    unitPrices,
+    overheadPercent,
+    residentialUnitCount: dataset.residentialUnitCount,
+    grossM2: grossTotals.totalGeneralGrossM2,
+  }), [dataset.groups, dataset.residentialUnitCount, grossTotals.totalGeneralGrossM2, overheadPercent, unitPrices]);
+  const pricingComplete = costSummary.status === "complete";
+  const resultSummary = useMemo(() => buildResultSummary({
+    totalElementCount: dataset.consistencyReport?.totalElementCount ?? null,
+    measuredElementCount: dataset.consistencyReport?.measuredElementCount ?? null,
+    pozMatchedElementCount: dataset.consistencyReport?.pozMatchedElementCount ?? null,
+    icmalItemCount: costSummary.itemCount,
+    pricedItemCount: costSummary.pricedItemCount,
+    openings: openingsAvailability(dataset.openings),
+    hasQuotation: quotations.length > 0,
+  }), [costSummary.itemCount, costSummary.pricedItemCount, dataset.consistencyReport, dataset.openings, quotations.length]);
+  const costPendingLabel = costSummary.status === "empty" ? "Kalem yok" : `${costSummary.missingItemCount} kalem fiyat bekliyor`;
+  const groupTotalLabel = (group: { pricedSubtotal: number; itemCount: number; missingItemCount: number }) => {
+    if (group.missingItemCount === 0) return formatTrCurrency(group.pricedSubtotal);
+    const pending = `${group.missingItemCount} kalem fiyat bekliyor`;
+    return group.missingItemCount === group.itemCount ? pending : `${formatTrCurrency(group.pricedSubtotal)} · ${pending}`;
+  };
 
   const storageKey = useMemo(
     () => `bimmetraj:calm-session:v1:${dataset.projectTitle}`,
@@ -189,6 +206,10 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
   const [priceLicenseMode, setPriceLicenseMode] = useState<"BYOL_TENANT_CATALOG" | "CSB_2026_REFERENCE">(
     "BYOL_TENANT_CATALOG",
   );
+  // ÇŞB unit prices already include 25% contractor profit and overhead, so switching to them starts from 0%.
+  useEffect(() => {
+    if (priceLicenseMode === "CSB_2026_REFERENCE") setOverheadPercent(0);
+  }, [priceLicenseMode]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -207,10 +228,21 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
           }),
         });
         if (!response.ok) throw new Error("price resolver unavailable");
-        const body = await response.json() as { suggestions?: Array<{ rowId: string; decision: string; bestSuggestion: null | { snapshot: { id: string; amount: string | number; currency: string; sourceDocumentHash: string; capturedAt?: string | null }; source: { id: string; name: string } } }> };
+        const body = await response.json() as { suggestions?: PriceSuggestionResult[] };
         const nextPrices: Record<string, number> = {};
         const nextEvidence: Record<string, ResolvedPriceEvidence> = {};
+        const nextCandidates: Record<string, PriceSuggestionCandidate> = {};
+        const itemById = new Map(allItems.map((item) => [item.id, item]));
         for (const suggestion of body.suggestions ?? []) {
+          const item = itemById.get(suggestion.rowId);
+          const candidate = item ? matchableCandidate(item, suggestion) : null;
+          if (candidate && boundSnapshotByItem.current[suggestion.rowId] === candidate.snapshot.id) {
+            const boundAmount = Number(candidate.snapshot.amount);
+            nextPrices[suggestion.rowId] = boundAmount;
+            nextEvidence[suggestion.rowId] = { snapshotId: candidate.snapshot.id, sourceId: candidate.source.id, sourceName: candidate.source.name, sourceDocumentHash: candidate.snapshot.sourceDocumentHash, currency: "TRY", amount: boundAmount, capturedAt: candidate.snapshot.capturedAt ?? null };
+            continue;
+          }
+          if (candidate) nextCandidates[suggestion.rowId] = candidate;
           const match = suggestion.decision === "safe_candidate" ? suggestion.bestSuggestion : null;
           const amount = Number(match?.snapshot.amount);
           if (!match || match.snapshot.currency !== "TRY" || !Number.isFinite(amount) || amount < 0) continue;
@@ -219,6 +251,7 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
         }
         setUnitPrices(nextPrices);
         setPriceEvidence(nextEvidence);
+        setMatchCandidates(nextCandidates);
         setPriceResolutionStatus("ready");
       } catch (error) {
         if (controller.signal.aborted) return;
@@ -229,7 +262,25 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
     };
     void resolvePrices();
     return () => controller.abort();
-  }, [allItems, priceLicenseMode]);
+  }, [allItems, priceLicenseMode, priceRefreshKey]);
+
+  /** The user looked at a same-poz, same-unit catalogue price and binds it; transfer re-checks poz, unit and amount. */
+  const bindMatchCandidate = (itemId: string, candidate: PriceSuggestionCandidate) => {
+    boundSnapshotByItem.current = { ...boundSnapshotByItem.current, [itemId]: candidate.snapshot.id };
+    const amount = Number(candidate.snapshot.amount);
+    setUnitPrices((current) => ({ ...current, [itemId]: amount }));
+    setPriceEvidence((current) => ({
+      ...current,
+      [itemId]: { snapshotId: candidate.snapshot.id, sourceId: candidate.source.id, sourceName: candidate.source.name, sourceDocumentHash: candidate.snapshot.sourceDocumentHash, currency: "TRY", amount, capturedAt: candidate.snapshot.capturedAt ?? null },
+    }));
+    setMatchCandidates(({ [itemId]: _bound, ...rest }) => rest);
+  };
+
+  const reviewItem = (itemId: string) => {
+    setSelectedItemId(itemId);
+    setExpertMode(true);
+    setActiveStep("icmal");
+  };
   // Faz 2.5: 4735 Fiyat Farkı & ÇŞB 2026 – TÜİK 21 Alt Endeks Simülatörü (sıfır uydurma girdi)
   const [selectedTuikIndex, setSelectedTuikIndex] = useState<TuikSubIndexCode>("TUIK-23.6-HAZIR-BETON");
   const [tuikBaseIndexInput, setTuikBaseIndexInput] = useState<string>("");
@@ -237,6 +288,7 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
   const [tuikIndexedAppliedNote, setTuikIndexedAppliedNote] = useState<string | null>(null);
 
   const escalationPreview = useMemo(() => {
+    if (!pricingComplete) return null;
     const e0 = parseFloat(tuikBaseIndexInput.replace(",", "."));
     const en = parseFloat(tuikCurrentIndexInput.replace(",", "."));
     if (!Number.isFinite(e0) || e0 <= 0 || !Number.isFinite(en) || en <= 0) {
@@ -244,7 +296,7 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
     }
     try {
       return computeContractPriceEscalation4735({
-        progressPaymentAmountTl: costSummary.grandTotal,
+        progressPaymentAmountTl: costSummary.pricedGrandTotal,
         bFactor: 0.9,
         components: [
           {
@@ -258,7 +310,7 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
     } catch {
       return null;
     }
-  }, [costSummary.grandTotal, selectedTuikIndex, tuikBaseIndexInput, tuikCurrentIndexInput]);
+  }, [costSummary.pricedGrandTotal, pricingComplete, selectedTuikIndex, tuikBaseIndexInput, tuikCurrentIndexInput]);
 
   const handleApplyTuikIndexToPrices = () => {
     const e0 = parseFloat(tuikBaseIndexInput.replace(",", "."));
@@ -435,14 +487,14 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
   const kikAdtAnalysis = useMemo(() => {
     const parsedYm = Number(tenderYmInput.replace(/\./g, "").replace(",", ".").trim());
     const validYm = Number.isFinite(parsedYm) && parsedYm > 0 ? parsedYm : null;
-    const ourBid = Math.max(0, Math.round(costSummary.grandTotal));
+    const ourBid = Math.max(0, Math.round(costSummary.pricedGrandTotal));
     const parsedCompetitorBids = tenderBidsInput
       .split(/[;\n]+|(?:\s+)/)
       .flatMap((token) => token.split(","))
       .map((raw) => Number(raw.replace(/\./g, "").trim()))
       .filter((v) => Number.isFinite(v) && v > 0);
     const sessionBids =
-      validYm && parsedCompetitorBids.length > 0 ? [ourBid, ...parsedCompetitorBids] : [];
+      validYm && parsedCompetitorBids.length > 0 && pricingComplete ? [ourBid, ...parsedCompetitorBids] : [];
 
     return evaluateKikAbnormallyLowBid({
       estimatedCostTry: validYm,
@@ -456,14 +508,15 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
         totalAmount: Math.round(it.netQuantity * (unitPrices[it.id] ?? 0)),
       })),
     });
-  }, [allItems, costSummary.grandTotal, kikWorkCategory, tenderBidsInput, tenderYmInput, unitPrices]);
+  }, [allItems, costSummary.pricedGrandTotal, kikWorkCategory, pricingComplete, tenderBidsInput, tenderYmInput, unitPrices]);
 
   const handleDownloadCsv = () => {
     const rows: TabularCell[][] = [["BOLUM", "GRUP_VEYA_DAIRE", "POZ_KODU", "IMALAT_VEYA_ODA_ADI", "BRUT_MIKTAR", "MINHA_BOSLUK", "NET_MIKTAR", "BIRIM", "BIRIM_FIYAT_TL", "TOPLAM_TUTAR_TL", "FIYAT_SNAPSHOT_ID", "FIYAT_KAYNAK_ID", "KAYNAK_HASH", "PARA_BIRIMI", "YAKALAMA_TARIHI"]];
     for (const grp of dataset.groups) {
       for (const item of grp.items) {
         const price = unitPrices[item.id];
-        const total = price === undefined ? null : Math.round(item.netQuantity * price);
+        // Kuruş, as the quotation rounds each line; whole-lira rounding hid up to 0,50 TL per line.
+        const total = price === undefined ? null : roundMoney(item.netQuantity * price);
         rows.push(
           [
             "1_MALZEME_ICMALI",
@@ -537,19 +590,51 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
     URL.revokeObjectURL(url);
   };
 
+  /** Plain .xlsx for the person who opens it in Excel; technical price evidence goes to a separate sheet (C-4). */
+  const handleDownloadXlsx = async () => {
+    try {
+      const [{ buildIcmalXlsx, icmalExportFileName }, { downloadXlsx }] = await Promise.all([
+        import("@/lib/icmal-export-xlsx"), import("@/lib/spreadsheet-templates"),
+      ]);
+      const lines = dataset.groups.flatMap((grp) => grp.items.map((item) => {
+        const evidence = priceEvidence[item.id];
+        return {
+          group: grp.title, pozCode: publicPozCode(item.pozCode), title: item.title,
+          grossQuantity: item.grossQuantity, deductedQuantity: item.deductedOpeningQuantity, netQuantity: item.netQuantity, unit: item.unit,
+          unitPrice: unitPrices[item.id] ?? null,
+          ...(evidence ? { source: { snapshotId: evidence.snapshotId, sourceName: evidence.sourceName, sourceDocumentHash: evidence.sourceDocumentHash, capturedAt: evidence.capturedAt } } : {}),
+        };
+      }));
+      const apartments = dataset.apartments.map((apt) => ({
+        storey: apt.storey, unitCode: apt.unitCode, unitLabel: apt.unitLabel,
+        grossM2: resolveApartmentGross(apt, grossRatios).generalGrossM2, balconyM2: apt.balconyM2, netM2: apt.netSweepableM2,
+        rooms: apt.rooms.map((room) => ({ code: room.code, name: room.name, finish: room.floorFinish, netAreaM2: room.netAreaM2 })),
+      }));
+      downloadXlsx(await buildIcmalXlsx({ projectTitle: dataset.projectTitle, lines, apartments }), icmalExportFileName(dataset.projectTitle));
+    } catch {
+      toast.error("Excel dosyası hazırlanamadı. CSV ile indirebilirsiniz.");
+    }
+  };
+
   const allPricesResolved = priceResolutionStatus === "ready" && allItems.length > 0 && allItems.every((item) => Boolean(priceEvidence[item.id]));
+  const targetReady = isCalmTransferTargetReady(transferTarget);
+  const transferBlocked = Boolean(transferUnavailableReason) || !allPricesResolved || !onTransferToQuote || !targetReady || transferBusy || Boolean(transferredQuotationId);
+  const transferLabel = transferredQuotationId
+    ? transferTarget.mode === "new" ? "Yeni teklif oluşturuldu" : "Yeni revizyon oluşturuldu"
+    : transferBusy ? "İcmal aktarılıyor…"
+      : transferTarget.mode === "new" ? "İcmalden yeni teklif oluştur" : "İcmali seçili teklife revizyon olarak ekle";
 
   const handleTransferClick = () => {
     if (activeStep !== "maliyet") {
       setActiveStep("maliyet");
       return;
     }
-    if (!allPricesResolved || !onTransferToQuote || !selectedQuotationId || transferBusy || transferredQuotationId) return;
+    if (transferBlocked) return;
     void onTransferToQuote(allItems.map((item) => ({
       lineId: item.id,
       sourceQuantityRowIds: item.sourceQuantityRowIds ?? [],
       priceSnapshotId: priceEvidence[item.id]!.snapshotId,
-    })));
+    })), { overheadProfitPercent: overheadPercent });
   };
 
   return (
@@ -559,7 +644,7 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
         <div className="min-w-0">
           <div className="eyebrow">
             <span className="status-dot" />
-            <span>PAFTA 01 / BIM → NET METRAJ İCMALİ · KATMANLAR VE MİNHA DOĞRULANDI</span>
+            <span>PAFTA 01 / BIM → NET METRAJ İCMALİ · KONTROL DURUMU AŞAĞIDAKİ ÖZETTE</span>
           </div>
           <h2 className="mt-1.5 font-display-serif text-2xl sm:text-3xl text-foreground truncate">
             {dataset.projectTitle}
@@ -597,22 +682,31 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
           )}
           <button
             type="button"
-            onClick={handleDownloadCsv}
+            onClick={() => void handleDownloadXlsx()}
+            data-testid="icmal-xlsx-export"
             className="pafta-button-secondary !min-h-9 !py-2 !px-3"
           >
             <FileSpreadsheet className="w-3.5 h-3.5 text-primary" />
-            <span>Excel İndir (.csv)</span>
+            <span>Excel İndir (.xlsx)</span>
+          </button>
+          <button
+            type="button"
+            onClick={handleDownloadCsv}
+            className="text-[11px] font-semibold text-muted-foreground underline hover:text-foreground"
+            title="Teknik sütunlarıyla CSV (kaynak kaydı ve hash dahil)"
+          >
+            CSV
           </button>
           <button
             type="button"
             onClick={handleTransferClick}
-            disabled={activeStep === "maliyet" && (!allPricesResolved || !onTransferToQuote || !selectedQuotationId || transferBusy || Boolean(transferredQuotationId))}
+            disabled={activeStep === "maliyet" && transferBlocked}
             className="pafta-button !min-h-9 !py-2 !px-4"
           >
             {activeStep === "maliyet" ? (
               <>
                 <Download className="w-3.5 h-3.5" />
-                <span>{transferredQuotationId ? "Ardıl Revizyon Oluşturuldu" : transferBusy ? "Aktarılıyor…" : "Seçili Teklife Yeni Revizyon Aktar"}</span>
+                <span>{transferLabel}</span>
               </>
             ) : (
               <>
@@ -666,7 +760,7 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
           <div>
             <span className="section-index block">02 / ARSA SAHİBİ &amp; ŞEREFİYE</span>
             <span className="mt-0.5 block text-sm font-semibold text-foreground">
-              2. Daire Metrekareleri ({dataset.residentialUnitCount} Daire)
+              2. Daire Metrekareleri ({dataset.residentialUnitCount > 0 ? `${dataset.residentialUnitCount} Daire` : "daire bilgisi yok"})
             </span>
           </div>
           <span className="font-mono text-[10px] text-muted-foreground">
@@ -692,10 +786,13 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
             </span>
           </div>
           <span className="font-mono text-[10px] text-primary font-semibold tabular-nums">
-            {formatTrCurrency(costSummary.grandTotal)}
+            {pricingComplete ? formatTrCurrency(costSummary.pricedGrandTotal) : costPendingLabel}
           </span>
         </button>
       </div>
+
+      {/* SONUÇ ÖZETİ: her kontrol kendi durumunu söyler (marka.md M-20.3) */}
+      <ResultSummaryPanel summary={resultSummary} onOpenCostStep={() => setActiveStep("maliyet")} />
 
       {/* KAYNAK YAZILIM UYARISI (PAKET M-2) */}
       <AuthoringAdvisoryBanner advisory={dataset.authoringAdvisory} />
@@ -745,7 +842,12 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
                   İnşaat İmalat İcmal Listesi
                 </h3>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Kapı ve pencere boşlukları (minha) düşülmüş, çoklu katmanları ayrıştırılmış net metrajlar
+                  IFC modelinden okunan net metrajlar.{" "}
+                  {openingsAvailability(dataset.openings) === "present"
+                    ? "Modeldeki kapı/pencere boşlukları kalem bazında gösterilir."
+                    : openingsAvailability(dataset.openings) === "none_in_model"
+                      ? "Modelde kapı/pencere yok; boşluk düşümü gerekmedi."
+                      : "Modelde kapı/pencere bilgisi bulunamadı; boşluk düşümü (minha) değerlendirilemedi."}
                 </p>
               </div>
               <div className="flex flex-col items-end gap-2">
@@ -882,7 +984,7 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
                   onSave={verification.saveRecord}
                 />
               )}
-              <CalculationTraceSection item={selectedItem} fileName={dataset.projectTitle} />
+              <CalculationTraceSection item={selectedItem} fileName={dataset.projectTitle} openings={openingsAvailability(dataset.openings)} />
 
               {/* MİNHA FORMÜL KUTUSU & SÖZLEŞMESEL MİNHA PROFİLİ (KARAR #4) */}
               <div className="mt-5 border border-border bg-background p-4">
@@ -1102,7 +1204,7 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
             <div className="divide-y divide-border max-h-[620px] overflow-y-auto">
               {dataset.apartments.length === 0 ? (
                 <div className="p-8 text-center text-xs text-muted-foreground">
-                  Bu IFC modelinde tanımlı bağımsız bölüm / mahal (IfcZone / IfcSpace) bulunamadı. Tüm yapısal ve kaplama metrajlarını <b>1. Malzeme İcmal Listesi</b> sekmesinden inceleyebilirsiniz.
+                  Bu dosyada daire/mahal cetveli oluşturmak için yeterli bilgi bulunamadı (modelde bağımsız bölüm veya mahal tanımı yok). Bu, dairenin olmadığı anlamına gelmez. Yapısal ve kaplama metrajları <b>1. Malzeme İcmal Listesi</b> sekmesindedir.
                 </div>
               ) : (
                 dataset.apartments.map((apt) => {
@@ -1249,10 +1351,10 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
                   Birim Fiyat ve Maliyet Cetveli
                 </h3>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Yalnız tenant kapsamındaki yetkilendirilmiş, onaylı ve geçerli fiyat snapshot kayıtları hesaplanır. Eşleşmeyen kalem sıfır fiyatla görünür ve teklife hazır sayılmaz.
+                  Yalnız firmanıza ait, incelenmiş ve geçerlilik süresi dolmamış fiyatlar kullanılır. Fiyatı bulunmayan kalem tutara katılmaz ve teklife hazır sayılmaz.
                 </p>
                 <p className="mt-1 font-mono text-[10px] text-muted-foreground">
-                  Kaynak çözümü: {priceResolutionStatus === "loading" ? "yükleniyor" : priceResolutionStatus === "blocked" ? "erişim/kanıt kapısında durdu" : `${Object.keys(priceEvidence).length}/${allItems.length} kanıtlı fiyat`}
+                  Fiyatlandırılan kalem: {priceResolutionStatus === "loading" ? "yükleniyor" : priceResolutionStatus === "blocked" ? "fiyat kaynağına erişilemedi" : `${costSummary.pricedItemCount}/${costSummary.itemCount}`}
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-2">
@@ -1267,17 +1369,22 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
                   className="border border-border bg-background px-2.5 py-1 text-[10px] font-mono text-foreground focus:border-primary focus:outline-none"
                 >
                   <option value="BYOL_TENANT_CATALOG">
-                    BYOL: Tenant Kataloğu (yetkilendirilmiş snapshot)
+                    Firma fiyat kataloğunuz
                   </option>
                   <option value="CSB_2026_REFERENCE">
-                    ÇŞB 2026 Referans (ticari yetki kanıtı varsa)
+                    ÇŞB 2026 birim fiyatları (kullanım izniniz varsa)
                   </option>
                 </select>
                 <span className="stamp-badge bg-primary/10 text-primary border-primary/40">
                   {tuikIndexedAppliedNote
-                    ? "TÜİK Endeksiyle Güncellenmiş Tahmini BF"
-                    : "Birim fiyat kutuları düzenlenebilir"}
+                    ? "TÜİK endeksiyle güncellenmiş tahmini fiyat"
+                    : "Fiyatlar kataloğunuzdan gelir"}
                 </span>
+                {costSummary.missingItemCount > 0 && (
+                  <Link to="/app/fiyat-katalogu?kaynak=smartcheck" className="text-[11px] font-semibold text-primary underline">
+                    Kataloğa fiyat ekle
+                  </Link>
+                )}
               </div>
             </div>
 
@@ -1296,19 +1403,13 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
                       0{grpIdx + 1} / {grp.title}
                     </span>
                     <span className="font-mono text-[11px] font-semibold text-foreground tabular-nums">
-                      Grup Toplamı:{" "}
-                      {formatTrCurrency(
-                        grp.items.reduce(
-                          (s, it) => s + it.netQuantity * (unitPrices[it.id] ?? 0),
-                          0,
-                        ),
-                      )}
+                      {groupTotalLabel(costSummary.groupTotals[grpIdx])}
                     </span>
                   </div>
 
                   {grp.items.map((item) => {
-                    const price = unitPrices[item.id] ?? 0;
-                    const lineTotal = item.netQuantity * price;
+                    const priced = isPriced(unitPrices, item.id);
+                    const price = priced ? unitPrices[item.id] : null;
                     return (
                       <div
                         key={item.id}
@@ -1317,29 +1418,34 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
                         <div className="col-span-5 pr-3">
                           <div className="text-sm font-semibold text-foreground">{item.title}</div>
                           <div className="font-mono text-[10px] text-muted-foreground">Poz: {publicPozCode(item.pozCode) || "Çözülmedi"}</div>
-                          <div className="font-mono text-[10px] text-muted-foreground">
-                            {priceEvidence[item.id]
-                              ? `Kaynak: ${priceEvidence[item.id].sourceName} · snapshot ${priceEvidence[item.id].snapshotId.slice(0, 8)}`
-                              : "Fiyat kanıtı yok · inceleme gerekli"}
-                          </div>
+                          {priceEvidence[item.id] ? (
+                            <div className="font-mono text-[10px] text-muted-foreground">
+                              Kaynak: {priceEvidence[item.id].sourceName} · fiyat kaydı {priceEvidence[item.id].snapshotId.slice(0, 8)}
+                            </div>
+                          ) : priceResolutionStatus === "ready" ? (
+                            <MissingPriceActions
+                              item={item}
+                              candidate={matchCandidates[item.id] ?? null}
+                              onPriceAdded={() => setPriceRefreshKey((key) => key + 1)}
+                              onUseCandidate={(candidate) => bindMatchCandidate(item.id, candidate)}
+                              onReviewItem={() => reviewItem(item.id)}
+                            />
+                          ) : (
+                            <div className="font-mono text-[10px] text-muted-foreground">Fiyat bulunamadı</div>
+                          )}
                         </div>
                         <div className="col-span-2 text-right font-mono text-xs text-muted-foreground tabular-nums">
                           {formatTrNumber(item.netQuantity)} {item.unit}
                         </div>
-                        <div className="col-span-2 flex justify-end pl-2">
-                          <input
-                            type="number"
-                            min={0}
-                            step={10}
-                            aria-label={`${item.title} birim fiyatı`}
-                            value={price}
-                            readOnly
-                            title="Birim fiyat yalnız onaylı fiyat snapshot kaydından gelir. Manuel fiyatı kaynak kataloğu iş akışında kaydedin."
-                            className="w-24 border border-primary/50 bg-primary/5 px-2.5 py-1 text-right font-mono text-sm font-semibold text-foreground focus:border-primary focus:bg-background focus:outline-none tabular-nums"
-                          />
+                        <div className="col-span-2 text-right font-mono text-sm font-semibold tabular-nums" aria-label={`${item.title} birim fiyatı`}>
+                          {price === null
+                            ? <span className="text-amber-600 dark:text-amber-400">Eksik</span>
+                            : <span className="text-foreground">{formatTrCurrency(price)}</span>}
                         </div>
-                        <div className="col-span-3 text-right font-mono text-sm font-semibold text-foreground tabular-nums">
-                          {formatTrCurrency(lineTotal)}
+                        <div className="col-span-3 text-right font-mono text-sm font-semibold tabular-nums">
+                          {price === null
+                            ? <span className="text-muted-foreground">Hesaplanmadı</span>
+                            : <span className="text-foreground">{formatTrCurrency(item.netQuantity * price)}</span>}
                         </div>
                       </div>
                     );
@@ -1359,7 +1465,7 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
               Yaklaşık Maliyet &amp; Teklif İcmali
             </h4>
             <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground mt-1">
-              {dataset.residentialUnitCount} Daire + Ortak Alanlar · Net İmalat Maliyeti
+              {dataset.residentialUnitCount > 0 ? `${dataset.residentialUnitCount} Daire + Ortak Alanlar` : "Daire/mahal cetveli için yeterli bilgi bulunamadı"} · Net İmalat Maliyeti
             </p>
 
             <div className="mt-4 divide-y divide-border border-t border-b border-border">
@@ -1367,14 +1473,16 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
                 <div key={gt.key} className="py-2.5 flex items-center justify-between text-xs">
                   <span className="font-medium text-foreground">{gt.title}</span>
                   <span className="font-mono font-semibold text-foreground tabular-nums">
-                    {formatTrCurrency(gt.subtotal)}
+                    {groupTotalLabel(gt)}
                   </span>
                 </div>
               ))}
               <div className="py-2.5 flex items-center justify-between text-xs bg-background px-2.5">
-                <span className="font-semibold text-foreground">İmalat Ara Toplamı</span>
+                <span className="font-semibold text-foreground">
+                  {pricingComplete ? "İmalat Ara Toplamı" : "İmalat Ara Toplamı (yalnız fiyatlanan kalemler)"}
+                </span>
                 <span className="font-mono font-bold text-foreground tabular-nums">
-                  {formatTrCurrency(costSummary.directTotal)}
+                  {costSummary.pricedItemCount > 0 ? formatTrCurrency(costSummary.pricedDirectTotal) : "Hesaplanmadı"}
                 </span>
               </div>
               <div className="py-2.5 flex items-center justify-between text-xs">
@@ -1384,36 +1492,49 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
                     type="number"
                     min={0}
                     max={100}
+                    step={0.01}
                     aria-label="Müteahhitlik Kârı Yüzdesi"
                     value={overheadPercent}
-                    onChange={(e) => {
-                      const v = parseFloat(e.target.value);
-                      setOverheadPercent(Number.isFinite(v) && v >= 0 ? v : 0);
-                    }}
+                    onChange={(e) => setOverheadPercent(clampOverheadPercent(e.target.value))}
                     className="w-14 border border-border bg-background px-1.5 py-0.5 text-right font-mono text-xs font-bold text-foreground"
                   />
                 </div>
                 <span className="font-mono font-semibold text-foreground tabular-nums">
-                  {formatTrCurrency(costSummary.overheadAmount)}
+                  {costSummary.pricedItemCount > 0 ? formatTrCurrency(costSummary.overheadAmount) : "Hesaplanmadı"}
                 </span>
               </div>
+              <p className="py-2 text-[10px] leading-relaxed text-muted-foreground" data-testid="overhead-profit-note">
+                Teklife "Müteahhitlik kârı ve genel gider" satırı olarak eklenir; KDV bu tutara da uygulanır. Kalem birim fiyatları katalog fiyatıyla aynı kalır.
+                {priceLicenseMode === "CSB_2026_REFERENCE" && overheadPercent > 0 && (
+                  <span className="mt-1 block font-semibold text-amber-600">
+                    ÇŞB birim fiyatlarına %25 yüklenici kârı ve genel gider zaten dahildir; bu yüzde ikinci kez eklenir.
+                  </span>
+                )}
+              </p>
             </div>
 
             {/* GENEL TOPLAM PAFTA BLOĞU */}
             <div className="mt-5 border border-foreground bg-foreground text-background p-5">
               <div className="font-mono text-[10px] uppercase tracking-widest opacity-75">
-                Genel Toplam (KDV Hariç)
+                {pricingComplete ? "Genel Toplam (KDV Hariç)" : "Genel Toplam Hesaplanmadı"}
               </div>
               <div className="mt-1 font-mono text-2xl sm:text-3xl font-bold tabular-nums">
-                {formatTrCurrency(costSummary.grandTotal)}
+                {pricingComplete ? formatTrCurrency(costSummary.pricedGrandTotal) : costPendingLabel}
               </div>
+              {costSummary.status === "partial" && (
+                <div className="mt-1 text-xs opacity-80">
+                  Fiyatlanan {costSummary.pricedItemCount}/{costSummary.itemCount} kalemin tutarı: {formatTrCurrency(costSummary.pricedGrandTotal)}
+                </div>
+              )}
               <div className="mt-3 pt-3 border-t border-background/20 grid grid-cols-2 gap-3 text-xs">
                 <div>
                   <div className="font-mono text-[10px] uppercase opacity-75">
-                    Daire Başı ({dataset.residentialUnitCount} Daire)
+                    {dataset.residentialUnitCount > 0 ? `Daire Başı (${dataset.residentialUnitCount} Daire)` : "Daire Başı"}
                   </div>
                   <div className="mt-0.5 font-mono font-semibold tabular-nums">
-                    {formatTrCurrency(costSummary.perApartment)} / Daire
+                    {costSummary.perApartment !== null
+                      ? `${formatTrCurrency(costSummary.perApartment)} / Daire`
+                      : dataset.residentialUnitCount > 0 ? "Tüm fiyatlar gelince hesaplanır" : "Daire sayısı belirlenemedi"}
                   </div>
                 </div>
                 <div>
@@ -1421,51 +1542,49 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
                     m² Başı ({formatGross(grossTotals.totalGeneralGrossM2, 0)} m²)
                   </div>
                   <div className="mt-0.5 font-mono font-semibold tabular-nums">
-                    {costSummary.perGrossM2 === null ? "— (brüt katsayısı girilmedi)" : `${formatTrCurrency(costSummary.perGrossM2)} / m²`}
+                    {costSummary.perGrossM2 !== null
+                      ? `${formatTrCurrency(costSummary.perGrossM2)} / m²`
+                      : grossTotals.totalGeneralGrossM2 === null || grossTotals.totalGeneralGrossM2 <= 0 ? "Brüt alan katsayısı girilmedi" : "Tüm fiyatlar gelince hesaplanır"}
                   </div>
                 </div>
               </div>
             </div>
 
+            {transferUnavailableReason ? (
+              <p className="mt-4 border border-border bg-card p-3 text-xs leading-relaxed text-muted-foreground" data-testid="calm-transfer-unavailable">
+                {transferUnavailableReason}
+              </p>
+            ) : !onTransferToQuote ? (
+              <p className="mt-4 border border-border bg-card p-3 text-xs leading-relaxed text-muted-foreground" data-testid="calm-transfer-unavailable">
+                Bu ekran tarayıcıda hızlı ön incelemedir; teklife aktarım yapılmaz. Teklif için modeli{" "}
+                <Link className="font-semibold text-primary underline" to="/app/smartcheck">SmartCheck</Link>'e yükleyin.
+              </p>
+            ) : (
             <div className="mt-4">
-              <div className="mb-3 border border-border bg-card p-3">
-                <label className="font-mono text-[10px] font-semibold uppercase tracking-wider text-muted-foreground" htmlFor="calm-target-quotation">
-                  Mevcut güncel teklif
-                </label>
-                <select
-                  id="calm-target-quotation"
-                  value={selectedQuotationId}
-                  onChange={(event) => onSelectedQuotationIdChange?.(event.target.value)}
-                  className="mt-2 w-full border border-border bg-background px-3 py-2 text-xs text-foreground"
-                >
-                  <option value="">Güncel teklif seçin</option>
-                  {quotations.map((quotation) => (
-                    <option key={quotation.id} value={quotation.id}>{quotation.quoteNumber} · {quotation.projectName}</option>
-                  ))}
-                </select>
-                <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground">
-                  Calm aktarımı seçilen güncel teklifi değiştirmez; yeni ve değiştirilemez bir ardıl revizyon oluşturur.
-                </p>
-                {!quotations.length && <p className="mt-1 text-[10px] font-semibold text-amber-400">Aktarım için önce mevcut bir teklif oluşturulmalıdır.</p>}
-                {transferredQuotationId && (
-                  <Link className="mt-2 inline-block text-xs font-bold text-emerald-400 underline" to={`/app/quotes/${transferredQuotationId}`}>
-                    Oluşturulan ardıl teklifi aç
-                  </Link>
-                )}
-              </div>
+              <CalmTransferTargetPicker
+                target={transferTarget}
+                quotations={quotations}
+                disabled={transferBusy}
+                onChange={(next) => onTransferTargetChange?.(next)}
+              />
+              {transferredQuotationId && (
+                <Link className="mb-3 inline-block text-xs font-bold text-emerald-500 underline" to={`/app/quotes/${transferredQuotationId}`}>
+                  {transferTarget.mode === "new" ? "Oluşturulan teklifi aç" : "Oluşturulan revizyonu aç"}
+                </Link>
+              )}
               <button
                 type="button"
                 onClick={handleTransferClick}
-                disabled={!allPricesResolved || !onTransferToQuote || !selectedQuotationId || transferBusy || Boolean(transferredQuotationId)}
-                title={!selectedQuotationId ? "Aktarım için mevcut güncel teklif seçin." : allPricesResolved ? undefined : "Tüm kalemler için onaylı ve yetkilendirilmiş fiyat snapshot'ı gerekir."}
+                disabled={transferBlocked}
+                title={!allPricesResolved ? "Aktarım için tüm kalemlerin fiyatı firma kataloğunuzda kayıtlı olmalı." : calmTransferTargetHint(transferTarget) ?? undefined}
+                data-testid="calm-transfer-submit"
                 className="pafta-button w-full !justify-center disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <Download className="w-4 h-4" />
-                <span>
-                  {transferredQuotationId ? "Ardıl Revizyon Oluşturuldu" : transferBusy ? "Calm İcmali Aktarılıyor…" : "Calm İcmalinden Ardıl Teklif Revizyonu Oluştur"}
-                </span>
+                <span>{transferLabel}</span>
               </button>
             </div>
+            )}
 
             {/* 4734 KİK m.38 AŞIRI DÜŞÜK TEKLİF (SINIR DEĞER & %80 PARETO) ANALİZİ */}
             <div className="mt-5 border border-border bg-background p-4">
@@ -1554,7 +1673,9 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
                 </div>
               ) : (
                 <div className="mt-3 border border-border bg-card p-2.5 text-[11px] font-mono text-muted-foreground">
-                  Sınır değer (SD) hesabı için ihale açılış tutanağındaki İdare Yaklaşık Maliyeti (YM) ve geçerli teklifleri giriniz (varsayılan uydurma değer kullanılmaz).
+                  {pricingComplete
+                    ? "Sınır değer (SD) hesabı için ihale açılış tutanağındaki İdare Yaklaşık Maliyeti (YM) ve geçerli teklifleri giriniz (varsayılan uydurma değer kullanılmaz)."
+                    : `Teklif tutarınız tüm kalemler fiyatlandıktan sonra sınır değerle karşılaştırılır (${costPendingLabel}).`}
                 </div>
               )}
 
@@ -1685,7 +1806,7 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
                   Dosya Adı Şablonu:{" "}
                   <strong className="text-foreground">{isoContainerIdentity.namingStandard}</strong>
                 </span>
-                <span className="stamp-badge bg-card text-muted-foreground">Kanonik geçmiş: Sunucu CDE</span>
+                <span className="stamp-badge bg-card text-muted-foreground">Karar geçmişi: sunucuda kayıtlı</span>
               </div>
 
               <div className="mt-2.5 border border-border bg-card p-2.5 text-[11px] font-mono text-muted-foreground space-y-1.5">
@@ -1809,7 +1930,9 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
                 </div>
               ) : (
                 <div className="mt-3 border border-border bg-card p-2.5 text-[11px] font-mono text-muted-foreground">
-                  4735 Sayılı Kanun Fiyat Farkı (F = A_n × 0,90 × (P_n − 1)) ve dönem dışı birim fiyat güncellemesi için TÜİK Temel Endeks (E_0) ve Güncel Endeks (E_n) değerlerini giriniz (sabit enflasyon oranı varsayılmaz).
+                  {pricingComplete
+                    ? "4735 Sayılı Kanun Fiyat Farkı (F = A_n × 0,90 × (P_n − 1)) ve dönem dışı birim fiyat güncellemesi için TÜİK Temel Endeks (E_0) ve Güncel Endeks (E_n) değerlerini giriniz (sabit enflasyon oranı varsayılmaz)."
+                    : `Fiyat farkı, tüm kalemler fiyatlandıktan sonra hesaplanır (${costPendingLabel}).`}
                 </div>
               )}
 

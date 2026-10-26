@@ -127,3 +127,27 @@ test("a client abort before the response finishes releases the reservation", asy
   await new Promise(resolve => setImmediate(resolve));
   assert.deepEqual(events, ["release:r9"]);
 });
+
+test("a versioned reservation is passed through and a reused one is never released", async () => {
+  const events: string[] = [];
+  const middleware = createUsageTracker({ checkQuota: async () => {}, logUsage: async () => {},
+    reserveFeatureQuota: async (_c, _u, _feature, subject) => { events.push(`reserve:${subject?.quotationId}:${subject?.versionKey}`); return { id: "existing", reused: true }; },
+    releaseFeatureQuota: async (_c, id) => { events.push(`release:${id}`); },
+  })("PDF_GENERATED", async () => ({ quotationId: "q1", versionKey: "1:t" }));
+  const failed = response();
+  await middleware({ user: { companyId: "company", userId: "actor" } } as any, failed as any, () => { events.push("work"); });
+  failed.statusCode = 500;
+  failed.emit("close");
+  await new Promise(resolve => setImmediate(resolve));
+  assert.deepEqual(events, ["reserve:q1:1:t", "work"]);
+});
+
+test("an unresolvable subject skips the reservation and lets the route answer", async () => {
+  const middleware = createUsageTracker({ checkQuota: async () => {}, logUsage: async () => {},
+    reserveFeatureQuota: async () => assert.fail("nothing to reserve for a missing quotation"),
+    releaseFeatureQuota: async () => assert.fail("nothing to release"),
+  })("PDF_GENERATED", async () => null);
+  let reached = false;
+  await middleware({ user: { companyId: "company", userId: "actor" } } as any, response() as any, () => { reached = true; });
+  assert.equal(reached, true);
+});

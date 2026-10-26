@@ -168,6 +168,7 @@ export function Clients() {
                     <Select
                       value={newClient.type}
                       onValueChange={(v) => setNewClient({...newClient, type: v as any})}
+                      items={{ company: "Şirket", person: "Bireysel" }}
                     >
                       <SelectTrigger id="client-type" className="h-12 bg-card border-border">
                         <SelectValue />
@@ -183,6 +184,10 @@ export function Clients() {
                     <Select
                       value={newClient.pipelineStage}
                       onValueChange={(v) => setNewClient({...newClient, pipelineStage: v as PipelineStage})}
+                      items={{
+                        [PipelineStage.NEW_LEAD]: "Yeni Potansiyel", [PipelineStage.CONTACTED]: "Görüşüldü", [PipelineStage.PROPOSAL_SENT]: "Teklif Hazır",
+                        [PipelineStage.NEGOTIATION]: "Pazarlık", [PipelineStage.WON]: "Kazanıldı", [PipelineStage.LOST]: "Kaybedildi",
+                      }}
                     >
                       <SelectTrigger id="client-pipeline-stage" className="h-12 bg-card border-border">
                         <SelectValue />

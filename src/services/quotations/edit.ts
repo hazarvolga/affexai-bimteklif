@@ -71,13 +71,14 @@ export async function editManualQuotation(actorOrCompanyId: TenantContext | stri
     const validatedItems = await resolveBenchmarkProvenance(tx, items, fields.currency);
     const totals = calculateQuotationTotals(items.map(item => ({
       quantity: item.quantity, unitPrice: item.unitPrice, discountPercent: item.discountPercent, vatPercent: item.vatPercent,
-    })));
+    })), { overheadProfitPercent: fields.overheadProfitPercent });
     const updatedAt = new Date(Math.max(Date.now(), quote.updatedAt.getTime() + 1));
     const [saved] = await tx.update(quotations).set({
       ...fields, industryId: resolvedIndustryId, updatedAt,
       escalationVolatilityPercent: String(fields.escalationVolatilityPercent),
       carbonRiskPremiumPercent: String(fields.carbonRiskPremiumPercent),
       informationDeliveryCostPercent: String(fields.informationDeliveryCostPercent),
+      overheadProfitPercent: String(fields.overheadProfitPercent), overheadProfitTotal: String(totals.overheadProfitTotal),
       subtotal: String(totals.subtotal), discountTotal: String(totals.discountTotal),
       vatTotal: String(totals.vatTotal), grandTotal: String(totals.grandTotal),
     }).where(and(eq(quotations.id, id), eq(quotations.companyId, companyId))).returning();

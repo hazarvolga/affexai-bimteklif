@@ -1,18 +1,19 @@
 import { useState } from "react";
 import { ListOrdered } from "lucide-react";
 import type { CalmIcmalItem } from "@/ifc/calm-icmal";
-import { explainIcmalItem } from "@/ifc/calculation-trace";
+import { explainIcmalItem, type OpeningsAvailability } from "@/ifc/calculation-trace";
 import { MetrajCetveliSheet } from "./MetrajCetveliSheet";
 
 interface CalculationTraceSectionProps {
   item: CalmIcmalItem;
   fileName: string;
+  openings: OpeningsAvailability;
 }
 
 /** Seçili icmal kaleminin "Bu sayı nasıl oluştu?" anlatımı ve metraj cetveline geçiş. */
-export function CalculationTraceSection({ item, fileName }: CalculationTraceSectionProps) {
+export function CalculationTraceSection({ item, fileName, openings }: CalculationTraceSectionProps) {
   const [cetvelOpen, setCetvelOpen] = useState(false);
-  const steps = explainIcmalItem(item);
+  const steps = explainIcmalItem(item, { openings });
   const rowCount = item.contributions?.length ?? 0;
 
   return (
