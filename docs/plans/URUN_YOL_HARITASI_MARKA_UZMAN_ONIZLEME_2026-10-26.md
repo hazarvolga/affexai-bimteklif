@@ -121,6 +121,27 @@ Süreler (`marka.md` §23.2) yerelde ölçülür ve kaydedilir.
 - **Ek düzeltme:** Tek giriş akışına geçerken paneldeki KİK sınır değer ve 4735 fiyat farkı bağlantıları ile `public-procurement` tur hedefi kaybolmuştu; "Diğer araçlar" satırına geri eklendi.
 - **Faz 1'de kalan:** C-4, M-17.3, M-17.4/12.6, M-12.4, M-12.5, M-14.5, M-13.3/13.4, M-10.x ve M-15.2 (`dosyadan-teklif-demo` rotasının kaderi). Üç persona kabul akışı da bu maddelerden sonra yürütülecek. IFC → teklif uçtan uca tarayıcı akışı için onaylı fiyat kaydı gerekir (M-17.4 ile birlikte).
 
+### Faz 1 kalan dilimler — kararlar (26 Ekim 2026)
+
+Kaynak: NotebookLM araştırma defteri, bağımsız web araştırmasıyla karşılaştırıldı. Doğrulanamayan iddialar karar gerekçesi olarak kullanılmadı.
+
+1. **Sıra: önce fiyat eksikliği dilimi (M-17.3, M-17.4/12.6).** IFC → teklif kabul akışını açan tek eksik budur. Togal'ın Excel çıktısı yalnız miktar, birim ve kırılım sütunları içerir; birim fiyat ve maliyet içermez (Togal yardım merkezi). Miktarı fiyata bağlayan akış bizim ayrıştığımız yerdir. Boş katalogda yeni `.xlsx` katalog şablonu ilk adım olur. Uydurma veya varsayılan fiyat gösterilmez; eksik kalem "fiyat bekliyor" olarak kalır.
+2. **C-4 Excel'e dışa aktarım: yapılacak, fiyat diliminden hemen sonra.** Teklif ve icmal sade sütunlarla çıkar: poz, açıklama, birim, miktar, birim fiyat, tutar ve kaynak. Togal'ın da Excel çıktısını temel özellik sunması destekler. "Türk müteahhitleri Excel'e geri dönüyor" iddiası anketle doğrulanamadı. Karar ürün sahibinin saha gözlemine dayanır.
+3. **M-12.4 ve M-14.5 temel/gelişmiş görünüm: proje türüne bağlı.**
+   - KİK aşırı düşük teklif sınır değeri (4734 m.38) ve 4735 fiyat farkı yalnız 4734'e tabi kamu ihalelerinde ve sözleşmelerinde geçerlidir (Kanun kapsam maddeleri).
+   - Bu araçlar yalnız "Kamu ihalesi" seçilen projede maliyet adımında görünür. Özel sektörde varsayılan olarak gizlidir.
+   - Karbon, volatilite ve bilgi teslimi alanları ilk teklifte "Gelişmiş" bölümüne alınır.
+4. **M-15.2 `dosyadan-teklif-demo`: kaldırılacak, `/app/smartcheck`'e yönlendirilecek.**
+   - Faz 1'den sonra hiçbir menü bu rotaya bağlanmıyor.
+   - Sayfada sabit birim fiyatlar var (beton 2.450, donatı 24.500, kalıp 1.250 TL). Bu, "uydurma fiyat yok" ilkesiyle çelişir.
+   - Herkese açık demo (M-10.x) kota düşmeyen örnek projeyle sürer. Togal gibi rakipler "demo talep et" modeliyle çalışıyor. Ücretsiz deneme bilgisi kaynaklar arasında çelişkili.
+
+Doğrulanamayan iddialar (karar gerekçesi değil):
+- Opwire'ın ücretsiz demosu: ürün bulunamadı.
+- AMP'nin ücretsiz fiyat farkı motoru: yalnız ücretli programın deneme sürümü bulundu.
+- EKAP'ın birim fiyat cetvelini Excel ile alıp vermesi: resmi kılavuzda bulunamadı.
+- Defterdeki "Strategic Research Report" bağımsız bir kaynak değildir.
+
 ## 4. Faz 2 — Panel, gezinme, yardım, okunabilirlik
 
 | Kimlik | Madde | Yapılacak | Konum |
