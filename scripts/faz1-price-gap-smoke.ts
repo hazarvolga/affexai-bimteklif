@@ -11,7 +11,7 @@
  */
 import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
-import { mkdir } from 'node:fs/promises';
+import { mkdir, readdir } from 'node:fs/promises';
 import dotenv from 'dotenv';
 import ExcelJS from 'exceljs';
 import puppeteer from 'puppeteer';
@@ -185,6 +185,28 @@ try {
   await waitText('Fiyatlandırılan kalem: 3/3', 20_000);
   assert.doesNotMatch(await text(), /Firma fiyatı ekle/);
 
+  step = 'icmal xlsx export';
+  // C-4: the icmal downloads as a real workbook; prices and totals match the screen, evidence on its own sheet.
+  const downloads = `${output}/downloads`;
+  await mkdir(downloads, { recursive: true });
+  const cdp = await page.createCDPSession();
+  await cdp.send('Browser.setDownloadBehavior', { behavior: 'allow', downloadPath: downloads });
+  const waitForDownload = async (suffix: string) => {
+    for (let attempt = 0; attempt < 60; attempt += 1) {
+      const found = (await readdir(downloads)).find(name => name.endsWith(suffix));
+      if (found) return `${downloads}/${found}`;
+      await new Promise(resolve => setTimeout(resolve, 250));
+    }
+    throw new Error(`download ${suffix} not found`);
+  };
+  await page.$eval('[data-testid="icmal-xlsx-export"]', button => (button as HTMLButtonElement).click());
+  const icmalWorkbook = new ExcelJS.Workbook();
+  await icmalWorkbook.xlsx.readFile(await waitForDownload('_Metraj_Icmali.xlsx'));
+  assert.deepEqual(icmalWorkbook.worksheets.map(sheet => sheet.name), ['Metraj İcmali', 'Fiyat Kaynakları']);
+  const icmalSheet = icmalWorkbook.getWorksheet('Metraj İcmali')!;
+  const pricedTotalRow = icmalSheet.lastRow!;
+  assert.equal(pricedTotalRow.getCell(9).value, 74200, 'icmal workbook total equals the priced lines');
+
   step = 'new quotation';
   await page.type('#calm-new-client', 'Yılmaz Yapı A.Ş.');
   await page.type('#calm-new-project', 'Konut A Blok');
@@ -214,6 +236,18 @@ try {
   await page.waitForSelector('[data-testid="quote-overhead-profit"]', { timeout: 20_000 });
   assert.match(await page.$eval('[data-testid="quote-overhead-profit"]', element => element.textContent ?? ''), /KÂR VE GENEL GİDER \(%15\).*11\.130/);
   await page.screenshot({ path: `${output}/8-quotation-detail.png` });
+
+  step = 'quotation xlsx export';
+  await page.$eval('[data-testid="quote-xlsx-export"]', button => (button as HTMLButtonElement).click());
+  const quoteWorkbook = new ExcelJS.Workbook();
+  await quoteWorkbook.xlsx.readFile(await waitForDownload('-rev2.xlsx'));
+  const quoteSheet = quoteWorkbook.getWorksheet('Teklif')!;
+  const quoteSummary = Object.fromEntries([...Array(quoteSheet.lastRow!.number).keys()].map(index => quoteSheet.getRow(index + 1))
+    .filter(row => typeof row.getCell(6).value === 'string' && typeof row.getCell(9).value === 'number')
+    .map(row => [String(row.getCell(6).value), Number(row.getCell(9).value)]));
+  assert.deepEqual(quoteSummary, {
+    'Ara toplam': 74200, 'İndirim': 0, 'Müteahhitlik kârı ve genel gider (%15)': 11130, 'KDV': 17066, 'Genel toplam': 102396,
+  }, 'the workbook carries the same totals as the quotation and its PDF');
 
   assert.deepEqual(errors, []);
   console.log(JSON.stringify({ passed: true, screenshots: output, quotation: { revision: latest.revisionVersion, grandTotal: latest.grandTotal } }));

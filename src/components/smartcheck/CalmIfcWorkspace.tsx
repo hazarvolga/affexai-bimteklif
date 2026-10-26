@@ -34,6 +34,8 @@ import {
 } from "@/lib/price-escalation";
 import { fetchWithAuth } from "@/lib/api";
 import { serializeCsv, type TabularCell } from "@/lib/tabular-data";
+import { roundMoney } from "@/lib/calculations";
+import { toast } from "sonner";
 import { IfcReviewViewer } from "@/components/smartcheck/viewer/IfcReviewViewer";
 import { calmTransferTargetHint, isCalmTransferTargetReady, type CalmTransferTarget, type CalmTransferUiItem } from "./calm-transfer-ui";
 import { CalmTransferTargetPicker } from "./CalmTransferTargetPicker";
@@ -513,7 +515,8 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
     for (const grp of dataset.groups) {
       for (const item of grp.items) {
         const price = unitPrices[item.id];
-        const total = price === undefined ? null : Math.round(item.netQuantity * price);
+        // Kuruş, as the quotation rounds each line; whole-lira rounding hid up to 0,50 TL per line.
+        const total = price === undefined ? null : roundMoney(item.netQuantity * price);
         rows.push(
           [
             "1_MALZEME_ICMALI",
@@ -587,6 +590,32 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
     URL.revokeObjectURL(url);
   };
 
+  /** Plain .xlsx for the person who opens it in Excel; technical price evidence goes to a separate sheet (C-4). */
+  const handleDownloadXlsx = async () => {
+    try {
+      const [{ buildIcmalXlsx, icmalExportFileName }, { downloadXlsx }] = await Promise.all([
+        import("@/lib/icmal-export-xlsx"), import("@/lib/spreadsheet-templates"),
+      ]);
+      const lines = dataset.groups.flatMap((grp) => grp.items.map((item) => {
+        const evidence = priceEvidence[item.id];
+        return {
+          group: grp.title, pozCode: publicPozCode(item.pozCode), title: item.title,
+          grossQuantity: item.grossQuantity, deductedQuantity: item.deductedOpeningQuantity, netQuantity: item.netQuantity, unit: item.unit,
+          unitPrice: unitPrices[item.id] ?? null,
+          ...(evidence ? { source: { snapshotId: evidence.snapshotId, sourceName: evidence.sourceName, sourceDocumentHash: evidence.sourceDocumentHash, capturedAt: evidence.capturedAt } } : {}),
+        };
+      }));
+      const apartments = dataset.apartments.map((apt) => ({
+        storey: apt.storey, unitCode: apt.unitCode, unitLabel: apt.unitLabel,
+        grossM2: resolveApartmentGross(apt, grossRatios).generalGrossM2, balconyM2: apt.balconyM2, netM2: apt.netSweepableM2,
+        rooms: apt.rooms.map((room) => ({ code: room.code, name: room.name, finish: room.floorFinish, netAreaM2: room.netAreaM2 })),
+      }));
+      downloadXlsx(await buildIcmalXlsx({ projectTitle: dataset.projectTitle, lines, apartments }), icmalExportFileName(dataset.projectTitle));
+    } catch {
+      toast.error("Excel dosyası hazırlanamadı. CSV ile indirebilirsiniz.");
+    }
+  };
+
   const allPricesResolved = priceResolutionStatus === "ready" && allItems.length > 0 && allItems.every((item) => Boolean(priceEvidence[item.id]));
   const targetReady = isCalmTransferTargetReady(transferTarget);
   const transferBlocked = Boolean(transferUnavailableReason) || !allPricesResolved || !onTransferToQuote || !targetReady || transferBusy || Boolean(transferredQuotationId);
@@ -653,11 +682,20 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
           )}
           <button
             type="button"
-            onClick={handleDownloadCsv}
+            onClick={() => void handleDownloadXlsx()}
+            data-testid="icmal-xlsx-export"
             className="pafta-button-secondary !min-h-9 !py-2 !px-3"
           >
             <FileSpreadsheet className="w-3.5 h-3.5 text-primary" />
-            <span>Excel İndir (.csv)</span>
+            <span>Excel İndir (.xlsx)</span>
+          </button>
+          <button
+            type="button"
+            onClick={handleDownloadCsv}
+            className="text-[11px] font-semibold text-muted-foreground underline hover:text-foreground"
+            title="Teknik sütunlarıyla CSV (kaynak kaydı ve hash dahil)"
+          >
+            CSV
           </button>
           <button
             type="button"

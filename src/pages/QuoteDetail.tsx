@@ -30,7 +30,8 @@ import {
   RefreshCw,
   FileSearch,
   BookOpen,
-  Archive
+  Archive,
+  FileSpreadsheet
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -247,6 +248,22 @@ export function QuoteDetail() {
     }
   };
 
+  /** Same lines and totals as the PDF, as a plain workbook the owner can open in Excel (C-4). */
+  const handleDownloadXlsx = async () => {
+    if (!data) return;
+    setActionLoading(true);
+    try {
+      const [{ buildQuotationXlsx, quoteExportFileName }, { downloadXlsx }] = await Promise.all([
+        import('@/lib/quote-export-xlsx'), import('@/lib/spreadsheet-templates'),
+      ]);
+      downloadXlsx(await buildQuotationXlsx(data), quoteExportFileName(data));
+    } catch {
+      toast.error("Excel dosyası hazırlanamadı.");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] gap-3">
@@ -302,6 +319,10 @@ export function QuoteDetail() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+
+            <Button variant="outline" onClick={() => void handleDownloadXlsx()} disabled={actionLoading} data-testid="quote-xlsx-export" className="border-border bg-card text-foreground gap-2 h-10 px-4 font-bold">
+              <FileSpreadsheet size={18} className="text-emerald-600" /> Excel (.xlsx)
+            </Button>
 
             {data.status === 'draft' && (
               <Button onClick={() => handleStatusChange('sent')} disabled={actionLoading} className="bg-blue-600 hover:bg-blue-700 text-white gap-2 h-10 px-6 font-bold shadow-lg shadow-blue-900/20">

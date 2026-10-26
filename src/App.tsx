@@ -97,7 +97,6 @@ const AcademyProfilePage = page(() => import('@/pages/AcademyProfilePage'), 'def
 const AcademyCADPage = page(() => import('@/pages/AcademyCADPage'), 'default');
 const AcademyExamPage = page(() => import('@/pages/AcademyExamPage'), 'default');
 const BimIfcParserPage = page(() => import('@/pages/BimIfcParserPage'), 'default');
-const DosyadanTeklifDemo = page(() => import('@/pages/DosyadanTeklifDemo'), 'default');
 const ProgressPayments = page(() => import('@/pages/ProgressPayments'), 'ProgressPayments');
 
 function AppRoutes() {
@@ -180,7 +179,8 @@ function AppRoutes() {
           <Route path="billing" element={<Billing />} />
           <Route path="pilot-applications" element={<Navigate to="/admin/leads" replace />} />
           <Route path="settings" element={<Settings />} />
-          <Route path="dosyadan-teklif-demo" element={<DosyadanTeklifDemo />} />
+          {/* M-15.2: the demo used fixed unit prices; old links land on the single IFC entry. */}
+          <Route path="dosyadan-teklif-demo" element={<Navigate to="/app/smartcheck" replace />} />
           <Route path="smartcheck" element={<SmartCheck />} />
           <Route path="smartcheck/checks/demo" element={<SmartCheckDemo />} />
           {ACADEMY_ENABLED ? <>
