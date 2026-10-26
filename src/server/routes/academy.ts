@@ -69,7 +69,9 @@ const toCurriculumNode = (node: typeof ALLPLAN_TRACK.nodes[number]): AllplanCurr
 });
 
 async function recordLessonActivation(companyId: string, userId: string, lessonSlug: string) {
-  const events = await db.select({ eventType: academyActivationEvents.eventType, lessonSlug: academyActivationEvents.lessonSlug, occurredAt: academyActivationEvents.occurredAt }).from(academyActivationEvents).where(and(eq(academyActivationEvents.companyId, companyId), eq(academyActivationEvents.userId, userId))).orderBy(asc(academyActivationEvents.occurredAt));
+  const events = await withAppTenant({ companyId, userId }, tenantDb =>
+    tenantDb.select({ eventType: academyActivationEvents.eventType, lessonSlug: academyActivationEvents.lessonSlug, occurredAt: academyActivationEvents.occurredAt }).from(academyActivationEvents).where(and(eq(academyActivationEvents.companyId, companyId), eq(academyActivationEvents.userId, userId))).orderBy(asc(academyActivationEvents.occurredAt))
+  );
   const opened = new Set(events.filter(event => event.eventType === 'first_lesson_opened' || event.eventType === 'second_lesson_opened').map(event => event.lessonSlug));
   if (!opened.has(lessonSlug) && opened.size < 2) await getControlDatabase().db.insert(academyActivationEvents).values({ companyId, userId, eventType: opened.size === 0 ? 'first_lesson_opened' : 'second_lesson_opened', lessonSlug });
   const activeSince = new Date(Date.now() - 24 * 60 * 60 * 1000);
@@ -93,14 +95,15 @@ export function registerAcademyRoutes(app: Express) {
   route.get('/api/academy/activation/summary', authenticate, async (req, res) => {
     if (!req.user.emailVerified || !isAcademyAnalyticsAdmin(req.user.email)) return res.status(403).json({ error: 'Academy aktivasyon raporu için doğrulanmış platform yöneticisi yetkisi gerekir.' });
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const controlDb = getControlDatabase().db;
     const [[landing], [registrations], [verified], [firstLesson], [secondLesson], [active7d], [earlyAccess]] = await Promise.all([
-      db.select({ value: count() }).from(academyAcquisitionEvents),
-      db.select({ value: count() }).from(academyLearnerProfiles),
-      db.select({ value: count() }).from(academyLearnerProfiles).innerJoin(users, eq(users.id, academyLearnerProfiles.userId)).where(isNotNull(users.emailVerified)),
-      db.select({ value: countDistinct(academyActivationEvents.userId) }).from(academyActivationEvents).where(eq(academyActivationEvents.eventType, 'first_lesson_opened')),
-      db.select({ value: countDistinct(academyActivationEvents.userId) }).from(academyActivationEvents).where(eq(academyActivationEvents.eventType, 'second_lesson_opened')),
-      db.select({ value: countDistinct(academyActivationEvents.userId) }).from(academyActivationEvents).where(and(eq(academyActivationEvents.eventType, 'learner_active_day'), gte(academyActivationEvents.occurredAt, sevenDaysAgo))),
-      db.select({ value: countDistinct(academyActivationEvents.userId) }).from(academyActivationEvents).where(eq(academyActivationEvents.eventType, 'structural_early_access_requested')),
+      controlDb.select({ value: count() }).from(academyAcquisitionEvents),
+      controlDb.select({ value: count() }).from(academyLearnerProfiles),
+      controlDb.select({ value: count() }).from(academyLearnerProfiles).innerJoin(users, eq(users.id, academyLearnerProfiles.userId)).where(isNotNull(users.emailVerified)),
+      controlDb.select({ value: countDistinct(academyActivationEvents.userId) }).from(academyActivationEvents).where(eq(academyActivationEvents.eventType, 'first_lesson_opened')),
+      controlDb.select({ value: countDistinct(academyActivationEvents.userId) }).from(academyActivationEvents).where(eq(academyActivationEvents.eventType, 'second_lesson_opened')),
+      controlDb.select({ value: countDistinct(academyActivationEvents.userId) }).from(academyActivationEvents).where(and(eq(academyActivationEvents.eventType, 'learner_active_day'), gte(academyActivationEvents.occurredAt, sevenDaysAgo))),
+      controlDb.select({ value: countDistinct(academyActivationEvents.userId) }).from(academyActivationEvents).where(eq(academyActivationEvents.eventType, 'structural_early_access_requested')),
     ]);
     return res.json(academyActivationSummary({ landingViews: landing.value, registrations: registrations.value, verifiedLearners: verified.value, firstLessonLearners: firstLesson.value, secondLessonLearners: secondLesson.value, activeLearners7d: active7d.value, structuralEarlyAccessRequests: earlyAccess.value }));
   });
@@ -108,7 +111,10 @@ export function registerAcademyRoutes(app: Express) {
   route.get("/api/academy/allplan/certificates/verify/:certificateNumber", async (req, res) => {
     const number = String(req.params.certificateNumber ?? "").trim().toUpperCase();
     if (!/^BPA-\d{4}-[A-F0-9]{12}$/.test(number)) return res.status(400).json({ error: "Geçersiz sertifika numarası." });
-    const [certificate] = await db.select({ certificateNumber: allplanCertificates.certificateNumber, holderName: allplanCertificates.holderName, companyName: allplanCertificates.companyName, programVersion: allplanCertificates.programVersion, status: allplanCertificates.status, issuedAt: allplanCertificates.issuedAt, expiresAt: allplanCertificates.expiresAt, revokedAt: allplanCertificates.revokedAt }).from(allplanCertificates).where(eq(allplanCertificates.certificateNumber, number));
+    const [certificate] = await db.transaction(async tx => {
+      await tx.execute(sql`select set_config('bimmetraj.certificate_number', ${number}, true)`);
+      return tx.select({ certificateNumber: allplanCertificates.certificateNumber, holderName: allplanCertificates.holderName, companyName: allplanCertificates.companyName, programVersion: allplanCertificates.programVersion, status: allplanCertificates.status, issuedAt: allplanCertificates.issuedAt, expiresAt: allplanCertificates.expiresAt, revokedAt: allplanCertificates.revokedAt }).from(allplanCertificates).where(eq(allplanCertificates.certificateNumber, number));
+    });
     if (!certificate) return res.status(404).json({ error: "Sertifika bulunamadı." });
     return res.json({ certificate: { ...certificate, status: effectiveCertificateStatus(certificate) } });
   });
@@ -166,13 +172,15 @@ export function registerAcademyRoutes(app: Express) {
   });
 
   route.get("/api/academy/allplan/admin/enrollments", authenticate, checkRole(["owner", "admin"]), async (req, res) => {
-    const rows = await db.select({ id: academyEnrollments.id, userId: academyEnrollments.userId, userName: users.fullName, userEmail: users.email, status: academyEnrollments.status, source: academyEnrollments.source, startsAt: academyEnrollments.startsAt, endsAt: academyEnrollments.endsAt, edition: academyEditions.version, accessMode: academyEditions.accessMode })
-      .from(academyEnrollments)
-      .innerJoin(users, eq(users.id, academyEnrollments.userId))
-      .innerJoin(academyEditions, eq(academyEditions.id, academyEnrollments.editionId))
-      .innerJoin(academyProducts, eq(academyProducts.id, academyEditions.productId))
-      .where(and(eq(academyEnrollments.companyId, req.user.companyId), eq(academyProducts.code, "allplan-pro")))
-      .orderBy(desc(academyEnrollments.updatedAt));
+    const rows = await withAppTenant(tenantOf(req.user), tenantDb =>
+      tenantDb.select({ id: academyEnrollments.id, userId: academyEnrollments.userId, userName: users.fullName, userEmail: users.email, status: academyEnrollments.status, source: academyEnrollments.source, startsAt: academyEnrollments.startsAt, endsAt: academyEnrollments.endsAt, edition: academyEditions.version, accessMode: academyEditions.accessMode })
+        .from(academyEnrollments)
+        .innerJoin(users, eq(users.id, academyEnrollments.userId))
+        .innerJoin(academyEditions, eq(academyEditions.id, academyEnrollments.editionId))
+        .innerJoin(academyProducts, eq(academyProducts.id, academyEditions.productId))
+        .where(and(eq(academyEnrollments.companyId, req.user.companyId), eq(academyProducts.code, "allplan-pro")))
+        .orderBy(desc(academyEnrollments.updatedAt))
+    );
     return res.json({ enrollments: rows.map(row => ({ ...row, accessMode: row.source === "purchase" ? "paid" : row.accessMode })) });
   });
 
@@ -188,7 +196,9 @@ export function registerAcademyRoutes(app: Express) {
     ]);
     if (!membership) return res.status(404).json({ error: "Kullanıcı bu workspace üyesi değil." });
     if (!edition) return res.status(409).json({ error: "Aktif Allplan edition bulunamadı." });
-    const [existing] = await db.select().from(academyEnrollments).where(and(eq(academyEnrollments.userId, userId), eq(academyEnrollments.companyId, req.user.companyId), eq(academyEnrollments.editionId, edition.id)));
+    const [existing] = await withAppTenant(tenantOf(req.user), tenantDb =>
+      tenantDb.select().from(academyEnrollments).where(and(eq(academyEnrollments.userId, userId), eq(academyEnrollments.companyId, req.user.companyId), eq(academyEnrollments.editionId, edition.id)))
+    );
     const now = new Date();
     const enrollment = await getControlDatabase().db.transaction(async tx => {
       const [saved] = existing
@@ -204,7 +214,9 @@ export function registerAcademyRoutes(app: Express) {
     if (!validUuid(req.params.enrollmentId) || !["revoked", "refunded"].includes(req.body?.status)) return res.status(400).json({ error: "Geçersiz enrollment statüsü." });
     const reason = typeof req.body?.reason === "string" ? req.body.reason.trim().slice(0, 1000) : "";
     if (!reason) return res.status(400).json({ error: "Statü değişikliği nedeni zorunludur." });
-    const [existing] = await db.select().from(academyEnrollments).where(and(eq(academyEnrollments.id, req.params.enrollmentId), eq(academyEnrollments.companyId, req.user.companyId)));
+    const [existing] = await withAppTenant(tenantOf(req.user), tenantDb =>
+      tenantDb.select().from(academyEnrollments).where(and(eq(academyEnrollments.id, req.params.enrollmentId), eq(academyEnrollments.companyId, req.user.companyId)))
+    );
     if (!existing) return res.status(404).json({ error: "Enrollment bulunamadı." });
     if (existing.status === req.body.status) return res.status(409).json({ error: `Enrollment zaten ${req.body.status} statüsünde.` });
     const now = new Date();
@@ -223,7 +235,9 @@ export function registerAcademyRoutes(app: Express) {
   });
 
   route.get('/api/academy/allplan/learner-profile', authenticate, async (req, res) => {
-    const [profile] = await db.select().from(academyLearnerProfiles).where(and(eq(academyLearnerProfiles.companyId, req.user.companyId), eq(academyLearnerProfiles.userId, req.user.userId)));
+    const [profile] = await withAppTenant(tenantOf(req.user), tenantDb =>
+      tenantDb.select().from(academyLearnerProfiles).where(and(eq(academyLearnerProfiles.companyId, req.user.companyId), eq(academyLearnerProfiles.userId, req.user.userId)))
+    );
     return res.json({ profile: profile ?? null });
   });
 
@@ -236,7 +250,9 @@ export function registerAcademyRoutes(app: Express) {
   });
 
   route.post('/api/academy/allplan/structural-early-access', authenticate, async (req, res) => {
-    const [existing] = await db.select({ id: academyActivationEvents.id }).from(academyActivationEvents).where(and(eq(academyActivationEvents.companyId, req.user.companyId), eq(academyActivationEvents.userId, req.user.userId), eq(academyActivationEvents.eventType, 'structural_early_access_requested')));
+    const [existing] = await withAppTenant(tenantOf(req.user), tenantDb =>
+      tenantDb.select({ id: academyActivationEvents.id }).from(academyActivationEvents).where(and(eq(academyActivationEvents.companyId, req.user.companyId), eq(academyActivationEvents.userId, req.user.userId), eq(academyActivationEvents.eventType, 'structural_early_access_requested')))
+    );
     if (!existing) await getControlDatabase().db.insert(academyActivationEvents).values({ companyId: req.user.companyId, userId: req.user.userId, eventType: 'structural_early_access_requested' });
     return res.status(existing ? 200 : 201).json({ requested: true });
   });

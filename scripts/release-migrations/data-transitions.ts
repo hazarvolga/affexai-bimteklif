@@ -1199,5 +1199,16 @@ $function$`,
       ? [...injectDataTransitions('0024_pricing_regulations_rls', statements)]
       : statements;
   }
+  if (tag === '0026_academy_control_rls') {
+    const ordered = [...schemaStatements];
+    const forced = [
+      'allplan_certificates', 'academy_enrollments', 'academy_learner_profiles',
+      'academy_activation_events', 'academy_enrollment_audit_logs', 'academy_payment_events',
+    ].map((table) => `ALTER TABLE "${table}" FORCE ROW LEVEL SECURITY;`);
+    const statements = [...ordered, ...forced];
+    return ordered.some((statement) => statement.startsWith('CREATE TABLE "cde_transition_events"'))
+      ? [...injectDataTransitions('0025_allplan_learner_rls', statements)]
+      : statements;
+  }
   return [...schemaStatements];
 }

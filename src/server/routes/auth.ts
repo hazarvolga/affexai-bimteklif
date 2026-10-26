@@ -351,7 +351,13 @@ export function registerAuthRoutes(app: Express) {
         role: membership?.role || null
       });
 
-      const learner = await db.query.academyLearnerProfiles.findFirst({ where: eq(academyLearnerProfiles.userId, user.id) });
+      const learner = membership
+        ? await withAppTenant({ companyId: membership.companyId, userId: user.id }, (tenantDb) =>
+            tenantDb.query.academyLearnerProfiles.findFirst({
+              where: and(eq(academyLearnerProfiles.userId, user.id), eq(academyLearnerProfiles.companyId, membership.companyId)),
+            }),
+          )
+        : null;
       setSessionCookies(res, token, { isSuperAdmin: user.isSuperAdmin });
       res.json({ token: bodyToken(req, token), user: publicRegisteredUser(user), company, role: membership?.role, accountType: learner ? 'academy_learner' : 'workspace' });
     } catch (error) {
@@ -371,9 +377,13 @@ export function registerAuthRoutes(app: Express) {
         ? await withAppTenant({ companyId: membership.companyId, userId: req.user.userId }, (tenantDb) => tenantDb.query.companies.findFirst({ where: eq(companies.id, membership.companyId) }))
         : null;
       if (membership && !company) return res.status(403).json({ error: "Forbidden: Company unavailable" });
-      const learner = await db.query.academyLearnerProfiles.findFirst({ where: req.user.companyId
-        ? and(eq(academyLearnerProfiles.userId, req.user.userId), eq(academyLearnerProfiles.companyId, req.user.companyId))
-        : eq(academyLearnerProfiles.userId, req.user.userId) });
+      const learner = req.user.companyId
+        ? await withAppTenant({ companyId: req.user.companyId, userId: req.user.userId }, (tenantDb) =>
+            tenantDb.query.academyLearnerProfiles.findFirst({
+              where: and(eq(academyLearnerProfiles.userId, req.user.userId), eq(academyLearnerProfiles.companyId, req.user.companyId)),
+            }),
+          )
+        : null;
       res.json({
         user: {
           ...publicRegisteredUser(user),

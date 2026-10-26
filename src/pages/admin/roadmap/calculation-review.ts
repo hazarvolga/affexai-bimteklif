@@ -1,9 +1,9 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-25.76",
+  version: "BIM-CALC-2026-10-25.77",
   updatedOn: "25 Ekim 2026",
-  implementationBaseline: "6d3d3058b4feb9f8d56ec727d87109c349d4de3e",
-  approvalStatus: "Rev. 82, T41 S4a (0025_allplan_learner_rls) kapsamında 7 Allplan öğrenci tablosunu (allplan_lesson_progress, allplan_lesson_activity, allplan_lesson_notes, allplan_lesson_bookmarks, allplan_checkpoint_attempts, allplan_exam_attempts, allplan_certificate_audit_logs) ENABLE+FORCE RLS ve exact CDE 3-policy matrisine alır (57/72 company_id tablosu FORCE RLS altında); Rev. 81 T41 S2 (8 fiyat/kaynak/mevzuat tablosu FORCE RLS), Rev. 80 T41 S1 (6 teklif çekirdeği tablosu FORCE RLS) ve database-role-provision.pgtest.ts düzeltmesini, Rev. 79 T43 CI sistem Python çözümlemesini, Rev. 78 T42 yetki/kaynak sınırı regresyonunu tamamlamıştır. Gerçek banka/dekont mutabakatı, bağımsız uzman imzası, gerçek vendor dosyası, T43 %80 eşiği, T44/T45 kanıtı ve kalan S3/S4b/S5 tenant RLS dilimleri tamamlanmadığından T41/T42/T43 ve Faz 7 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
+  implementationBaseline: "826311701cb3ce93f3119551c5b91037ea24bdae",
+  approvalStatus: "Rev. 83, T41 S4b (0026_academy_control_rls) kapsamında 6 Academy ve sertifika tablosunu (allplan_certificates, academy_enrollments, academy_learner_profiles, academy_activation_events, academy_enrollment_audit_logs, academy_payment_events) ENABLE+FORCE RLS altına alır (63/72 company_id tablosu FORCE RLS altında); Rev. 82 T41 S4a (7 Allplan öğrenci tablosu FORCE RLS), Rev. 81 T41 S2 (8 fiyat/kaynak/mevzuat tablosu FORCE RLS), Rev. 80 T41 S1 (6 teklif çekirdeği tablosu FORCE RLS) ve database-role-provision.pgtest.ts düzeltmesini, Rev. 79 T43 CI sistem Python çözümlemesini, Rev. 78 T42 yetki/kaynak sınırı regresyonunu tamamlamıştır. Gerçek banka/dekont mutabakatı, bağımsız uzman imzası, gerçek vendor dosyası, T43 %80 eşiği, T44/T45 kanıtı ve kalan S3/S5 tenant RLS dilimleri tamamlanmadığından T41/T42/T43 ve Faz 7 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
 };
 
 export interface ModuleRevisionNote {
@@ -1782,6 +1782,23 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
         before: "Allplan eğitim ilerleme, etkinlik, not, yer imi, checkpoint, sınav ve sertifika denetim tablolarında veritabanı düzeyinde FORCE RLS yoktu; sorgular paylaşılan app havuzundan doğrudan çalışıyordu.",
         after: "0025_allplan_learner_rls ile 7 Allplan öğrenci tablosu FORCE RLS altına alındı ve kimlik doğrulamalı tüm academy.ts sorguları withAppTenant / withAppTenantTransaction içine taşındı.",
         basis: "Faz 7 T41 S4a — Allplan öğrenci verisi çok-kiracılı veritabanı izolasyonu",
+      },
+    },
+  },
+  {
+    revision: "Rev. 83",
+    version: "BIM-CALC-2026-10-25.77",
+    date: "25 Ekim 2026",
+    commit: "826311701cb3ce93f3119551c5b91037ea24bdae",
+    trigger: "GAP planı T41 S4b dilimi (0026_academy_control_rls — 6 Academy control-plane ve sertifika doğrulama tablosu FORCE RLS).",
+    beforeSummary: "allplan_certificates, academy_enrollments, academy_learner_profiles, academy_activation_events, academy_enrollment_audit_logs ve academy_payment_events tablolarında FORCE RLS yoktu; halka açık sertifika doğrulaması ve auth/academy okumaları tenant GUC bağlamı olmadan çalışıyordu.",
+    afterSummary: "0026_academy_control_rls.sql ile allplan_certificates (app tenant ALL + bimmetraj.certificate_number GUC verify SELECT + backup SELECT + migrator-owner ALL) ve 5 academy_* tablosu (app tenant SELECT + control ALL + backup SELECT + migrator-owner ALL) ENABLE+FORCE RLS altına alındı (63/72 company_id tablosu FORCE RLS altında); academyEntitlement.ts, academy.ts ve auth.ts sorguları withAppTenant, getControlDatabase().db ve sertifika GUC sınırına taşındı; tenant-business-rls.pgtest.ts 41 tablo için 1/1 PASS, artifacts.test.ts 16/16 PASS ve verify.integration.test.ts 14/14 PASS olarak doğrulandı. Hesap yöntemleri değişmedi.",
+    affectedModules: ["bindirme"],
+    moduleDetails: {
+      bindirme: {
+        before: "allplan_certificates ve 5 academy_* control-plane tablosunda FORCE RLS yoktu; sertifika doğrulama rotası ve kayıt/öğrenci profili okumaları tenant GUC bağlamı kullanmıyordu.",
+        after: "0026_academy_control_rls ile 6 Academy/sertifika tablosu FORCE RLS altına alındı; tüm 13 Allplan/Academy company_id tablosu (S4a + S4b) artık veritabanı düzeyinde izoledir.",
+        basis: "Faz 7 T41 S4b — Academy control-plane ve halka açık sertifika doğrulama RLS izolasyonu",
       },
     },
   },

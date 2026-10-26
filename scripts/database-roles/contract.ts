@@ -137,6 +137,15 @@ export const DATABASE_ALLPLAN_LEARNER_RLS_TABLES = Object.freeze([
   "allplan_exam_attempts",
   "allplan_certificate_audit_logs",
 ] as const);
+/** Academy control-plane and certificate tables migrated in 0026 with FORCE RLS. */
+export const DATABASE_ACADEMY_CONTROL_RLS_TABLES = Object.freeze([
+  "allplan_certificates",
+  "academy_enrollments",
+  "academy_learner_profiles",
+  "academy_activation_events",
+  "academy_enrollment_audit_logs",
+  "academy_payment_events",
+] as const);
 export const DATABASE_PUBLIC_RESTRICTED_TABLE_ACL = Object.freeze({
   companies: Object.freeze({ bimmetraj_app: Object.freeze(["SELECT"]), bimmetraj_control: Object.freeze(["DELETE", "INSERT", "SELECT", "UPDATE"]), bimmetraj_worker: Object.freeze([]) }),
   subscriptions: Object.freeze({ bimmetraj_app: Object.freeze(["SELECT"]), bimmetraj_control: Object.freeze(["DELETE", "INSERT", "SELECT", "UPDATE"]), bimmetraj_worker: Object.freeze([]) }),

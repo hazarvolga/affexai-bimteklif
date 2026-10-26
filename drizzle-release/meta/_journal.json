@@ -183,6 +183,13 @@
       "when": 1791417600025,
       "tag": "0025_allplan_learner_rls",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1791417600026,
+      "tag": "0026_academy_control_rls",
+      "breakpoints": true
     }
   ]
 }

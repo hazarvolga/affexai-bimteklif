@@ -5,6 +5,7 @@ import test from "node:test";
 import pg from "pg";
 
 import {
+  DATABASE_ACADEMY_CONTROL_RLS_TABLES,
   DATABASE_ALLPLAN_LEARNER_RLS_TABLES,
   DATABASE_PRICING_REGULATIONS_RLS_TABLES,
   DATABASE_QUOTATION_CORE_RLS_TABLES,
@@ -13,6 +14,7 @@ import {
 } from "../../scripts/database-roles/contract";
 import {
   assertRoleBoundaries,
+  inspectAcademyControlRlsViolations,
   inspectAllplanLearnerRlsViolations,
   inspectPricingRegulationsRlsViolations,
   inspectQuotationCoreRlsViolations,
@@ -32,7 +34,11 @@ const allProtectedTables = [
   ...DATABASE_QUOTATION_CORE_RLS_TABLES,
   ...DATABASE_PRICING_REGULATIONS_RLS_TABLES,
   ...DATABASE_ALLPLAN_LEARNER_RLS_TABLES,
+  ...DATABASE_ACADEMY_CONTROL_RLS_TABLES,
 ] as const;
+const academyControlReadOnlyAppTables = new Set<string>(
+  DATABASE_ACADEMY_CONTROL_RLS_TABLES.filter((table) => table !== "allplan_certificates"),
+);
 type Credentials = Record<typeof roles[number], string>;
 type Table = typeof allProtectedTables[number];
 const ids = {
@@ -80,6 +86,12 @@ const rowSql: Record<Table, string> = {
   allplan_checkpoint_attempts: "insert into allplan_checkpoint_attempts(company_id,user_id,lesson_slug,tool,passed) values($1,gen_random_uuid(),$2,'wall-simulator',true)",
   allplan_exam_attempts: "insert into allplan_exam_attempts(company_id,user_id,program_version,answers,score,passed) values($1,gen_random_uuid(),$2,'[0,1]'::jsonb,85,true)",
   allplan_certificate_audit_logs: "insert into allplan_certificate_audit_logs(company_id,certificate_id,actor_user_id,action,reason) values($1,gen_random_uuid(),gen_random_uuid(),'issued',$2)",
+  allplan_certificates: "insert into allplan_certificates(company_id,user_id,exam_attempt_id,certificate_number,program_version,holder_name,company_name) values($1,gen_random_uuid(),gen_random_uuid(),$2,'2026.1',$2,$2)",
+  academy_enrollments: "insert into academy_enrollments(company_id,user_id,edition_id,status,source) values($1,gen_random_uuid(),gen_random_uuid(),'active','pilot')",
+  academy_learner_profiles: "insert into academy_learner_profiles(user_id,company_id,terms_version,terms_accepted_at,privacy_version,privacy_accepted_at) values(gen_random_uuid(),$1,'v1',now(),'v1',now())",
+  academy_activation_events: "insert into academy_activation_events(company_id,user_id,event_type,lesson_slug) values($1,gen_random_uuid(),'first_lesson_opened',$2)",
+  academy_enrollment_audit_logs: "insert into academy_enrollment_audit_logs(company_id,enrollment_id,actor_user_id,action,reason) values($1,gen_random_uuid(),gen_random_uuid(),'granted',$2)",
+  academy_payment_events: "insert into academy_payment_events(company_id,user_id,enrollment_id,provider,event_id,event_type,payment_reference,payload_hash) values($1,gen_random_uuid(),gen_random_uuid(),'stripe',$2,'academy.purchase.completed',$2,repeat('a',64))",
 };
 const rowParams = (table: Table, companyId: string, tag: string) => rowSql[table].includes("$2") ? [companyId, tag] : [companyId];
 
@@ -130,6 +142,7 @@ test("tenant business tables enforce FORCE RLS, pool-safe tenant context and CRM
     assert.deepEqual(await inspectQuotationCoreRlsViolations(admin), []);
     assert.deepEqual(await inspectPricingRegulationsRlsViolations(admin), []);
     assert.deepEqual(await inspectAllplanLearnerRlsViolations(admin), []);
+    assert.deepEqual(await inspectAcademyControlRlsViolations(admin), []);
     assertRoleBoundaries(await inspectRoleBoundaries(admin));
     const states = await admin.query<{ relname: string; rls: boolean; force_rls: boolean; owner: string }>(`select c.relname, c.relrowsecurity rls, c.relforcerowsecurity force_rls, pg_get_userbyid(c.relowner) owner
       from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relname=any($1::text[]) order by c.relname`, [allProtectedTables]);
@@ -168,17 +181,35 @@ test("tenant business tables enforce FORCE RLS, pool-safe tenant context and CRM
       assert.deepEqual(await companiesSeen(actorB, table), [ids.companyB], `${table}: unfiltered read is tenant B only`);
       await denied(() => withTenantTransaction(app, actorA, client => client.query(rowSql[table], rowParams(table, ids.companyB, `cross-${table}`))));
       await denied(() => withTenantTransaction(app, actorA, client => client.query(`update ${quote(table)} set company_id=$1`, [ids.companyB])));
-      const crossUpdate = await withTenantTransaction(app, actorA, client => client.query(`update ${quote(table)} set company_id=company_id where company_id=$1`, [ids.companyB]));
-      assert.equal(crossUpdate.rowCount, 0, `${table}: foreign rows are invisible to UPDATE`);
-      const crossDelete = await withTenantTransaction(app, actorA, client => client.query(`delete from ${quote(table)} where company_id=$1`, [ids.companyB]));
-      assert.equal(crossDelete.rowCount, 0, `${table}: foreign rows are invisible to DELETE`);
+      if (academyControlReadOnlyAppTables.has(table)) {
+        await denied(() => withTenantTransaction(app, actorA, client => client.query(`update ${quote(table)} set company_id=company_id where company_id=$1`, [ids.companyA])));
+        await denied(() => withTenantTransaction(app, actorA, client => client.query(`delete from ${quote(table)} where company_id=$1`, [ids.companyA])));
+        assert.equal((await controlPlane.query(`select count(*)::int count from ${quote(table)}`)).rows[0].count, 2, `${table}: control plane reads both tenants`);
+      } else {
+        const crossUpdate = await withTenantTransaction(app, actorA, client => client.query(`update ${quote(table)} set company_id=company_id where company_id=$1`, [ids.companyB]));
+        assert.equal(crossUpdate.rowCount, 0, `${table}: foreign rows are invisible to UPDATE`);
+        const crossDelete = await withTenantTransaction(app, actorA, client => client.query(`delete from ${quote(table)} where company_id=$1`, [ids.companyB]));
+        assert.equal(crossDelete.rowCount, 0, `${table}: foreign rows are invisible to DELETE`);
+        await denied(() => controlPlane.query(`select * from ${quote(table)} limit 1`));
+      }
       assert.equal(await adminCount(table, ids.companyB), 1, `${table}: tenant B row survives tenant A writes`);
       await deniedOrNoRows(() => worker.query(`select * from ${quote(table)}`));
       await denied(() => worker.query(rowSql[table], rowParams(table, ids.companyA, `worker-${table}`)));
       await deniedOrNoRows(() => worker.query(`delete from ${quote(table)}`));
-      await denied(() => controlPlane.query(`select * from ${quote(table)} limit 1`));
       assert.equal((await backup.query(`select count(*)::int count from ${quote(table)}`)).rows[0].count, 2, `${table}: backup reads every tenant`);
       await denied(() => backup.query(rowSql[table], rowParams(table, ids.companyA, `backup-${table}`)));
+    }
+    // Public certificate verification GUC reads only the exact matching certificate number and leaves no ambient state.
+    const verifyClient = await singleApp.connect();
+    try {
+      await verifyClient.query("begin");
+      await verifyClient.query("select set_config('bimmetraj.certificate_number', $1, true)", ["seed-a-allplan_certificates"]);
+      const verifiedRows = (await verifyClient.query<{ company_id: string }>("select company_id::text company_id from allplan_certificates")).rows;
+      assert.deepEqual(verifiedRows.map(row => row.company_id), [ids.companyA]);
+      await verifyClient.query("commit");
+      assert.equal((await verifyClient.query("select count(*)::int count from allplan_certificates")).rows[0].count, 0);
+    } finally {
+      verifyClient.release();
     }
     await withTenantTransaction(app, actorA, client => client.query(rowSql.usage_alerts, rowParams("usage_alerts", ids.companyA, "own-alert")));
     assert.equal(await adminCount("usage_alerts", ids.companyA), 2, "own-tenant insert succeeds");
@@ -257,6 +288,9 @@ test("tenant business tables enforce FORCE RLS, pool-safe tenant context and CRM
       "alter table allplan_lesson_progress no force row level security",
       "drop policy allplan_exam_attempts_app_tenant on allplan_exam_attempts",
       "delete from teklifpro_release.migrations where tag='0025_allplan_learner_rls'",
+      "alter table academy_enrollments no force row level security",
+      "drop policy allplan_certificates_app_verify_read on allplan_certificates",
+      "delete from teklifpro_release.migrations where tag='0026_academy_control_rls'",
     ]) {
       await admin.query("begin");
       try {
@@ -266,10 +300,11 @@ test("tenant business tables enforce FORCE RLS, pool-safe tenant context and CRM
           ...(await inspectQuotationCoreRlsViolations(admin)),
           ...(await inspectPricingRegulationsRlsViolations(admin)),
           ...(await inspectAllplanLearnerRlsViolations(admin)),
+          ...(await inspectAcademyControlRlsViolations(admin)),
         ];
         assert.ok(violations.length > 0, mutation);
         const drift = await inspectRoleBoundaries(admin);
-        assert.throws(() => assertRoleBoundaries(drift), /tenant business|quotation core|pricing regulations|allplan learner|boundary violations/i);
+        assert.throws(() => assertRoleBoundaries(drift), /tenant business|quotation core|pricing regulations|allplan learner|academy control|boundary violations/i);
       } finally { await admin.query("rollback"); }
     }
     await admin.query("alter policy activities_app_tenant on activities rename to activities_app_tenant_missing");

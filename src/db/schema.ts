@@ -2033,7 +2033,15 @@ export const allplanCertificates = pgTable("allplan_certificates", {
   userProgramUnique: unique("allplan_certificates_user_company_program_key").on(table.userId, table.companyId, table.programVersion),
   statusCheck: check("allplan_certificates_status_check", sql`${table.status} in ('active', 'revoked', 'expired')`),
   idxCertificateNumber: index("idx_allplan_certificates_number").on(table.certificateNumber),
-}));
+  appTenantPolicy: appTenantPolicy("allplan_certificates", table.companyId),
+  appVerifyReadPolicy: pgPolicy("allplan_certificates_app_verify_read", {
+    for: "select",
+    to: "public",
+    using: sql`current_user = 'bimmetraj_app' AND ${table.certificateNumber} = nullif(current_setting('bimmetraj.certificate_number', true), '')`,
+  }),
+  backupReadPolicy: backupReadPolicy("allplan_certificates"),
+  ownerMigrationPolicy: ownerMigrationPolicy("allplan_certificates"),
+})).enableRLS();
 
 export const allplanCertificateAuditLogs = pgTable("allplan_certificate_audit_logs", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -2094,7 +2102,11 @@ export const academyEnrollments = pgTable("academy_enrollments", {
   statusCheck: check("academy_enrollments_status_check", sql`${table.status} in ('active', 'expired', 'refunded', 'revoked')`),
   sourceCheck: check("academy_enrollments_source_check", sql`${table.source} in ('pilot', 'invite', 'purchase', 'admin')`),
   idxEnrollmentAccess: index("idx_academy_enrollments_access").on(table.companyId, table.userId, table.status, table.endsAt),
-}));
+  appTenantReadPolicy: appTenantReadPolicy("academy_enrollments", table.companyId),
+  controlAccessPolicy: controlAccessPolicy("academy_enrollments"),
+  backupReadPolicy: backupReadPolicy("academy_enrollments"),
+  ownerMigrationPolicy: ownerMigrationPolicy("academy_enrollments"),
+})).enableRLS();
 
 export const academyLearnerProfiles = pgTable("academy_learner_profiles", {
   userId: uuid("user_id").primaryKey().references(() => users.id, { onDelete: "cascade" }),
@@ -2114,7 +2126,11 @@ export const academyLearnerProfiles = pgTable("academy_learner_profiles", {
 }, (table) => ({
   membershipFk: foreignKey({ columns: [table.userId, table.companyId], foreignColumns: [memberships.userId, memberships.companyId] }).onDelete("cascade"),
   idxLearnerCompany: index("idx_academy_learner_profiles_company").on(table.companyId, table.createdAt),
-}));
+  appTenantReadPolicy: appTenantReadPolicy("academy_learner_profiles", table.companyId),
+  controlAccessPolicy: controlAccessPolicy("academy_learner_profiles"),
+  backupReadPolicy: backupReadPolicy("academy_learner_profiles"),
+  ownerMigrationPolicy: ownerMigrationPolicy("academy_learner_profiles"),
+})).enableRLS();
 
 export const academyActivationEvents = pgTable("academy_activation_events", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -2129,7 +2145,11 @@ export const academyActivationEvents = pgTable("academy_activation_events", {
   eventTypeCheck: check("academy_activation_events_type_check", sql`${table.eventType} in ('registration_completed', 'first_lesson_opened', 'second_lesson_opened', 'learner_active_day', 'structural_early_access_requested')`),
   idxActivationFunnel: index("idx_academy_activation_events_funnel").on(table.eventType, table.occurredAt),
   idxActivationUser: index("idx_academy_activation_events_user").on(table.companyId, table.userId, table.occurredAt),
-}));
+  appTenantReadPolicy: appTenantReadPolicy("academy_activation_events", table.companyId),
+  controlAccessPolicy: controlAccessPolicy("academy_activation_events"),
+  backupReadPolicy: backupReadPolicy("academy_activation_events"),
+  ownerMigrationPolicy: ownerMigrationPolicy("academy_activation_events"),
+})).enableRLS();
 
 export const academyAcquisitionEvents = pgTable("academy_acquisition_events", {
   acquisitionId: text("acquisition_id").primaryKey(),
@@ -2155,7 +2175,11 @@ export const academyEnrollmentAuditLogs = pgTable("academy_enrollment_audit_logs
   actorMembershipFk: foreignKey({ columns: [table.actorUserId, table.companyId], foreignColumns: [memberships.userId, memberships.companyId] }).onDelete("restrict"),
   actionCheck: check("academy_enrollment_audit_logs_action_check", sql`${table.action} in ('granted', 'extended', 'revoked', 'refunded', 'reactivated')`),
   idxEnrollmentAudit: index("idx_academy_enrollment_audit").on(table.enrollmentId, table.createdAt),
-}));
+  appTenantReadPolicy: appTenantReadPolicy("academy_enrollment_audit_logs", table.companyId),
+  controlAccessPolicy: controlAccessPolicy("academy_enrollment_audit_logs"),
+  backupReadPolicy: backupReadPolicy("academy_enrollment_audit_logs"),
+  ownerMigrationPolicy: ownerMigrationPolicy("academy_enrollment_audit_logs"),
+})).enableRLS();
 
 export const academyPaymentEvents = pgTable("academy_payment_events", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -2176,7 +2200,11 @@ export const academyPaymentEvents = pgTable("academy_payment_events", {
   enrollmentFk: foreignKey({ columns: [table.enrollmentId, table.companyId], foreignColumns: [academyEnrollments.id, academyEnrollments.companyId] }).onDelete("restrict"),
   eventTypeCheck: check("academy_payment_events_type_check", sql`${table.eventType} in ('academy.purchase.completed', 'academy.purchase.refunded')`),
   idxPaymentReference: index("idx_academy_payment_events_reference").on(table.provider, table.paymentReference),
-}));
+  appTenantReadPolicy: appTenantReadPolicy("academy_payment_events", table.companyId),
+  controlAccessPolicy: controlAccessPolicy("academy_payment_events"),
+  backupReadPolicy: backupReadPolicy("academy_payment_events"),
+  ownerMigrationPolicy: ownerMigrationPolicy("academy_payment_events"),
+})).enableRLS();
 
 export const usageRecords = pgTable("usage_records", {
   id: uuid("id").primaryKey().defaultRandom(),

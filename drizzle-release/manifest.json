@@ -183,6 +183,13 @@
       "sha256": "027f37f124629928cc4cfb7595b8811dd2613609f825bb8e45def4a2d898287f",
       "snapshotSha256": "c422ede74d15fa69f55a3206aaec9ed4dfd2a009beea5fdaf216baf728759d4d",
       "statements": 35
+    },
+    {
+      "idx": 26,
+      "tag": "0026_academy_control_rls",
+      "sha256": "c84366717353631ed6df1e8d8198b3ba907d5e922fe44ae46b33d97c39470743",
+      "snapshotSha256": "e50a25604a94e879a4671279c7454f3342750aab4fe7cd7dfd46a0b6b515ac5f",
+      "statements": 36
     }
   ]
 }

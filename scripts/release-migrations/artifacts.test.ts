@@ -9,6 +9,7 @@ import { INITIAL_PLUGINS } from '../../src/lib/plugins/definitions';
 import { pinnedSignature } from './stage-signatures';
 import { injectDataTransitions } from './data-transitions';
 import {
+  DATABASE_ACADEMY_CONTROL_RLS_TABLES,
   DATABASE_ALLPLAN_LEARNER_RLS_TABLES,
   DATABASE_PRICING_REGULATIONS_RLS_TABLES,
   DATABASE_QUOTATION_CORE_RLS_TABLES,
@@ -313,11 +314,41 @@ test('allplan learner tables declare the exact CDE tenant, backup, and migration
   assert.deepEqual(forced, DATABASE_ALLPLAN_LEARNER_RLS_TABLES.map((table) => `ALTER TABLE "${table}" FORCE ROW LEVEL SECURITY;`));
 });
 
+test('academy control and certificate tables declare the exact FORCE RLS matrix', () => {
+  const { tables } = drizzleApi.generateDrizzleJson(schema);
+  for (const table of DATABASE_ACADEMY_CONTROL_RLS_TABLES) {
+    const definition = tables[`public.${table}`];
+    assert.equal(definition.isRLSEnabled, true, table);
+    const tenant = `current_user = 'bimmetraj_app' AND "${table}"."company_id" = nullif(current_setting('bimmetraj.company_id', true), '')::uuid`;
+    if (table === 'allplan_certificates') {
+      assert.deepEqual(Object.keys(definition.policies).sort(), [
+        'allplan_certificates_app_tenant',
+        'allplan_certificates_app_verify_read',
+        'allplan_certificates_backup_read',
+        'allplan_certificates_owner_migration',
+      ]);
+      const app = definition.policies.allplan_certificates_app_tenant;
+      assert.deepEqual({ for: app.for, to: app.to, using: app.using, withCheck: app.withCheck }, { for: 'ALL', to: ['public'], using: tenant, withCheck: tenant });
+    } else {
+      assert.deepEqual(Object.keys(definition.policies).sort(), [
+        `${table}_app_tenant_read`,
+        `${table}_backup_read`,
+        `${table}_control_access`,
+        `${table}_owner_migration`,
+      ]);
+      const app = definition.policies[`${table}_app_tenant_read`];
+      assert.deepEqual({ for: app.for, to: app.to, using: app.using, withCheck: app.withCheck }, { for: 'SELECT', to: ['public'], using: tenant, withCheck: undefined });
+    }
+  }
+  const forced = injectDataTransitions('0026_academy_control_rls', []);
+  assert.deepEqual(forced, DATABASE_ACADEMY_CONTROL_RLS_TABLES.map((table) => `ALTER TABLE "${table}" FORCE ROW LEVEL SECURITY;`));
+});
+
 test('release artifacts form an append-only chain matching current schema', async () => {
   const migrations = await loadMigrations();
   const baseline = JSON.parse(await readFile(baselineSource, 'utf8'));
   assert.equal(Object.keys(baseline.tables).length, 63);
-  assert.equal(migrations.length, 26);
+  assert.equal(migrations.length, 27);
   let previous = drizzleApi.generateDrizzleJson({});
   for (const migration of migrations) {
     const snapshot = JSON.parse(await readFile(`${releaseDirectory}/meta/${String(migration.idx).padStart(4, '0')}_snapshot.json`, 'utf8'));

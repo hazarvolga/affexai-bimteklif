@@ -13,6 +13,7 @@ import {
   DATABASE_QUOTATION_CORE_RLS_TABLES,
   DATABASE_PRICING_REGULATIONS_RLS_TABLES,
   DATABASE_ALLPLAN_LEARNER_RLS_TABLES,
+  DATABASE_ACADEMY_CONTROL_RLS_TABLES,
   DATABASE_TENANT_BUSINESS_RLS_TABLES,
   DATABASE_SMARTCHECK_PILOT_RLS_TABLES,
   DATABASE_QUEUE_MIGRATION_REVISION,
@@ -170,6 +171,61 @@ export const inspectPricingRegulationsRlsViolations = (client: Queryable) => ins
 export const inspectAllplanLearnerRlsViolations = (client: Queryable) => inspectProtectedTenantRlsViolations(
   client, DATABASE_ALLPLAN_LEARNER_RLS_TABLES, "0025_allplan_learner_rls", "allplan learner",
 );
+
+export async function inspectAcademyControlRlsViolations(client: Queryable): Promise<string[]> {
+  const tables = DATABASE_ACADEMY_CONTROL_RLS_TABLES;
+  const states = await client.query<{ table_name: string; enabled: boolean; forced: boolean }>(`select c.relname as table_name,c.relrowsecurity as enabled,c.relforcerowsecurity as forced
+    from pg_class c join pg_namespace n on n.oid=c.relnamespace
+    where n.nspname='public' and c.relname=any($1::text[]) and c.relkind in ('r','p') order by c.relname`, [tables]);
+  const releaseState = await client.query<{ ledger: string | null; has_tag: boolean }>(`select to_regclass('teklifpro_release.migrations')::text as ledger,
+    exists(select 1 from information_schema.columns where table_schema='teklifpro_release' and table_name='migrations' and column_name='tag') as has_tag`);
+  const ledger = releaseState.rows[0];
+  const applied = ledger?.ledger && ledger.has_tag
+    ? (await client.query<{ applied: boolean }>("select exists(select 1 from teklifpro_release.migrations where tag='0026_academy_control_rls') as applied")).rows[0]?.applied === true
+    : false;
+  if (states.rowCount === 0 && !applied) return [];
+  const violations: string[] = [];
+  if (states.rowCount !== tables.length) violations.push("public academy control: complete RLS table set is required");
+  if (!ledger?.ledger || !ledger.has_tag) {
+    violations.push("public academy control: release ledger with migration tag 0026_academy_control_rls is required");
+  } else if (!applied) {
+    violations.push("public academy control: applied migration tag 0026_academy_control_rls is required");
+  }
+  if (states.rowCount === 0) return violations;
+  const policies = await client.query<{ table_name: string; policy_name: string; command: string; role_oids: number[]; permissive: boolean; using_expression: string | null; check_expression: string | null }>(`select c.relname as table_name,p.polname as policy_name,p.polcmd as command,p.polroles::oid[] as role_oids,p.polpermissive as permissive,
+      pg_get_expr(p.polqual,p.polrelid) as using_expression,pg_get_expr(p.polwithcheck,p.polrelid) as check_expression
+    from pg_policy p join pg_class c on c.oid=p.polrelid join pg_namespace n on n.oid=c.relnamespace
+    where n.nspname='public' and c.relname=any($1::text[]) order by c.relname,p.polname`, [tables]);
+  const tenant = "((CURRENT_USER = 'bimmetraj_app'::name) AND (company_id = (NULLIF(current_setting('bimmetraj.company_id'::text, true), ''::text))::uuid))";
+  const verifyCert = "((CURRENT_USER = 'bimmetraj_app'::name) AND (certificate_number = NULLIF(current_setting('bimmetraj.certificate_number'::text, true), ''::text)))";
+  const control = "(CURRENT_USER = 'bimmetraj_control'::name)";
+  const backup = "(CURRENT_USER = 'bimmetraj_backup'::name)";
+  const owner = "((SESSION_USER = 'bimmetraj_migrator'::name) AND (CURRENT_USER = 'bimmetraj_owner'::name))";
+  const isPublic = (policy: typeof policies.rows[number] | undefined) => policy?.permissive && JSON.stringify(policy.role_oids) === JSON.stringify([0]);
+  for (const table of tables) {
+    const state = states.rows.find((row) => row.table_name === table);
+    const actual = policies.rows.filter((row) => row.table_name === table);
+    const matrix: readonly (readonly [string, string, string | null, string | null])[] = table === "allplan_certificates"
+      ? [
+          ["allplan_certificates_app_tenant", "*", tenant, tenant],
+          ["allplan_certificates_app_verify_read", "r", verifyCert, null],
+          ["allplan_certificates_backup_read", "r", backup, null],
+          ["allplan_certificates_owner_migration", "*", owner, owner],
+        ]
+      : [
+          [`${table}_app_tenant_read`, "r", tenant, null],
+          [`${table}_backup_read`, "r", backup, null],
+          [`${table}_control_access`, "*", control, control],
+          [`${table}_owner_migration`, "*", owner, owner],
+        ];
+    const matches = state?.enabled && state.forced && actual.length === matrix.length && matrix.every(([name, command, using, check]) => {
+      const policy = actual.find((row) => row.policy_name === name);
+      return isPublic(policy) && policy?.command === command && policy.using_expression === using && policy.check_expression === check;
+    });
+    if (!matches) violations.push(`public.${table}: academy control FORCE-RLS policy matrix drift`);
+  }
+  return violations;
+}
 
 export async function inspectSmartcheckPilotRlsViolations(client: Queryable): Promise<string[]> {
   const tables = DATABASE_SMARTCHECK_PILOT_RLS_TABLES;
@@ -475,6 +531,7 @@ async function inspectManagedSchemaViolations(
   violations.push(...await inspectQuotationCoreRlsViolations(client));
   violations.push(...await inspectPricingRegulationsRlsViolations(client));
   violations.push(...await inspectAllplanLearnerRlsViolations(client));
+  violations.push(...await inspectAcademyControlRlsViolations(client));
   const present = new Set((await client.query<{ name: string }>("select nspname as name from pg_namespace where nspname=any($1::text[])", [managedSchemas])).rows.map(({ name }) => name));
   const controlPlaneTableNames = [...Object.keys(DATABASE_PUBLIC_RESTRICTED_TABLE_ACL), ...Object.keys(DATABASE_CONTROL_TABLE_ACL)];
   const controlTablesPresent = options.allowPreSchemaRoleContract

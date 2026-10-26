@@ -14,8 +14,8 @@ test('invitations are private, hashed, single-use and preserve existing account 
   if (await skipIfDatabaseUnavailable(t)) return;
   assert.equal(process.env.NODE_ENV, 'test');
   assert.equal(process.env.AUTH_EMAIL_WEBHOOK_URL, '', 'isolation must disable external email');
-  const [{ createApiApp }, schema, { db }, { AuthService }, security] = await Promise.all([
-    import('../app'), import('../../db/schema'), import('../../db'), import('../../services/auth/authService'), import('../auth/security'),
+  const [{ createApiApp }, schema, { db }, { getControlDatabase }, { AuthService }, security] = await Promise.all([
+    import('../app'), import('../../db/schema'), import('../../db'), import('../../db/control-plane'), import('../../services/auth/authService'), import('../auth/security'),
   ]);
   const { and, eq } = await import('drizzle-orm');
   const suffix = crypto.randomUUID();
@@ -65,7 +65,7 @@ test('invitations are private, hashed, single-use and preserve existing account 
   const membership = await db.query.memberships.findFirst({ where: and(eq(schema.memberships.userId, accepted.id), eq(schema.memberships.companyId, company.id)) });
   assert.equal(membership?.role, 'manager');
 
-  await db.insert(schema.academyLearnerProfiles).values({ userId: existing.id, companyId: otherCompany.id, termsVersion: 'test', termsAcceptedAt: new Date(), privacyVersion: 'test', privacyAcceptedAt: new Date() });
+  await getControlDatabase().db.insert(schema.academyLearnerProfiles).values({ userId: existing.id, companyId: otherCompany.id, termsVersion: 'test', termsAcceptedAt: new Date(), privacyVersion: 'test', privacyAcceptedAt: new Date() });
   const existingInvite = await issue(existing.email);
   assert.equal((await post(`/api/invitations/${existingInvite.raw}/accept`, { password: 'replacement' })).status, 401);
   assert.equal((await post(`/api/invitations/${existingInvite.raw}/accept`, {}, ownerToken)).status, 403);
