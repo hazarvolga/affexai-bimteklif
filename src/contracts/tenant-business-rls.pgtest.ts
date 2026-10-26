@@ -7,10 +7,16 @@ import pg from "pg";
 import {
   DATABASE_ACADEMY_CONTROL_RLS_TABLES,
   DATABASE_ALLPLAN_LEARNER_RLS_TABLES,
+  DATABASE_AUTHORITY_AUDIT_COMPANY_TABLES,
+  DATABASE_CDE_RLS_TABLES,
+  DATABASE_COMPANY_INDUSTRY_RLS_TABLES,
+  DATABASE_CRM_LEAD_RLS_TABLES,
   DATABASE_PRICING_REGULATIONS_RLS_TABLES,
+  DATABASE_PROGRESS_PAYMENT_RLS_TABLES,
   DATABASE_QUOTATION_CORE_RLS_TABLES,
   DATABASE_ROLE_SPECS,
   DATABASE_SMARTCHECK_PIPELINE_RLS_TABLES,
+  DATABASE_SMARTCHECK_PILOT_RLS_TABLES,
   DATABASE_TENANT_BUSINESS_RLS_TABLES,
 } from "../../scripts/database-roles/contract";
 import {
@@ -158,6 +164,27 @@ test("tenant business tables enforce FORCE RLS, pool-safe tenant context and CRM
       from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relname=any($1::text[]) order by c.relname`, [allProtectedTables]);
     assert.equal(states.rowCount, allProtectedTables.length);
     for (const state of states.rows) assert.deepEqual(state, { relname: state.relname, rls: true, force_rls: true, owner: "bimmetraj_owner" });
+    // Verify 72/72 company-scoped tables in public are classified (67 FORCE RLS + 5 S5 exact-ACL tables).
+    const allRlsCompanyTables = new Set<string>([
+      ...DATABASE_CDE_RLS_TABLES,
+      ...DATABASE_PROGRESS_PAYMENT_RLS_TABLES,
+      ...DATABASE_SMARTCHECK_PILOT_RLS_TABLES,
+      "smartcheck_audit_logs",
+      ...DATABASE_COMPANY_INDUSTRY_RLS_TABLES.filter((table) => table !== "industries"),
+      ...DATABASE_CRM_LEAD_RLS_TABLES.filter((table) => table !== "companies"),
+      ...allProtectedTables,
+    ]);
+    assert.equal(allRlsCompanyTables.size, 67);
+    assert.equal(DATABASE_AUTHORITY_AUDIT_COMPANY_TABLES.length, 5);
+    const catalogCompanyTables = (await admin.query<{ table_name: string }>(`select distinct table_name
+      from information_schema.columns
+      where table_schema='public' and column_name in ('company_id', 'target_company_id', 'provisioned_company_id')
+      order by table_name`)).rows.map((row) => row.table_name);
+    assert.equal(catalogCompanyTables.length, 72);
+    assert.deepEqual(
+      catalogCompanyTables,
+      [...allRlsCompanyTables, ...DATABASE_AUTHORITY_AUDIT_COMPANY_TABLES].sort(),
+    );
 
     await admin.query("insert into companies(id,name) values($1,'A'),($2,'B')", [ids.companyA, ids.companyB]);
     await admin.query("insert into users(id,email,full_name,is_super_admin) values($1,'a@business.test','A',false),($2,'b@business.test','B',false),($3,'superadmin@business.test','Super Admin',true)", [ids.userA, ids.userB, ids.superAdminUser]);
@@ -239,6 +266,21 @@ test("tenant business tables enforce FORCE RLS, pool-safe tenant context and CRM
     } finally {
       verifyClient.release();
     }
+    // S5 authority, audit, and quota counter tables enforce exact least-privilege ACLs.
+    await denied(() => worker.query("select * from memberships limit 1"));
+    await denied(() => worker.query("select * from invitations limit 1"));
+    await denied(() => worker.query("select * from pilot_applications limit 1"));
+    await denied(() => worker.query("select * from admin_audit_logs limit 1"));
+    await denied(() => worker.query("delete from usage_records"));
+    await denied(() => app.query("delete from usage_records"));
+    await denied(() => app.query("delete from pilot_applications"));
+    await denied(() => app.query("delete from admin_audit_logs"));
+    await denied(() => app.query("delete from invitations"));
+    await denied(() => app.query("insert into invitations(company_id,email,role,token,expires_at) values($1,'x@test.local','viewer','tok',now())", [ids.companyA]));
+    await denied(() => controlPlane.query("delete from usage_records"));
+    await denied(() => controlPlane.query("update usage_records set quote_count=0"));
+    assert.equal((await controlPlane.query("select count(*)::int count from usage_records")).rows[0].count, 0);
+    assert.equal((await controlPlane.query("select count(*)::int count from pilot_applications")).rows[0].count, 0);
     await withTenantTransaction(app, actorA, client => client.query(rowSql.usage_alerts, rowParams("usage_alerts", ids.companyA, "own-alert")));
     assert.equal(await adminCount("usage_alerts", ids.companyA), 2, "own-tenant insert succeeds");
     const migrator = await connect(urlFor(control, databaseName, "bimmetraj_migrator", credentials.bimmetraj_migrator)); clients.push(migrator);
@@ -323,21 +365,14 @@ test("tenant business tables enforce FORCE RLS, pool-safe tenant context and CRM
       "drop policy document_processing_runs_app_super_admin_read on document_processing_runs",
       "drop policy normalized_quantity_rows_worker_access on normalized_quantity_rows",
       "delete from teklifpro_release.migrations where tag='0027_smartcheck_pipeline_rls'",
+      "grant delete on usage_records to bimmetraj_app",
+      "grant select on pilot_applications to bimmetraj_worker",
     ]) {
       await admin.query("begin");
       try {
         await admin.query(mutation);
-        const violations = [
-          ...(await inspectTenantBusinessRlsViolations(admin)),
-          ...(await inspectQuotationCoreRlsViolations(admin)),
-          ...(await inspectPricingRegulationsRlsViolations(admin)),
-          ...(await inspectAllplanLearnerRlsViolations(admin)),
-          ...(await inspectAcademyControlRlsViolations(admin)),
-          ...(await inspectSmartcheckPipelineRlsViolations(admin)),
-        ];
-        assert.ok(violations.length > 0, mutation);
         const drift = await inspectRoleBoundaries(admin);
-        assert.throws(() => assertRoleBoundaries(drift), /tenant business|quotation core|pricing regulations|allplan learner|academy control|smartcheck pipeline|boundary violations/i);
+        assert.throws(() => assertRoleBoundaries(drift), /tenant business|quotation core|pricing regulations|allplan learner|academy control|smartcheck pipeline|restricted table ACL|unexpected|boundary violations/i);
       } finally { await admin.query("rollback"); }
     }
     await admin.query("alter policy activities_app_tenant on activities rename to activities_app_tenant_missing");

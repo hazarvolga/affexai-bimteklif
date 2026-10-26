@@ -153,12 +153,22 @@ export const DATABASE_SMARTCHECK_PIPELINE_RLS_TABLES = Object.freeze([
   "document_processing_artifacts",
   "normalized_quantity_rows",
 ] as const);
+/** Authority, audit, and quota counter tables with company_id/target_company_id/provisioned_company_id governed by exact role ACLs (S5). */
+export const DATABASE_AUTHORITY_AUDIT_COMPANY_TABLES = Object.freeze([
+  "memberships",
+  "invitations",
+  "pilot_applications",
+  "admin_audit_logs",
+  "usage_records",
+] as const);
 export const DATABASE_PUBLIC_RESTRICTED_TABLE_ACL = Object.freeze({
   companies: Object.freeze({ bimmetraj_app: Object.freeze(["SELECT"]), bimmetraj_control: Object.freeze(["DELETE", "INSERT", "SELECT", "UPDATE"]), bimmetraj_worker: Object.freeze([]) }),
   subscriptions: Object.freeze({ bimmetraj_app: Object.freeze(["SELECT"]), bimmetraj_control: Object.freeze(["DELETE", "INSERT", "SELECT", "UPDATE"]), bimmetraj_worker: Object.freeze([]) }),
   plans: Object.freeze({ bimmetraj_app: Object.freeze(["SELECT"]), bimmetraj_control: Object.freeze(["INSERT", "SELECT", "UPDATE"]), bimmetraj_worker: Object.freeze([]) }),
   usage_logs: Object.freeze({ bimmetraj_app: Object.freeze(["INSERT", "SELECT"]), bimmetraj_control: Object.freeze(["DELETE", "INSERT", "SELECT"]), bimmetraj_worker: Object.freeze([]) }),
   leads: Object.freeze({ bimmetraj_app: Object.freeze(["INSERT", "SELECT"]), bimmetraj_control: Object.freeze([]), bimmetraj_worker: Object.freeze([]) }),
+  pilot_applications: Object.freeze({ bimmetraj_app: Object.freeze(["INSERT", "SELECT", "UPDATE"]), bimmetraj_control: Object.freeze(["DELETE", "INSERT", "SELECT", "UPDATE"]), bimmetraj_worker: Object.freeze([]) }),
+  usage_records: Object.freeze({ bimmetraj_app: Object.freeze(["INSERT", "SELECT", "UPDATE"]), bimmetraj_control: Object.freeze(["SELECT"]), bimmetraj_worker: Object.freeze(["INSERT", "SELECT", "UPDATE"]) }),
 } as const);
 
 export const DATABASE_CONTROL_TABLE_ACL = Object.freeze({

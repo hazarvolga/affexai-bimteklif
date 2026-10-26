@@ -29,7 +29,8 @@ history to `archive/` (latest: `archive/WORKING_STATE_until_2026-10-24.md`).
 
 ## Code (main / working branch)
 
-- Latest roadmap revision: **Rev. 84** (`BIM-CALC-2026-10-25.78`): T41 S3 (`0027_smartcheck_pipeline_rls`) — 4 SmartCheck pipeline tables (`documents`, `document_processing_runs`, `document_processing_artifacts`, `normalized_quantity_rows`) under FORCE RLS (`67/72` `company_id` tables under FORCE RLS); `withSuperAdminQueueRead` and `getControlDatabase().db` for `/api/admin/queue` & `/api/admin/dashboard`.
+- Latest roadmap revision: **Rev. 85** (`BIM-CALC-2026-10-25.79`): T41 S5 (`DATABASE_AUTHORITY_AUDIT_COMPANY_TABLES` & `DATABASE_PUBLIC_RESTRICTED_TABLE_ACL`) — 5 authority, audit, and quota tables (`memberships`, `invitations`, `pilot_applications`, `admin_audit_logs`, `usage_records`) locked under exact least-privilege ACLs (`72/72` `company_id` tables classified and verified in `tenant-business-rls.pgtest.ts`: 67 `FORCE RLS` + 5 `Exact-ACL`).
+  Rev. 84 (`BIM-CALC-2026-10-25.78`): T41 S3 (`0027_smartcheck_pipeline_rls`) — 4 SmartCheck pipeline tables (`documents`, `document_processing_runs`, `document_processing_artifacts`, `normalized_quantity_rows`) under FORCE RLS (`67/72` `company_id` tables under FORCE RLS); `withSuperAdminQueueRead` and `getControlDatabase().db` for `/api/admin/queue` & `/api/admin/dashboard`.
   Rev. 83 (`BIM-CALC-2026-10-25.77`): T41 S4b (`0026_academy_control_rls`) — 6 Academy control-plane & certificate tables under FORCE RLS (`63/72`).
   Rev. 82 (`BIM-CALC-2026-10-25.76`): T41 S4a (`0025_allplan_learner_rls`) — 7 Allplan learner tables under FORCE RLS (`57/72`).
   Rev. 81 (`BIM-CALC-2026-10-25.75`): T41 S2 (`0024_pricing_regulations_rls`) — 8 pricing, source intelligence, and regulation tables under FORCE RLS (`50/72`).
@@ -71,7 +72,7 @@ history to `archive/` (latest: `archive/WORKING_STATE_until_2026-10-24.md`).
 - GAP programme (`docs/audits/GAP_KAPATMA_VE_KANIT_YOL_HARITASI_2026-10-23.md`):
   Faz 0–4 code/test done; Faz 5–6 partial (progress payments default-off,
   pilot L2); Faz 7 T40 role cutover live since Rev. 72 (canary, restore and
-  rollback evidence open), T41 partial (67/72 tenant `company_id` tables under FORCE RLS),
+  rollback evidence open), T41 code/PG16 done (72/72 `company_id` tables classified: 67 FORCE RLS + 5 S5 Exact-ACL; live post-deploy smoke open),
   T42 partial (code/test done), T43 partial (`c8` 46.80% + Playwright 6/6 in CI), T44–T45 open; Faz 8 T46–T49 code/test done; Faz 9–11 open. Expert trial guide:
   `/admin/roadmap/expert-review`.
 - Role and tenant models: `docs/operations/database-role-model.md`,

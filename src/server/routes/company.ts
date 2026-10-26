@@ -96,7 +96,7 @@ export function registerCompanyRoutes(app: Express, industrySettingsService: Com
   });
 
   app.get("/api/company/team", authenticate, async (req, res) => {
-    const members = await db.select({
+    const members = await withAppTenant(tenantOf(req.user), (tenantDb) => tenantDb.select({
       id: users.id,
       email: users.email,
       fullName: users.fullName,
@@ -104,7 +104,7 @@ export function registerCompanyRoutes(app: Express, industrySettingsService: Com
     })
     .from(memberships)
     .innerJoin(users, eq(memberships.userId, users.id))
-    .where(eq(memberships.companyId, req.user.companyId));
+    .where(eq(memberships.companyId, req.user.companyId)), { readOnly: true });
 
     res.json(members);
   });
@@ -272,7 +272,11 @@ export function registerCompanyRoutes(app: Express, industrySettingsService: Com
 
   app.get("/api/invitations", authenticate, checkRole(["owner", "admin"]), async (req, res) => {
     try {
-      const invites = await db.select().from(invitations).where(eq(invitations.companyId, req.user.companyId)).orderBy(desc(invitations.createdAt));
+      const invites = await withAppTenant(
+        tenantOf(req.user),
+        (tenantDb) => tenantDb.select().from(invitations).where(eq(invitations.companyId, req.user.companyId)).orderBy(desc(invitations.createdAt)),
+        { readOnly: true },
+      );
       res.json(invites.map(publicInvitation));
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch invitations" });

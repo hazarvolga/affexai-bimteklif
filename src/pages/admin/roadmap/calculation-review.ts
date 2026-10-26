@@ -1,9 +1,9 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-25.78",
-  updatedOn: "25 Ekim 2026",
-  implementationBaseline: "4a301358645a1ba0e01ec391abbc90e721421581",
-  approvalStatus: "Rev. 84, T41 S3 (0027_smartcheck_pipeline_rls) kapsamında 4 SmartCheck belge ve worker işlem hattı tablosunu (documents, document_processing_runs, document_processing_artifacts, normalized_quantity_rows) ENABLE+FORCE RLS altına alır (67/72 company_id tablosu FORCE RLS altında); Rev. 83 T41 S4b (6 Academy ve sertifika tablosu FORCE RLS), Rev. 82 T41 S4a (7 Allplan öğrenci tablosu FORCE RLS), Rev. 81 T41 S2 (8 fiyat/kaynak/mevzuat tablosu FORCE RLS), Rev. 80 T41 S1 (6 teklif çekirdeği tablosu FORCE RLS) ve database-role-provision.pgtest.ts düzeltmesini, Rev. 79 T43 CI sistem Python çözümlemesini, Rev. 78 T42 yetki/kaynak sınırı regresyonunu tamamlamıştır. Gerçek banka/dekont mutabakatı, bağımsız uzman imzası, gerçek vendor dosyası, T43 %80 eşiği, T44/T45 kanıtı ve kalan S5 tenant RLS dilimi tamamlanmadığından T41/T42/T43 ve Faz 7 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
+  version: "BIM-CALC-2026-10-25.79",
+  updatedOn: "26 Ekim 2026",
+  implementationBaseline: "0fb6d8bde319f281a676f48d5945c653c04ee4f8",
+  approvalStatus: "Rev. 85, T41 S5 dilimi (memberships, invitations, pilot_applications, admin_audit_logs, usage_records) için exact least-privilege ACL kontratını (DATABASE_AUTHORITY_AUDIT_COMPANY_TABLES ve DATABASE_PUBLIC_RESTRICTED_TABLE_ACL) kilitleyerek company_id taşıyan 72/72 tablonun tamamını (67 FORCE RLS + 5 S5 Exact-ACL) yerel PG16 üzerinde doğrular; Rev. 84 T41 S3 (4 SmartCheck belge/worker tablosu FORCE RLS), Rev. 83 T41 S4b (6 Academy ve sertifika tablosu FORCE RLS), Rev. 82 T41 S4a (7 Allplan öğrenci tablosu FORCE RLS), Rev. 81 T41 S2 (8 fiyat/kaynak/mevzuat tablosu FORCE RLS) ve Rev. 80 T41 S1 (6 teklif çekirdeği tablosu FORCE RLS) dilimlerini tamamlamıştır. Gerçek banka/dekont mutabakatı, bağımsız uzman imzası, gerçek vendor dosyası, T43 %80 eşiği, T44/T45 kanıtı ve canlı deploy sonrası role-model-smoke tamamlanmadığından T41/T42/T43 ve Faz 7 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
 };
 
 export interface ModuleRevisionNote {
@@ -1831,6 +1831,28 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
         before: "PDF preflight ve veraPDF doğrulama artifact okumaları FORCE RLS koruması olmadan çalışıyordu.",
         after: "PDF/A doğrulama artifact ve durum sorguları FORCE RLS altında withAppTenant ile çalışır.",
         basis: "Faz 7 T41 S3 — PDF/A artifact RLS izolasyonu",
+      },
+    },
+  },
+  {
+    revision: "Rev. 85",
+    version: "BIM-CALC-2026-10-25.79",
+    date: "26 Ekim 2026",
+    commit: "0fb6d8bde319f281a676f48d5945c653c04ee4f8",
+    trigger: "GAP planı T41 S5 dilimi (5 yetki/denetim/kota tablosu Exact-ACL kontratı ve 72/72 company_id tablo envanteri kapanışı).",
+    beforeSummary: "pilot_applications ve usage_records tabloları DATABASE_PUBLIC_RESTRICTED_TABLE_ACL içinde yer almadığı için bimmetraj_app ve bimmetraj_worker rolleri bu tablolarda DELETE yetkisine ve bimmetraj_worker rolü pilot_applications tablosunda okuma/yazma yetkisine sahipti; ayrıca GET /api/company/team ve GET /api/invitations rotaları withAppTenant kullanmıyordu.",
+    afterSummary: "DATABASE_AUTHORITY_AUDIT_COMPANY_TABLES (memberships, invitations, pilot_applications, admin_audit_logs, usage_records) tanımlandı; pilot_applications ve usage_records DATABASE_PUBLIC_RESTRICTED_TABLE_ACL matrisine eklenerek en-az-yetki ACL daraltması uygulandı; company.ts içindeki ekip ve davet listeleme rotaları withAppTenant içine taşındı; tenant-business-rls.pgtest.ts içinde PostgreSQL information_schema.columns üzerinden 72/72 company_id tablosunun tamamının (67 FORCE RLS + 5 S5 Exact-ACL) kapsandığı ve S5 negatif ACL/drift kontrollerinin geçtiği doğrulandı. Hesap yöntemleri değişmedi.",
+    affectedModules: ["teklif-satir", "ifc-metraj"],
+    moduleDetails: {
+      "teklif-satir": {
+        before: "Teklif ve IFC kota sayacı tablosu (usage_records) ile pilot başvuru tablosunda (pilot_applications) uygulama ve işçi rolleri gereksiz DELETE yetkisine sahipti.",
+        after: "usage_records ve pilot_applications DATABASE_PUBLIC_RESTRICTED_TABLE_ACL matrisine alınarak DELETE yetkisi tüm çalışma zamanı rollerinden, pilot_applications erişimi ise worker rolünden kaldırıldı; 72/72 company_id tablosu tam envanter mutabakatına kavuştu.",
+        basis: "Faz 7 T41 S5 — Yetki, denetim ve kota sayacı tabloları en-az-yetki ACL izolasyonu",
+      },
+      "ifc-metraj": {
+        before: "SmartCheck IFC kota sayacı (usage_records) üzerinde worker ve app rollerinin DELETE yetkisi açıktı.",
+        after: "usage_records tablosunda worker ve app rolleri yalnızca SELECT/INSERT/UPDATE ile sınırlandı; control rolü SELECT-only olarak kilitlendi.",
+        basis: "Faz 7 T41 S5 — IFC kota sayacı tablosu en-az-yetki ACL izolasyonu",
       },
     },
   },
