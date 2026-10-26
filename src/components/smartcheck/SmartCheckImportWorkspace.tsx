@@ -283,12 +283,12 @@ export function SmartCheckImportWorkspace() {
       : reviewedRows.length === 0
         ? "Önce satırları inceleyin: bulgusuz satırları onaylayın, bulgulu IFC satırlarında düzeltme veya gerekçeli istisna girin."
         : selectedPriceEvidenceCount === 0
-          ? "Fiyatı sistem uydurmaz: katalog/snapshot ekleyin, önerileri getirin ve uygun kanıtı satıra bağlayın."
+          ? "Sistem fiyat uydurmaz: fiyat kataloğunuzu ekleyin, önerileri getirin ve uygun fiyatı satıra bağlayın."
           : "Fiyat kanıtı bağlı satırlar teklife aktarılabilir; yeni taslak oluşturabilir veya mevcut taslağı seçebilirsiniz.";
   const workflowSteps: Array<{ label: string; value: string; hint: string; status: "done" | "active" | "waiting" }> = [
     { label: "1 · Kanıt satırları", value: isPdfFile && documentId ? "PDF/A Raporu" : rows.length ? `${rows.length} satır` : "Bekliyor", hint: isPdfFile && documentId ? "ISO 19005-2 + ISO 216" : rows.length ? `${openFindingCount} açık bulgu` : "Upload / örnek proje", status: (isPdfFile && documentId) || rows.length ? "done" : documentId || busy ? "active" : "waiting" },
     { label: "2 · İnsan review", value: `${reviewedRows.length}/${rows.length || 0}`, hint: pendingReviewCount ? `${pendingReviewCount} bekliyor` : "Aktarım kilidi açık", status: reviewedRows.length ? "done" : rows.length ? "active" : "waiting" },
-    { label: "3 · Fiyat kanıtı", value: `${selectedPriceEvidenceCount}/${reviewedRows.length || 0}`, hint: suggestionResults.length ? `${matchedSuggestionCount} öneri · ${safeSuggestionCount} güvenli` : `${priceSnapshots.length} snapshot`, status: selectedPriceEvidenceCount ? "done" : reviewedRows.length ? "active" : "waiting" },
+    { label: "3 · Fiyat kanıtı", value: `${selectedPriceEvidenceCount}/${reviewedRows.length || 0}`, hint: suggestionResults.length ? `${matchedSuggestionCount} öneri · ${safeSuggestionCount} güvenli` : `${priceSnapshots.length} kayıtlı fiyat`, status: selectedPriceEvidenceCount ? "done" : reviewedRows.length ? "active" : "waiting" },
     { label: "4 · Teklif taslağı", value: transferredQuotationId ? "Oluştu" : reviewedRows.length ? "Hazır" : "Bekliyor", hint: transferredQuotationId ? "Taslak açılabilir" : "İnsan onayı sonrası", status: transferredQuotationId ? "done" : reviewedRows.length ? "active" : "waiting" },
   ];
 
@@ -585,7 +585,7 @@ export function SmartCheckImportWorkspace() {
     });
     const imported = await readJsonBody<{ snapshots?: PriceSnapshotOption[]; error?: string }>(importResponse);
     const snapshot = imported.snapshots?.[0];
-    if (!importResponse.ok || !snapshot?.id) return toast.error(imported.error ?? "Fiyat snapshot oluşturulamadı.");
+    if (!importResponse.ok || !snapshot?.id) return toast.error(imported.error ?? "Fiyat kaydı oluşturulamadı.");
     setPriceSnapshots((current) => [snapshot, ...current.filter((candidate) => candidate.id !== snapshot.id)]);
     setSnapshotByRow((current) => ({ ...current, [row.id]: snapshot.id }));
     setManualSnapshotDraft((current) => ({ ...current, rowId: row.id, amount: "", sourceName }));
@@ -650,7 +650,7 @@ export function SmartCheckImportWorkspace() {
       ]);
       setPriceSuggestionsByRow({});
       setCatalogOwnershipConfirmed(false);
-      toast.success(`${(body.insertedCount ?? 0) + (body.reusedCount ?? 0)} fiyat snapshot kataloğa eklendi.`);
+      toast.success(`${(body.insertedCount ?? 0) + (body.reusedCount ?? 0)} fiyat kataloğa eklendi.`);
     } catch {
       toast.error("CSV fiyat kataloğu içe aktarılamadı.");
     } finally {
@@ -711,7 +711,7 @@ export function SmartCheckImportWorkspace() {
   };
 
   const transferCalmToQuotation = async (items: CalmTransferUiItem[]) => {
-    if (!documentId) { toast.error("Calm kaynak dokümanı bulunamadı."); return; }
+    if (!documentId) { toast.error("İcmalin kaynak dosyası bulunamadı."); return; }
     if (!quotationId) { toast.error("Önce mevcut güncel bir teklif seçin."); return; }
     const approvedRowIds = new Set(rows.filter((row) => row.reviewStatus === "approved").map((row) => row.id));
     let selection;
@@ -720,13 +720,13 @@ export function SmartCheckImportWorkspace() {
     } catch (error) {
       const code = error instanceof Error ? error.message : "";
       toast.error(code === "CALM_TRANSFER_PRICE_CONFLICT"
-        ? "Aynı canonical Calm satırı birden fazla fiyat snapshot'ına eşleşti. Kalemleri gözden geçirin."
-        : "Calm kalemlerinin kaynak satır kanıtı eksik; kalıcı aktarım durduruldu.");
+        ? "Aynı icmal satırı birden fazla fiyat kaydına eşleşti. Kalemleri gözden geçirin."
+        : "İcmal kalemlerinin kaynak satır bilgisi eksik; aktarım durduruldu.");
       return;
     }
     const sourceRowIds = [...new Set(items.flatMap((item) => item.sourceQuantityRowIds))];
     if (sourceRowIds.some((rowId) => !approvedRowIds.has(rowId))) {
-      toast.error("Calm aktarımı için katkı veren tüm kaynak satırlar doğrudan mühendis onaylı olmalıdır.");
+      toast.error("Aktarım için kaleme giren tüm kaynak satırların mühendis tarafından onaylanmış olması gerekir.");
       return;
     }
     setCalmTransferBusy(true);
@@ -738,7 +738,7 @@ export function SmartCheckImportWorkspace() {
         body: JSON.stringify({ quotationId, ...selection }),
       });
       const body = await readJsonBody<{ error?: string; quotationId?: string; revisionVersion?: number; transferredCount?: number; replayed?: boolean }>(response);
-      if (!response.ok || !body.quotationId) { toast.error(body.error ?? "Calm teklif aktarımı tamamlanamadı."); return; }
+      if (!response.ok || !body.quotationId) { toast.error(body.error ?? "İcmalin teklife aktarımı tamamlanamadı."); return; }
       window.localStorage.setItem(attempt.storageKey, JSON.stringify({
         ...attempt.record,
         resultQuotationId: body.quotationId,
@@ -760,7 +760,7 @@ export function SmartCheckImportWorkspace() {
         ? `Daha önce oluşturulan Rev. ${body.revisionVersion ?? "?"} tekrar açıldı.`
         : `${body.transferredCount ?? sourceRowIds.length} kaynak satırdan Rev. ${body.revisionVersion ?? "?"} oluşturuldu.`);
     } catch {
-      toast.error("Calm teklif aktarımı sırasında bağlantı hatası oluştu.");
+      toast.error("İcmal teklife aktarılırken bağlantı hatası oluştu.");
     } finally {
       setCalmTransferBusy(false);
     }
@@ -883,7 +883,7 @@ export function SmartCheckImportWorkspace() {
           <p className="mx-auto mt-2 max-w-lg text-xs leading-relaxed text-muted-foreground">
             {isPdfFile
               ? "PDF/A-2B (ISO 19005-2), ISO 216 standart kağıt ölçüsü ve e-imza (/Sig) kontrolleri yürütülüyor."
-              : "IFC katmanları, kapı/pencere boşluk düşümleri (minha) ve bağımsız bölüm (daire) net/brüt alanları çıkarılıyor. İşlem tamamlandığında İcmal Paftası otomatik açılacaktır."}
+              : "IFC katmanları, kapı/pencere boşluk düşümleri (minha) ve bağımsız bölüm (daire) net/brüt alanları çıkarılıyor. İşlem tamamlandığında metraj icmali otomatik açılır."}
           </p>
           <div className="mt-4 stamp-badge bg-background text-primary border-primary/40">
             {stage}
@@ -909,10 +909,10 @@ export function SmartCheckImportWorkspace() {
             <div className="lg:col-span-7 space-y-6">
               <div>
                 <h2 className="font-display-serif text-3xl sm:text-4xl text-foreground">
-                  Proje Dosyanızı Yükleyin ve <em>Resmi İcmal Paftası</em> Üretin
+                  Proje Dosyanızı Yükleyin, <em>Kaynak Bağlantılı Metraj İcmali</em> Oluşturun
                 </h2>
                 <p className="mt-2 text-xs sm:text-sm leading-relaxed text-muted-foreground max-w-xl">
-                  IFC modelinizi yüklediğinizde çok katmanlı imalatlar (Şap, Parke, Seramik, Fayans, Sıva, Boya, Süpürgelik), kapı/pencere boşluk düşümleri (minha) ve bağımsız bölüm (daire) m² cetveli otomatik çıkarılır.
+                  IFC modelinizi yüklediğinizde imalat kalemleri, modelde varsa çok katmanlı kaplamalar ve kapı/pencere boşluk düşümleri (minha) ile daire m² cetveli çıkarılır. Modelde bulunmayan bilgi sonuç ekranında ayrıca belirtilir.
                 </p>
               </div>
 
@@ -957,7 +957,7 @@ export function SmartCheckImportWorkspace() {
                   <Upload size={15} />
                   <span>
                     {isIfcFile
-                      ? "IFC Modelini Yükle ve İcmal Paftası Çıkar"
+                      ? "IFC Modelini Yükle ve Metraj İcmalini Çıkar"
                       : isPdfFile
                         ? "PDF/A Ön Kontrolü Başlat"
                         : "Dosyayı Yükle ve Analiz Et"}

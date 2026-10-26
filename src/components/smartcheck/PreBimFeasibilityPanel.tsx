@@ -344,7 +344,7 @@ export const PreBimFeasibilityPanel: React.FC = () => {
                 <span className="font-mono">{parcel.planningComplianceStatus}</span>
               </div>
             ))}
-            <p className="mt-2 text-[10px] text-muted-foreground">Kurum, belge numarası, geçerli tarih ve SHA-256 ile doğrulanmış yerel plan artifact'ı yoksa sonuç yalnız aritmetik danışmanlıktır ve not_evaluated kalır. Formdaki serbest metin tek başına resmî kanıt değildir.</p>
+            <p className="mt-2 text-[10px] text-muted-foreground">Kurum, belge numarası, geçerli tarih ve SHA-256 ile doğrulanmış yerel plan belgesi yoksa sonuç yalnız aritmetik danışmanlıktır ve değerlendirilmedi kalır. Formdaki serbest metin tek başına resmî kanıt değildir.</p>
           </div>
 
           {result.costBreakdown && (

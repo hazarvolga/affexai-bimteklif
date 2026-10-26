@@ -37,7 +37,7 @@ const LANDING_ROUTE_META: Record<string, { title: string; description: string; c
   },
   '/features': {
     title: 'Özellikler — IFC QTO, TS 500 Sihirbazı, SmartCheck & RG 33331 e-PYS | BIMMetraj',
-    description: 'openBIM IFC 2x3/4/4X3 metraj çıkarma, TS 500 kiriş-döşeme kesişim ve CSB_2026_V1 Minha düşümü, kaynak denetimli fiyat snapshot akışı ve RG 33331 EK-9 ön kontrolü.',
+    description: 'openBIM IFC 2x3/4/4X3 metraj çıkarma, TS 500 kiriş-döşeme kesişim ve CSB_2026_V1 Minha düşümü, kaynağı kayıtlı firma fiyatları ve RG 33331 EK-9 ön kontrolü.',
     canonicalPath: '/features',
   },
   '/about': {
@@ -535,7 +535,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
               <div className="rounded-sm border border-border bg-card/60 p-4">
                 <span className="font-mono text-xs uppercase tracking-wider text-primary font-semibold">ÇŞB 2026 & Fiyat Kataloğu</span>
                 <p className="mt-1 text-sm font-medium text-foreground">18.848 Kaynak Satırı · Kullanım Yetkisi Ayrı Kapı</p>
-                <p className="mt-1 text-xs text-muted-foreground">6 ÇŞB 2026 PDF kitabından ayrıştırılan satırlar ile firma BYOL kataloğu ayrı tutulur. Yalnız kullanım yetkisi kanıtlı, tenant'a ait, incelenmiş ve geçerli fiyat snapshot'ı cetvele bağlanır.</p>
+                <p className="mt-1 text-xs text-muted-foreground">ÇŞB 2026 birim fiyat kitaplarından okunan satırlar ile firmanızın kendi fiyat kataloğu ayrı tutulur. Cetvele yalnız kullanım izni bulunan, firmanıza ait, incelenmiş ve geçerlilik süresi dolmamış fiyatlar bağlanır.</p>
               </div>
               <div className="rounded-sm border border-border bg-card/60 p-4">
                 <span className="font-mono text-xs uppercase tracking-wider text-primary font-semibold">IFC 2x3 / 4 / 4X3 · ISO 19650 & PDF/A</span>
@@ -583,7 +583,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
                   <div className="w-9 h-9 rounded-sm bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-4">
                     <Building2 size={18} />
                   </div>
-                  <h3 className="text-base font-bold text-foreground mb-1.5">ÇŞB 2026 6 Resmi Kitap & BYOL</h3>
+                  <h3 className="text-base font-bold text-foreground mb-1.5">ÇŞB 2026 Kitapları & Firma Kataloğu</h3>
                   <p className="text-xs text-muted-foreground leading-relaxed">
                     18.848 ayrıştırılmış ÇŞB 2026 kaynak satırı (İnşaat/Mekanik/Elektrik) yapısal denetime tabidir; ticari kullanım yetkisi ayrıca kaydedilir. Kurum içi BYOL yükleme ve <code className="font-mono text-[11px]">TREpys_PozOzellikSeti.PozNo</code> birim uyum kontrolü.
                   </p>
@@ -701,7 +701,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
                 badge="ÇŞB 2026 · STR / ARC / MEP"
                 icon={<ClipboardCheck size={20} />}
                 title="Poz Eşleştirme & Uzman Onayı"
-                text="Kalemleriniz TREpys_PozOzellikSeti.PozNo veya denetimli arama ile tenant kapsamındaki yetkilendirilmiş fiyat snapshot kayıtlarıyla eşleşir. Birim, geçerlilik veya kullanım yetkisi kanıtı eksikse fiyat otomatik seçilmez; reviewer kaydı gerekir."
+                text="Kalemleriniz poz numarası veya denetimli arama ile firmanızın kayıtlı fiyatlarıyla eşleşir. Birim, geçerlilik veya kullanım izni eksikse fiyat otomatik seçilmez; yetkili kişinin incelemesi gerekir."
                 highlights={[
                   'SHA-256 kaynak izi + kullanım yetkisi kanıtı',
                   'Birim uyuşmazlığı (m² ↔ m³ ↔ ton) kilidi',
@@ -713,10 +713,10 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
                 badge="5D TEKLİF · ESKALASYON · PDF"
                 icon={<ShieldCheck size={20} />}
                 title="5D Teklif, Simülasyon & Çıktı"
-                text="Seçilen Calm icmal satırları sunucuda aynı IFC kanıtından yeniden kurulur ve yalnız yetkili fiyatla mevcut teklifin kalıcı ardıl revizyonuna aktarılır. Önceki revizyon korunur; dosya hash'i, işlem çalışması, STEP kimliği ve fiyat kaynağı satır izinde saklanır."
+                text="Seçilen icmal satırları aynı IFC dosyasından sunucuda yeniden kurulur ve yalnız kayıtlı fiyatla teklifin yeni bir sürümüne aktarılır. Önceki sürüm korunur; dosya kimliği, model elemanı ve fiyat kaynağı her satırda saklanır."
                 highlights={[
                   'Kârlılık, opsiyon ve eskalasyon simülasyonu',
-                  'Kaynak hash + run + STEP izli kalıcı teklif revizyonu',
+                  'Kaynağı kayıtlı, önceki sürümü korunan teklif',
                   'Kurumsal PDF & Excel ihale/hakediş paketi',
                 ]}
               />
@@ -802,7 +802,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
               BIMMetraj
             </div>
             <p className="mt-3 max-w-sm leading-relaxed text-muted-foreground">
-              İnşaat ve mimarlık teknik ekipleri için açık BIM tabanlı metraj çıkarma, poz/fiyat kataloğu entegrasyonu ve resmi ihale masası.
+              İnşaat ve mimarlık teknik ekipleri için açık BIM tabanlı metraj çıkarma, firma fiyat kataloğu ve teknik ofis teklif çalışma alanı.
             </p>
           </div>
           <div>

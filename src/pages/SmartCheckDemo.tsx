@@ -4,6 +4,7 @@
  */
 
 import React, { useState } from 'react';
+import { SEVERITY_LABEL } from '@/i18n/ui-terms';
 import { ACADEMY_ENABLED } from '@/config/features';
 import { Link, useLocation } from 'react-router-dom';
 import {
@@ -180,7 +181,7 @@ export function SmartCheckDemo() {
                         {finding.sourceType === 'simulated_model_finding' ? 'IFC Model Verisi' : 'Sözlük Eşleşmesi'}
                       </span>
                       <span className="text-primary font-semibold uppercase tracking-wider">
-                        {finding.severity}
+                        {SEVERITY_LABEL[finding.severity]}
                       </span>
                     </div>
                   </div>

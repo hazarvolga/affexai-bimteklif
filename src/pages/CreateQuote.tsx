@@ -69,6 +69,12 @@ import { calculateQuotationFinancials } from '@/lib/financial-calculations';
 import { parsePreBimQuoteDraft, PRE_BIM_DRAFT_STORAGE_KEY } from '@/lib/pre-bim-quote-draft';
 import { parseQuoteCsv, buildQuoteCsvTemplate } from '@/lib/quote-excel-import';
 
+// Base UI shows the raw value in a closed Select unless `items` maps values to labels (marka.md M-12.3).
+const CURRENCY_LABELS: Record<string, string> = { [Currency.TRY]: "Türk Lirası (₺)", [Currency.USD]: "Dolar ($)", [Currency.EUR]: "Euro (€)" };
+const DELIVERY_LEVEL_LABELS = { none: "Kapsam yok", as_built: "As-built teslim", cobie: "COBie veri teslimi", digital_twin: "Dijital ikiz hazırlığı" } as const;
+const PROCUREMENT_PROFILE_LABELS = { standard: "Standart", low_carbon: "Düşük karbon hedefi", high_carbon_risk: "Yüksek karbon riski" } as const;
+const INDUSTRY_FALLBACK_LABELS: Record<string, string> = { residential: "Konut" };
+
 export function CreateQuote() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
@@ -575,7 +581,7 @@ export function CreateQuote() {
               <div className="flex flex-col md:flex-row gap-4">
                 <div className="w-full md:w-48 shrink-0">
                   <Label htmlFor="quote-industry" className="text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-widest mb-1.5 block">Sektör</Label>
-                  <Select value={selectedIndustry} onValueChange={setSelectedIndustry}>
+                  <Select value={selectedIndustry} onValueChange={setSelectedIndustry} items={{ ...INDUSTRY_FALLBACK_LABELS, ...Object.fromEntries(industries.map(ind => [ind.id, ind.name])) }}>
                     <SelectTrigger id="quote-industry" className="bg-background border-border text-foreground h-11 text-xs">
                       <SelectValue placeholder="Sektör" />
                     </SelectTrigger>
@@ -649,7 +655,7 @@ export function CreateQuote() {
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <Info size={13} className="text-primary shrink-0" />
                   <p className="text-[11px] font-mono">
-                    Birim fiyatlar piyasa verilerine göre AI asistanı tarafından hesaplanır.
+                    AI, kalem listesi ve başlangıç fiyat tahmini taslağı hazırlar. Bu tahminler piyasa verisi değildir; miktar ve fiyatları kaynaklarıyla inceleyip onaylayın.
                   </p>
                 </div>
               )}
@@ -968,7 +974,7 @@ export function CreateQuote() {
                   <Label htmlFor="quote-client" className="text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
                     <Users size={12} className="text-primary" /> Müşteri İlişkilendirme
                   </Label>
-                  <Select value={formData.clientId} onValueChange={(v) => setFormData({...formData, clientId: v})}>
+                  <Select value={formData.clientId} onValueChange={(v) => setFormData({...formData, clientId: v})} items={Object.fromEntries(clients.map(c => [c.id, c.name]))}>
                     <SelectTrigger id="quote-client" className="bg-background border-border text-foreground focus:ring-primary h-11 text-xs font-semibold">
                       <SelectValue placeholder="Bir müşteri atayın..." />
                     </SelectTrigger>
@@ -993,14 +999,12 @@ export function CreateQuote() {
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
                     <Label htmlFor="quote-currency" className="text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-widest">Para Birimi</Label>
-                    <Select value={formData.currency} onValueChange={(v) => setFormData({...formData, currency: v as Currency})}>
+                    <Select value={formData.currency} onValueChange={(v) => setFormData({...formData, currency: v as Currency})} items={CURRENCY_LABELS}>
                       <SelectTrigger id="quote-currency" className="bg-background border-border text-foreground h-11 text-xs">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="bg-card border-border text-foreground">
-                        <SelectItem value={Currency.TRY} className="text-xs font-medium">Türk Lirası (₺)</SelectItem>
-                        <SelectItem value={Currency.USD} className="text-xs font-medium">Dolar ($)</SelectItem>
-                        <SelectItem value={Currency.EUR} className="text-xs font-medium">Euro (€)</SelectItem>
+                        {Object.entries(CURRENCY_LABELS).map(([value, label]) => <SelectItem key={value} value={value} className="text-xs font-medium">{label}</SelectItem>)}
                       </SelectContent>
                     </Select>
                   </div>
@@ -1014,13 +1018,10 @@ export function CreateQuote() {
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
                     <Label htmlFor="quote-delivery-level" className="text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-widest">Bilgi Teslimi</Label>
-                    <Select value={formData.informationDeliveryLevel} onValueChange={(value) => setFormData({...formData, informationDeliveryLevel: value as typeof formData.informationDeliveryLevel, informationDeliveryCostPercent: value === 'as_built' ? 1 : value === 'cobie' ? 2 : value === 'digital_twin' ? 4 : 0})}>
+                    <Select value={formData.informationDeliveryLevel} onValueChange={(value) => setFormData({...formData, informationDeliveryLevel: value as typeof formData.informationDeliveryLevel, informationDeliveryCostPercent: value === 'as_built' ? 1 : value === 'cobie' ? 2 : value === 'digital_twin' ? 4 : 0})} items={DELIVERY_LEVEL_LABELS}>
                       <SelectTrigger id="quote-delivery-level" className="bg-background border-border text-foreground h-11 text-xs"><SelectValue /></SelectTrigger>
                       <SelectContent className="bg-card border-border text-foreground">
-                        <SelectItem value="none" className="text-xs font-medium">Kapsam yok</SelectItem>
-                        <SelectItem value="as_built" className="text-xs font-medium">As-built teslim</SelectItem>
-                        <SelectItem value="cobie" className="text-xs font-medium">COBie veri teslimi</SelectItem>
-                        <SelectItem value="digital_twin" className="text-xs font-medium">Dijital ikiz hazırlığı</SelectItem>
+                        {Object.entries(DELIVERY_LEVEL_LABELS).map(([value, label]) => <SelectItem key={value} value={value} className="text-xs font-medium">{label}</SelectItem>)}
                       </SelectContent>
                     </Select>
                   </div>
@@ -1031,12 +1032,10 @@ export function CreateQuote() {
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
                     <Label htmlFor="quote-procurement-profile" className="text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-widest">Tedarik Profili</Label>
-                    <Select value={formData.procurementProfile} onValueChange={(value) => setFormData({...formData, procurementProfile: value as typeof formData.procurementProfile, carbonRiskPremiumPercent: value === 'high_carbon_risk' ? 4 : 0})}>
+                    <Select value={formData.procurementProfile} onValueChange={(value) => setFormData({...formData, procurementProfile: value as typeof formData.procurementProfile, carbonRiskPremiumPercent: value === 'high_carbon_risk' ? 4 : 0})} items={PROCUREMENT_PROFILE_LABELS}>
                       <SelectTrigger id="quote-procurement-profile" className="bg-background border-border text-foreground h-11 text-xs"><SelectValue /></SelectTrigger>
                       <SelectContent className="bg-card border-border text-foreground">
-                        <SelectItem value="standard" className="text-xs font-medium">Standart</SelectItem>
-                        <SelectItem value="low_carbon" className="text-xs font-medium">Düşük karbon hedefi</SelectItem>
-                        <SelectItem value="high_carbon_risk" className="text-xs font-medium">Yüksek karbon riski</SelectItem>
+                        {Object.entries(PROCUREMENT_PROFILE_LABELS).map(([value, label]) => <SelectItem key={value} value={value} className="text-xs font-medium">{label}</SelectItem>)}
                       </SelectContent>
                     </Select>
                   </div>
@@ -1099,7 +1098,7 @@ export function CreateQuote() {
             <div>
               <p className="text-xs font-mono font-bold text-foreground uppercase tracking-wider mb-1">Profesyonel İpucu</p>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Pazarlık payı için %5-8 arası indirim kalemini AI asistanınıza eklemesini söyleyebilirsiniz.
+                İndirim ve pazarlık payını kendi maliyet yapınıza ve marj hedefinize göre belirleyin.
               </p>
             </div>
           </div>

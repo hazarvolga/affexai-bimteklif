@@ -611,7 +611,7 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
             {activeStep === "maliyet" ? (
               <>
                 <Download className="w-3.5 h-3.5" />
-                <span>{transferredQuotationId ? "Ardıl Revizyon Oluşturuldu" : transferBusy ? "Aktarılıyor…" : "Seçili Teklife Yeni Revizyon Aktar"}</span>
+                <span>{transferredQuotationId ? "Yeni teklif sürümü oluşturuldu" : transferBusy ? "Aktarılıyor…" : "Seçili Teklife Yeni Revizyon Aktar"}</span>
               </>
             ) : (
               <>
@@ -1456,12 +1456,12 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
                   ))}
                 </select>
                 <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground">
-                  Calm aktarımı seçilen güncel teklifi değiştirmez; yeni ve değiştirilemez bir ardıl revizyon oluşturur.
+                  Aktarım seçilen teklifi değiştirmez; önceki sürüm korunur ve teklifin değiştirilemeyen yeni bir sürümü oluşturulur.
                 </p>
                 {!quotations.length && <p className="mt-1 text-[10px] font-semibold text-amber-400">Aktarım için önce mevcut bir teklif oluşturulmalıdır.</p>}
                 {transferredQuotationId && (
                   <Link className="mt-2 inline-block text-xs font-bold text-emerald-400 underline" to={`/app/quotes/${transferredQuotationId}`}>
-                    Oluşturulan ardıl teklifi aç
+                    Oluşturulan teklif sürümünü aç
                   </Link>
                 )}
               </div>
@@ -1469,12 +1469,12 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
                 type="button"
                 onClick={handleTransferClick}
                 disabled={!allPricesResolved || !onTransferToQuote || !selectedQuotationId || transferBusy || Boolean(transferredQuotationId)}
-                title={!selectedQuotationId ? "Aktarım için mevcut güncel teklif seçin." : allPricesResolved ? undefined : "Tüm kalemler için onaylı ve yetkilendirilmiş fiyat snapshot'ı gerekir."}
+                title={!selectedQuotationId ? "Aktarım için mevcut güncel teklif seçin." : allPricesResolved ? undefined : "Aktarım için tüm kalemlerin fiyatı firma kataloğunuzda kayıtlı olmalı."}
                 className="pafta-button w-full !justify-center disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <Download className="w-4 h-4" />
                 <span>
-                  {transferredQuotationId ? "Ardıl Revizyon Oluşturuldu" : transferBusy ? "Calm İcmali Aktarılıyor…" : "Calm İcmalinden Ardıl Teklif Revizyonu Oluştur"}
+                  {transferredQuotationId ? "Yeni teklif sürümü oluşturuldu" : transferBusy ? "İcmal aktarılıyor…" : "İcmali teklife yeni sürüm olarak aktar"}
                 </span>
               </button>
             </div>
@@ -1699,7 +1699,7 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
                   Dosya Adı Şablonu:{" "}
                   <strong className="text-foreground">{isoContainerIdentity.namingStandard}</strong>
                 </span>
-                <span className="stamp-badge bg-card text-muted-foreground">Kanonik geçmiş: Sunucu CDE</span>
+                <span className="stamp-badge bg-card text-muted-foreground">Karar geçmişi: sunucuda kayıtlı</span>
               </div>
 
               <div className="mt-2.5 border border-border bg-card p-2.5 text-[11px] font-mono text-muted-foreground space-y-1.5">
