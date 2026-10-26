@@ -67,7 +67,7 @@ import { applyIfcTransferredUnitPrices, buildIfcEstimateQuoteItems } from '@/ifc
 import { calculateLineItemTotal, calculateQuotationTotals } from '@/lib/calculations';
 import { calculateQuotationFinancials } from '@/lib/financial-calculations';
 import { parsePreBimQuoteDraft, PRE_BIM_DRAFT_STORAGE_KEY } from '@/lib/pre-bim-quote-draft';
-import { parseQuoteCsv, parseQuoteXlsx, buildQuoteCsvTemplate } from '@/lib/quote-excel-import';
+import { parseQuoteCsv, buildQuoteCsvTemplate } from '@/lib/quote-excel-import';
 
 export function CreateQuote() {
   const navigate = useNavigate();
@@ -327,6 +327,7 @@ export function CreateQuote() {
       const isXlsx = file.name.toLowerCase().endsWith('.xlsx') || file.name.toLowerCase().endsWith('.xls');
       let result;
       if (isXlsx) {
+        const { parseQuoteXlsx } = await import('@/lib/quote-xlsx');
         const buffer = await file.arrayBuffer();
         result = await parseQuoteXlsx(buffer, file.name);
       } else {

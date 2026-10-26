@@ -1,9 +1,9 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-25.81",
+  version: "BIM-CALC-2026-10-25.82",
   updatedOn: "26 Ekim 2026",
-  implementationBaseline: "e1eb7f9a3eb22f9309b2dc5e74f4c855ef050e87",
-  approvalStatus: "Rev. 87, T43 R+1 kapsam ratchet dilimini (proje satır kapsamı %46,80 → %53,04 ≥ %52, HTTP API route satır kapsamı %54,26 → %81,31 ≥ %80, 1416 testte 1409 PASS / 0 FAIL / 7 SKIP) ve 3-rol PG16 entegrasyon testlerinde yakalanan 3 canlı üretim hatasının (auth.ts login/me şirketsiz Academy öğrenci profili FORCE RLS hatası, admin.ts sync-catalog control-plane admin_audit_logs 42501 hatası ve admin.ts reports/usage topConsumers companies FORCE RLS boş liste hatası) düzeltmesini tamamlar; Rev. 86 T44 5-sütunlu kurtarma tatbikatını ve Rev. 80–85 72/72 company_id tablosunun tamamını (67 FORCE RLS + 5 S5 Exact-ACL) yerel PG16 üzerinde doğrulamıştır. Gerçek banka/dekont mutabakatı, bağımsız uzman imzası, gerçek vendor dosyası, T43 %80 eşiği (R+2..R+4), T45 kanıtı ve canlı deploy sonrası role-model-smoke/container digest doğrulaması tamamlanmadığından T41/T42/T43/T44 ve Faz 7 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
+  implementationBaseline: "fd7cc748857d31e53c63718d3ce8e4c5ba8c593b",
+  approvalStatus: "Rev. 88, T45 performans ve işletim bütçesi dilimini (PERFORMANCE_BUDGETS BIM-PERF-2026-10-26.1 önceden kayıtlı p95/RAM/eşzamanlılık bütçeleri, quote-xlsx.ts + CreateQuote.tsx + vite.config.ts ile 940 kB exceljs paketinin CreateQuote-*.js 49,67 kB ve index-*.js 106,47 kB ≤ 120 kB başlangıç paketlerinden ayrılması, t45-performance-budget.test.ts 5/5 PASS: 1.000 satır XLSX + 256 MB izole worker 1.489,98 ms ≤ 2.500 ms + SPREADSHEET_BUSY geri kazanımı, 20 eşzamanlı tenant PG16 p95 = 21,90 ms ≤ 250 ms, kuyruk claim 3,78 ms ≤ 150 ms, Sentry PII maskeleme p95 < 1 ms ≤ 5 ms, AI router failover < 5 ms ≤ 50 ms) tamamlar; Rev. 87 T43 R+1 kapsam ratchet dilimini (proje %53,04 ≥ %52, HTTP API route %81,31 ≥ %80), Rev. 86 T44 5-sütunlu kurtarma tatbikatını ve Rev. 80–85 72/72 company_id tablosunun tamamını (67 FORCE RLS + 5 S5 Exact-ACL) yerel PG16 üzerinde doğrulamıştır. Gerçek banka/dekont mutabakatı, bağımsız uzman imzası, gerçek izinli büyük müşteri dosyaları (T51), T43 %80 eşiği (R+2..R+4) ve canlı deploy sonrası role-model-smoke/container digest/VPS yük doğrulaması (T52) tamamlanmadığından T41/T42/T43/T44/T45 ve Faz 7 PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
 };
 
 export interface ModuleRevisionNote {
@@ -1912,6 +1912,33 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
         before: "auth.ts POST /api/auth/login ve GET /api/auth/me uçlarında şirketsiz (membership=null) Academy öğrencileri için academy_learner_profiles okunmadığından accountType='workspace' dönüyordu.",
         after: "auth.ts login ve me uçlarında membership=null olduğunda getControlDatabase().db.query.academyLearnerProfiles.findFirst ile öğrenci profili okunarak accountType='academy_student' doğru döndürüldü; academy.ts (%84,65) 3-rol PG16 altında doğrulandı.",
         basis: "Faz 7 T43 R+1 — Şirketsiz Academy öğrencisi oturum ve kimlik doğrulama RLS düzeltmesi",
+      },
+    },
+  },
+  {
+    revision: "Rev. 88",
+    version: "BIM-CALC-2026-10-25.82",
+    date: "26 Ekim 2026",
+    commit: "fd7cc748857d31e53c63718d3ce8e4c5ba8c593b",
+    trigger: "GAP planı T45 — Performans ve işletim bütçesi: önceden kayıtlı p95/RAM/eşzamanlılık bütçeleri (BIM-PERF-2026-10-26.1), ExcelJS chunk izolasyonu ve 5/5 ölçüm kapısı.",
+    beforeSummary: "CreateQuote.tsx üst düzeyde quote-excel-import.ts üzerinden parseQuoteXlsx fonksiyonunu içe aktardığı için Rollup, CreateQuote-*.js paketinin bağımlılık haritasına (__vite__mapDeps) 940 kB'lık exceljs paketini ekliyor ve vite.config.ts modulePreload.resolveDependencies yalnızca index.html bağlamında sadece charts paketini filtreliyordu. Ayrıca önceden kayıtlı performans bütçesi modülü ve 1.000 satır XLSX, 20 eşzamanlı tenant PG16, Sentry PII scrub ve AI failover gecikmelerini tek kapıda doğrulayan kontrat testi yoktu.",
+    afterSummary: "src/lib/quote-xlsx.ts ile dinamik exceljs okuyucusu quote-excel-import.ts'ten ayrıldı; CreateQuote.tsx yalnız .xlsx/.xls seçildiğinde await import('@/lib/quote-xlsx') çağırır; vite.config.ts manualChunks içine exceljs kuralı ve modulePreload.resolveDependencies içine charts/exceljs/ifc-viewer genel filtresi eklendi (CreateQuote-*.js 49,67 kB, index-*.js 106,47 kB ≤ 120 kB). src/server/config/performance-budgets.ts (BIM-PERF-2026-10-26.1) ve src/contracts/t45-performance-budget.test.ts (5/5 PASS: 1.000 satır XLSX + 256 MB izole worker 1.489,98 ms ≤ 2.500 ms + SPREADSHEET_BUSY geri kazanımı, 20 eşzamanlı tenant PG16 p95 = 21,90 ms ≤ 250 ms, kuyruk claim 3,78 ms ≤ 150 ms, Sentry PII scrub p95 < 1 ms ≤ 5 ms, AI failover < 5 ms ≤ 50 ms) devreye alındı. Hesap yöntemleri değişmedi.",
+    affectedModules: ["teklif-satir", "satir-dogrulama", "kota"],
+    moduleDetails: {
+      "teklif-satir": {
+        before: "CreateQuote.tsx üst düzeyde parseQuoteXlsx içe aktardığı için CreateQuote-*.js paketi 940 kB exceljs bağımlılığı taşıyordu; 1.000 satırlık metraj XLSX ayrıştırma bütçesi kayıtlı değildi.",
+        after: "src/lib/quote-xlsx.ts ayrıştırması ve dinamik import ile CreateQuote-*.js (49,67 kB / 13,82 kB gzip) exceljs bağımlılığından tamamen arındırıldı; 1.000 satırlık inşaat metraj XLSX ayrıştırması t45-performance-budget.test.ts ile doğrulandı.",
+        basis: "Faz 7 T45 — Teklif editörü ExcelJS chunk izolasyonu ve 1.000 satır XLSX bütçe kapısı",
+      },
+      "satir-dogrulama": {
+        before: "spreadsheet-runner.ts (--max-old-space-size=256) için 1.000 satırlık XLSX ayrıştırma p95 bütçesi ve 3. eşzamanlı işte SPREADSHEET_BUSY reddi sonrası temiz geri kazanım otomatik bütçe testine bağlı değildi.",
+        after: "PERFORMANCE_BUDGETS (BIM-PERF-2026-10-26.1) ve t45-performance-budget.test.ts ile 1.000 satır XLSX + izole worker ayrıştırması (1.489,98 ms ≤ 2.500 ms), > 25 MiB FILE_SIZE_INVALID reddi ve SPREADSHEET_BUSY geri kazanımı doğrulandı.",
+        basis: "Faz 7 T45 — İzole spreadsheet worker RAM/eşzamanlılık ve p95 bütçe kapısı",
+      },
+      kota: {
+        before: "compose.coolify.yaml konteyner bellek/CPU sınırları, 20 eşzamanlı tenant PG16 sorgu gecikmesi, Sentry PII maskeleme ve AIProviderRouter failover süreleri tek bir önceden kayıtlı bütçe sözleşmesinde toplanmamıştı.",
+        after: "src/server/config/performance-budgets.ts ile tüm konteyner ve çalışma zamanı bütçeleri koda kaydedildi; 20 eşzamanlı tenant PG16 (p95 = 21,90 ms ≤ 250 ms), kuyruk claim (3,78 ms ≤ 150 ms), PII scrub (p95 < 1 ms ≤ 5 ms) ve AI failover (< 5 ms ≤ 50 ms) t45-performance-budget.test.ts (5/5 PASS) ile doğrulandı.",
+        basis: "Faz 7 T45 — Konteyner kaynak tavanları ve çalışma zamanı p95 işletim bütçesi",
       },
     },
   },

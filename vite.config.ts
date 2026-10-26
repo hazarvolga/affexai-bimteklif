@@ -25,11 +25,13 @@ export default defineConfig(({mode}) => {
     },
     build: {
       modulePreload: {
-        resolveDependencies: (_filename, deps, context) => {
-          if (context.hostType === 'html') {
-            return deps.filter((dep) => !dep.includes('charts'));
-          }
-          return deps;
+        resolveDependencies: (_filename, deps) => {
+          return deps.filter(
+            (dep) =>
+              !dep.includes('charts') &&
+              !dep.includes('exceljs') &&
+              !dep.includes('ifc-viewer'),
+          );
         },
       },
       rollupOptions: {
@@ -40,6 +42,10 @@ export default defineConfig(({mode}) => {
             const pkg = parts[parts.length - 1] || '';
             if (pkg.startsWith('recharts/') || pkg.startsWith('d3-') || pkg.startsWith('victory-vendor/')) {
               return 'charts';
+            }
+            if (pkg.startsWith('exceljs/')) {
+              // Loaded only on explicit .xlsx file selection; never on initial route or CSV workflows.
+              return 'exceljs';
             }
             if (pkg.startsWith('lucide-react/')) {
               return 'icons';
