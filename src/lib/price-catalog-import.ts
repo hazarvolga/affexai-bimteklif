@@ -8,7 +8,7 @@ import { LEGACY_XLS_MESSAGE } from "./spreadsheet-format";
 
 export type PriceCatalogImportRow = TenantPriceCatalogRow;
 
-type Cell = string | number | null | undefined;
+export type Cell = string | number | null | undefined;
 
 const OLE_SIGNATURE = [0xd0, 0xcf, 0x11, 0xe0];
 
@@ -61,22 +61,48 @@ function text(value: Cell): string {
   return String(value).trim();
 }
 
+export type PriceCatalogField = "positionCode" | "description" | "unit" | "amount" | "currency" | "validUntil" | "externalReference";
+
+export interface PriceCatalogColumn {
+  field: PriceCatalogField;
+  label: string;
+  required: boolean;
+  /** Column index in the header row, -1 when the file has no such column. */
+  index: number;
+  /** The header text as written in the file. */
+  header: string | null;
+}
+
+const COLUMN_SPECS: ReadonlyArray<{ field: PriceCatalogField; label: string; required: boolean; aliases: string[] }> = [
+  { field: "positionCode", label: "Poz No", required: false, aliases: ["poz", "pozno", "positioncode", "position", "code"] },
+  { field: "description", label: "Açıklama", required: true, aliases: ["aciklama", "description", "malzeme", "item", "kalem"] },
+  { field: "unit", label: "Birim", required: true, aliases: ["birim", "unit"] },
+  { field: "amount", label: "Birim Fiyat", required: true, aliases: ["birimfiyat", "birimfiyattl", "fiyat", "amount", "unitprice", "price"] },
+  { field: "currency", label: "Para Birimi", required: false, aliases: ["parabirimi", "currency", "doviz"] },
+  { field: "validUntil", label: "Geçerlilik Tarihi", required: false, aliases: ["gecerlilik", "gecerliliktarihi", "validuntil", "validto"] },
+  { field: "externalReference", label: "Referans", required: false, aliases: ["referans", "externalreference", "ref"] },
+];
+
+/** Which file column feeds which catalogue field ("alanları eşleştir"). */
+export function detectPriceCatalogColumns(headerRow: readonly Cell[]): PriceCatalogColumn[] {
+  const headers = headerRow.map((cell) => normalizeHeader(text(cell)));
+  return COLUMN_SPECS.map(({ field, label, required, aliases }) => {
+    const index = aliases.map((alias) => headers.indexOf(alias)).find((candidate) => candidate >= 0) ?? -1;
+    return { field, label, required, index, header: index >= 0 ? text(headerRow[index]) : null };
+  });
+}
+
+function nonEmptyRows(rows: readonly (readonly Cell[])[]) {
+  return rows.filter((row) => row.some((cell) => text(cell) !== ""));
+}
+
 /** Header row first; every following non-empty row is a price line. Row numbers in errors are 1-based. */
 export function parsePriceCatalogRows(rows: readonly (readonly Cell[])[]): PriceCatalogImportRow[] {
-  const nonEmpty = rows.filter((row) => row.some((cell) => text(cell) !== ""));
+  const nonEmpty = nonEmptyRows(rows);
   if (nonEmpty.length < 2) throw new Error("Dosya en az başlık ve bir fiyat satırı içermeli.");
-  const headers = nonEmpty[0].map((cell) => normalizeHeader(text(cell)));
-  const headerIndex = (candidates: string[]) => candidates.map((candidate) => headers.indexOf(candidate)).find((index) => index >= 0) ?? -1;
-  const indexes = {
-    positionCode: headerIndex(["poz", "pozno", "positioncode", "position", "code"]),
-    description: headerIndex(["aciklama", "description", "malzeme", "item", "kalem"]),
-    unit: headerIndex(["birim", "unit"]),
-    amount: headerIndex(["birimfiyat", "birimfiyattl", "fiyat", "amount", "unitprice", "price"]),
-    currency: headerIndex(["parabirimi", "currency", "doviz"]),
-    validUntil: headerIndex(["gecerlilik", "gecerliliktarihi", "validuntil", "validto"]),
-    externalReference: headerIndex(["referans", "externalreference", "ref"]),
-  };
-  if (indexes.description < 0 || indexes.unit < 0 || indexes.amount < 0) throw new Error("Başlıklarda açıklama, birim ve fiyat kolonları zorunlu.");
+  const columns = detectPriceCatalogColumns(nonEmpty[0]);
+  const indexes = Object.fromEntries(columns.map((column) => [column.field, column.index])) as Record<PriceCatalogField, number>;
+  if (columns.some((column) => column.required && column.index < 0)) throw new Error("Başlıklarda açıklama, birim ve fiyat kolonları zorunlu.");
   const optional = (cells: readonly Cell[], index: number) => (index >= 0 ? text(cells[index]) || undefined : undefined);
   return nonEmpty.slice(1).map((cells, index) => {
     const amount = parseCatalogAmount(cells[indexes.amount]);
@@ -96,11 +122,14 @@ export function parsePriceCatalogRows(rows: readonly (readonly Cell[])[]): Price
   });
 }
 
-export function parsePriceCatalogCsv(content: string): PriceCatalogImportRow[] {
+export function readPriceCatalogCsvTable(content: string): Cell[][] {
   const lines = content.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
-  if (lines.length < 2) throw new Error("Dosya en az başlık ve bir fiyat satırı içermeli.");
-  const delimiter = lines[0].includes(";") ? ";" : lines[0].includes("\t") ? "\t" : ",";
-  return parsePriceCatalogRows(lines.map((line) => splitCsvLine(line, delimiter)));
+  const delimiter = lines[0]?.includes(";") ? ";" : lines[0]?.includes("\t") ? "\t" : ",";
+  return lines.map((line) => splitCsvLine(line, delimiter));
+}
+
+export function parsePriceCatalogCsv(content: string): PriceCatalogImportRow[] {
+  return parsePriceCatalogRows(readPriceCatalogCsvTable(content));
 }
 
 function cellValue(value: unknown): Cell {
@@ -116,7 +145,7 @@ function cellValue(value: unknown): Cell {
   return String(value);
 }
 
-export async function parsePriceCatalogXlsx(data: ArrayBuffer): Promise<PriceCatalogImportRow[]> {
+export async function readPriceCatalogXlsxTable(data: ArrayBuffer): Promise<Cell[][]> {
   const head = new Uint8Array(data.slice(0, OLE_SIGNATURE.length));
   if (OLE_SIGNATURE.every((byte, index) => head[index] === byte)) throw new Error(LEGACY_XLS_MESSAGE);
   const ExcelJS = (await import("exceljs")).default;
@@ -130,5 +159,9 @@ export async function parsePriceCatalogXlsx(data: ArrayBuffer): Promise<PriceCat
   if (!sheet) throw new Error("Çalışma sayfası bulunamadı.");
   const rows: Cell[][] = [];
   sheet.eachRow({ includeEmpty: false }, (row) => rows.push((row.values as unknown[]).slice(1).map(cellValue)));
-  return parsePriceCatalogRows(rows);
+  return rows;
+}
+
+export async function parsePriceCatalogXlsx(data: ArrayBuffer): Promise<PriceCatalogImportRow[]> {
+  return parsePriceCatalogRows(await readPriceCatalogXlsxTable(data));
 }

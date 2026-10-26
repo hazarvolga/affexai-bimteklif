@@ -85,8 +85,13 @@ export const smartcheckTransferToNewQuotationRequestSchema = z.object({
   path: ["clientName"],
 });
 
+/** "Müteahhitlik kârı ve genel gider": 0–100 with at most two decimals (numeric(5,2) in release 0029). */
+const overheadProfitPercentSchema = z.number().min(0).max(100)
+  .refine((value) => Math.abs(value * 100 - Math.round(value * 100)) < 1e-9, "En fazla iki ondalık basamak.");
+
 export const smartcheckCalmTransferRequestSchema = z.object({
   quotationId: z.string().trim().uuid(),
+  overheadProfitPercent: overheadProfitPercentSchema.optional(),
   priceSnapshotIdsByCalmLineId: z.record(z.string().trim().min(1).max(160), z.string().trim().uuid())
     .refine((value) => Object.keys(value).length >= 1 && Object.keys(value).length <= 1000, "1-1000 Calm satırı seçilmelidir."),
 }).strict();
@@ -95,6 +100,7 @@ export const smartcheckCalmTransferToNewQuotationRequestSchema = z.object({
   clientName: boundedText(200).min(1),
   projectName: boundedText(255).optional(),
   currency: z.enum(["TRY", "USD", "EUR"]).optional(),
+  overheadProfitPercent: overheadProfitPercentSchema.optional(),
   priceSnapshotIdsByCalmLineId: smartcheckCalmTransferRequestSchema.shape.priceSnapshotIdsByCalmLineId,
 }).strict();
 

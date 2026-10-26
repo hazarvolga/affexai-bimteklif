@@ -184,6 +184,8 @@ export function SmartCheckImportWorkspace() {
   const [suggestionBusy, setSuggestionBusy] = useState(false);
   const [bulkReviewBusy, setBulkReviewBusy] = useState(false);
   const [sampleBusyId, setSampleBusyId] = useState<string | null>(null);
+  // Samples carry no IFC evidence artifact, so the server would refuse their transfer; say so up front.
+  const [sampleDocumentId, setSampleDocumentId] = useState<string | null>(null);
   const [priceSuggestionsByRow, setPriceSuggestionsByRow] = useState<Record<string, PriceSuggestionResult>>({});
   const [reviewDraft, setReviewDraft] = useState<ReviewDraft | null>(null);
   const [pilotCaseId, setPilotCaseId] = useState<string | null>(null);
@@ -287,6 +289,7 @@ export function SmartCheckImportWorkspace() {
       if (!response.ok || !body.documentId) {
         return toast.error(body.error ?? "Örnek proje yüklenemedi.");
       }
+      setSampleDocumentId(body.documentId);
       await Promise.all([
         openQueueDocument(body.documentId, body.fileName ?? null, "succeeded"),
         loadQueue(),
@@ -657,7 +660,7 @@ export function SmartCheckImportWorkspace() {
     toast.success(`${body.transferredCount} onaylı satır teklife aktarıldı.`);
   };
 
-  const transferCalmToQuotation = async (items: CalmTransferUiItem[]) => {
+  const transferCalmToQuotation = async (items: CalmTransferUiItem[], { overheadProfitPercent }: { overheadProfitPercent: number }) => {
     if (!documentId) { toast.error("İcmalin kaynak dosyası bulunamadı."); return; }
     const targetHint = calmTransferTargetHint(calmTarget);
     if (targetHint) { toast.error(targetHint); return; }
@@ -679,14 +682,15 @@ export function SmartCheckImportWorkspace() {
     }
     setCalmTransferBusy(true);
     try {
-      const attempt = getOrCreateCalmTransferAttempt(window.localStorage, documentId, calmTransferAttemptScope(calmTarget), selection, () => crypto.randomUUID());
+      // The percentage is part of the request the server hashes, so a changed value is a new attempt, not a conflict.
+      const attempt = getOrCreateCalmTransferAttempt(window.localStorage, documentId, calmTransferAttemptScope(calmTarget), { ...selection, overheadProfitPercent }, () => crypto.randomUUID());
       const isNewQuotation = calmTarget.mode === "new";
       const response = await fetchWithAuth(`/api/smartcheck/documents/${documentId}/${isNewQuotation ? "transfer-calm-to-new-quotation" : "transfer-calm-to-quotation"}`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "Idempotency-Key": attempt.record.idempotencyKey },
         body: JSON.stringify(calmTarget.mode === "new"
-          ? { clientName: calmTarget.clientName.trim(), projectName: calmTarget.projectName.trim() || undefined, ...selection }
-          : { quotationId: calmTarget.quotationId, ...selection }),
+          ? { clientName: calmTarget.clientName.trim(), projectName: calmTarget.projectName.trim() || undefined, overheadProfitPercent, ...selection }
+          : { quotationId: calmTarget.quotationId, overheadProfitPercent, ...selection }),
       });
       const body = await readJsonBody<{ error?: string; quotationId?: string; revisionVersion?: number; transferredCount?: number; replayed?: boolean }>(response);
       if (!response.ok || !body.quotationId) { toast.error(body.error ?? "İcmalin teklife aktarımı tamamlanamadı."); return; }
@@ -818,6 +822,9 @@ export function SmartCheckImportWorkspace() {
               setTransferredQuotationId(null);
             }}
             onTransferToQuote={transferCalmToQuotation}
+            transferUnavailableReason={documentId && documentId === sampleDocumentId
+              ? "Örnek projeden teklif oluşturulmaz; fiyatlandırmayı burada deneyebilirsiniz. Teklif için kendi IFC modelinizi yükleyin."
+              : undefined}
             transferBusy={calmTransferBusy}
             transferredQuotationId={transferredQuotationId}
             showTechnicalToggle={true}

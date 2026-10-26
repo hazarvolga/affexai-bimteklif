@@ -92,6 +92,8 @@ export interface Quote {
   items: QuoteItem[];
   subtotal: number;
   discountTotal: number;
+  overheadProfitPercent?: number;
+  overheadProfitTotal?: number;
   vatTotal: number;
   grandTotal: number;
   revisionVersion: number;

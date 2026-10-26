@@ -175,7 +175,7 @@ export function Dashboard() {
             <span className="text-muted-foreground uppercase">FİYAT KATALOĞU:</span>
             {priceCatalog === 'ready' && <span className="text-foreground font-semibold">Firma fiyatlarınız ekli</span>}
             {priceCatalog === 'empty' && (
-              <Link to="/app/market-intelligence" className="text-primary font-semibold underline">Henüz eklenmedi — fiyat listenizi ekleyin</Link>
+              <Link to="/app/fiyat-katalogu" className="text-primary font-semibold underline">Henüz eklenmedi — fiyat listenizi ekleyin</Link>
             )}
             {priceCatalog === 'unknown' && <span className="text-muted-foreground">Durum yüklenemedi</span>}
             {priceCatalog === 'loading' && <span className="text-muted-foreground">Yükleniyor…</span>}

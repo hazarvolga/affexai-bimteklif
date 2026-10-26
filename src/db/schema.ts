@@ -519,6 +519,9 @@ export const quotations = pgTable("quotations", {
   pricingSnapshotLockHash: text("pricing_snapshot_lock_hash"),
   subtotal: numeric("subtotal", { precision: 20, scale: 2 }).notNull(),
   discountTotal: numeric("discount_total", { precision: 20, scale: 2 }).notNull(),
+  // Release 0029: contractor profit and overhead on the net subtotal; line prices stay bound to price evidence.
+  overheadProfitPercent: numeric("overhead_profit_percent", { precision: 5, scale: 2 }).default("0").notNull(),
+  overheadProfitTotal: numeric("overhead_profit_total", { precision: 20, scale: 2 }).default("0").notNull(),
   vatTotal: numeric("vat_total", { precision: 20, scale: 2 }).notNull(),
   grandTotal: numeric("grand_total", { precision: 20, scale: 2 }).notNull(),
   revisionVersion: integer("revision_version").default(1).notNull(),
@@ -534,6 +537,7 @@ export const quotations = pgTable("quotations", {
       foreignColumns: [memberships.userId, memberships.companyId],
     }).onDelete("restrict"),
     pricingSnapshotLockStatusCheck: check("quotations_pricing_snapshot_lock_status_check", sql`${table.pricingSnapshotLockStatus} in ('unlocked', 'locked', 'stale')`),
+    overheadProfitPercentCheck: check("quotations_overhead_profit_percent_check", sql`${table.overheadProfitPercent} >= 0 AND ${table.overheadProfitPercent} <= 100`),
     appTenantPolicy: appTenantPolicy("quotations", table.companyId),
     backupReadPolicy: backupReadPolicy("quotations"),
     ownerMigrationPolicy: ownerMigrationPolicy("quotations"),

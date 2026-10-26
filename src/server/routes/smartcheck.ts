@@ -195,6 +195,7 @@ export function registerSmartCheckRoutes(app: Express) {
         sourceDocumentId: req.params.id,
         targetQuotationId: parsed.data.quotationId,
         priceSnapshotIdsByCalmLineId: parsed.data.priceSnapshotIdsByCalmLineId,
+        ...(parsed.data.overheadProfitPercent === undefined ? {} : { overheadProfitPercent: parsed.data.overheadProfitPercent.toFixed(2) }),
       },
     ));
   });
@@ -205,7 +206,8 @@ export function registerSmartCheckRoutes(app: Express) {
     if (idempotencyKey === null) return;
     const parsed = smartcheckCalmTransferToNewQuotationRequestSchema.safeParse(req.body);
     if (!parsed.success) return rejectCalmTransferRequest(req, res);
-    const { priceSnapshotIdsByCalmLineId, ...newQuotation } = parsed.data;
+    const { priceSnapshotIdsByCalmLineId, overheadProfitPercent, ...fields } = parsed.data;
+    const newQuotation = { ...fields, ...(overheadProfitPercent === undefined ? {} : { overheadProfitPercent: overheadProfitPercent.toFixed(2) }) };
     await runCalmTransfer(req, res, { newQuotation: true }, () => transferCalmRowsToNewQuotation(
       { companyId: req.user.companyId, userId: req.user.userId },
       idempotencyKey,
@@ -933,8 +935,8 @@ export function registerSmartCheckRoutes(app: Express) {
       for (let i = 0; i < allEvidences.length; i += 500) {
         await tx.insert(quotationItemEvidence).values(allEvidences.slice(i, i + 500)).onConflictDoNothing();
       }
-      const totals = calculateQuotationTotals(allItems);
-      await tx.update(quotations).set({ subtotal: String(totals.subtotal), discountTotal: String(totals.discountTotal), vatTotal: String(totals.vatTotal), grandTotal: String(totals.grandTotal), updatedAt: new Date() }).where(and(eq(quotations.id, quotation.id), eq(quotations.companyId, req.user.companyId)));
+      const totals = calculateQuotationTotals(allItems, { overheadProfitPercent: quotation.overheadProfitPercent });
+      await tx.update(quotations).set({ subtotal: String(totals.subtotal), discountTotal: String(totals.discountTotal), overheadProfitTotal: String(totals.overheadProfitTotal), vatTotal: String(totals.vatTotal), grandTotal: String(totals.grandTotal), updatedAt: new Date() }).where(and(eq(quotations.id, quotation.id), eq(quotations.companyId, req.user.companyId)));
       return { insertedCount, items: allItems.filter((item) => rowIds.includes(item.sourceQuantityRowId ?? "")) };
     });
     await audit(req, "rows_transferred", "quotation", quotation.id, { documentId: req.params.id, rowIds, transferredCount: transferResult.insertedCount });
@@ -1073,8 +1075,8 @@ export function registerSmartCheckRoutes(app: Express) {
       for (let i = 0; i < allEvidences.length; i += 500) {
         await tx.insert(quotationItemEvidence).values(allEvidences.slice(i, i + 500)).onConflictDoNothing();
       }
-      const totals = calculateQuotationTotals(allItems);
-      await tx.update(quotations).set({ subtotal: String(totals.subtotal), discountTotal: String(totals.discountTotal), vatTotal: String(totals.vatTotal), grandTotal: String(totals.grandTotal), updatedAt: new Date() }).where(and(eq(quotations.id, quotation.id), eq(quotations.companyId, req.user.companyId)));
+      const totals = calculateQuotationTotals(allItems, { overheadProfitPercent: quotation.overheadProfitPercent });
+      await tx.update(quotations).set({ subtotal: String(totals.subtotal), discountTotal: String(totals.discountTotal), overheadProfitTotal: String(totals.overheadProfitTotal), vatTotal: String(totals.vatTotal), grandTotal: String(totals.grandTotal), updatedAt: new Date() }).where(and(eq(quotations.id, quotation.id), eq(quotations.companyId, req.user.companyId)));
       return { quotation, client, insertedCount, items: allItems.filter((item) => rowIds.includes(item.sourceQuantityRowId ?? "")) };
     });
 

@@ -4,6 +4,7 @@ import {
   Users,
   Settings,
   BookOpen,
+  BookOpenCheck,
   ShieldCheck,
   TrendingUp,
   CreditCard,
@@ -89,6 +90,13 @@ export const navigationConfig: NavItem[] = [
     path: "/app/uzman-onizleme",
     icon: ClipboardCheck,
     roles: ["owner", "admin", "manager", "viewer"],
+    group: "Araçlar",
+  },
+  {
+    label: "Fiyat Kataloğu",
+    path: "/app/fiyat-katalogu",
+    icon: BookOpenCheck,
+    roles: ["owner", "admin", "manager"],
     group: "Araçlar",
   },
   {

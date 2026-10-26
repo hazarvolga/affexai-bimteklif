@@ -40,7 +40,7 @@ export function ResultSummaryPanel({ summary, onOpenCostStep }: ResultSummaryPan
         <span className="font-semibold text-foreground">Sonraki adım:</span>
         <span className="text-foreground">{text}</span>
         {action === "add_prices" && (
-          <Link to="/app/market-intelligence" className="rounded bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground">
+          <Link to="/app/fiyat-katalogu?kaynak=smartcheck" className="rounded bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground">
             Firma fiyatı ekle
           </Link>
         )}

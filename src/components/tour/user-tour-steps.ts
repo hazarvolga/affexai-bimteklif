@@ -99,6 +99,15 @@ export const USER_TOUR_STEPS: readonly TourStep[] = [
       "Müşterilerinizi ve teklif fırsatlarını aşama aşama takip edin; notlar ve aşama değişiklikleri fırsatın geçmişinde tutulur.",
   },
   {
+    route: "/app/fiyat-katalogu",
+    pageLabel: "Fiyat Kataloğu",
+    badge: "FİYAT KATALOĞU",
+    title: "Firma Fiyat Kataloğu",
+    description:
+      "Kendi birim fiyat listenizi Excel ile ekleyin. Teklif ve IFC icmali yalnız burada onayladığınız, KDV oranı belirtilmiş fiyatları kullanır.",
+    roles: MANAGERS,
+  },
+  {
     route: "/app/market-intelligence",
     pageLabel: "Tedarikçi & Piyasa",
     badge: "PİYASA FİYATLARI",

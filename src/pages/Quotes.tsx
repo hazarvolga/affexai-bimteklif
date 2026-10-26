@@ -81,6 +81,7 @@ export function Quotes() {
         carbonRiskPremiumPercent: detail.carbonRiskPremiumPercent,
         informationDeliveryLevel: detail.informationDeliveryLevel,
         informationDeliveryCostPercent: detail.informationDeliveryCostPercent,
+        overheadProfitPercent: detail.overheadProfitPercent,
         status: QuoteStatus.DRAFT,
         subtotal: detail.subtotal,
         discountTotal: detail.discountTotal,

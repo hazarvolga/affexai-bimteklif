@@ -37,7 +37,8 @@ export function getOrCreateCalmTransferAttempt(
   storage: StorageLike,
   documentId: string,
   quotationId: string,
-  selection: CalmTransferSelection,
+  /** Everything the server hashes for this attempt; a change starts a new attempt with a new key. */
+  selection: CalmTransferSelection & { overheadProfitPercent?: number },
   createKey: () => string,
 ) {
   const signature = JSON.stringify(selection);

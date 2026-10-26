@@ -55,6 +55,7 @@ const Clients = page(() => import('@/pages/Clients'), 'Clients');
 const Settings = page(() => import('@/pages/Settings'), 'Settings');
 const Regulations = page(() => import('@/pages/Regulations'), 'Regulations');
 const MarketIntelligence = page(() => import('@/pages/MarketIntelligence'), 'MarketIntelligence');
+const PriceCatalog = page(() => import('@/pages/PriceCatalog'), 'PriceCatalog');
 const PilotEvidence = page(() => import('@/pages/PilotEvidence'), 'PilotEvidence');
 const HowItWorks = page(() => import('@/pages/HowItWorks'), 'HowItWorks');
 // Expert preview only: signed-in routes for calculators awaiting expert sign-off (not public, sitemap or llms.txt).
@@ -96,7 +97,6 @@ const AcademyProfilePage = page(() => import('@/pages/AcademyProfilePage'), 'def
 const AcademyCADPage = page(() => import('@/pages/AcademyCADPage'), 'default');
 const AcademyExamPage = page(() => import('@/pages/AcademyExamPage'), 'default');
 const BimIfcParserPage = page(() => import('@/pages/BimIfcParserPage'), 'default');
-const DosyadanTeklifDemo = page(() => import('@/pages/DosyadanTeklifDemo'), 'default');
 const ProgressPayments = page(() => import('@/pages/ProgressPayments'), 'ProgressPayments');
 
 function AppRoutes() {
@@ -165,6 +165,7 @@ function AppRoutes() {
           <Route path="progress-payments" element={<ProgressPayments />} />
           <Route path="clients" element={<Clients />} />
           <Route path="regulations" element={<Regulations />} />
+          <Route path="fiyat-katalogu" element={<PriceCatalog />} />
           <Route path="market-intelligence" element={<MarketIntelligence />} />
           <Route path="pilot-evidence" element={<PilotEvidence />} />
           <Route path="nasil-calisir" element={<HowItWorks />} />
@@ -178,7 +179,8 @@ function AppRoutes() {
           <Route path="billing" element={<Billing />} />
           <Route path="pilot-applications" element={<Navigate to="/admin/leads" replace />} />
           <Route path="settings" element={<Settings />} />
-          <Route path="dosyadan-teklif-demo" element={<DosyadanTeklifDemo />} />
+          {/* M-15.2: the demo used fixed unit prices; old links land on the single IFC entry. */}
+          <Route path="dosyadan-teklif-demo" element={<Navigate to="/app/smartcheck" replace />} />
           <Route path="smartcheck" element={<SmartCheck />} />
           <Route path="smartcheck/checks/demo" element={<SmartCheckDemo />} />
           {ACADEMY_ENABLED ? <>

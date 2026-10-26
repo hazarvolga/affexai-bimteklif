@@ -1,9 +1,9 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-25.84",
-  updatedOn: "26 Ekim 2026",
-  implementationBaseline: "4502ced68ef1fc0de3441dc25a0ba27f758b5f86",
-  approvalStatus: "Rev. 90, Faz 7 T43 R+2..R+4 JSDOM UI/bileşen kapsam dilimini (src/pages/t43-ui-pages-and-components.test.ts 6/6 PASS, 1434 testte 1427 PASS / 0 FAIL / 7 SKIP: proje satır kapsamı %53,04 → %82,58 ≥ %80 hedefi +2,58 puan aşıldı, UI %12,30 → %74,77 ≥ %74, coverage-thresholds.json project.lines: 82 kilitlendi ve T43 [x] kapatıldı), Dashboard.tsx React Rules-of-Hooks hatası düzeltmesini (D11) ve Faz 11 T56 nihai izlenebilirlik matrisini (docs/audits/phase-11/final-evidence-matrix.json + t56-final-evidence-matrix.test.ts 3/3 PASS: 56 To-Do + 31 ID + 6 motor + 11 oturum kusuru) tamamlar; böylece dış girdi gerektirmeyen tüm teknik adımlar kapatılmıştır. Gerçek banka/dekont mutabakatı, bağımsız uzman imzası (T50), gerçek izinli büyük müşteri dosyaları (T51), T55 hukuk/reklam incelemesi ve canlı deploy sonrası role-model-smoke/container digest/VPS yük doğrulaması (T52) tamamlanmadığından Faz 7, Faz 9, Faz 10 ve Faz 11 dış kabuller tamamlanana dek PARTIAL kalır. Bu kayıt bağımsız uzman onayı veya L3 değildir.",
+  version: "BIM-CALC-2026-10-27.89",
+  updatedOn: "27 Ekim 2026",
+  implementationBaseline: "bda207bc879774bec98e2f4101df3bea6dd70569",
+  approvalStatus: "Rev. 95; marka.md incelemesinden çıkan Faz 0 güven düzeltmelerini ve Faz 1 Excel önce / fiyat eksikliği / dışa aktarım dilimlerini kapsar. Hesap yöntemi değişiklikleri: teklif toplamlarına teklif düzeyinde müteahhitlik kârı ve genel gider payı (release 0029; satır neti üzerinden, KDV pay dahil matrah üzerinden), kârlılık hesabında bu payın gelir sayılması, IFC maliyet sekmesinde fiyatı eksik kalemin 0 TL yerine 'fiyat bekliyor' olarak toplam dışında tutulması ve icmal dışa aktarımında satır tutarının tam lira yerine kuruşa yuvarlanması. Doğrulama: 1515 testte 1500 PASS / 0 FAIL / 15 SKIP, kapsam kapısı geçti; gerçek tarayıcı smoke'ları scripts/faz0-trust-ui-smoke.ts, faz1-excel-flow-smoke.ts ve faz1-price-gap-smoke.ts. ÇŞB birim fiyatlarına %25 yüklenici kârı ve genel giderin dahil olduğu ÇŞB analizlerinden doğrulandı. Bu kayıt bağımsız uzman onayı veya L3 değildir; Faz 9 T50–T52 dış kabulleri açıktır.",
 };
 
 export interface ModuleRevisionNote {
@@ -1998,6 +1998,87 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
         before: "CalmIfcWorkspace, SmartCheckImportWorkspace, BimIfcParser, MetrajCetveliSheet, CalculationTraceSection ve ExpertLineVerification bileşenleri c8 kapsam koşusunda JSDOM altında doğrudan render edilmemişti.",
         after: "t43-ui-pages-and-components.test.ts (Dilim 4) ile tüm IFC/SmartCheck inceleme bileşenleri JSDOM altında sentetik 100+ elemanlı veri setiyle render edilip sekme ve filtre etkileşimleriyle doğrulandı.",
         basis: "Faz 7 T43 R+2..R+4 — IFC/SmartCheck mühendislik arayüzleri JSDOM kapsam doğrulaması",
+      },
+    },
+  },
+  {
+    revision: "Rev. 91",
+    version: "BIM-CALC-2026-10-26.85",
+    date: "26 Ekim 2026",
+    commit: "b6a45b3054bc971e52ad15b133657bf8ed3d9f0a",
+    trigger: "Uzman önizlemesi: davetli uzmanların hesap sonuçlarını uygulama içinden değerlendirmesi (T50/T51 kanıt toplama).",
+    beforeSummary: "Uzmanların bir hesap sonucunu doğrulayıp geri bildirim göndereceği bir kanal yoktu; YAMBİS ve kat karşılığı/KDV hesaplayıcıları yalnız yol haritasında (L1) duruyordu.",
+    afterSummary: "POST /api/expert-feedback (oturum açmış, e-postası doğrulanmış kullanıcı, saatte 10 sınır, girdiler yalnız açık izinle) ve KİK ADT ile 4735 hesaplayıcılarında 'Bu sonuç sizin hesabınızla tutuyor mu?' kartı eklendi. YAMBİS ve kat karşılığı yalnız /app/uzman-onizleme içinde, doğrulanmamış önizleme notuyla açıldı; herkese açık rota, sitemap ve llms.txt dışında kaldı. Hesap yöntemleri değişmedi.",
+    affectedModules: ["kik-adt", "eskalasyon", "on-teklif-fizibilite"],
+  },
+  {
+    revision: "Rev. 92",
+    version: "BIM-CALC-2026-10-26.86",
+    date: "26 Ekim 2026",
+    commit: "34338ff6cff5b6db6ca4cbcc02286e9c7f36e170",
+    trigger: "Faz 0 güven düzeltmeleri (marka.md M-13.x, M-14.x, M-7.6, M-18.x) ve release 0028.",
+    beforeSummary: "IFC maliyet sekmesi fiyatı olmayan kalemi 0 TL sayıp genel toplamı eksik fiyatla gösteriyordu; sonuç ekranında doğrulanmamış 'doğrulandı' ifadeleri vardı; aynı teklif sürümünün PDF'i her indirmede aylık kotadan düşüyordu.",
+    afterSummary: "summarizeCost (src/ifc/pricing/cost-summary.ts) fiyatı eksik kalemi toplam dışında tutar ve 'N kalem fiyat bekliyor' durumunu raporlar; genel toplam yalnız tüm kalemler fiyatlandığında gösterilir. Sonuç özeti her kontrolün kendi durumunu (tamam/dikkat/bekliyor) bildirir. Release 0028 ile aynı teklif sürümünün PDF'i ayda bir kez sayılır.",
+    affectedModules: ["ifc-metraj"],
+    moduleDetails: {
+      "ifc-metraj": {
+        before: "Fiyatı eksik kalem 0 TL ile toplama giriyor, maliyet sekmesi 'Genel toplam 0,00' gösterebiliyordu.",
+        after: "Eksik fiyat toplam dışında kalır ve 'fiyat bekliyor' olarak sayılır; genel toplam 'Hesaplanmadı' yazar (cost-summary.test.ts).",
+        basis: "marka.md M-14.1 — eksik fiyatı sıfır gibi göstermeme",
+      },
+    },
+  },
+  {
+    revision: "Rev. 93",
+    version: "BIM-CALC-2026-10-26.87",
+    date: "26 Ekim 2026",
+    commit: "b5b2badae99a6ca52544f3fe25f3e8ee634907c3",
+    trigger: "Faz 1 — Excel önce şablonlar, .xls yönlendirmesi, tek giriş akışı ve IFC icmalinden yeni teklif / revizyon ayrımı.",
+    beforeSummary: "Şablonlar yalnız CSV'ydi, eski .xls dosyası anlaşılmaz hata veriyordu; IFC icmali yalnız mevcut bir teklife revizyon olarak aktarılabiliyordu.",
+    afterSummary: "Teklif, fiyat kataloğu ve parsel için .xlsx şablonları; .xls için 'Farklı Kaydet → .xlsx' talimatı; 'Nereden başlayacaksınız?' girişi. transferCalmRowsToNewQuotation tek işlemde boş Rev. 1 açıp icmali Rev. 2'ye aktarır; kaynak satır, fiyat kaydı ve idempotency güvenceleri revizyon yoluyla aynıdır, bir teklif kotası düşer. Hesap yöntemleri değişmedi.",
+    affectedModules: ["teklif-satir", "ifc-metraj"],
+  },
+  {
+    revision: "Rev. 94",
+    version: "BIM-CALC-2026-10-27.88",
+    date: "27 Ekim 2026",
+    commit: "1d0f99bd9bc7a52314172cd79b24512c226fa459",
+    trigger: "Faz 1 fiyat eksikliği dilimi (M-17.3, M-17.4) ve icmaldeki müteahhitlik kârı ve genel giderin teklife yansıması (Hazar kararı, release 0029).",
+    beforeSummary: "İçe aktarılan firma fiyatları 'advisory' kalıyor ve KDV durumu 'bilinmiyor' geldiği için icmali hiç fiyatlandıramıyordu. İcmal özeti %15 kâr ve genel gideri gösterirken aktarılan teklif yalnız kalem fiyatlarını içeriyordu; kullanıcı iki farklı toplam görüyor, kârlılık paneli katalog fiyatlı teklifte %0 marj gösteriyordu.",
+    afterSummary: "Fiyat kataloğu sihirbazı firma fiyatını KDV hariç ve oran belirtilmiş olarak içe aktarımda onaylar. Teklife overhead_profit_percent / overhead_profit_total eklendi (0029): pay her satırın netine uygulanır, KDV 'net + pay' üzerinden satırın kendi oranıyla hesaplanır, kalem birim fiyatları fiyat kaydına eşit kalır (fiyat kilidi bozulmaz). Kârlılık payı gelir sayar. ÇŞB fiyat modu %0 ile başlar, çift sayım uyarısı verir. Örnek: 74.200,00 TL net, %15 → 11.130,00 TL pay, KDV 17.066,00 TL, genel toplam 102.396,00 TL; marj %13,04.",
+    affectedModules: ["teklif-satir", "maliyet-marj", "ifc-metraj"],
+    moduleDetails: {
+      "teklif-satir": {
+        before: "Genel toplam = Σ(net + KDV); kâr ve genel gider teklife taşınmıyordu.",
+        after: "pay = yuvarla(net × kâr%/100); KDV = yuvarla((net + pay) × KDV%/100); genel toplam = Σ(net + pay + KDV). Kâr% = 0 iken sonuç birebir eskisiyle aynıdır (calculations.test.ts, calm-transfer.integration.test.ts, quote-flows.integration.test.ts).",
+        basis: "Hazar kararı 27 Ekim 2026; ÇŞB birim fiyat analizlerinde %25 yüklenici kârı ve genel gider dahil (çift sayım önlemi)",
+      },
+      "maliyet-marj": {
+        before: "Satış neti yalnız satır netlerinden oluşuyordu; teklif düzeyindeki pay kârlılığa girmiyordu.",
+        after: "Satış neti = Σ satır net + Σ pay; katalog maliyetiyle fiyatlanan teklifte brüt kâr payın kendisidir.",
+        basis: "Teklif toplamlarıyla aynı gelir tanımı",
+      },
+      "ifc-metraj": {
+        before: "Firma kataloğundaki fiyat icmal kalemine bağlanamıyordu (advisory, KDV bilinmiyor).",
+        after: "Aynı poz, aynı birim ve TL'de onaylı fiyat otomatik; açıklaması farklı olan kullanıcı onayıyla bağlanır; poz çözülemeyen kalem uzman incelemesine alınır.",
+        basis: "marka.md M-17.3 / M-17.4",
+      },
+    },
+  },
+  {
+    revision: "Rev. 95",
+    version: "BIM-CALC-2026-10-27.89",
+    date: "27 Ekim 2026",
+    commit: "bda207bc879774bec98e2f4101df3bea6dd70569",
+    trigger: "Faz 1 C-4 Excel'e dışa aktarım ve M-15.2 sabit fiyatlı demo rotasının kaldırılması.",
+    beforeSummary: "Teklif yalnız PDF olarak alınabiliyordu; icmalin 'Excel İndir' düğmesi teknik sütunlu CSV veriyor ve satır tutarlarını tam liraya yuvarlıyordu (Math.round). /app/dosyadan-teklif-demo sabit beton 2.450, donatı 24.500, kalıp 1.250 TL fiyatları taşıyordu.",
+    afterSummary: "Teklif .xlsx'i PDF ile aynı motordan toplamları taşır (formülsüz). İcmal .xlsx'i sade icmal + daire icmali + ayrı 'Fiyat Kaynakları' sayfasıdır; eksik fiyat boş kalır ve toplamın eksik olduğu yazılır. Satır tutarı kuruşa yuvarlanır. Demo rotası SmartCheck'e yönlenir.",
+    affectedModules: ["teklif-satir", "ifc-metraj"],
+    moduleDetails: {
+      "ifc-metraj": {
+        before: "İcmal CSV'sinde satır tutarı = Math.round(net miktar × birim fiyat), satır başına 0,50 TL'ye kadar sapma.",
+        after: "Satır tutarı = yuvarla(net miktar × birim fiyat) kuruşa; teklif satırıyla aynı (export-xlsx.test.ts).",
+        basis: "VUK kuruş hassasiyeti; teklif ile icmal arasında tutarlılık",
       },
     },
   },
