@@ -13,6 +13,7 @@ import { ExpertVerificationBar } from "@/components/smartcheck/ExpertVerificatio
 import { VERIFICATION_STATUS_LABEL } from "@/ifc/expert-verification";
 import { useExpertVerification } from "@/hooks/useExpertVerification";
 import { evaluateKikAbnormallyLowBid, type KikWorkCategory } from "@/lib/kik-adt";
+import { isPriced, summarizeCost } from "@/ifc/pricing/cost-summary";
 import {
   evaluateIso19650Compliance,
   parseContainerIdentity,
@@ -131,36 +132,21 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
     [dataset.apartments, selectedUnitCode],
   );
 
-  const costSummary = useMemo(() => {
-    const groupTotals = dataset.groups.map((grp) => {
-      const subtotal = grp.items.reduce((sum, it) => {
-        const price = unitPrices[it.id] ?? 0;
-        return sum + it.netQuantity * price;
-      }, 0);
-      return {
-        key: grp.key,
-        title: grp.title,
-        subtotal,
-      };
-    });
-    const directTotal = groupTotals.reduce((s, g) => s + g.subtotal, 0);
-    const overheadAmount = directTotal * (overheadPercent / 100);
-    const grandTotal = directTotal + overheadAmount;
-    const perApartment = dataset.residentialUnitCount > 0 ? grandTotal / dataset.residentialUnitCount : grandTotal;
-    const perGrossM2 =
-      grossTotals.totalGeneralGrossM2 !== null && grossTotals.totalGeneralGrossM2 > 0
-        ? grandTotal / grossTotals.totalGeneralGrossM2
-        : null;
-
-    return {
-      groupTotals,
-      directTotal,
-      overheadAmount,
-      grandTotal,
-      perApartment,
-      perGrossM2,
-    };
-  }, [dataset.groups, dataset.residentialUnitCount, grossTotals.totalGeneralGrossM2, overheadPercent, unitPrices]);
+  // A missing price is unknown, not zero (marka.md M-14.1): totals cover priced items only.
+  const costSummary = useMemo(() => summarizeCost({
+    groups: dataset.groups,
+    unitPrices,
+    overheadPercent,
+    residentialUnitCount: dataset.residentialUnitCount,
+    grossM2: grossTotals.totalGeneralGrossM2,
+  }), [dataset.groups, dataset.residentialUnitCount, grossTotals.totalGeneralGrossM2, overheadPercent, unitPrices]);
+  const pricingComplete = costSummary.status === "complete";
+  const costPendingLabel = costSummary.status === "empty" ? "Kalem yok" : `${costSummary.missingItemCount} kalem fiyat bekliyor`;
+  const groupTotalLabel = (group: { pricedSubtotal: number; itemCount: number; missingItemCount: number }) => {
+    if (group.missingItemCount === 0) return formatTrCurrency(group.pricedSubtotal);
+    const pending = `${group.missingItemCount} kalem fiyat bekliyor`;
+    return group.missingItemCount === group.itemCount ? pending : `${formatTrCurrency(group.pricedSubtotal)} · ${pending}`;
+  };
 
   const storageKey = useMemo(
     () => `bimmetraj:calm-session:v1:${dataset.projectTitle}`,
@@ -237,6 +223,7 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
   const [tuikIndexedAppliedNote, setTuikIndexedAppliedNote] = useState<string | null>(null);
 
   const escalationPreview = useMemo(() => {
+    if (!pricingComplete) return null;
     const e0 = parseFloat(tuikBaseIndexInput.replace(",", "."));
     const en = parseFloat(tuikCurrentIndexInput.replace(",", "."));
     if (!Number.isFinite(e0) || e0 <= 0 || !Number.isFinite(en) || en <= 0) {
@@ -244,7 +231,7 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
     }
     try {
       return computeContractPriceEscalation4735({
-        progressPaymentAmountTl: costSummary.grandTotal,
+        progressPaymentAmountTl: costSummary.pricedGrandTotal,
         bFactor: 0.9,
         components: [
           {
@@ -258,7 +245,7 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
     } catch {
       return null;
     }
-  }, [costSummary.grandTotal, selectedTuikIndex, tuikBaseIndexInput, tuikCurrentIndexInput]);
+  }, [costSummary.pricedGrandTotal, pricingComplete, selectedTuikIndex, tuikBaseIndexInput, tuikCurrentIndexInput]);
 
   const handleApplyTuikIndexToPrices = () => {
     const e0 = parseFloat(tuikBaseIndexInput.replace(",", "."));
@@ -435,14 +422,14 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
   const kikAdtAnalysis = useMemo(() => {
     const parsedYm = Number(tenderYmInput.replace(/\./g, "").replace(",", ".").trim());
     const validYm = Number.isFinite(parsedYm) && parsedYm > 0 ? parsedYm : null;
-    const ourBid = Math.max(0, Math.round(costSummary.grandTotal));
+    const ourBid = Math.max(0, Math.round(costSummary.pricedGrandTotal));
     const parsedCompetitorBids = tenderBidsInput
       .split(/[;\n]+|(?:\s+)/)
       .flatMap((token) => token.split(","))
       .map((raw) => Number(raw.replace(/\./g, "").trim()))
       .filter((v) => Number.isFinite(v) && v > 0);
     const sessionBids =
-      validYm && parsedCompetitorBids.length > 0 ? [ourBid, ...parsedCompetitorBids] : [];
+      validYm && parsedCompetitorBids.length > 0 && pricingComplete ? [ourBid, ...parsedCompetitorBids] : [];
 
     return evaluateKikAbnormallyLowBid({
       estimatedCostTry: validYm,
@@ -456,7 +443,7 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
         totalAmount: Math.round(it.netQuantity * (unitPrices[it.id] ?? 0)),
       })),
     });
-  }, [allItems, costSummary.grandTotal, kikWorkCategory, tenderBidsInput, tenderYmInput, unitPrices]);
+  }, [allItems, costSummary.pricedGrandTotal, kikWorkCategory, pricingComplete, tenderBidsInput, tenderYmInput, unitPrices]);
 
   const handleDownloadCsv = () => {
     const rows: TabularCell[][] = [["BOLUM", "GRUP_VEYA_DAIRE", "POZ_KODU", "IMALAT_VEYA_ODA_ADI", "BRUT_MIKTAR", "MINHA_BOSLUK", "NET_MIKTAR", "BIRIM", "BIRIM_FIYAT_TL", "TOPLAM_TUTAR_TL", "FIYAT_SNAPSHOT_ID", "FIYAT_KAYNAK_ID", "KAYNAK_HASH", "PARA_BIRIMI", "YAKALAMA_TARIHI"]];
@@ -692,7 +679,7 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
             </span>
           </div>
           <span className="font-mono text-[10px] text-primary font-semibold tabular-nums">
-            {formatTrCurrency(costSummary.grandTotal)}
+            {pricingComplete ? formatTrCurrency(costSummary.pricedGrandTotal) : costPendingLabel}
           </span>
         </button>
       </div>
@@ -1249,10 +1236,10 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
                   Birim Fiyat ve Maliyet Cetveli
                 </h3>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Yalnız tenant kapsamındaki yetkilendirilmiş, onaylı ve geçerli fiyat snapshot kayıtları hesaplanır. Eşleşmeyen kalem sıfır fiyatla görünür ve teklife hazır sayılmaz.
+                  Yalnız firmanıza ait, incelenmiş ve geçerlilik süresi dolmamış fiyatlar kullanılır. Fiyatı bulunmayan kalem tutara katılmaz ve teklife hazır sayılmaz.
                 </p>
                 <p className="mt-1 font-mono text-[10px] text-muted-foreground">
-                  Kaynak çözümü: {priceResolutionStatus === "loading" ? "yükleniyor" : priceResolutionStatus === "blocked" ? "erişim/kanıt kapısında durdu" : `${Object.keys(priceEvidence).length}/${allItems.length} kanıtlı fiyat`}
+                  Fiyatlandırılan kalem: {priceResolutionStatus === "loading" ? "yükleniyor" : priceResolutionStatus === "blocked" ? "fiyat kaynağına erişilemedi" : `${costSummary.pricedItemCount}/${costSummary.itemCount}`}
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-2">
@@ -1267,17 +1254,22 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
                   className="border border-border bg-background px-2.5 py-1 text-[10px] font-mono text-foreground focus:border-primary focus:outline-none"
                 >
                   <option value="BYOL_TENANT_CATALOG">
-                    BYOL: Tenant Kataloğu (yetkilendirilmiş snapshot)
+                    Firma fiyat kataloğunuz
                   </option>
                   <option value="CSB_2026_REFERENCE">
-                    ÇŞB 2026 Referans (ticari yetki kanıtı varsa)
+                    ÇŞB 2026 birim fiyatları (kullanım izniniz varsa)
                   </option>
                 </select>
                 <span className="stamp-badge bg-primary/10 text-primary border-primary/40">
                   {tuikIndexedAppliedNote
-                    ? "TÜİK Endeksiyle Güncellenmiş Tahmini BF"
-                    : "Birim fiyat kutuları düzenlenebilir"}
+                    ? "TÜİK endeksiyle güncellenmiş tahmini fiyat"
+                    : "Fiyatlar kataloğunuzdan gelir"}
                 </span>
+                {costSummary.missingItemCount > 0 && (
+                  <Link to="/app/market-intelligence" className="text-[11px] font-semibold text-primary underline">
+                    Kataloğa fiyat ekle
+                  </Link>
+                )}
               </div>
             </div>
 
@@ -1296,19 +1288,13 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
                       0{grpIdx + 1} / {grp.title}
                     </span>
                     <span className="font-mono text-[11px] font-semibold text-foreground tabular-nums">
-                      Grup Toplamı:{" "}
-                      {formatTrCurrency(
-                        grp.items.reduce(
-                          (s, it) => s + it.netQuantity * (unitPrices[it.id] ?? 0),
-                          0,
-                        ),
-                      )}
+                      {groupTotalLabel(costSummary.groupTotals[grpIdx])}
                     </span>
                   </div>
 
                   {grp.items.map((item) => {
-                    const price = unitPrices[item.id] ?? 0;
-                    const lineTotal = item.netQuantity * price;
+                    const priced = isPriced(unitPrices, item.id);
+                    const price = priced ? unitPrices[item.id] : null;
                     return (
                       <div
                         key={item.id}
@@ -1319,27 +1305,22 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
                           <div className="font-mono text-[10px] text-muted-foreground">Poz: {publicPozCode(item.pozCode) || "Çözülmedi"}</div>
                           <div className="font-mono text-[10px] text-muted-foreground">
                             {priceEvidence[item.id]
-                              ? `Kaynak: ${priceEvidence[item.id].sourceName} · snapshot ${priceEvidence[item.id].snapshotId.slice(0, 8)}`
-                              : "Fiyat kanıtı yok · inceleme gerekli"}
+                              ? `Kaynak: ${priceEvidence[item.id].sourceName} · fiyat kaydı ${priceEvidence[item.id].snapshotId.slice(0, 8)}`
+                              : "Fiyat bulunamadı · kataloğa eklenmeli"}
                           </div>
                         </div>
                         <div className="col-span-2 text-right font-mono text-xs text-muted-foreground tabular-nums">
                           {formatTrNumber(item.netQuantity)} {item.unit}
                         </div>
-                        <div className="col-span-2 flex justify-end pl-2">
-                          <input
-                            type="number"
-                            min={0}
-                            step={10}
-                            aria-label={`${item.title} birim fiyatı`}
-                            value={price}
-                            readOnly
-                            title="Birim fiyat yalnız onaylı fiyat snapshot kaydından gelir. Manuel fiyatı kaynak kataloğu iş akışında kaydedin."
-                            className="w-24 border border-primary/50 bg-primary/5 px-2.5 py-1 text-right font-mono text-sm font-semibold text-foreground focus:border-primary focus:bg-background focus:outline-none tabular-nums"
-                          />
+                        <div className="col-span-2 text-right font-mono text-sm font-semibold tabular-nums" aria-label={`${item.title} birim fiyatı`}>
+                          {price === null
+                            ? <span className="text-amber-600 dark:text-amber-400">Eksik</span>
+                            : <span className="text-foreground">{formatTrCurrency(price)}</span>}
                         </div>
-                        <div className="col-span-3 text-right font-mono text-sm font-semibold text-foreground tabular-nums">
-                          {formatTrCurrency(lineTotal)}
+                        <div className="col-span-3 text-right font-mono text-sm font-semibold tabular-nums">
+                          {price === null
+                            ? <span className="text-muted-foreground">Hesaplanmadı</span>
+                            : <span className="text-foreground">{formatTrCurrency(item.netQuantity * price)}</span>}
                         </div>
                       </div>
                     );
@@ -1367,14 +1348,16 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
                 <div key={gt.key} className="py-2.5 flex items-center justify-between text-xs">
                   <span className="font-medium text-foreground">{gt.title}</span>
                   <span className="font-mono font-semibold text-foreground tabular-nums">
-                    {formatTrCurrency(gt.subtotal)}
+                    {groupTotalLabel(gt)}
                   </span>
                 </div>
               ))}
               <div className="py-2.5 flex items-center justify-between text-xs bg-background px-2.5">
-                <span className="font-semibold text-foreground">İmalat Ara Toplamı</span>
+                <span className="font-semibold text-foreground">
+                  {pricingComplete ? "İmalat Ara Toplamı" : "İmalat Ara Toplamı (yalnız fiyatlanan kalemler)"}
+                </span>
                 <span className="font-mono font-bold text-foreground tabular-nums">
-                  {formatTrCurrency(costSummary.directTotal)}
+                  {costSummary.pricedItemCount > 0 ? formatTrCurrency(costSummary.pricedDirectTotal) : "Hesaplanmadı"}
                 </span>
               </div>
               <div className="py-2.5 flex items-center justify-between text-xs">
@@ -1402,18 +1385,25 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
             {/* GENEL TOPLAM PAFTA BLOĞU */}
             <div className="mt-5 border border-foreground bg-foreground text-background p-5">
               <div className="font-mono text-[10px] uppercase tracking-widest opacity-75">
-                Genel Toplam (KDV Hariç)
+                {pricingComplete ? "Genel Toplam (KDV Hariç)" : "Genel Toplam Hesaplanmadı"}
               </div>
               <div className="mt-1 font-mono text-2xl sm:text-3xl font-bold tabular-nums">
-                {formatTrCurrency(costSummary.grandTotal)}
+                {pricingComplete ? formatTrCurrency(costSummary.pricedGrandTotal) : costPendingLabel}
               </div>
+              {costSummary.status === "partial" && (
+                <div className="mt-1 text-xs opacity-80">
+                  Fiyatlanan {costSummary.pricedItemCount}/{costSummary.itemCount} kalemin tutarı: {formatTrCurrency(costSummary.pricedGrandTotal)}
+                </div>
+              )}
               <div className="mt-3 pt-3 border-t border-background/20 grid grid-cols-2 gap-3 text-xs">
                 <div>
                   <div className="font-mono text-[10px] uppercase opacity-75">
                     Daire Başı ({dataset.residentialUnitCount} Daire)
                   </div>
                   <div className="mt-0.5 font-mono font-semibold tabular-nums">
-                    {formatTrCurrency(costSummary.perApartment)} / Daire
+                    {costSummary.perApartment !== null
+                      ? `${formatTrCurrency(costSummary.perApartment)} / Daire`
+                      : dataset.residentialUnitCount > 0 ? "Tüm fiyatlar gelince hesaplanır" : "Daire sayısı belirlenemedi"}
                   </div>
                 </div>
                 <div>
@@ -1421,7 +1411,9 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
                     m² Başı ({formatGross(grossTotals.totalGeneralGrossM2, 0)} m²)
                   </div>
                   <div className="mt-0.5 font-mono font-semibold tabular-nums">
-                    {costSummary.perGrossM2 === null ? "— (brüt katsayısı girilmedi)" : `${formatTrCurrency(costSummary.perGrossM2)} / m²`}
+                    {costSummary.perGrossM2 !== null
+                      ? `${formatTrCurrency(costSummary.perGrossM2)} / m²`
+                      : grossTotals.totalGeneralGrossM2 === null || grossTotals.totalGeneralGrossM2 <= 0 ? "Brüt alan katsayısı girilmedi" : "Tüm fiyatlar gelince hesaplanır"}
                   </div>
                 </div>
               </div>
@@ -1554,7 +1546,9 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
                 </div>
               ) : (
                 <div className="mt-3 border border-border bg-card p-2.5 text-[11px] font-mono text-muted-foreground">
-                  Sınır değer (SD) hesabı için ihale açılış tutanağındaki İdare Yaklaşık Maliyeti (YM) ve geçerli teklifleri giriniz (varsayılan uydurma değer kullanılmaz).
+                  {pricingComplete
+                    ? "Sınır değer (SD) hesabı için ihale açılış tutanağındaki İdare Yaklaşık Maliyeti (YM) ve geçerli teklifleri giriniz (varsayılan uydurma değer kullanılmaz)."
+                    : `Teklif tutarınız tüm kalemler fiyatlandıktan sonra sınır değerle karşılaştırılır (${costPendingLabel}).`}
                 </div>
               )}
 
@@ -1809,7 +1803,9 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
                 </div>
               ) : (
                 <div className="mt-3 border border-border bg-card p-2.5 text-[11px] font-mono text-muted-foreground">
-                  4735 Sayılı Kanun Fiyat Farkı (F = A_n × 0,90 × (P_n − 1)) ve dönem dışı birim fiyat güncellemesi için TÜİK Temel Endeks (E_0) ve Güncel Endeks (E_n) değerlerini giriniz (sabit enflasyon oranı varsayılmaz).
+                  {pricingComplete
+                    ? "4735 Sayılı Kanun Fiyat Farkı (F = A_n × 0,90 × (P_n − 1)) ve dönem dışı birim fiyat güncellemesi için TÜİK Temel Endeks (E_0) ve Güncel Endeks (E_n) değerlerini giriniz (sabit enflasyon oranı varsayılmaz)."
+                    : `Fiyat farkı, tüm kalemler fiyatlandıktan sonra hesaplanır (${costPendingLabel}).`}
                 </div>
               )}
 
