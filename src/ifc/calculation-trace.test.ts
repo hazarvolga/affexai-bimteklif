@@ -28,6 +28,18 @@ test("brüt verisi olan kalemde brüt − boşluk = net adımı sayılarla yazı
   assert.match(steps.join(" "), /Brüt 20,00 m² − boşluk 5,25 m² = net 14,75 m²/);
 });
 
+test("boşluk düşülmeyen kalemde 'boşluk yok' yalnız model kapı/pencere bilgisi taşıyorsa söylenir", () => {
+  const item: CalmIcmalItem = { ...base, unit: "m²", grossAvailable: true, grossQuantity: 14.75, deductedOpeningQuantity: 0, netQuantity: 14.75 };
+  assert.match(explainIcmalItem(item, { openings: "present" }).join(" "), /Bu kalemde düşülecek boşluk yok/);
+  assert.match(explainIcmalItem(item, { openings: "none_in_model" }).join(" "), /Modelde kapı\/pencere yok; düşülecek boşluk yok/);
+  for (const steps of [explainIcmalItem(item, { openings: "unknown" }), explainIcmalItem(item)]) {
+    const text = steps.join(" ");
+    assert.match(text, /kapı\/pencere bilgisi bulunamadı/);
+    assert.match(text, /boşluk düşümü değerlendirilemedi/);
+    assert.doesNotMatch(text, /düşülecek boşluk yok/);
+  }
+});
+
 test("eleman listesi olmayan kalemde açıklama bunu açıkça söyler", () => {
   const steps = explainIcmalItem({ ...base, contributions: undefined });
   assert.match(steps[0], /eleman listesi bu kayıtta yok/);

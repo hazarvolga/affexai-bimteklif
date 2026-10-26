@@ -8,6 +8,9 @@ import { ApartmentSubcontractorShieldCard } from "@/components/smartcheck/Apartm
 import { AuthoringAdvisoryBanner } from "@/components/smartcheck/AuthoringAdvisoryBanner";
 import { IfcCoverageCard } from "@/components/smartcheck/IfcCoverageCard";
 import { CalculationTraceSection } from "@/components/smartcheck/CalculationTraceSection";
+import { ResultSummaryPanel } from "@/components/smartcheck/ResultSummaryPanel";
+import { buildResultSummary } from "@/ifc/result-summary";
+import { openingsAvailability } from "@/ifc/calculation-trace";
 import { ExpertLineVerification } from "@/components/smartcheck/ExpertLineVerification";
 import { ExpertVerificationBar } from "@/components/smartcheck/ExpertVerificationBar";
 import { VERIFICATION_STATUS_LABEL } from "@/ifc/expert-verification";
@@ -141,6 +144,15 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
     grossM2: grossTotals.totalGeneralGrossM2,
   }), [dataset.groups, dataset.residentialUnitCount, grossTotals.totalGeneralGrossM2, overheadPercent, unitPrices]);
   const pricingComplete = costSummary.status === "complete";
+  const resultSummary = useMemo(() => buildResultSummary({
+    totalElementCount: dataset.consistencyReport?.totalElementCount ?? null,
+    measuredElementCount: dataset.consistencyReport?.measuredElementCount ?? null,
+    pozMatchedElementCount: dataset.consistencyReport?.pozMatchedElementCount ?? null,
+    icmalItemCount: costSummary.itemCount,
+    pricedItemCount: costSummary.pricedItemCount,
+    openings: openingsAvailability(dataset.openings),
+    hasQuotation: quotations.length > 0,
+  }), [costSummary.itemCount, costSummary.pricedItemCount, dataset.consistencyReport, dataset.openings, quotations.length]);
   const costPendingLabel = costSummary.status === "empty" ? "Kalem yok" : `${costSummary.missingItemCount} kalem fiyat bekliyor`;
   const groupTotalLabel = (group: { pricedSubtotal: number; itemCount: number; missingItemCount: number }) => {
     if (group.missingItemCount === 0) return formatTrCurrency(group.pricedSubtotal);
@@ -653,7 +665,7 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
           <div>
             <span className="section-index block">02 / ARSA SAHİBİ &amp; ŞEREFİYE</span>
             <span className="mt-0.5 block text-sm font-semibold text-foreground">
-              2. Daire Metrekareleri ({dataset.residentialUnitCount} Daire)
+              2. Daire Metrekareleri ({dataset.residentialUnitCount > 0 ? `${dataset.residentialUnitCount} Daire` : "daire bilgisi yok"})
             </span>
           </div>
           <span className="font-mono text-[10px] text-muted-foreground">
@@ -683,6 +695,9 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
           </span>
         </button>
       </div>
+
+      {/* SONUÇ ÖZETİ: her kontrol kendi durumunu söyler (marka.md M-20.3) */}
+      <ResultSummaryPanel summary={resultSummary} onOpenCostStep={() => setActiveStep("maliyet")} />
 
       {/* KAYNAK YAZILIM UYARISI (PAKET M-2) */}
       <AuthoringAdvisoryBanner advisory={dataset.authoringAdvisory} />
@@ -732,7 +747,12 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
                   İnşaat İmalat İcmal Listesi
                 </h3>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Kapı ve pencere boşlukları (minha) düşülmüş, çoklu katmanları ayrıştırılmış net metrajlar
+                  IFC modelinden okunan net metrajlar.{" "}
+                  {openingsAvailability(dataset.openings) === "present"
+                    ? "Modeldeki kapı/pencere boşlukları kalem bazında gösterilir."
+                    : openingsAvailability(dataset.openings) === "none_in_model"
+                      ? "Modelde kapı/pencere yok; boşluk düşümü gerekmedi."
+                      : "Modelde kapı/pencere bilgisi bulunamadı; boşluk düşümü (minha) değerlendirilemedi."}
                 </p>
               </div>
               <div className="flex flex-col items-end gap-2">
@@ -869,7 +889,7 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
                   onSave={verification.saveRecord}
                 />
               )}
-              <CalculationTraceSection item={selectedItem} fileName={dataset.projectTitle} />
+              <CalculationTraceSection item={selectedItem} fileName={dataset.projectTitle} openings={openingsAvailability(dataset.openings)} />
 
               {/* MİNHA FORMÜL KUTUSU & SÖZLEŞMESEL MİNHA PROFİLİ (KARAR #4) */}
               <div className="mt-5 border border-border bg-background p-4">
@@ -1089,7 +1109,7 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
             <div className="divide-y divide-border max-h-[620px] overflow-y-auto">
               {dataset.apartments.length === 0 ? (
                 <div className="p-8 text-center text-xs text-muted-foreground">
-                  Bu IFC modelinde tanımlı bağımsız bölüm / mahal (IfcZone / IfcSpace) bulunamadı. Tüm yapısal ve kaplama metrajlarını <b>1. Malzeme İcmal Listesi</b> sekmesinden inceleyebilirsiniz.
+                  Bu dosyada daire/mahal cetveli oluşturmak için yeterli bilgi bulunamadı (modelde bağımsız bölüm veya mahal tanımı yok). Bu, dairenin olmadığı anlamına gelmez. Yapısal ve kaplama metrajları <b>1. Malzeme İcmal Listesi</b> sekmesindedir.
                 </div>
               ) : (
                 dataset.apartments.map((apt) => {
@@ -1340,7 +1360,7 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
               Yaklaşık Maliyet &amp; Teklif İcmali
             </h4>
             <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground mt-1">
-              {dataset.residentialUnitCount} Daire + Ortak Alanlar · Net İmalat Maliyeti
+              {dataset.residentialUnitCount > 0 ? `${dataset.residentialUnitCount} Daire + Ortak Alanlar` : "Daire/mahal cetveli için yeterli bilgi bulunamadı"} · Net İmalat Maliyeti
             </p>
 
             <div className="mt-4 divide-y divide-border border-t border-b border-border">
@@ -1398,7 +1418,7 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
               <div className="mt-3 pt-3 border-t border-background/20 grid grid-cols-2 gap-3 text-xs">
                 <div>
                   <div className="font-mono text-[10px] uppercase opacity-75">
-                    Daire Başı ({dataset.residentialUnitCount} Daire)
+                    {dataset.residentialUnitCount > 0 ? `Daire Başı (${dataset.residentialUnitCount} Daire)` : "Daire Başı"}
                   </div>
                   <div className="mt-0.5 font-mono font-semibold tabular-nums">
                     {costSummary.perApartment !== null

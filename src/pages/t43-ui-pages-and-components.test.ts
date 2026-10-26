@@ -2346,6 +2346,7 @@ test('T43 UI Slice 4: SmartCheck, CalmIfcWorkspace, BimIfcParser, BimGapAnalysis
             createElement(CalculationTraceSection, {
               item: firstItem,
               fileName: 'ornek_konut_ifc4.ifc',
+              openings: 'unknown',
             }),
             createElement(ExpertLineVerification, {
               item: firstItem,
