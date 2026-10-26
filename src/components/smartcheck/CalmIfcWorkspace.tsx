@@ -558,7 +558,7 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
         <div className="min-w-0">
           <div className="eyebrow">
             <span className="status-dot" />
-            <span>PAFTA 01 / BIM → NET METRAJ İCMALİ · KATMANLAR VE MİNHA DOĞRULANDI</span>
+            <span>PAFTA 01 / BIM → NET METRAJ İCMALİ · KONTROL DURUMU AŞAĞIDAKİ ÖZETTE</span>
           </div>
           <h2 className="mt-1.5 font-display-serif text-2xl sm:text-3xl text-foreground truncate">
             {dataset.projectTitle}
@@ -1397,7 +1397,7 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
                   />
                 </div>
                 <span className="font-mono font-semibold text-foreground tabular-nums">
-                  {formatTrCurrency(costSummary.overheadAmount)}
+                  {costSummary.pricedItemCount > 0 ? formatTrCurrency(costSummary.overheadAmount) : "Hesaplanmadı"}
                 </span>
               </div>
             </div>

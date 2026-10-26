@@ -73,7 +73,7 @@ export function SmartCheckDemo() {
       const freshState = JSON.parse(localStorage.getItem('teklifpro.smartcheck.demo.v1') || '{}').state || demoState;
       const resolvedCount = freshState.findings.filter((f: any) => f.status === 'resolved').length;
       if (resolvedCount === freshState.findings.length) {
-        toast.success('Harika! Tüm bulgular başarıyla doğrulandı ve çözüldü.', {
+        toast.success('Tüm örnek bulgular düzeltildi ve yeniden kontrol edildi.', {
           description: 'Kalite kontrol aşaması başarıyla tamamlandı.',
         });
       } else {

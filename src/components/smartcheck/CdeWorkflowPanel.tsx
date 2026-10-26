@@ -65,7 +65,7 @@ export function CdeWorkflowPanel({ documentId, targetState, suitabilityCode, rev
     return (
       <div className="mt-3 border border-amber-500/30 bg-amber-500/5 p-3 text-[11px] leading-relaxed text-amber-700 dark:text-amber-300">
         <strong className="block font-semibold">Bu dokümana bağlı sunucu CDE kaydı hazır değil.</strong>
-        Proje, konteyner ve revizyon; yetkili sunucu iş akışında gerçek doküman özeti ile doğrulanmış source/rule/result/code hash kanıtları kullanılarak oluşturulmalıdır. Tarayıcı sahte hash veya yerel onay geçmişi üretmez.
+        Proje, klasör ve revizyon kaydı yetkili sunucu iş akışında, doğrulanmış dosya ve kural kayıtlarıyla oluşturulur. Tarayıcı kendi başına onay geçmişi üretmez.
       </div>
     );
   }
