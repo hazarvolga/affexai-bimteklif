@@ -4,7 +4,7 @@ import { UPLOAD_MAX_TTL_MS, reserveUpload, UploadQuotaError } from "../../smartc
 import { withReadDeadline } from "../../smartcheck/import/bounded-read";
 import crypto from "node:crypto";
 import { pipeline } from 'node:stream/promises';
-import type { Express, Request, RequestHandler } from "express";
+import type { Express, Request, RequestHandler, Response } from "express";
 import express from "express";
 import { and, desc, eq, inArray, ne, sql } from "drizzle-orm";
 import { changeProcessingRun, ProcessingConflict } from "../../smartcheck/import/service";
@@ -32,6 +32,7 @@ import { SAMPLE_PRICE_CATALOG_SEED, SMARTCHECK_SAMPLE_PROJECTS, type SampleProje
 import {
   smartcheckBulkReviewRequestSchema,
   smartcheckCalmTransferRequestSchema,
+  smartcheckCalmTransferToNewQuotationRequestSchema,
   smartcheckCompleteRequestSchema,
   smartcheckMappingRequestSchema,
   smartcheckRowReviewRequestSchema,
@@ -39,7 +40,7 @@ import {
   smartcheckTransferToNewQuotationRequestSchema,
   smartcheckUploadRequestSchema,
 } from "../../contracts/smartcheck";
-import { CalmTransferError, transferCalmRowsToQuotationRevision } from "../../services/quotations/calm-transfer";
+import { CalmTransferError, transferCalmRowsToNewQuotation, transferCalmRowsToQuotationRevision } from "../../services/quotations/calm-transfer";
 import { IFC_VIEWER_MAX_EVIDENCE_BYTES, IFC_VIEWER_MAX_FILE_BYTES, IFC_VIEWER_MAX_IDENTITIES, canonicalElementKey, parseViewerContext } from "../../ifc/viewer/model";
 import type { IfcSourceIdentity } from "../../ifc/types";
 import { createVerifiedIfcStream } from "../../ifc/viewer/verified-stream";
@@ -105,75 +106,113 @@ function smartcheckQuoteNumber() {
   return `SC-${stamp}-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
 }
 
+const CALM_TRANSFER_MESSAGES: Record<string, string> = {
+  CALM_TRANSFER_DOCUMENT_NOT_FOUND: "SmartCheck dokümanı bulunamadı.",
+  CALM_TRANSFER_QUOTATION_NOT_FOUND: "Seçilen güncel teklif bulunamadı.",
+  CALM_TRANSFER_QUOTATION_CHANGED: "Teklif revizyonu değişti; güncel teklifi yeniden seçin.",
+  CALM_TRANSFER_ROW_NOT_APPROVED: "Yalnız mühendis tarafından onaylanmış satırlar aktarılabilir.",
+  CALM_TRANSFER_PRICE_SELECTION_REQUIRED: "Her canonical Calm satırı için onaylı fiyat snapshot seçilmelidir.",
+  CALM_TRANSFER_PRICE_SELECTION_INVALID: "İstek sunucunun ürettiği canonical Calm satırlarıyla eşleşmiyor.",
+  CALM_TRANSFER_PRICE_SNAPSHOT_INVALID: "Yalnız yetkili, onaylı, güncel ve kalemle uyumlu fiyat snapshot kullanılabilir.",
+  CALM_TRANSFER_IFC_EVIDENCE_REQUIRED: "Tamamlanmış IFC kanıt artefaktı bulunamadı.",
+  CALM_TRANSFER_RUN_NOT_SUCCEEDED: "Dokümanın başarılı ve güncel işleme koşusu bulunamadı.",
+  CALM_TRANSFER_IDEMPOTENCY_CONFLICT: "Bu aktarım anahtarı farklı bir istek için daha önce kullanılmış.",
+  CALM_TRANSFER_SOURCE_ROWS_ALREADY_TRANSFERRED: "Bu kaynak satırlar teklif serisine daha önce aktarılmış.",
+  CALM_TRANSFER_CLIENT_NAME_REQUIRED: "Yeni teklif için müşteri adı zorunludur.",
+};
+
+/** Header and path checks shared by both Calm transfer routes; returns null after responding with 400. */
+async function calmTransferPreflight(req: Request, res: Response): Promise<string | null> {
+  const idempotencyKey = req.get("Idempotency-Key")?.trim() ?? "";
+  if (!idempotencyKey) {
+    await auditBestEffort(req, "calm_transfer_rejected", "document", req.params.id, { code: "CALM_TRANSFER_IDEMPOTENCY_KEY_REQUIRED" });
+    res.status(400).json({ error: "Idempotency-Key başlığı zorunludur.", code: "CALM_TRANSFER_IDEMPOTENCY_KEY_REQUIRED" });
+    return null;
+  }
+  if (idempotencyKey.length > 160) {
+    await auditBestEffort(req, "calm_transfer_rejected", "document", req.params.id, { code: "CALM_TRANSFER_IDEMPOTENCY_KEY_INVALID" });
+    res.status(400).json({ error: "Idempotency-Key en fazla 160 karakter olabilir.", code: "CALM_TRANSFER_IDEMPOTENCY_KEY_INVALID" });
+    return null;
+  }
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(req.params.id)) {
+    await auditBestEffort(req, "calm_transfer_rejected", "document", undefined, { code: "CALM_TRANSFER_DOCUMENT_ID_INVALID" });
+    res.status(400).json({ error: "Doküman kimliği geçersiz.", code: "CALM_TRANSFER_DOCUMENT_ID_INVALID" });
+    return null;
+  }
+  return idempotencyKey;
+}
+
+async function rejectCalmTransferRequest(req: Request, res: Response) {
+  await auditBestEffort(req, "calm_transfer_rejected", "document", req.params.id, { code: "CALM_TRANSFER_REQUEST_INVALID" });
+  return res.status(400).json({ error: "Calm aktarım isteği geçersiz.", code: "CALM_TRANSFER_REQUEST_INVALID" });
+}
+
+type CalmTransferOutcome = Awaited<ReturnType<typeof transferCalmRowsToQuotationRevision>>;
+
+async function runCalmTransfer(req: Request, res: Response, auditTarget: Record<string, unknown>, transfer: () => Promise<CalmTransferOutcome>) {
+  try {
+    const result = await transfer();
+    const summary = result.ledger.resultSummaryJson as Record<string, unknown>;
+    await auditBestEffort(req, "calm_rows_transferred", "quotation", result.quotation.id, {
+      sourceDocumentId: req.params.id,
+      sourceQuotationId: result.ledger.sourceQuotationId,
+      transferLedgerId: result.ledger.id,
+      sourceRowCount: summary.sourceRowCount ?? null,
+      replayed: result.replayed,
+      ...auditTarget,
+    });
+    return res.status(result.replayed ? 200 : 201).json({
+      quotationId: result.quotation.id,
+      sourceQuotationId: result.ledger.sourceQuotationId,
+      revisionVersion: result.quotation.revisionVersion,
+      transferredCount: summary.sourceRowCount ?? null,
+      createdItemCount: summary.createdItemCount ?? null,
+      replayed: result.replayed,
+    });
+  } catch (error) {
+    if (error instanceof CalmTransferError) {
+      await auditBestEffort(req, "calm_transfer_rejected", "document", req.params.id, { code: error.code, ...auditTarget });
+      return res.status(error.status).json({ error: CALM_TRANSFER_MESSAGES[error.code] ?? "Calm teklif aktarımı güvenlik veya doğrulama kapısında durdu.", code: error.code });
+    }
+    if (error instanceof QuotaError) return res.status(error.status).json({ error: error.message, code: error.code, ...error.details });
+    console.error("[smartcheck.calmTransfer] failed:", error);
+    return res.status(500).json({ error: "Calm teklif aktarımı tamamlanamadı.", code: "CALM_TRANSFER_FAILED" });
+  }
+}
+
 export function registerSmartCheckRoutes(app: Express) {
   const protectedStack = [authenticate, requireVerifiedEmail, featureGate, rateLimit, canReview];
 
   app.post("/api/smartcheck/documents/:id/transfer-calm-to-quotation", ...protectedStack, async (req, res) => {
-    const idempotencyKey = req.get("Idempotency-Key")?.trim() ?? "";
-    if (!idempotencyKey) {
-      await auditBestEffort(req, "calm_transfer_rejected", "document", req.params.id, { code: "CALM_TRANSFER_IDEMPOTENCY_KEY_REQUIRED" });
-      return res.status(400).json({ error: "Idempotency-Key başlığı zorunludur.", code: "CALM_TRANSFER_IDEMPOTENCY_KEY_REQUIRED" });
-    }
-    if (idempotencyKey.length > 160) {
-      await auditBestEffort(req, "calm_transfer_rejected", "document", req.params.id, { code: "CALM_TRANSFER_IDEMPOTENCY_KEY_INVALID" });
-      return res.status(400).json({ error: "Idempotency-Key en fazla 160 karakter olabilir.", code: "CALM_TRANSFER_IDEMPOTENCY_KEY_INVALID" });
-    }
-    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(req.params.id)) {
-      await auditBestEffort(req, "calm_transfer_rejected", "document", undefined, { code: "CALM_TRANSFER_DOCUMENT_ID_INVALID" });
-      return res.status(400).json({ error: "Doküman kimliği geçersiz.", code: "CALM_TRANSFER_DOCUMENT_ID_INVALID" });
-    }
+    const idempotencyKey = await calmTransferPreflight(req, res);
+    if (idempotencyKey === null) return;
     const parsed = smartcheckCalmTransferRequestSchema.safeParse(req.body);
-    if (!parsed.success) {
-      await auditBestEffort(req, "calm_transfer_rejected", "document", req.params.id, { code: "CALM_TRANSFER_REQUEST_INVALID" });
-      return res.status(400).json({ error: "Calm aktarım isteği geçersiz.", code: "CALM_TRANSFER_REQUEST_INVALID" });
-    }
-    try {
-      const result = await transferCalmRowsToQuotationRevision(
-        { companyId: req.user.companyId, userId: req.user.userId },
-        idempotencyKey,
-        {
-          sourceDocumentId: req.params.id,
-          targetQuotationId: parsed.data.quotationId,
-          priceSnapshotIdsByCalmLineId: parsed.data.priceSnapshotIdsByCalmLineId,
-        },
-      );
-      const summary = result.ledger.resultSummaryJson as Record<string, unknown>;
-      await auditBestEffort(req, "calm_rows_transferred", "quotation", result.quotation.id, {
+    if (!parsed.success) return rejectCalmTransferRequest(req, res);
+    await runCalmTransfer(req, res, { targetQuotationId: parsed.data.quotationId }, () => transferCalmRowsToQuotationRevision(
+      { companyId: req.user.companyId, userId: req.user.userId },
+      idempotencyKey,
+      {
         sourceDocumentId: req.params.id,
-        sourceQuotationId: result.ledger.sourceQuotationId,
-        transferLedgerId: result.ledger.id,
-        sourceRowCount: summary.sourceRowCount ?? null,
-        replayed: result.replayed,
-      });
-      return res.status(result.replayed ? 200 : 201).json({
-        quotationId: result.quotation.id,
-        sourceQuotationId: result.ledger.sourceQuotationId,
-        revisionVersion: result.quotation.revisionVersion,
-        transferredCount: summary.sourceRowCount ?? null,
-        createdItemCount: summary.createdItemCount ?? null,
-        replayed: result.replayed,
-      });
-    } catch (error) {
-      if (error instanceof CalmTransferError) {
-        await auditBestEffort(req, "calm_transfer_rejected", "document", req.params.id, { code: error.code, targetQuotationId: parsed.data.quotationId });
-        const messages: Record<string, string> = {
-          CALM_TRANSFER_DOCUMENT_NOT_FOUND: "SmartCheck dokümanı bulunamadı.",
-          CALM_TRANSFER_QUOTATION_NOT_FOUND: "Seçilen güncel teklif bulunamadı.",
-          CALM_TRANSFER_QUOTATION_CHANGED: "Teklif revizyonu değişti; güncel teklifi yeniden seçin.",
-          CALM_TRANSFER_ROW_NOT_APPROVED: "Yalnız mühendis tarafından onaylanmış satırlar aktarılabilir.",
-          CALM_TRANSFER_PRICE_SELECTION_REQUIRED: "Her canonical Calm satırı için onaylı fiyat snapshot seçilmelidir.",
-          CALM_TRANSFER_PRICE_SELECTION_INVALID: "İstek sunucunun ürettiği canonical Calm satırlarıyla eşleşmiyor.",
-          CALM_TRANSFER_PRICE_SNAPSHOT_INVALID: "Yalnız yetkili, onaylı, güncel ve kalemle uyumlu fiyat snapshot kullanılabilir.",
-          CALM_TRANSFER_IFC_EVIDENCE_REQUIRED: "Tamamlanmış IFC kanıt artefaktı bulunamadı.",
-          CALM_TRANSFER_RUN_NOT_SUCCEEDED: "Dokümanın başarılı ve güncel işleme koşusu bulunamadı.",
-          CALM_TRANSFER_IDEMPOTENCY_CONFLICT: "Bu aktarım anahtarı farklı bir istek için daha önce kullanılmış.",
-          CALM_TRANSFER_SOURCE_ROWS_ALREADY_TRANSFERRED: "Bu kaynak satırlar teklif serisine daha önce aktarılmış.",
-        };
-        return res.status(error.status).json({ error: messages[error.code] ?? "Calm teklif aktarımı güvenlik veya doğrulama kapısında durdu.", code: error.code });
-      }
-      console.error("[smartcheck.calmTransfer] failed:", error);
-      return res.status(500).json({ error: "Calm teklif aktarımı tamamlanamadı.", code: "CALM_TRANSFER_FAILED" });
-    }
+        targetQuotationId: parsed.data.quotationId,
+        priceSnapshotIdsByCalmLineId: parsed.data.priceSnapshotIdsByCalmLineId,
+        ...(parsed.data.overheadProfitPercent === undefined ? {} : { overheadProfitPercent: parsed.data.overheadProfitPercent.toFixed(2) }),
+      },
+    ));
+  });
+
+  // "Yeni teklif oluştur": same Calm provenance guarantees, new quotation series (consumes one quotation quota).
+  app.post("/api/smartcheck/documents/:id/transfer-calm-to-new-quotation", ...protectedStack, async (req, res) => {
+    const idempotencyKey = await calmTransferPreflight(req, res);
+    if (idempotencyKey === null) return;
+    const parsed = smartcheckCalmTransferToNewQuotationRequestSchema.safeParse(req.body);
+    if (!parsed.success) return rejectCalmTransferRequest(req, res);
+    const { priceSnapshotIdsByCalmLineId, overheadProfitPercent, ...fields } = parsed.data;
+    const newQuotation = { ...fields, ...(overheadProfitPercent === undefined ? {} : { overheadProfitPercent: overheadProfitPercent.toFixed(2) }) };
+    await runCalmTransfer(req, res, { newQuotation: true }, () => transferCalmRowsToNewQuotation(
+      { companyId: req.user.companyId, userId: req.user.userId },
+      idempotencyKey,
+      { sourceDocumentId: req.params.id, newQuotation, priceSnapshotIdsByCalmLineId },
+    ));
   });
 
   app.post("/api/smartcheck/documents/uploads", ...protectedStack, async (req, res) => {
@@ -896,8 +935,8 @@ export function registerSmartCheckRoutes(app: Express) {
       for (let i = 0; i < allEvidences.length; i += 500) {
         await tx.insert(quotationItemEvidence).values(allEvidences.slice(i, i + 500)).onConflictDoNothing();
       }
-      const totals = calculateQuotationTotals(allItems);
-      await tx.update(quotations).set({ subtotal: String(totals.subtotal), discountTotal: String(totals.discountTotal), vatTotal: String(totals.vatTotal), grandTotal: String(totals.grandTotal), updatedAt: new Date() }).where(and(eq(quotations.id, quotation.id), eq(quotations.companyId, req.user.companyId)));
+      const totals = calculateQuotationTotals(allItems, { overheadProfitPercent: quotation.overheadProfitPercent });
+      await tx.update(quotations).set({ subtotal: String(totals.subtotal), discountTotal: String(totals.discountTotal), overheadProfitTotal: String(totals.overheadProfitTotal), vatTotal: String(totals.vatTotal), grandTotal: String(totals.grandTotal), updatedAt: new Date() }).where(and(eq(quotations.id, quotation.id), eq(quotations.companyId, req.user.companyId)));
       return { insertedCount, items: allItems.filter((item) => rowIds.includes(item.sourceQuantityRowId ?? "")) };
     });
     await audit(req, "rows_transferred", "quotation", quotation.id, { documentId: req.params.id, rowIds, transferredCount: transferResult.insertedCount });
@@ -1036,8 +1075,8 @@ export function registerSmartCheckRoutes(app: Express) {
       for (let i = 0; i < allEvidences.length; i += 500) {
         await tx.insert(quotationItemEvidence).values(allEvidences.slice(i, i + 500)).onConflictDoNothing();
       }
-      const totals = calculateQuotationTotals(allItems);
-      await tx.update(quotations).set({ subtotal: String(totals.subtotal), discountTotal: String(totals.discountTotal), vatTotal: String(totals.vatTotal), grandTotal: String(totals.grandTotal), updatedAt: new Date() }).where(and(eq(quotations.id, quotation.id), eq(quotations.companyId, req.user.companyId)));
+      const totals = calculateQuotationTotals(allItems, { overheadProfitPercent: quotation.overheadProfitPercent });
+      await tx.update(quotations).set({ subtotal: String(totals.subtotal), discountTotal: String(totals.discountTotal), overheadProfitTotal: String(totals.overheadProfitTotal), vatTotal: String(totals.vatTotal), grandTotal: String(totals.grandTotal), updatedAt: new Date() }).where(and(eq(quotations.id, quotation.id), eq(quotations.companyId, req.user.companyId)));
       return { quotation, client, insertedCount, items: allItems.filter((item) => rowIds.includes(item.sourceQuantityRowId ?? "")) };
     });
 

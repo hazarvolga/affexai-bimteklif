@@ -94,6 +94,8 @@ export function parseCatalogVatPercent(value: unknown): { ok: true; value: strin
   return { ok: true, value: String(parsed) };
 }
 
+const CATALOG_IMPORT_REVIEW_NOTE = "Firma kataloğu içe aktarımında sahiplik beyanıyla incelendi ve onaylandı.";
+
 export function resolveAuthorizationInput(input: {
   sourceType: string;
   sourceDocumentHash: string;
@@ -368,6 +370,16 @@ export function registerPricingRoutes(app: Express) {
     if (!vatPercent.ok) {
       return res.status(400).json({ error: "KDV oranı 0-100 aralığında ve en fazla iki ondalık basamaklı olmalıdır.", code: "CATALOG_VAT_PERCENT_INVALID" });
     }
+    // Faz 1 (M-17.3): the owner reviews a company-actual catalogue in the import wizard, so it can be approved on
+    // import. Same rule as the single review route (company actuals need no second person); only for prices whose
+    // VAT basis is explicit, because quotation transfer rejects anything else.
+    const approveOnImport = req.body?.reviewDecision === "approved";
+    if (approveOnImport && (sourceType !== "company_actual" || req.body?.vatStatus !== "excluded" || vatPercent.value === null)) {
+      return res.status(400).json({ error: "İçe aktarımda onay yalnız KDV hariç ve KDV oranı belirtilmiş firma fiyatları için yapılabilir.", code: "CATALOG_IMPORT_APPROVAL_SCOPE_INVALID" });
+    }
+    if (req.body?.reviewDecision !== undefined && !approveOnImport) {
+      return res.status(400).json({ error: "Geçersiz inceleme kararı.", code: "CATALOG_IMPORT_APPROVAL_SCOPE_INVALID" });
+    }
     const sourceDocumentPayload = {
       kind: "pricing_catalog_import",
       sourceName,
@@ -497,7 +509,8 @@ export function registerPricingRoutes(app: Express) {
             sourceDocumentHash,
             sourceVersion: optionalText(req.body?.sourceVersion, 120),
             confidence: String(row.confidence),
-            reviewStatus: "advisory",
+            reviewStatus: approveOnImport ? "approved" : "advisory",
+            ...(approveOnImport ? { reviewedByUserId: req.user.userId, reviewedAt: new Date(), reviewerNotes: CATALOG_IMPORT_REVIEW_NOTE } : {}),
             createdByUserId: req.user.userId,
             metadataJson: { ...row.metadataJson, importRowIndex: row.index, source: "pricing_catalog_import" },
           }).onConflictDoNothing({ target: [priceSnapshots.companyId, priceSnapshots.priceSourceId, priceSnapshots.snapshotKey] }).returning();
@@ -510,7 +523,7 @@ export function registerPricingRoutes(app: Express) {
         return [createdSource] as const;
       });
 
-      await audit(req, "price_catalog_imported", "price_source", source.id, { sourceType, sourceDocumentHash, authorizationStatus: authorization.authorizationStatus, insertedCount, reusedCount, rowCount: rows.length });
+      await audit(req, "price_catalog_imported", "price_source", source.id, { sourceType, sourceDocumentHash, authorizationStatus: authorization.authorizationStatus, insertedCount, reusedCount, rowCount: rows.length, approvedOnImport: approveOnImport });
       res.status(201).json({ source, insertedCount, reusedCount, snapshots: importedSnapshots });
     } catch {
       res.status(500).json({ error: "Fiyat kataloğu içe aktarılırken beklenmeyen bir hata oluştu." });

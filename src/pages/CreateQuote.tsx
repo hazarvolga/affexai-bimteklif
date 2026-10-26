@@ -5,7 +5,7 @@ import { benchmarkQuoteItem } from '../services/pricing/benchmark-policy';
  */
 
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { fetchWithAuth } from '@/lib/api';
 import { 
@@ -68,6 +68,7 @@ import { calculateLineItemTotal, calculateQuotationTotals } from '@/lib/calculat
 import { calculateQuotationFinancials } from '@/lib/financial-calculations';
 import { parsePreBimQuoteDraft, PRE_BIM_DRAFT_STORAGE_KEY } from '@/lib/pre-bim-quote-draft';
 import { parseQuoteCsv, buildQuoteCsvTemplate } from '@/lib/quote-excel-import';
+import { isLegacyXls, LEGACY_XLS_MESSAGE, readFileHead } from '@/lib/spreadsheet-format';
 
 // Base UI shows the raw value in a closed Select unless `items` maps values to labels (marka.md M-12.3).
 const CURRENCY_LABELS: Record<string, string> = { [Currency.TRY]: "Türk Lirası (₺)", [Currency.USD]: "Dolar ($)", [Currency.EUR]: "Euro (€)" };
@@ -105,6 +106,20 @@ export function CreateQuote() {
     warnings: string[];
   } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  // Dashboard "Excel metrajım var" opens this screen at the Excel import (marka.md M-12.1, M-11.4).
+  const [searchParams] = useSearchParams();
+  const startFromExcel = searchParams.get('kaynak') === 'excel';
+  const excelImportRef = useRef<HTMLDivElement>(null);
+  const startManually = searchParams.get('kaynak') === 'elle';
+  useEffect(() => {
+    if (!startManually) return;
+    document.querySelector<HTMLInputElement>('[data-testid="quote-items-table"] input')?.focus();
+  }, [startManually]);
+  useEffect(() => {
+    if (!startFromExcel) return;
+    excelImportRef.current?.scrollIntoView({ block: 'center' });
+    excelImportRef.current?.querySelector<HTMLButtonElement>('button')?.focus();
+  }, [startFromExcel]);
   const [importingFile, setImportingFile] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -120,6 +135,7 @@ export function CreateQuote() {
     carbonRiskPremiumPercent: 0,
     informationDeliveryLevel: 'none' as 'none' | 'as_built' | 'cobie' | 'digital_twin',
     informationDeliveryCostPercent: 0,
+    overheadProfitPercent: 0,
     notes: '',
   });
 
@@ -292,6 +308,7 @@ export function CreateQuote() {
         projectDurationMonths: quote.projectDurationMonths, escalationVolatilityPercent: Number(quote.escalationVolatilityPercent),
         procurementProfile: quote.procurementProfile, carbonRiskPremiumPercent: Number(quote.carbonRiskPremiumPercent),
         informationDeliveryLevel: quote.informationDeliveryLevel, informationDeliveryCostPercent: Number(quote.informationDeliveryCostPercent),
+        overheadProfitPercent: Number(quote.overheadProfitPercent ?? 0),
         notes: quote.notes ?? '',
       });
       setItems(quote.items);
@@ -328,9 +345,14 @@ export function CreateQuote() {
 
   const handleQuoteFileImport = async (file: File | null) => {
     if (!file) return;
+    if (isLegacyXls(file.name, await readFileHead(file))) {
+      toast.error(LEGACY_XLS_MESSAGE, { duration: 12000 });
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
     setImportingFile(true);
     try {
-      const isXlsx = file.name.toLowerCase().endsWith('.xlsx') || file.name.toLowerCase().endsWith('.xls');
+      const isXlsx = file.name.toLowerCase().endsWith('.xlsx');
       let result;
       if (isXlsx) {
         const { parseQuoteXlsx } = await import('@/lib/quote-xlsx');
@@ -369,6 +391,15 @@ export function CreateQuote() {
     } finally {
       setImportingFile(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleDownloadXlsxTemplate = async () => {
+    try {
+      const { buildQuoteXlsxTemplate, downloadXlsx } = await import('@/lib/spreadsheet-templates');
+      downloadXlsx(await buildQuoteXlsxTemplate(), 'bimmetraj-teklif-sablonu.xlsx');
+    } catch {
+      toast.error('Excel şablonu hazırlanamadı. CSV şablonunu kullanabilirsiniz.');
     }
   };
 
@@ -436,7 +467,7 @@ export function CreateQuote() {
     }
   };
 
-  const totals = calculateQuotationTotals(items);
+  const totals = calculateQuotationTotals(items, { overheadProfitPercent: formData.overheadProfitPercent });
 
   // Same calculation as the server profitability report, including risk premiums (L-4).
   const financials = calculateQuotationFinancials(items, {
@@ -444,6 +475,7 @@ export function CreateQuote() {
     escalationVolatilityPercent: formData.escalationVolatilityPercent,
     carbonRiskPremiumPercent: formData.carbonRiskPremiumPercent,
     informationDeliveryCostPercent: formData.informationDeliveryCostPercent,
+    overheadProfitPercent: formData.overheadProfitPercent,
   });
   const costInputsComplete = items.length > 0 && financials.missingCostItemIndexes.length === 0;
   const estimatedMargin = costInputsComplete ? financials.margin : 0;
@@ -502,6 +534,7 @@ export function CreateQuote() {
       carbonRiskPremiumPercent: 3,
       informationDeliveryLevel: 'cobie',
       informationDeliveryCostPercent: 2,
+      overheadProfitPercent: 0,
       notes: '6306 Sayılı Kentsel Dönüşüm Kanunu kapsamında TSE standartlı 1. sınıf malzeme ve ISO 19650 esaslı BIM teslim formatında hazırlanmış tekliftir.',
     });
 
@@ -539,14 +572,7 @@ export function CreateQuote() {
               onClick={() => navigate('/app/smartcheck')}
               className="border-border bg-card hover:bg-muted text-foreground font-mono text-xs uppercase tracking-wider h-10 px-4 gap-2 shadow-none"
             >
-              <ShieldCheck size={14} className="text-muted-foreground" /> SmartCheck & e-PYS
-            </Button>
-            <Button
-              variant="outline" 
-              onClick={() => navigate('/app/ifc-parser')}
-              className="border-border bg-card hover:bg-muted text-foreground font-mono text-xs uppercase tracking-wider h-10 px-4 gap-2 shadow-none"
-            >
-              <Box size={14} className="text-muted-foreground" /> 5D IFC Metraj Yükle
+              <Box size={14} className="text-muted-foreground" /> IFC Modelinden Kalem Al
             </Button>
             <Button 
               variant="outline" 
@@ -828,7 +854,7 @@ export function CreateQuote() {
             <Card className="bg-card border border-border shadow-none overflow-hidden">
               <CardContent className="p-0">
                 <div className="overflow-x-auto">
-                  <Table className="min-w-[980px]">
+                  <Table className="min-w-[980px]" data-testid="quote-items-table">
                     <TableHeader className="bg-muted/40">
                       <TableRow className="border-border">
                         <TableHead className="w-[30%] min-w-[200px] sticky left-0 z-10 bg-card border-r border-border text-muted-foreground font-mono text-xs uppercase pl-5 py-3">Detay / İş Kalemi</TableHead>
@@ -926,14 +952,23 @@ export function CreateQuote() {
                     </TableBody>
                   </Table>
                 </div>
-                <div className="p-3 border-t border-border bg-muted/20 flex flex-wrap items-center justify-between gap-2 px-4">
-                  <div className="flex items-center gap-2">
+                <div
+                  ref={excelImportRef}
+                  data-testid="quote-excel-import"
+                  className={`p-3 border-t border-border flex flex-wrap items-center justify-between gap-2 px-4 ${startFromExcel ? 'bg-primary/10 ring-2 ring-primary/40' : 'bg-muted/20'}`}
+                >
+                  <div className="flex flex-wrap items-center gap-2">
+                    {startFromExcel && (
+                      <p className="w-full text-xs text-foreground">
+                        Excel metrajınızı yükleyin. Şablonu indirip doldurabilir veya kendi dosyanızı (başlıklarında açıklama ve miktar olan) doğrudan seçebilirsiniz.
+                      </p>
+                    )}
                     <input
                       ref={fileInputRef}
                       id="quote-file-upload"
                       aria-label="Excel veya CSV teklif dosyası yükle"
                       type="file"
-                      accept=".xlsx,.xls,.csv,text/csv"
+                      accept=".xlsx,.xls,.csv,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                       className="sr-only"
                       onChange={(e) => void handleQuoteFileImport(e.target.files?.[0] ?? null)}
                     />
@@ -949,11 +984,19 @@ export function CreateQuote() {
                     </Button>
                     <Button
                       type="button"
+                      variant="outline"
+                      onClick={() => void handleDownloadXlsxTemplate()}
+                      className="font-mono text-xs h-8 px-3 gap-1.5 border-border bg-background hover:bg-card text-foreground shadow-none"
+                    >
+                      <Download size={13} /> Excel Şablonu İndir (.xlsx)
+                    </Button>
+                    <Button
+                      type="button"
                       variant="ghost"
                       onClick={handleDownloadCsvTemplate}
                       className="text-muted-foreground hover:text-foreground font-mono text-[11px] h-8 px-2.5 gap-1"
                     >
-                      <Download size={12} /> Şablon İndir (CSV)
+                      CSV şablonu
                     </Button>
                   </div>
                   <Button variant="ghost" onClick={addItem} className="text-primary hover:bg-primary/10 font-mono text-xs h-8 px-5 gap-1.5">
@@ -1028,6 +1071,15 @@ export function CreateQuote() {
                   <Field label="Teslim Maliyeti %" labelClassName="text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-widest" hint="Şirket kapsam varsayımıdır; ISO/COBie uygunluğu değildir.">
                     <Input type="number" min="0" step="0.1" value={formData.informationDeliveryCostPercent} onChange={(e) => setFormData({...formData, informationDeliveryCostPercent: Math.max(0, Number(e.target.value) || 0)})} className="bg-background border-border text-foreground h-11 font-mono text-xs" />
                   </Field>
+                  <Field label="Kâr ve Genel Gider %" labelClassName="text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-widest" hint="Müşteri fiyatına eklenir ve KDV'ye dahil edilir. ÇŞB birim fiyatlarında %25 zaten dahildir; tekrar eklemeyin.">
+                    <Input
+                      type="number" min="0" max="100" step="0.01"
+                      aria-label="Müteahhitlik kârı ve genel gider yüzdesi"
+                      value={formData.overheadProfitPercent}
+                      onChange={(e) => setFormData({...formData, overheadProfitPercent: Math.min(100, Math.max(0, Math.round((Number(e.target.value) || 0) * 100) / 100))})}
+                      className="bg-background border-border text-foreground h-11 font-mono text-xs"
+                    />
+                  </Field>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
@@ -1067,6 +1119,12 @@ export function CreateQuote() {
                   <span className="text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-widest">İndirimler</span>
                   <span className="font-mono text-xs text-destructive font-semibold tabular-nums">-{totals.discountTotal.toLocaleString('tr-TR')} {formData.currency}</span>
                 </div>
+                {totals.overheadProfitTotal > 0 && (
+                  <div className="flex justify-between items-center" data-testid="create-quote-overhead-profit">
+                    <span className="text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-widest">Kâr ve Genel Gider (%{formData.overheadProfitPercent.toLocaleString('tr-TR')})</span>
+                    <span className="font-mono text-xs text-foreground font-semibold tabular-nums">+{totals.overheadProfitTotal.toLocaleString('tr-TR')} {formData.currency}</span>
+                  </div>
+                )}
                 <div className="flex justify-between items-center">
                   <span className="text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-widest">Yasal Vergi (KDV)</span>
                   <span className="font-mono text-xs text-muted-foreground tabular-nums">+{totals.vatTotal.toLocaleString('tr-TR')} {formData.currency}</span>

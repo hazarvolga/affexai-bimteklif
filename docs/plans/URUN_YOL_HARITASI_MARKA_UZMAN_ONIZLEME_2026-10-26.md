@@ -102,6 +102,82 @@ Gerekçe: Uzman bu hataları görürse asıl hesap doğruluğu yerine bunları r
 
 Süreler (`marka.md` §23.2) yerelde ölçülür ve kaydedilir.
 
+### Faz 1 durumu (26 Ekim 2026, dal `feat/faz1-excel-akis`, ilk dilim)
+
+- **Kapandı:**
+  - C-1: teklif, fiyat kataloğu ve parsel için `.xlsx` şablonları (`src/lib/spreadsheet-templates.ts`). Veri sayfası boş açılır; "Nasıl Doldurulur" ve "Örnek" ayrı sayfalardadır. Birim sütununda açılır liste vardır. CSV ikincil bağlantı olarak kalır.
+  - C-2: `.xls` uzantısı veya OLE imzası tanınır, kullanıcıya "Farklı Kaydet → .xlsx" talimatı verilir (`src/lib/spreadsheet-format.ts`). Kapsanan ekranlar: teklif, katalog, SmartCheck ana yükleyici ve parsel.
+  - C-3: SmartCheck fiyat kataloğu `.xlsx` okur (`src/lib/price-catalog-import.ts`, CSV kuralları aynı).
+  - M-11.4 ve M-12.1: "Nereden başlayacaksınız?" dört seçenek sunar; Excel seçeneği Yeni Teklif'i doğrudan Excel alanında (`?kaynak=excel`) açar. Örnek proje seçeneği SmartCheck örneğini (`?ornek=`) açar.
+  - M-15.1 (kısmen): Teklifler ve Yeni Teklif ekranlarındaki IFC girişleri tek "IFC Modelinden …" girişinde birleşti (SmartCheck); tarayıcı ön incelemesi "Diğer araçlar"a taşındı.
+  - M-14.3: icmal maliyet adımında iki açık seçenek var: "Yeni teklif oluştur" (müşteri ve proje adı) ve "Mevcut teklife revizyon ekle".
+    - Yeni teklif: sunucuda tek işlemde boş bir Rev. 1 açılır, icmal Rev. 2'ye aktarılır (`transferCalmRowsToNewQuotation`, `POST /api/smartcheck/documents/:id/transfer-calm-to-new-quotation`).
+    - Kaynak satır, fiyat snapshot'ı ve ledger güvenceleri revizyon yoluyla aynıdır. Şema değişikliği yoktur.
+    - Bir teklif kotası düşer. Tekrar deneme ikinci teklif açmaz. Hata olursa müşteri, teklif ve kota geri alınır.
+- **Kanıt:**
+  - Tam test paketi (boş PG16): 1491 testten 1476 geçti, 0 hata, 15 atlandı. Kapsam eşiği geçti (proje satır kapsamı %82,63, HTTP rotaları fonksiyon kapsamı %95,09).
+  - Entegrasyon: `calm-transfer.integration.test.ts`, `smartcheck-calm-transfer-route.integration.test.ts`.
+  - Gerçek tarayıcı: `scripts/faz1-excel-flow-smoke.ts`.
+- **Ek düzeltme:** Tek giriş akışına geçerken paneldeki KİK sınır değer ve 4735 fiyat farkı bağlantıları ile `public-procurement` tur hedefi kaybolmuştu; "Diğer araçlar" satırına geri eklendi.
+- **Faz 1'de kalan:** C-4, M-17.3, M-17.4/12.6, M-12.4, M-12.5, M-14.5, M-13.3/13.4, M-10.x ve M-15.2 (`dosyadan-teklif-demo` rotasının kaderi). Üç persona kabul akışı da bu maddelerden sonra yürütülecek. IFC → teklif uçtan uca tarayıcı akışı için onaylı fiyat kaydı gerekir (M-17.4 ile birlikte).
+
+### Faz 1 durumu — fiyat eksikliği dilimi (26 Ekim 2026, dal `feat/faz1-fiyat-eksik`)
+
+- **Bulgu:** Firma kataloğundan içe aktarılan fiyatlar "advisory" durumunda kalıyordu; arayüzde onaylayan bir ekran yoktu. KDV durumu da "bilinmiyor" geliyordu. İcmal aktarımı ise onaylı ve "KDV hariç, oran belirtilmiş" fiyat istiyor. Bu yüzden katalog yükleyen kullanıcı IFC icmalini hiçbir zaman fiyatlandıramıyordu. "Kataloğa fiyat ekle" bağlantıları da tedarikçi teklifleri ekranına gidiyordu.
+- **Kapandı:**
+  - M-17.3: yeni `/app/fiyat-katalogu` sayfası ve 5 adımlı ilk görev: şablon, dosya, sütun eşleştirme, birim/geçerlilik/KDV incelemesi, onaylayıp kaydetme.
+    - Sunucu firma fiyatını içe aktarımda onaylar (`reviewDecision: "approved"`). Koşullar: yalnız `company_actual`, sahiplik beyanı ve KDV hariç oranı.
+    - Tedarikçi ve manuel fiyat kuralları değişmedi.
+    - Panel şeridi, sonuç özeti ve icmal bağlantıları bu sayfaya yönlendirildi; menüye ve tura eklendi.
+  - M-17.4: icmalde fiyatı eksik her kalemde doğrudan eylemler var:
+    - "Firma fiyatı ekle": satır içinde, KDV oranıyla, onaylı olarak kaydeder.
+    - "Katalogdaki fiyatı eşleştir": yalnız aynı poz, aynı birim ve TL'de, açıklama farkı uyarısıyla sunulur. Kullanıcının bağladığı fiyat yeniden çözümde korunur.
+    - "Uzman incelemesine al": poz çözülemediyse uzman doğrulama modunu o kalemle açar.
+  - Örnek projeler IFC kanıtı taşımadığından aktarım seçeneği yerine "Örnek projeden teklif oluşturulmaz" notu gösterilir.
+- **Kanıt:** `scripts/faz1-price-gap-smoke.ts` gerçek tarayıcıda katalog sihirbazı, otomatik eşleşme, elle eşleştirme, satır içi fiyat ve yeni teklif adımlarını sınar. Sonuç: Rev. 2 teklifte üç kalemin her biri onaylı ve KDV oranı belirtilmiş fiyat kaydına bağlı.
+- **Doğrulama:** Tam paket boş PG16 üzerinde ve üretim derlemesiyle çalıştı: 1503 testten 1488 geçti, 0 hata, 15 atlandı. Kapsam eşiği geçti (proje satır kapsamı %82,73, arayüz %74,69). Giriş paketi 107,6 KB, sınır 120 KB.
+- **PR #23 notu:** `feat/faz1-excel-akis` dalının üretim derlemesinde SmartCheck rota paketi exceljs parçasını doğrudan referanslıyor (T45-2 ihlali). Sebebi, katalog okuyucunun yalnız SmartCheck tarafından içe aktarılıp rota paketine gömülmesi. Bu dalda katalog sayfası aynı modülü paylaştığı için okuyucu ayrı parçaya ayrıldı ve ihlal kalktı. #23 tek başına birleştirilmemeli.
+- **M-12.6 kalan:** Yeni Teklif ekranındaki "Onaylı Rayiçler" platformun ortak rayiç havuzunu okur, firma kataloğunu değil. Oraya katalog bağlantısı koymak yanıltıcı olacağı için eklenmedi. Elle teklif satırlarının firma kataloğundan fiyat alması (fiyat kaydına bağlama dahil) ayrı dilimdir.
+- **Kâr ve genel gider (Hazar kararı, 27 Ekim 2026: teklife yansısın):** Release 0029 teklif düzeyinde `overhead_profit_percent` ve `overhead_profit_total` ekler.
+  - Yüzde her kalemin netine uygulanır. KDV, kalemin kendi oranıyla "net + pay" üzerinden hesaplanır.
+  - Kalem birim fiyatları fiyat kaydına eşit kalır; fiyat kanıtı kilidi bozulmaz.
+  - İcmaldeki yüzde (varsayılan %15) aktarıma gider. Revizyon, önceki revizyonun yüzdesini taşır.
+  - Teklif ekranı, teklif detayı ve üç PDF şablonu ayrı "Müteahhitlik kârı ve genel gider (%X)" satırı gösterir. Kârlılık hesabı bu tutarı gelir sayar.
+  - ÇŞB birim fiyat modunda yüzde 0'dan başlar; elle girilirse çift sayım uyarısı çıkar. ÇŞB'nin resmi birim fiyat analizlerinde (2020, 2024, 2025, 2026) her kalem "%25 yüklenici kârı ve genel giderler dahil" olarak verilir.
+  - Yüzde 0 iken mevcut tüm teklif toplamları birebir aynıdır.
+
+### Faz 1 durumu — Excel çıktısı ve demo rotası (27 Ekim 2026, dal `feat/faz1-excel-cikti`)
+
+- **C-4 kapandı:**
+  - Teklif detayında "Excel (.xlsx)" düğmesi var. Dosyada tek sayfa bulunur: başlık bilgisi, kalemler ve toplamlar (kâr ve genel gider dahil). Toplamlar PDF ile aynı hesap motorundan gelir; Excel formülü kullanılmaz.
+  - İcmalde birincil düğme "Excel İndir (.xlsx)" oldu. Dosyada üç sayfa var: sade "Metraj İcmali", varsa "Daire İcmali" ve teknik iz için ayrı "Fiyat Kaynakları". Fiyatı eksik kaleme tutar yazılmaz; toplamın eksik olduğu yazılır.
+  - Teknik CSV ikincil bağlantı olarak kalır.
+  - **Hata düzeltmesi:** CSV'deki satır tutarları tam liraya yuvarlanıyordu (`Math.round`); artık kuruşa yuvarlanıyor.
+  - Exceljs yalnız düğmeye basılınca yüklenir (T45: SmartCheck ve teklif detay paketleri exceljs'i referanslamaz).
+- **M-15.2 kapandı:** `dosyadan-teklif-demo` sayfası (sabit beton 2.450, donatı 24.500, kalıp 1.250 TL) kaldırıldı. Eski adres `/app/smartcheck`'e yönlenir.
+- **Kanıt:** `export-xlsx.test.ts`. Gerçek tarayıcıda `faz1-price-gap-smoke.ts` icmal ve teklif dosyalarını indirip toplamları doğrular (teklif dosyası 102.396,00 TL, PDF ile aynı). `faz1-excel-flow-smoke.ts` yönlendirmeyi doğrular.
+
+### Faz 1 kalan dilimler — kararlar (26 Ekim 2026)
+
+Kaynak: NotebookLM araştırma defteri, bağımsız web araştırmasıyla karşılaştırıldı. Doğrulanamayan iddialar karar gerekçesi olarak kullanılmadı.
+
+1. **Sıra: önce fiyat eksikliği dilimi (M-17.3, M-17.4/12.6).** IFC → teklif kabul akışını açan tek eksik budur. Togal'ın Excel çıktısı yalnız miktar, birim ve kırılım sütunları içerir; birim fiyat ve maliyet içermez (Togal yardım merkezi). Miktarı fiyata bağlayan akış bizim ayrıştığımız yerdir. Boş katalogda yeni `.xlsx` katalog şablonu ilk adım olur. Uydurma veya varsayılan fiyat gösterilmez; eksik kalem "fiyat bekliyor" olarak kalır.
+2. **C-4 Excel'e dışa aktarım: yapılacak, fiyat diliminden hemen sonra.** Teklif ve icmal sade sütunlarla çıkar: poz, açıklama, birim, miktar, birim fiyat, tutar ve kaynak. Togal'ın da Excel çıktısını temel özellik sunması destekler. "Türk müteahhitleri Excel'e geri dönüyor" iddiası anketle doğrulanamadı. Karar ürün sahibinin saha gözlemine dayanır.
+3. **M-12.4 ve M-14.5 temel/gelişmiş görünüm: proje türüne bağlı.**
+   - KİK aşırı düşük teklif sınır değeri (4734 m.38) ve 4735 fiyat farkı yalnız 4734'e tabi kamu ihalelerinde ve sözleşmelerinde geçerlidir (Kanun kapsam maddeleri).
+   - Bu araçlar yalnız "Kamu ihalesi" seçilen projede maliyet adımında görünür. Özel sektörde varsayılan olarak gizlidir.
+   - Karbon, volatilite ve bilgi teslimi alanları ilk teklifte "Gelişmiş" bölümüne alınır.
+4. **M-15.2 `dosyadan-teklif-demo`: kaldırılacak, `/app/smartcheck`'e yönlendirilecek.**
+   - Faz 1'den sonra hiçbir menü bu rotaya bağlanmıyor.
+   - Sayfada sabit birim fiyatlar var (beton 2.450, donatı 24.500, kalıp 1.250 TL). Bu, "uydurma fiyat yok" ilkesiyle çelişir.
+   - Herkese açık demo (M-10.x) kota düşmeyen örnek projeyle sürer. Togal gibi rakipler "demo talep et" modeliyle çalışıyor. Ücretsiz deneme bilgisi kaynaklar arasında çelişkili.
+
+Doğrulanamayan iddialar (karar gerekçesi değil):
+- Opwire'ın ücretsiz demosu: ürün bulunamadı.
+- AMP'nin ücretsiz fiyat farkı motoru: yalnız ücretli programın deneme sürümü bulundu.
+- EKAP'ın birim fiyat cetvelini Excel ile alıp vermesi: resmi kılavuzda bulunamadı.
+- Defterdeki "Strategic Research Report" bağımsız bir kaynak değildir.
+
 ## 4. Faz 2 — Panel, gezinme, yardım, okunabilirlik
 
 | Kimlik | Madde | Yapılacak | Konum |

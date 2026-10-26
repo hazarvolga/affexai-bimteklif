@@ -18,8 +18,9 @@ Bu belge `HANDOFF_2026-10-24_DEPLOY_CUTOVER.md` runbook'unun yerine geçmez; onu
 1. [ ] **Yeni yedek:** checksum doğrulamalı yedek alın; dosya adı, boyut ve SHA-256 değerini kaydedin. `pg_restore --list` başarılı olmalı.
 2. [ ] **Worker drain:** `worker` ve `ifc-worker` durdurulur; kilitli/çalışan iş ve çalışan doküman sayısı sıfır olmalı.
 3. [ ] `RELEASE_WORKERS_DRAINED=true` geçici olarak eklenir.
-4. [ ] **Deploy:** `db-bootstrap → migrate (0022–0028) → db-provision (inspect dahil) → app / worker / ifc-worker`.
+4. [ ] **Deploy:** `db-bootstrap → migrate (0022–0029) → db-provision (inspect dahil) → app / worker / ifc-worker`.
    - Yerel kanıt: 26 Ekim 2026'da boş PostgreSQL 16 üzerinde 0000–0028'in tamamı hatasız uygulandı. Bu, canlı veriyle prova değildir.
+   - 0029 (`quotations.overhead_profit_percent` ve `overhead_profit_total`, varsayılan 0) yalnız sütun ekler; mevcut tekliflerin toplamları değişmez. 27 Ekim 2026'da boş PostgreSQL 16 üzerinde 0000–0029 runner ile uygulandı ve `inspect` katalog imzası sabitlenen değerle eşleşti. **0029 dalı (#24) birleşmeden deploy edilirse uygulama bu sütunları okuyamaz; deploy ile migrasyon birlikte gitmeli.**
 5. [ ] `RELEASE_WORKERS_DRAINED` kaldırılır.
 
 ## 2. Deploy sonrası doğrulama (uzman davetinden önce)

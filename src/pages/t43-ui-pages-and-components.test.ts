@@ -1557,7 +1557,6 @@ import { AIAssistant } from '@/pages/AIAssistant';
 
 // Public, Auth & Calculator pages
 import { LandingPage } from '@/pages/LandingPage';
-import { DosyadanTeklifDemo } from '@/pages/DosyadanTeklifDemo';
 import { SmartCheckDemo } from '@/pages/SmartCheckDemo';
 import { PublicAcademy } from '@/pages/PublicAcademy';
 import { PublicAcademyDetail } from '@/pages/PublicAcademyDetail';
@@ -2006,15 +2005,6 @@ test('T43 UI Slice 3: Genel vitrin, kimlik doğrulama ve mühendislik hesaplayı
   );
   assert.ok(landingHtml.length > 500);
 
-  const demoQuoteHtml = await renderInRouter(
-    createElement(DosyadanTeklifDemo),
-    '/dosyadan-teklif-demo',
-    '/dosyadan-teklif-demo',
-    async (container) => {
-      clickButtonsByText(container, ['Örnek', 'Hesapla', 'İndir', 'Metraj']);
-    },
-  );
-  assert.ok(demoQuoteHtml.length > 300);
 
   const smartCheckDemoHtml = await renderInRouter(
     createElement(SmartCheckDemo),
@@ -2200,7 +2190,7 @@ test('T43 UI Slice 4: SmartCheck, CalmIfcWorkspace, BimIfcParser, BimGapAnalysis
       dataset: calmDataset,
       documentId: 'doc-1',
       quotations: [{ id: 'quote-1', quoteNumber: 'TKF-2026-001', projectName: 'Kadıköy B Blok', status: 'draft' }],
-      selectedQuotationId: 'quote-1',
+      transferTarget: { mode: 'revision', quotationId: 'quote-1' },
       showTechnicalToggle: true,
       technicalViewOpen: false,
     }),

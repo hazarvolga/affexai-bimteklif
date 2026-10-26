@@ -137,6 +137,24 @@ test("manual and import quotation transactions share serialized quota", { timeou
     assert.equal(await f.count(), 1);
   });
 
+  await t.test("a manual quotation stores profit and overhead and its revision carries it", async () => {
+    const f = await fixture(3);
+    const created = await f.request("post /api/quotations", {
+      clientId: f.client.id, projectName: "Kâr satırı", quoteNumber: crypto.randomUUID(), date: "2026-10-27", expiryDate: "2026-11-27",
+      overheadProfitPercent: "12.5", items: [{ description: "Work", unit: "m2", quantity: 2, unitPrice: 100, vatPercent: 20 }],
+    });
+    assert.equal(created.statusCode, 200);
+    // Net 200, share 25, VAT 20% of 225 = 45.
+    assert.deepEqual([created.body.overheadProfitPercent, created.body.overheadProfitTotal, created.body.vatTotal, created.body.grandTotal], ["12.50", "25.00", "45.00", "270.00"]);
+    const revision = await f.request("post /api/quotations/:id/revision", {}, created.body.id);
+    assert.deepEqual([revision.body.overheadProfitPercent, revision.body.grandTotal], ["12.50", "270.00"]);
+    const refused = await f.request("post /api/quotations", {
+      clientId: f.client.id, projectName: "Geçersiz", quoteNumber: crypto.randomUUID(), date: "2026-10-27", expiryDate: "2026-11-27",
+      overheadProfitPercent: 101, items: [{ description: "Work", unit: "m2", quantity: 2, unitPrice: 100 }],
+    });
+    assert.equal(refused.statusCode, 400);
+  });
+
   await t.test("post-commit audit failures cannot turn a successful import into an error", async (t) => {
     const f = await fixture(1);
     const insert = db.insert.bind(db);

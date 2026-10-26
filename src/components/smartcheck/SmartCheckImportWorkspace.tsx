@@ -5,7 +5,7 @@ import { fetchWithAuth } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { getMappingProfile, MEP_MAPPING_PROFILES } from "@/smartcheck/import/mapping-profiles";
 import { EpysPreflightPanel } from "./EpysPreflightPanel";
 import { PdfPreflightPanel } from "./PdfPreflightPanel";
@@ -16,8 +16,10 @@ import { buildCalmIfcDatasetFromElements, parseSmartCheckRowToPseudoElement } fr
 import { detectAuthoringSoftware, type AuthoringSoftwareDetection } from "@/ifc/authoring-software-diagnostics";
 import type { ParsedIfcElement } from "@/ifc/types";
 import type { ColumnMapping } from "@/smartcheck/import/normalize";
-import { buildCalmTransferSelection, getOrCreateCalmTransferAttempt, type CalmTransferUiItem } from "./calm-transfer-ui";
+import { buildCalmTransferSelection, calmTransferAttemptScope, calmTransferTargetHint, getOrCreateCalmTransferAttempt, type CalmTransferTarget, type CalmTransferUiItem } from "./calm-transfer-ui";
 import { buildTenantPriceCatalogImportPayload, type TenantPriceCatalogRow } from "@/smartcheck/pricing/catalog-import";
+import { parsePriceCatalogCsv } from "@/lib/price-catalog-import";
+import { isLegacyXls, LEGACY_XLS_MESSAGE, readFileHead, spreadsheetKind } from "@/lib/spreadsheet-format";
 
 type Finding = { code: string; message: string; ruleVersion: string; suggestion: string };
 
@@ -125,85 +127,6 @@ async function readJsonBody<T extends Record<string, unknown> = Record<string, u
   }
 }
 
-function splitCsvLine(line: string, delimiter: string): string[] {
-  const values: string[] = [];
-  let current = "";
-  let quoted = false;
-  for (let index = 0; index < line.length; index += 1) {
-    const character = line[index];
-    const next = line[index + 1];
-    if (character === '"' && quoted && next === '"') {
-      current += '"';
-      index += 1;
-    } else if (character === '"') {
-      quoted = !quoted;
-    } else if (!quoted && character === delimiter) {
-      values.push(current.trim());
-      current = "";
-    } else {
-      current += character;
-    }
-  }
-  values.push(current.trim());
-  return values;
-}
-
-function normalizeHeader(value: string) {
-  return value
-    .toLocaleLowerCase("tr-TR")
-    .replace(/[ıİ]/g, "i")
-    .replace(/[ğĞ]/g, "g")
-    .replace(/[üÜ]/g, "u")
-    .replace(/[şŞ]/g, "s")
-    .replace(/[öÖ]/g, "o")
-    .replace(/[çÇ]/g, "c")
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]/g, "");
-}
-
-function parseCatalogAmount(value: string): number {
-  const raw = value.trim().replace(/\s/g, "");
-  const normalized = raw.includes(",") ? raw.replace(/\./g, "").replace(",", ".") : raw.replace(/,/g, "");
-  return Number(normalized);
-}
-
-function parsePriceCatalogCsv(text: string): PriceCatalogImportRow[] {
-  const lines = text.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
-  if (lines.length < 2) throw new Error("CSV en az başlık ve bir fiyat satırı içermeli.");
-  const headerLine = lines[0];
-  const delimiter = headerLine.includes(";") ? ";" : headerLine.includes("\t") ? "\t" : ",";
-  const headers = splitCsvLine(headerLine, delimiter).map(normalizeHeader);
-  const headerIndex = (candidates: string[]) => candidates.map((candidate) => headers.indexOf(candidate)).find((index) => index >= 0) ?? -1;
-  const indexes = {
-    positionCode: headerIndex(["poz", "pozno", "positioncode", "position", "code"]),
-    description: headerIndex(["aciklama", "description", "malzeme", "item", "kalem"]),
-    unit: headerIndex(["birim", "unit"]),
-    amount: headerIndex(["birimfiyat", "fiyat", "amount", "unitprice", "price"]),
-    currency: headerIndex(["parabirimi", "currency", "doviz"]),
-    validUntil: headerIndex(["gecerlilik", "gecerliliktarihi", "validuntil", "validto"]),
-    externalReference: headerIndex(["referans", "externalreference", "ref"]),
-  };
-  if (indexes.description < 0 || indexes.unit < 0 || indexes.amount < 0) throw new Error("CSV başlıklarında açıklama, birim ve fiyat kolonları zorunlu.");
-  return lines.slice(1).map((line, index) => {
-    const cells = splitCsvLine(line, delimiter);
-    const amount = parseCatalogAmount(cells[indexes.amount] ?? "");
-    if (!Number.isFinite(amount) || amount <= 0) throw new Error(`${index + 2}. CSV satırında fiyat geçersiz.`);
-    const description = (cells[indexes.description] ?? "").trim();
-    const unit = (cells[indexes.unit] ?? "").trim();
-    if (!description || !unit) throw new Error(`${index + 2}. CSV satırında açıklama ve birim zorunlu.`);
-    return {
-      positionCode: indexes.positionCode >= 0 ? cells[indexes.positionCode]?.trim() || undefined : undefined,
-      description,
-      unit,
-      amount,
-      currency: indexes.currency >= 0 ? cells[indexes.currency]?.trim().toUpperCase() || "TRY" : "TRY",
-      validUntil: indexes.validUntil >= 0 ? cells[indexes.validUntil]?.trim() || undefined : undefined,
-      externalReference: indexes.externalReference >= 0 ? cells[indexes.externalReference]?.trim() || undefined : undefined,
-    };
-  });
-}
-
 export function SmartCheckImportWorkspace() {
   const [file, setFile] = useState<File | null>(null);
   const [selectedIfcDetection, setSelectedIfcDetection] = useState<AuthoringSoftwareDetection | null>(null);
@@ -243,6 +166,7 @@ export function SmartCheckImportWorkspace() {
   const [quotes, setQuotes] = useState<Array<{ id: string; quoteNumber: string; projectName: string; status: string }>>([]);
   const [queue, setQueue] = useState<QueueItem[]>([]);
   const [quotationId, setQuotationId] = useState("");
+  const [calmTarget, setCalmTarget] = useState<CalmTransferTarget>({ mode: "new", clientName: "", projectName: "" });
   const [transferredQuotationId, setTransferredQuotationId] = useState<string | null>(null);
   const [calmTransferBusy, setCalmTransferBusy] = useState(false);
   const [expandedRowId, setExpandedRowId] = useState<string | null>(null);
@@ -260,6 +184,8 @@ export function SmartCheckImportWorkspace() {
   const [suggestionBusy, setSuggestionBusy] = useState(false);
   const [bulkReviewBusy, setBulkReviewBusy] = useState(false);
   const [sampleBusyId, setSampleBusyId] = useState<string | null>(null);
+  // Samples carry no IFC evidence artifact, so the server would refuse their transfer; say so up front.
+  const [sampleDocumentId, setSampleDocumentId] = useState<string | null>(null);
   const [priceSuggestionsByRow, setPriceSuggestionsByRow] = useState<Record<string, PriceSuggestionResult>>({});
   const [reviewDraft, setReviewDraft] = useState<ReviewDraft | null>(null);
   const [pilotCaseId, setPilotCaseId] = useState<string | null>(null);
@@ -363,6 +289,7 @@ export function SmartCheckImportWorkspace() {
       if (!response.ok || !body.documentId) {
         return toast.error(body.error ?? "Örnek proje yüklenemedi.");
       }
+      setSampleDocumentId(body.documentId);
       await Promise.all([
         openQueueDocument(body.documentId, body.fileName ?? null, "succeeded"),
         loadQueue(),
@@ -375,6 +302,16 @@ export function SmartCheckImportWorkspace() {
       setSampleBusyId(null);
     }
   };
+
+  // Dashboard "Örnek projeyi inceleyeceğim" opens a sample directly (marka.md M-11.4); the URL param is consumed once.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const requestedSample = searchParams.get("ornek");
+  useEffect(() => {
+    if (requestedSample !== "mm-mimari-tablo-9-1" && requestedSample !== "st-statik-tablo-9-2" && requestedSample !== "pdfa-pafta-iso216") return;
+    setSearchParams((current) => { const next = new URLSearchParams(current); next.delete("ornek"); return next; }, { replace: true });
+    void loadSampleProject(requestedSample);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- runs once per requested sample
+  }, [requestedSample]);
 
   const loadPreview = async (id: string) => {
     setPreviewBusy(true);
@@ -592,21 +529,34 @@ export function SmartCheckImportWorkspace() {
     toast.success("Manuel fiyat kaydedildi. Teklifte kullanmak için farklı bir yetkili tarafından onaylanmalıdır.");
   };
 
-  const readPriceCatalogCsv = async (selectedFile: File | null) => {
+  const readPriceCatalogFile = async (selectedFile: File | null) => {
     if (!selectedFile) return;
     setCatalogOwnershipConfirmed(false);
     try {
-      const parsedRows = parsePriceCatalogCsv(await selectedFile.text());
+      const kind = spreadsheetKind(selectedFile.name, await readFileHead(selectedFile));
+      if (kind === "xls") throw new Error(LEGACY_XLS_MESSAGE);
+      const parsedRows = kind === "xlsx"
+        ? await import("@/lib/price-catalog-import").then(({ parsePriceCatalogXlsx }) => selectedFile.arrayBuffer().then(parsePriceCatalogXlsx))
+        : parsePriceCatalogCsv(await selectedFile.text());
       setCatalogImportRows(parsedRows);
       setCatalogImportDraft((current) => ({
         ...current,
         fileName: selectedFile.name,
         sourceName: current.sourceName || selectedFile.name.replace(/\.[^.]+$/, ""),
       }));
-      toast.success(`${parsedRows.length} CSV fiyat satırı hazır.`);
+      toast.success(`${parsedRows.length} fiyat satırı hazır.`);
     } catch (error) {
       setCatalogImportRows([]);
-      toast.error(error instanceof Error ? error.message : "CSV fiyat kataloğu okunamadı.");
+      toast.error(error instanceof Error ? error.message : "Fiyat kataloğu dosyası okunamadı.", { duration: 12000 });
+    }
+  };
+
+  const downloadPriceCatalogTemplate = async () => {
+    try {
+      const { buildPriceCatalogXlsxTemplate, downloadXlsx } = await import("@/lib/spreadsheet-templates");
+      downloadXlsx(await buildPriceCatalogXlsxTemplate(), "bimmetraj-fiyat-katalogu-sablonu.xlsx");
+    } catch {
+      toast.error("Excel şablonu hazırlanamadı.");
     }
   };
 
@@ -710,9 +660,10 @@ export function SmartCheckImportWorkspace() {
     toast.success(`${body.transferredCount} onaylı satır teklife aktarıldı.`);
   };
 
-  const transferCalmToQuotation = async (items: CalmTransferUiItem[]) => {
+  const transferCalmToQuotation = async (items: CalmTransferUiItem[], { overheadProfitPercent }: { overheadProfitPercent: number }) => {
     if (!documentId) { toast.error("İcmalin kaynak dosyası bulunamadı."); return; }
-    if (!quotationId) { toast.error("Önce mevcut güncel bir teklif seçin."); return; }
+    const targetHint = calmTransferTargetHint(calmTarget);
+    if (targetHint) { toast.error(targetHint); return; }
     const approvedRowIds = new Set(rows.filter((row) => row.reviewStatus === "approved").map((row) => row.id));
     let selection;
     try {
@@ -731,11 +682,15 @@ export function SmartCheckImportWorkspace() {
     }
     setCalmTransferBusy(true);
     try {
-      const attempt = getOrCreateCalmTransferAttempt(window.localStorage, documentId, quotationId, selection, () => crypto.randomUUID());
-      const response = await fetchWithAuth(`/api/smartcheck/documents/${documentId}/transfer-calm-to-quotation`, {
+      // The percentage is part of the request the server hashes, so a changed value is a new attempt, not a conflict.
+      const attempt = getOrCreateCalmTransferAttempt(window.localStorage, documentId, calmTransferAttemptScope(calmTarget), { ...selection, overheadProfitPercent }, () => crypto.randomUUID());
+      const isNewQuotation = calmTarget.mode === "new";
+      const response = await fetchWithAuth(`/api/smartcheck/documents/${documentId}/${isNewQuotation ? "transfer-calm-to-new-quotation" : "transfer-calm-to-quotation"}`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "Idempotency-Key": attempt.record.idempotencyKey },
-        body: JSON.stringify({ quotationId, ...selection }),
+        body: JSON.stringify(calmTarget.mode === "new"
+          ? { clientName: calmTarget.clientName.trim(), projectName: calmTarget.projectName.trim() || undefined, overheadProfitPercent, ...selection }
+          : { quotationId: calmTarget.quotationId, overheadProfitPercent, ...selection }),
       });
       const body = await readJsonBody<{ error?: string; quotationId?: string; revisionVersion?: number; transferredCount?: number; replayed?: boolean }>(response);
       if (!response.ok || !body.quotationId) { toast.error(body.error ?? "İcmalin teklife aktarımı tamamlanamadı."); return; }
@@ -745,7 +700,7 @@ export function SmartCheckImportWorkspace() {
         revisionVersion: body.revisionVersion,
       }));
       window.localStorage.setItem(`bimmetraj:calm-transfer-result:v1:${documentId}`, JSON.stringify({
-        sourceQuotationId: quotationId,
+        sourceQuotationId: calmTarget.mode === "revision" ? calmTarget.quotationId : null,
         resultQuotationId: body.quotationId,
         revisionVersion: body.revisionVersion,
       }));
@@ -754,11 +709,16 @@ export function SmartCheckImportWorkspace() {
       if (quotesResponse.ok) {
         const latestQuotes = await quotesResponse.json() as Array<{ id: string; quoteNumber: string; projectName: string; status: string }>;
         setQuotes(latestQuotes);
-        if (latestQuotes.some((quote) => quote.id === body.quotationId)) setQuotationId(body.quotationId);
+        if (latestQuotes.some((quote) => quote.id === body.quotationId)) {
+          setQuotationId(body.quotationId);
+          // The successor is now the latest revision; a further transfer must target it, not the superseded one.
+          if (!isNewQuotation) setCalmTarget({ mode: "revision", quotationId: body.quotationId });
+        }
       }
+      const created = isNewQuotation ? "yeni teklif" : `Rev. ${body.revisionVersion ?? "?"}`;
       toast.success(body.replayed
-        ? `Daha önce oluşturulan Rev. ${body.revisionVersion ?? "?"} tekrar açıldı.`
-        : `${body.transferredCount ?? sourceRowIds.length} kaynak satırdan Rev. ${body.revisionVersion ?? "?"} oluşturuldu.`);
+        ? `Daha önce oluşturulan ${created} tekrar açıldı.`
+        : `${body.transferredCount ?? sourceRowIds.length} kaynak satırdan ${created} oluşturuldu.`);
     } catch {
       toast.error("İcmal teklife aktarılırken bağlantı hatası oluştu.");
     } finally {
@@ -794,23 +754,23 @@ export function SmartCheckImportWorkspace() {
   const catalogImportCard = (
     <div className="mt-4 rounded-2xl border border-border bg-background p-4">
       <div className="mb-3 flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
-        <div><p className="text-xs font-bold text-sky-100">CSV fiyat listesi içe aktarma</p><p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">Başlık örneği: Poz No;Açıklama;Birim;Birim Fiyat;Para Birimi. Bu genel akış yalnız firmanızın kendi gerçekleşen fiyat hafızası içindir; tedarikçi teklifleri ayrı lisans ve yetkilendirme incelemesine tabidir. İçe aktarılan fiyatlar öneri niteliğindedir; onay veya satıra bağlama kararı mühendiste kalır.</p></div>
+        <div><p className="text-xs font-bold text-sky-100">Fiyat listesi içe aktarma (Excel veya CSV)</p><button type="button" onClick={() => void downloadPriceCatalogTemplate()} className="mt-1 text-[11px] font-semibold text-sky-300 underline">Excel şablonunu indir (.xlsx)</button><p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">Başlıklar: Poz No, Açıklama, Birim, Birim Fiyat, Para Birimi. Bu genel akış yalnız firmanızın kendi gerçekleşen fiyat hafızası içindir; tedarikçi teklifleri ayrı lisans ve yetkilendirme incelemesine tabidir. İçe aktarılan fiyatlar öneri niteliğindedir; onay veya satıra bağlama kararı mühendiste kalır.</p></div>
         {catalogImportRows.length > 0 && <Badge className="w-fit border-emerald-500/20 bg-emerald-500/10 text-emerald-400">{catalogImportRows.length} satır hazır</Badge>}
       </div>
       <div className="grid gap-2 md:grid-cols-[1fr_1fr_1fr_auto]">
         <Input aria-label="CSV fiyat katalog kaynak adı" placeholder="Kaynak adı / firma fiyat hafızası" value={catalogImportDraft.sourceName} onChange={(event) => { setCatalogOwnershipConfirmed(false); setCatalogImportDraft((value) => ({ ...value, sourceName: event.target.value })); }} className="border-border bg-background" />
         <Input aria-label="CSV fiyat katalog bölgesi" placeholder="Bölge (opsiyonel)" value={catalogImportDraft.region} onChange={(event) => { setCatalogOwnershipConfirmed(false); setCatalogImportDraft((value) => ({ ...value, region: event.target.value })); }} className="border-border bg-background" />
         <Input aria-label="CSV fiyat katalog geçerlilik tarihi" type="date" value={catalogImportDraft.validUntil} onChange={(event) => { setCatalogOwnershipConfirmed(false); setCatalogImportDraft((value) => ({ ...value, validUntil: event.target.value })); }} className="border-border bg-background" />
-        <Button disabled={!catalogImportRows.length || !catalogOwnershipConfirmed || catalogImportBusy} onClick={importPriceCatalog} className="bg-sky-600 text-white hover:bg-sky-700">{catalogImportBusy ? <Loader2 className="animate-spin" size={15} /> : "CSV kataloğu aktar"}</Button>
+        <Button disabled={!catalogImportRows.length || !catalogOwnershipConfirmed || catalogImportBusy} onClick={importPriceCatalog} className="bg-sky-600 text-white hover:bg-sky-700">{catalogImportBusy ? <Loader2 className="animate-spin" size={15} /> : "Kataloğu aktar"}</Button>
       </div>
       <label className="mt-3 flex items-start gap-2 text-[10px] leading-relaxed text-muted-foreground">
         <input aria-label="Firma gerçekleşen fiyat sahiplik beyanı" type="checkbox" checked={catalogOwnershipConfirmed} onChange={(event) => setCatalogOwnershipConfirmed(event.target.checked)} className="mt-0.5" />
-        <span>Bu CSV'nin firmamıza ait gerçekleşen fiyat verisi olduğunu ve tedarikçi teklifi olmadığını beyan ediyorum.</span>
+        <span>Bu dosyanın firmamıza ait gerçekleşen fiyat verisi olduğunu ve tedarikçi teklifi olmadığını beyan ediyorum.</span>
       </label>
       <label className="mt-3 flex cursor-pointer flex-col gap-2 rounded-xl border border-dashed border-border p-4 text-[11px] text-muted-foreground hover:border-sky-500/50">
-        <span className="font-bold text-foreground dark:text-muted-foreground">{catalogImportDraft.fileName || "CSV fiyat katalog dosyası seçin"}</span>
-        <span>Desteklenen format CSV; poz, açıklama, birim ve birim fiyat kolonlarını içerir.</span>
-        <input aria-label="CSV fiyat katalog dosyası" className="sr-only" type="file" accept=".csv,text/csv" onChange={(event) => void readPriceCatalogCsv(event.target.files?.[0] ?? null)} />
+        <span className="font-bold text-foreground dark:text-muted-foreground">{catalogImportDraft.fileName || "Fiyat kataloğu dosyası seçin (Excel veya CSV)"}</span>
+        <span>Excel (.xlsx) veya CSV; poz, açıklama, birim ve birim fiyat kolonlarını içerir.</span>
+        <input aria-label="Fiyat kataloğu dosyası (Excel veya CSV)" className="sr-only" type="file" accept=".xlsx,.xls,.csv,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" onChange={(event) => { const selected = event.target.files?.[0] ?? null; event.target.value = ""; void readPriceCatalogFile(selected); }} />
       </label>
       <div className="mt-3 grid gap-2 md:grid-cols-[1fr_auto]">
         <textarea aria-label="CSV fiyat katalog metni" placeholder="Excel/CSV satırlarını buraya yapıştırın" value={catalogImportText} onChange={(event) => { setCatalogOwnershipConfirmed(false); setCatalogImportText(event.target.value); }} className="min-h-24 rounded-xl border border-border bg-background p-3 text-[11px] text-foreground outline-none focus:border-sky-500/60" />
@@ -855,12 +815,16 @@ export function SmartCheckImportWorkspace() {
             dataset={calmDataset}
             documentId={documentId}
             quotations={quotes}
-            selectedQuotationId={quotationId}
-            onSelectedQuotationIdChange={(nextQuotationId) => {
-              setQuotationId(nextQuotationId);
+            transferTarget={calmTarget}
+            onTransferTargetChange={(nextTarget) => {
+              setCalmTarget(nextTarget);
+              if (nextTarget.mode === "revision") setQuotationId(nextTarget.quotationId);
               setTransferredQuotationId(null);
             }}
             onTransferToQuote={transferCalmToQuotation}
+            transferUnavailableReason={documentId && documentId === sampleDocumentId
+              ? "Örnek projeden teklif oluşturulmaz; fiyatlandırmayı burada deneyebilirsiniz. Teklif için kendi IFC modelinizi yükleyin."
+              : undefined}
             transferBusy={calmTransferBusy}
             transferredQuotationId={transferredQuotationId}
             showTechnicalToggle={true}
@@ -933,8 +897,14 @@ export function SmartCheckImportWorkspace() {
                     className="sr-only"
                     type="file"
                     accept=".xlsx,.csv,.ifc,.pdf,text/csv,model/ifc,application/ifc,application/pdf,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                    onChange={(event) => {
-                      setFile(event.target.files?.[0] ?? null);
+                    onChange={async (event) => {
+                      const selected = event.target.files?.[0] ?? null;
+                      if (selected && isLegacyXls(selected.name, await readFileHead(selected))) {
+                        event.target.value = "";
+                        toast.error(LEGACY_XLS_MESSAGE, { duration: 12000 });
+                        return;
+                      }
+                      setFile(selected);
                       setOpenedFileName(null);
                       setDocumentId(null);
                       setPilotCaseId(null);

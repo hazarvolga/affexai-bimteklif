@@ -16,6 +16,8 @@ test('Panel adımlarının hedeflediği data-tour öğeleri Panel bileşenlerind
   assert.ok(panelTargets.length >= 4);
   for (const selector of panelTargets) {
     const name = /data-tour="([^"]+)"/.exec(selector)?.[1];
-    assert.ok(name && sources.includes(`data-tour="${name}"`), `Panelde hedef yok: ${selector}`);
+    // Targets are written inline (data-tour="x") or declared in a link list rendered as data-tour={tool.tour}.
+    const declared = name && (sources.includes(`data-tour="${name}"`) || (sources.includes(`tour: '${name}'`) && sources.includes('data-tour={tool.tour}')));
+    assert.ok(declared, `Panelde hedef yok: ${selector}`);
   }
 });

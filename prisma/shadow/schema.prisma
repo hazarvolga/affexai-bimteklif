@@ -203,6 +203,8 @@ model Quotation {
   pricingSnapshotLockHash String?         @map("pricing_snapshot_lock_hash") @db.Text
   subtotal        Decimal                 @db.Decimal(20, 2)
   discountTotal   Decimal                 @map("discount_total") @db.Decimal(20, 2)
+  overheadProfitPercent Decimal           @default(0) @map("overhead_profit_percent") @db.Decimal(5, 2)
+  overheadProfitTotal Decimal             @default(0) @map("overhead_profit_total") @db.Decimal(20, 2)
   vatTotal        Decimal                 @map("vat_total") @db.Decimal(20, 2)
   grandTotal      Decimal                 @map("grand_total") @db.Decimal(20, 2)
   revisionVersion Int                     @default(1) @map("revision_version")
