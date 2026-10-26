@@ -69,9 +69,10 @@ Gerekçe: Uzman bu hataları görürse asıl hesap doğruluğu yerine bunları r
 - **Kanıt:**
   - Tam test paketi: 1476 testten 1466 geçti, 0 hata, 10 atlandı. Kapsam eşiği geçti (proje satır kapsamı %82,61).
   - Gerçek tarayıcı: `scripts/faz0-trust-ui-smoke.ts`.
-- **Açık:** M-7.6, aynı teklif sürümünün yeniden PDF'inin kotadan düşmemesi.
-  - `usage_logs` tablosunda teklif bağlantısı olmadığı için yeni bir migrasyon (0028) gerektirir.
-  - Canlı RLS geçişinden önce ek migrasyon kararı Hazar'da.
+- **Kapandı (Hazar onayıyla, 26 Ekim 2026):** M-7.6. Release 0028 (`usage_logs.quotation_id` ve `quotation_version_key`) ile aynı teklif sürümünün PDF'i ayda bir kez sayılıyor.
+  - Doğrulama: boş PG16'da sabitlenmiş imzalı uygulama ve inspect; RLS ve rol sözleşme testleri; tam paket.
+  - **Deploy notu:** canlı geçişte 0022–0027'ye ek olarak 0028 de uygulanır.
+- **Ek düzeltme:** Varsayılan PDF şablonunda eski "TeklifPro AI" markası ve sabit "7 gün geçerli" metni vardı; düzeltildi.
 - **Faz 1'e kalan:** "Aktarım için önce mevcut bir teklif oluşturulmalıdır" (M-14.3) ve fiyat kataloğu boş durum akışı (M-17.3, kısmen yapıldı).
 
 ## 3. Faz 1 — Excel önce ve ana iş akışı
