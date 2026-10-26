@@ -63,3 +63,22 @@ it('explicit disabled email permits production startup while default webhook rem
   assert.equal(validateProductionEnvironment(base).valid, false);
   assert.equal(validateProductionEnvironment({ ...base, AUTH_EMAIL_DELIVERY_MODE: 'typo' }).valid, false);
 });
+
+it('worker preflight (requireControlDatabase: false) accepts worker DATABASE_URL without CONTROL_DATABASE_URL and rejects leaked CONTROL_DATABASE_URL', () => {
+  const workerEnv = {
+    NODE_ENV: 'production',
+    DATABASE_URL: 'postgresql://bimmetraj_worker:worker@postgres:5432/bimmetraj_production',
+    JWT_SECRET: 'j'.repeat(48),
+    PUBLIC_APP_URL: 'https://bimmetraj.com',
+    AUTH_EMAIL_DELIVERY_MODE: 'disabled',
+    TRUST_PROXY_HOPS: '1',
+  };
+  assert.equal(validateProductionEnvironment(workerEnv, { requireControlDatabase: false }).valid, true);
+  assert.equal(
+    validateProductionEnvironment(
+      { ...workerEnv, CONTROL_DATABASE_URL: 'postgresql://bimmetraj_control:control@postgres:5432/bimmetraj_production' },
+      { requireControlDatabase: false },
+    ).valid,
+    false,
+  );
+});

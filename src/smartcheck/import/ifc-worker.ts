@@ -19,7 +19,7 @@ export const ifcWorkerTaskList = {
 };
 
 export async function startIfcWorker() {
-  assertProductionEnvironment();
+  assertProductionEnvironment(process.env, { requireControlDatabase: false });
   if (process.env.NODE_ENV === "production" && !validateSmartcheckStorageEnvironment().valid) throw new Error("INVALID_WORKER_STORAGE");
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) throw new Error("DATABASE_URL is required");

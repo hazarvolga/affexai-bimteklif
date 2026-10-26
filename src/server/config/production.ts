@@ -20,17 +20,25 @@ export function validateSmartcheckStorageEnvironment(env: Env = process.env) {
   return { valid: errors.length === 0, errors };
 }
 
-export function validateProductionEnvironment(env: Env = process.env) {
+export function validateProductionEnvironment(
+  env: Env = process.env,
+  options: { requireControlDatabase?: boolean } = {},
+) {
+  const requireControlDatabase = options.requireControlDatabase ?? true;
   const errors: string[] = [];
   if (env.NODE_ENV !== 'production') return { valid: true, errors, trustProxyHops: 0 };
   try { readIfcEnvironmentLimits(env); }
   catch (error) { errors.push(error instanceof Error ? error.message : 'INVALID_IFC_LIMIT'); }
   try { uploadQuotaLimits(env); } catch { errors.push('UPLOAD_QUOTA_CONFIG_INVALID'); }
   if (!env.DATABASE_URL) errors.push('DATABASE_URL is required.');
-  if (!env.CONTROL_DATABASE_URL) errors.push('CONTROL_DATABASE_URL is required.');
-  if (env.DATABASE_URL && env.CONTROL_DATABASE_URL) {
-    try { validateControlDatabaseUrls(env.DATABASE_URL, env.CONTROL_DATABASE_URL); }
-    catch (error) { errors.push(error instanceof Error ? error.message : 'CONTROL_DATABASE_URL_INVALID'); }
+  if (requireControlDatabase) {
+    if (!env.CONTROL_DATABASE_URL) errors.push('CONTROL_DATABASE_URL is required.');
+    if (env.DATABASE_URL && env.CONTROL_DATABASE_URL) {
+      try { validateControlDatabaseUrls(env.DATABASE_URL, env.CONTROL_DATABASE_URL); }
+      catch (error) { errors.push(error instanceof Error ? error.message : 'CONTROL_DATABASE_URL_INVALID'); }
+    }
+  } else if (env.CONTROL_DATABASE_URL) {
+    errors.push('CONTROL_DATABASE_URL must not be provided to worker processes.');
   }
   if (!env.JWT_SECRET || env.JWT_SECRET.length < 32 || placeholderSecret(env.JWT_SECRET)) errors.push('JWT_SECRET must be a non-placeholder secret of at least 32 characters.');
   if (!env.PUBLIC_APP_URL || !validHttpsUrl(env.PUBLIC_APP_URL)) errors.push('PUBLIC_APP_URL must be an absolute HTTPS URL.');
@@ -46,8 +54,11 @@ export function validateProductionEnvironment(env: Env = process.env) {
   return { valid: errors.length === 0, errors, trustProxyHops: Number.isInteger(trustProxyHops) ? trustProxyHops : 1 };
 }
 
-export function assertProductionEnvironment(env: Env = process.env) {
-  const result = validateProductionEnvironment(env);
+export function assertProductionEnvironment(
+  env: Env = process.env,
+  options: { requireControlDatabase?: boolean } = {},
+) {
+  const result = validateProductionEnvironment(env, options);
   if (!result.valid) throw new Error(`Production configuration invalid:\n- ${result.errors.join('\n- ')}`);
   return result;
 }
