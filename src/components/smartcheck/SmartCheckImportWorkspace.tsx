@@ -16,7 +16,7 @@ import { buildCalmIfcDatasetFromElements, parseSmartCheckRowToPseudoElement } fr
 import { detectAuthoringSoftware, type AuthoringSoftwareDetection } from "@/ifc/authoring-software-diagnostics";
 import type { ParsedIfcElement } from "@/ifc/types";
 import type { ColumnMapping } from "@/smartcheck/import/normalize";
-import { buildCalmTransferSelection, getOrCreateCalmTransferAttempt, type CalmTransferUiItem } from "./calm-transfer-ui";
+import { buildCalmTransferSelection, calmTransferAttemptScope, calmTransferTargetHint, getOrCreateCalmTransferAttempt, type CalmTransferTarget, type CalmTransferUiItem } from "./calm-transfer-ui";
 import { buildTenantPriceCatalogImportPayload, type TenantPriceCatalogRow } from "@/smartcheck/pricing/catalog-import";
 import { parsePriceCatalogCsv } from "@/lib/price-catalog-import";
 import { isLegacyXls, LEGACY_XLS_MESSAGE, readFileHead, spreadsheetKind } from "@/lib/spreadsheet-format";
@@ -166,6 +166,7 @@ export function SmartCheckImportWorkspace() {
   const [quotes, setQuotes] = useState<Array<{ id: string; quoteNumber: string; projectName: string; status: string }>>([]);
   const [queue, setQueue] = useState<QueueItem[]>([]);
   const [quotationId, setQuotationId] = useState("");
+  const [calmTarget, setCalmTarget] = useState<CalmTransferTarget>({ mode: "new", clientName: "", projectName: "" });
   const [transferredQuotationId, setTransferredQuotationId] = useState<string | null>(null);
   const [calmTransferBusy, setCalmTransferBusy] = useState(false);
   const [expandedRowId, setExpandedRowId] = useState<string | null>(null);
@@ -658,7 +659,8 @@ export function SmartCheckImportWorkspace() {
 
   const transferCalmToQuotation = async (items: CalmTransferUiItem[]) => {
     if (!documentId) { toast.error("İcmalin kaynak dosyası bulunamadı."); return; }
-    if (!quotationId) { toast.error("Önce mevcut güncel bir teklif seçin."); return; }
+    const targetHint = calmTransferTargetHint(calmTarget);
+    if (targetHint) { toast.error(targetHint); return; }
     const approvedRowIds = new Set(rows.filter((row) => row.reviewStatus === "approved").map((row) => row.id));
     let selection;
     try {
@@ -677,11 +679,14 @@ export function SmartCheckImportWorkspace() {
     }
     setCalmTransferBusy(true);
     try {
-      const attempt = getOrCreateCalmTransferAttempt(window.localStorage, documentId, quotationId, selection, () => crypto.randomUUID());
-      const response = await fetchWithAuth(`/api/smartcheck/documents/${documentId}/transfer-calm-to-quotation`, {
+      const attempt = getOrCreateCalmTransferAttempt(window.localStorage, documentId, calmTransferAttemptScope(calmTarget), selection, () => crypto.randomUUID());
+      const isNewQuotation = calmTarget.mode === "new";
+      const response = await fetchWithAuth(`/api/smartcheck/documents/${documentId}/${isNewQuotation ? "transfer-calm-to-new-quotation" : "transfer-calm-to-quotation"}`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "Idempotency-Key": attempt.record.idempotencyKey },
-        body: JSON.stringify({ quotationId, ...selection }),
+        body: JSON.stringify(calmTarget.mode === "new"
+          ? { clientName: calmTarget.clientName.trim(), projectName: calmTarget.projectName.trim() || undefined, ...selection }
+          : { quotationId: calmTarget.quotationId, ...selection }),
       });
       const body = await readJsonBody<{ error?: string; quotationId?: string; revisionVersion?: number; transferredCount?: number; replayed?: boolean }>(response);
       if (!response.ok || !body.quotationId) { toast.error(body.error ?? "İcmalin teklife aktarımı tamamlanamadı."); return; }
@@ -691,7 +696,7 @@ export function SmartCheckImportWorkspace() {
         revisionVersion: body.revisionVersion,
       }));
       window.localStorage.setItem(`bimmetraj:calm-transfer-result:v1:${documentId}`, JSON.stringify({
-        sourceQuotationId: quotationId,
+        sourceQuotationId: calmTarget.mode === "revision" ? calmTarget.quotationId : null,
         resultQuotationId: body.quotationId,
         revisionVersion: body.revisionVersion,
       }));
@@ -700,11 +705,16 @@ export function SmartCheckImportWorkspace() {
       if (quotesResponse.ok) {
         const latestQuotes = await quotesResponse.json() as Array<{ id: string; quoteNumber: string; projectName: string; status: string }>;
         setQuotes(latestQuotes);
-        if (latestQuotes.some((quote) => quote.id === body.quotationId)) setQuotationId(body.quotationId);
+        if (latestQuotes.some((quote) => quote.id === body.quotationId)) {
+          setQuotationId(body.quotationId);
+          // The successor is now the latest revision; a further transfer must target it, not the superseded one.
+          if (!isNewQuotation) setCalmTarget({ mode: "revision", quotationId: body.quotationId });
+        }
       }
+      const created = isNewQuotation ? "yeni teklif" : `Rev. ${body.revisionVersion ?? "?"}`;
       toast.success(body.replayed
-        ? `Daha önce oluşturulan Rev. ${body.revisionVersion ?? "?"} tekrar açıldı.`
-        : `${body.transferredCount ?? sourceRowIds.length} kaynak satırdan Rev. ${body.revisionVersion ?? "?"} oluşturuldu.`);
+        ? `Daha önce oluşturulan ${created} tekrar açıldı.`
+        : `${body.transferredCount ?? sourceRowIds.length} kaynak satırdan ${created} oluşturuldu.`);
     } catch {
       toast.error("İcmal teklife aktarılırken bağlantı hatası oluştu.");
     } finally {
@@ -801,9 +811,10 @@ export function SmartCheckImportWorkspace() {
             dataset={calmDataset}
             documentId={documentId}
             quotations={quotes}
-            selectedQuotationId={quotationId}
-            onSelectedQuotationIdChange={(nextQuotationId) => {
-              setQuotationId(nextQuotationId);
+            transferTarget={calmTarget}
+            onTransferTargetChange={(nextTarget) => {
+              setCalmTarget(nextTarget);
+              if (nextTarget.mode === "revision") setQuotationId(nextTarget.quotationId);
               setTransferredQuotationId(null);
             }}
             onTransferToQuote={transferCalmToQuotation}

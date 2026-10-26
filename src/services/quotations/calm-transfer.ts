@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { and, desc, eq, inArray, or, sql } from "drizzle-orm";
 import { withAppTenantTransaction } from "../../db/app-tenant";
 import {
+  clients,
   documentProcessingRuns,
   documentProcessingArtifacts,
   documents,
@@ -20,6 +21,7 @@ import { calculateLineItemTotal, calculateQuotationTotals } from "../../lib/calc
 import { evaluatePriceSourceAuthorization, hasCommercialQuotationCapability, licensePermitsCommercialQuotation, type PriceAuthorizationStatus } from "../../smartcheck/pricing/authorization";
 import { priceSnapshotMatchesQuotationItem } from "../../smartcheck/pricing/integrity";
 import { isPriceSnapshotStale, sha256Payload } from "../../smartcheck/pricing/snapshots";
+import { consumeQuotationQuota } from "../billing/quota";
 import { copyRevisionItems } from "./revision-copy";
 
 export type CalmTransferSourceRow = {
@@ -653,6 +655,17 @@ async function performCalmTransfer(
 ) {
   const replay = await authorizeActorAndFindReplay(tx, actor, idempotencyKey, requestPayloadHash);
   if (replay) return replay;
+  return transferIntoLatestRevision(tx, actor, idempotencyKey, input, requestPayloadHash, at);
+}
+
+async function transferIntoLatestRevision(
+  tx: Transaction,
+  actor: CalmTransferActor,
+  idempotencyKey: string,
+  input: CalmTransferRequest,
+  requestPayloadHash: string,
+  at: Date,
+) {
   const locked = await lockLatestQuotation(tx, actor, input.targetQuotationId);
   const source = await loadSourceProjection(tx, actor, input);
   const pricing = await loadPricingContext(tx, actor, source.lines, locked.latest, at);
@@ -677,4 +690,93 @@ export async function transferCalmRowsToQuotationRevision(
     ...input,
   });
   return withAppTenantTransaction(actor, (tx) => performCalmTransfer(tx, actor, cleanIdempotencyKey, input, requestPayloadHash, at));
+}
+
+export type CalmTransferNewQuotation = {
+  clientName: string;
+  projectName?: string;
+  currency?: "TRY" | "USD" | "EUR";
+};
+export type CalmTransferNewQuotationRequest = {
+  sourceDocumentId: string;
+  newQuotation: CalmTransferNewQuotation;
+  priceSnapshotIdsByCalmLineId: Readonly<Record<string, string>>;
+};
+
+const NEW_QUOTATION_EXPIRY_DAYS = 30;
+
+export function buildCalmNewQuotationRequestHash(input: { companyId: string; actorUserId: string } & CalmTransferNewQuotationRequest): string {
+  return sha256Payload({
+    mode: "new_quotation",
+    companyId: input.companyId,
+    actorUserId: input.actorUserId,
+    sourceDocumentId: input.sourceDocumentId,
+    newQuotation: { clientName: input.newQuotation.clientName.trim(), projectName: input.newQuotation.projectName?.trim() || null, currency: input.newQuotation.currency ?? "TRY" },
+    lines: Object.entries(input.priceSnapshotIdsByCalmLineId).sort(([a], [b]) => a.localeCompare(b)).map(([lineId, priceSnapshotId]) => ({ lineId, priceSnapshotId })),
+  });
+}
+
+function calmQuoteNumber(at: Date): string {
+  return `IFC-${at.toISOString().slice(0, 10).replaceAll("-", "")}-${randomUUID().slice(0, 8).toUpperCase()}`;
+}
+
+/**
+ * Opens an empty starting revision (Rev. 1) and transfers the Calm icmal into its successor (Rev. 2) in the
+ * same transaction. The ledger stays revision-bound (source ≠ target, immediate successor), so a new quotation
+ * gets exactly the provenance guarantees of "add revision to an existing quotation". Consumes one quotation quota;
+ * any failure rolls back the client, both revisions and the quota.
+ */
+async function createStartingQuotation(tx: Transaction, actor: CalmTransferActor, request: CalmTransferNewQuotationRequest, at: Date) {
+  const [document] = await tx.select({ originalFileName: documents.originalFileName }).from(documents).where(and(
+    eq(documents.id, request.sourceDocumentId),
+    eq(documents.companyId, actor.companyId),
+  ));
+  if (!document) transferError("CALM_TRANSFER_DOCUMENT_NOT_FOUND", 404);
+  await consumeQuotationQuota(tx, actor.companyId, at);
+  const [client] = await tx.insert(clients).values({
+    companyId: actor.companyId,
+    name: request.newQuotation.clientName.trim(),
+    type: "company",
+    notes: `IFC icmali aktarımı için oluşturuldu. Kaynak: ${document.originalFileName}`,
+  }).returning();
+  const [quotation] = await tx.insert(quotations).values({
+    companyId: actor.companyId,
+    clientId: client.id,
+    quoteNumber: calmQuoteNumber(at),
+    projectName: request.newQuotation.projectName?.trim() || `IFC icmali · ${document.originalFileName}`,
+    date: at,
+    expiryDate: new Date(at.getTime() + NEW_QUOTATION_EXPIRY_DAYS * 86_400_000),
+    currency: request.newQuotation.currency ?? "TRY",
+    notes: "Boş başlangıç revizyonu; IFC icmali bir sonraki revizyona aktarıldı.",
+    status: "draft",
+    subtotal: "0", discountTotal: "0", vatTotal: "0", grandTotal: "0",
+    revisionVersion: 1,
+    isLatest: true,
+    createdAt: at,
+    updatedAt: at,
+  }).returning();
+  return quotation;
+}
+
+/** "Yeni teklif oluştur": a new quotation series whose first priced revision is the Calm icmal. */
+export async function transferCalmRowsToNewQuotation(
+  actor: CalmTransferActor,
+  idempotencyKey: string,
+  request: CalmTransferNewQuotationRequest,
+  at = new Date(),
+) {
+  const cleanIdempotencyKey = idempotencyKey.trim();
+  if (!cleanIdempotencyKey || cleanIdempotencyKey.length > 160) transferError("CALM_TRANSFER_IDEMPOTENCY_KEY_INVALID", 400);
+  if (!request.newQuotation.clientName.trim()) transferError("CALM_TRANSFER_CLIENT_NAME_REQUIRED", 400);
+  const requestPayloadHash = buildCalmNewQuotationRequestHash({ companyId: actor.companyId, actorUserId: actor.userId, ...request });
+  return withAppTenantTransaction(actor, async (tx) => {
+    const replay = await authorizeActorAndFindReplay(tx, actor, cleanIdempotencyKey, requestPayloadHash);
+    if (replay) return replay;
+    const starting = await createStartingQuotation(tx, actor, request, at);
+    return transferIntoLatestRevision(tx, actor, cleanIdempotencyKey, {
+      sourceDocumentId: request.sourceDocumentId,
+      targetQuotationId: starting.id,
+      priceSnapshotIdsByCalmLineId: request.priceSnapshotIdsByCalmLineId,
+    }, requestPayloadHash, at);
+  });
 }

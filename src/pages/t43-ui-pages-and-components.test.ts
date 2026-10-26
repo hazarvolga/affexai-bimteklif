@@ -2200,7 +2200,7 @@ test('T43 UI Slice 4: SmartCheck, CalmIfcWorkspace, BimIfcParser, BimGapAnalysis
       dataset: calmDataset,
       documentId: 'doc-1',
       quotations: [{ id: 'quote-1', quoteNumber: 'TKF-2026-001', projectName: 'Kadıköy B Blok', status: 'draft' }],
-      selectedQuotationId: 'quote-1',
+      transferTarget: { mode: 'revision', quotationId: 'quote-1' },
       showTechnicalToggle: true,
       technicalViewOpen: false,
     }),

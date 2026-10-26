@@ -102,6 +102,25 @@ Gerekçe: Uzman bu hataları görürse asıl hesap doğruluğu yerine bunları r
 
 Süreler (`marka.md` §23.2) yerelde ölçülür ve kaydedilir.
 
+### Faz 1 durumu (26 Ekim 2026, dal `feat/faz1-excel-akis`, ilk dilim)
+
+- **Kapandı:**
+  - C-1: teklif, fiyat kataloğu ve parsel için `.xlsx` şablonları (`src/lib/spreadsheet-templates.ts`). Veri sayfası boş açılır; "Nasıl Doldurulur" ve "Örnek" ayrı sayfalardadır. Birim sütununda açılır liste vardır. CSV ikincil bağlantı olarak kalır.
+  - C-2: `.xls` uzantısı veya OLE imzası tanınır, kullanıcıya "Farklı Kaydet → .xlsx" talimatı verilir (`src/lib/spreadsheet-format.ts`). Kapsanan ekranlar: teklif, katalog, SmartCheck ana yükleyici ve parsel.
+  - C-3: SmartCheck fiyat kataloğu `.xlsx` okur (`src/lib/price-catalog-import.ts`, CSV kuralları aynı).
+  - M-11.4 ve M-12.1: "Nereden başlayacaksınız?" dört seçenek sunar; Excel seçeneği Yeni Teklif'i doğrudan Excel alanında (`?kaynak=excel`) açar. Örnek proje seçeneği SmartCheck örneğini (`?ornek=`) açar.
+  - M-15.1 (kısmen): Teklifler ve Yeni Teklif ekranlarındaki IFC girişleri tek "IFC Modelinden …" girişinde birleşti (SmartCheck); tarayıcı ön incelemesi "Diğer araçlar"a taşındı.
+  - M-14.3: icmal maliyet adımında iki açık seçenek var: "Yeni teklif oluştur" (müşteri ve proje adı) ve "Mevcut teklife revizyon ekle".
+    - Yeni teklif: sunucuda tek işlemde boş bir Rev. 1 açılır, icmal Rev. 2'ye aktarılır (`transferCalmRowsToNewQuotation`, `POST /api/smartcheck/documents/:id/transfer-calm-to-new-quotation`).
+    - Kaynak satır, fiyat snapshot'ı ve ledger güvenceleri revizyon yoluyla aynıdır. Şema değişikliği yoktur.
+    - Bir teklif kotası düşer. Tekrar deneme ikinci teklif açmaz. Hata olursa müşteri, teklif ve kota geri alınır.
+- **Kanıt:**
+  - Tam test paketi (boş PG16): 1491 testten 1476 geçti, 0 hata, 15 atlandı. Kapsam eşiği geçti (proje satır kapsamı %82,63, HTTP rotaları fonksiyon kapsamı %95,09).
+  - Entegrasyon: `calm-transfer.integration.test.ts`, `smartcheck-calm-transfer-route.integration.test.ts`.
+  - Gerçek tarayıcı: `scripts/faz1-excel-flow-smoke.ts`.
+- **Ek düzeltme:** Tek giriş akışına geçerken paneldeki KİK sınır değer ve 4735 fiyat farkı bağlantıları ile `public-procurement` tur hedefi kaybolmuştu; "Diğer araçlar" satırına geri eklendi.
+- **Faz 1'de kalan:** C-4, M-17.3, M-17.4/12.6, M-12.4, M-12.5, M-14.5, M-13.3/13.4, M-10.x ve M-15.2 (`dosyadan-teklif-demo` rotasının kaderi). Üç persona kabul akışı da bu maddelerden sonra yürütülecek. IFC → teklif uçtan uca tarayıcı akışı için onaylı fiyat kaydı gerekir (M-17.4 ile birlikte).
+
 ## 4. Faz 2 — Panel, gezinme, yardım, okunabilirlik
 
 | Kimlik | Madde | Yapılacak | Konum |

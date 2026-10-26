@@ -35,15 +35,16 @@ import {
 import { fetchWithAuth } from "@/lib/api";
 import { serializeCsv, type TabularCell } from "@/lib/tabular-data";
 import { IfcReviewViewer } from "@/components/smartcheck/viewer/IfcReviewViewer";
-import type { CalmTransferUiItem } from "./calm-transfer-ui";
+import { calmTransferTargetHint, isCalmTransferTargetReady, type CalmTransferTarget, type CalmTransferUiItem } from "./calm-transfer-ui";
+import { CalmTransferTargetPicker } from "./CalmTransferTargetPicker";
 import { Link } from "react-router-dom";
 
 export interface CalmIfcWorkspaceProps {
   dataset: CalmIfcDataset;
   documentId?: string | null;
   quotations?: Array<{ id: string; quoteNumber: string; projectName: string; status: string }>;
-  selectedQuotationId?: string;
-  onSelectedQuotationIdChange?: (quotationId: string) => void;
+  transferTarget?: CalmTransferTarget;
+  onTransferTargetChange?: (target: CalmTransferTarget) => void;
   onTransferToQuote?: (items: CalmTransferUiItem[]) => Promise<void> | void;
   transferBusy?: boolean;
   transferredQuotationId?: string | null;
@@ -54,6 +55,7 @@ export interface CalmIfcWorkspaceProps {
 }
 
 type CalmStep = "icmal" | "daireler" | "maliyet";
+const DEFAULT_TRANSFER_TARGET: CalmTransferTarget = { mode: "new", clientName: "", projectName: "" };
 type ResolvedPriceEvidence = { snapshotId: string; sourceId: string; sourceName: string; sourceDocumentHash: string; currency: "TRY"; amount: number; capturedAt: string | null };
 
 const publicPozCode = (value: string) => value.startsWith("UNRESOLVED:") ? "" : value;
@@ -82,8 +84,8 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
   dataset,
   documentId,
   quotations = [],
-  selectedQuotationId = "",
-  onSelectedQuotationIdChange,
+  transferTarget = DEFAULT_TRANSFER_TARGET,
+  onTransferTargetChange,
   onTransferToQuote,
   transferBusy = false,
   transferredQuotationId,
@@ -537,13 +539,19 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
   };
 
   const allPricesResolved = priceResolutionStatus === "ready" && allItems.length > 0 && allItems.every((item) => Boolean(priceEvidence[item.id]));
+  const targetReady = isCalmTransferTargetReady(transferTarget);
+  const transferBlocked = !allPricesResolved || !onTransferToQuote || !targetReady || transferBusy || Boolean(transferredQuotationId);
+  const transferLabel = transferredQuotationId
+    ? transferTarget.mode === "new" ? "Yeni teklif oluşturuldu" : "Yeni revizyon oluşturuldu"
+    : transferBusy ? "İcmal aktarılıyor…"
+      : transferTarget.mode === "new" ? "İcmalden yeni teklif oluştur" : "İcmali seçili teklife revizyon olarak ekle";
 
   const handleTransferClick = () => {
     if (activeStep !== "maliyet") {
       setActiveStep("maliyet");
       return;
     }
-    if (!allPricesResolved || !onTransferToQuote || !selectedQuotationId || transferBusy || transferredQuotationId) return;
+    if (transferBlocked) return;
     void onTransferToQuote(allItems.map((item) => ({
       lineId: item.id,
       sourceQuantityRowIds: item.sourceQuantityRowIds ?? [],
@@ -605,13 +613,13 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
           <button
             type="button"
             onClick={handleTransferClick}
-            disabled={activeStep === "maliyet" && (!allPricesResolved || !onTransferToQuote || !selectedQuotationId || transferBusy || Boolean(transferredQuotationId))}
+            disabled={activeStep === "maliyet" && transferBlocked}
             className="pafta-button !min-h-9 !py-2 !px-4"
           >
             {activeStep === "maliyet" ? (
               <>
                 <Download className="w-3.5 h-3.5" />
-                <span>{transferredQuotationId ? "Yeni teklif sürümü oluşturuldu" : transferBusy ? "Aktarılıyor…" : "Seçili Teklife Yeni Revizyon Aktar"}</span>
+                <span>{transferLabel}</span>
               </>
             ) : (
               <>
@@ -1439,45 +1447,37 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
               </div>
             </div>
 
+            {!onTransferToQuote ? (
+              <p className="mt-4 border border-border bg-card p-3 text-xs leading-relaxed text-muted-foreground" data-testid="calm-transfer-unavailable">
+                Bu ekran tarayıcıda hızlı ön incelemedir; teklife aktarım yapılmaz. Teklif için modeli{" "}
+                <Link className="font-semibold text-primary underline" to="/app/smartcheck">SmartCheck</Link>'e yükleyin.
+              </p>
+            ) : (
             <div className="mt-4">
-              <div className="mb-3 border border-border bg-card p-3">
-                <label className="font-mono text-[10px] font-semibold uppercase tracking-wider text-muted-foreground" htmlFor="calm-target-quotation">
-                  Mevcut güncel teklif
-                </label>
-                <select
-                  id="calm-target-quotation"
-                  value={selectedQuotationId}
-                  onChange={(event) => onSelectedQuotationIdChange?.(event.target.value)}
-                  className="mt-2 w-full border border-border bg-background px-3 py-2 text-xs text-foreground"
-                >
-                  <option value="">Güncel teklif seçin</option>
-                  {quotations.map((quotation) => (
-                    <option key={quotation.id} value={quotation.id}>{quotation.quoteNumber} · {quotation.projectName}</option>
-                  ))}
-                </select>
-                <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground">
-                  Aktarım seçilen teklifi değiştirmez; önceki sürüm korunur ve teklifin değiştirilemeyen yeni bir sürümü oluşturulur.
-                </p>
-                {!quotations.length && <p className="mt-1 text-[10px] font-semibold text-amber-400">Aktarım için önce mevcut bir teklif oluşturulmalıdır.</p>}
-                {transferredQuotationId && (
-                  <Link className="mt-2 inline-block text-xs font-bold text-emerald-400 underline" to={`/app/quotes/${transferredQuotationId}`}>
-                    Oluşturulan teklif sürümünü aç
-                  </Link>
-                )}
-              </div>
+              <CalmTransferTargetPicker
+                target={transferTarget}
+                quotations={quotations}
+                disabled={transferBusy}
+                onChange={(next) => onTransferTargetChange?.(next)}
+              />
+              {transferredQuotationId && (
+                <Link className="mb-3 inline-block text-xs font-bold text-emerald-500 underline" to={`/app/quotes/${transferredQuotationId}`}>
+                  {transferTarget.mode === "new" ? "Oluşturulan teklifi aç" : "Oluşturulan revizyonu aç"}
+                </Link>
+              )}
               <button
                 type="button"
                 onClick={handleTransferClick}
-                disabled={!allPricesResolved || !onTransferToQuote || !selectedQuotationId || transferBusy || Boolean(transferredQuotationId)}
-                title={!selectedQuotationId ? "Aktarım için mevcut güncel teklif seçin." : allPricesResolved ? undefined : "Aktarım için tüm kalemlerin fiyatı firma kataloğunuzda kayıtlı olmalı."}
+                disabled={transferBlocked}
+                title={!allPricesResolved ? "Aktarım için tüm kalemlerin fiyatı firma kataloğunuzda kayıtlı olmalı." : calmTransferTargetHint(transferTarget) ?? undefined}
+                data-testid="calm-transfer-submit"
                 className="pafta-button w-full !justify-center disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <Download className="w-4 h-4" />
-                <span>
-                  {transferredQuotationId ? "Yeni teklif sürümü oluşturuldu" : transferBusy ? "İcmal aktarılıyor…" : "İcmali teklife yeni sürüm olarak aktar"}
-                </span>
+                <span>{transferLabel}</span>
               </button>
             </div>
+            )}
 
             {/* 4734 KİK m.38 AŞIRI DÜŞÜK TEKLİF (SINIR DEĞER & %80 PARETO) ANALİZİ */}
             <div className="mt-5 border border-border bg-background p-4">
