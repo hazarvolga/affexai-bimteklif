@@ -378,6 +378,10 @@ export const usageLogs = pgTable("usage_logs", {
   costEstimate: numeric("cost_estimate", { precision: 10, scale: 5 }),
   date: timestamp("date").defaultNow().notNull(),
   documentProcessingRunId: uuid("document_processing_run_id"),
+  // Which quotation version a PDF reservation was for, so re-rendering the same version is free
+  // (marka.md M-7.6). No FK: usage is an audit record and must not block quotation cleanup.
+  quotationId: uuid("quotation_id"),
+  quotationVersionKey: text("quotation_version_key"),
 }, (table) => {
   return {
     processingRunFk: foreignKey({
@@ -385,6 +389,8 @@ export const usageLogs = pgTable("usage_logs", {
       foreignColumns: [documentProcessingRuns.id, documentProcessingRuns.companyId],
     }).onDelete("no action"),
     companyRunIdx: index("idx_usage_logs_processing_run").on(table.companyId, table.documentProcessingRunId),
+    quotationVersionIdx: index("idx_usage_logs_quotation_version").on(table.companyId, table.feature, table.quotationId, table.quotationVersionKey),
+    quotationVersionPair: check("usage_logs_quotation_version_pair", sql`(${table.quotationId} IS NULL) = (${table.quotationVersionKey} IS NULL)`),
     countNonnegative: check("usage_logs_count_nonnegative", sql`${table.count} >= 0`),
     appTenantReadPolicy: appTenantReadPolicy("usage_logs", table.companyId),
     appTenantInsertPolicy: appTenantInsertPolicy("usage_logs", table.companyId),

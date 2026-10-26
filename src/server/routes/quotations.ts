@@ -1,4 +1,4 @@
-import type { Express } from "express";
+import type { Express, Request } from "express";
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "../../db";
 import { quotationItems, quotations, smartcheckAuditLogs } from "../../db/schema";
@@ -11,8 +11,21 @@ import { PdfRenderError } from "../../services/pdf/renderer";
 import { authenticate } from "../middleware/auth";
 import { usageTracker } from "../middleware/usage";
 import { QuotaError } from "../../services/billing/quota";
+import type { UsageSubject } from "../../services/billing/feature-quota";
 import { consumeRateLimit } from "../auth/security";
 import { captureError } from "../observability/error-tracking";
+
+/**
+ * The PDF quota is counted once per quotation version per month (marka.md M-7.6): the version key changes
+ * with every revision or edit, so re-downloading an unchanged offer is free. Unknown ids reserve nothing.
+ */
+export async function quotationPdfSubject(req: Request): Promise<UsageSubject | null> {
+  const quote = await withAppTenant(tenantOf(req.user), (tenantDb) => tenantDb.query.quotations.findFirst({
+    where: and(eq(quotations.id, req.params.id), eq(quotations.companyId, req.user.companyId)),
+    columns: { id: true, revisionVersion: true, updatedAt: true },
+  }), { readOnly: true });
+  return quote ? { quotationId: quote.id, versionKey: `${quote.revisionVersion}:${quote.updatedAt.toISOString()}` } : null;
+}
 
 export function registerQuotationRoutes(app: Express, canMutate: any) {
   const pdfRateLimit = async (req: any, res: any, next: any) => {
@@ -179,7 +192,7 @@ export function registerQuotationRoutes(app: Express, canMutate: any) {
     }
   });
 
-  app.get("/api/quotations/:id/pdf", authenticate, pdfRateLimit, canMutate, usageTracker("PDF_GENERATED"), async (req, res) => {
+  app.get("/api/quotations/:id/pdf", authenticate, pdfRateLimit, canMutate, usageTracker("PDF_GENERATED", quotationPdfSubject), async (req, res) => {
     const controller = new AbortController();
     const cancel = () => controller.abort();
     req.once('aborted', cancel);

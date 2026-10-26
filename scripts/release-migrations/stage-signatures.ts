@@ -114,6 +114,11 @@ const stages = [
     sql: 'c1fb5bf71b62cb2e7766f4266135bb730ddf1800c313a6754a954198e2924f4c',
     snapshot: '9e8590fac344c1d064be4162aa8b1c2b3965f645de4c80a1bbfcea806db0964d',
     catalog: '0035a101a701f764d760ae31a6f9d67981dbfccdd24d55fe128520f18c5837fd' },
+  // Catalog pinned on a fresh disposable PostgreSQL 16 after 0000-0028; the same method reproduced the 0026/0027 pins.
+  { tag: '0028_usage_quotation_version',
+    sql: '3f9e9ed5e99b9b2916b9a6c1107c02df993d0fac6dbffc365d82e93cdba96c57',
+    snapshot: '967432cc374cf962765db73f52c735444a712d8444c66d669b8e931fc84a4140',
+    catalog: 'ce9896323f047a17dc868564976522d7d0f5ef66119f1dbc9a40106bcb1ec5d9' },
 ] as const;
 
 export function pinnedSignature(migration: { idx: number; tag: string; sha256: string; snapshotSha256: string }) {
