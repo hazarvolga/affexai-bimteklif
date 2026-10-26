@@ -13,8 +13,23 @@ export interface LineItem {
 export interface CalculationResult {
   subtotal: number;
   discountTotal: number;
+  /** Contractor profit and overhead on the net subtotal (release 0029). Zero when no percentage is set. */
+  overheadProfitTotal: number;
   vatTotal: number;
   grandTotal: number;
+}
+
+export interface QuotationTotalsOptions {
+  /** "Müteahhitlik kârı ve genel gider" percentage on the net of each line; VAT applies to net plus this share. */
+  overheadProfitPercent?: number | string | null;
+}
+
+/** Reads a stored or submitted percentage; anything outside 0–100 is refused rather than clamped. */
+export function normalizeOverheadProfitPercent(value: number | string | null | undefined): number {
+  if (value === null || value === undefined || value === "") return 0;
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed < 0 || parsed > 100) throw new RangeError("OVERHEAD_PROFIT_PERCENT_INVALID");
+  return parsed;
 }
 
 export interface NormalizedLineItem {
@@ -120,22 +135,32 @@ export function calculateLineItemTotal(item: LineItem): number {
 /**
  * Aggregates all line items into a full quotation summary
  */
-export function calculateQuotationTotals(items: LineItem[]): CalculationResult {
+export function calculateQuotationTotals(items: LineItem[], options: QuotationTotalsOptions = {}): CalculationResult {
+  const overheadProfitPercent = normalizeOverheadProfitPercent(options.overheadProfitPercent);
   let subtotal = 0;
   let discountTotal = 0;
+  let overheadProfitTotal = 0;
   let vatTotal = 0;
 
   for (const item of items) {
     const line = calculateLineBreakdown(item);
     subtotal += toCents(line.gross);
     discountTotal += toCents(line.discount);
-    vatTotal += toCents(line.vat);
+    if (overheadProfitPercent === 0) {
+      vatTotal += toCents(line.vat);
+      continue;
+    }
+    // Per line, so lines with different VAT rates carry VAT on their own share of profit and overhead.
+    const share = roundMoney(line.net * (overheadProfitPercent / 100));
+    overheadProfitTotal += toCents(share);
+    vatTotal += toCents(roundMoney((line.net + share) * (normalizeLineItem(item).vatPercent / 100)));
   }
 
   return {
     subtotal: fromCents(subtotal),
     discountTotal: fromCents(discountTotal),
+    overheadProfitTotal: fromCents(overheadProfitTotal),
     vatTotal: fromCents(vatTotal),
-    grandTotal: fromCents(subtotal - discountTotal + vatTotal),
+    grandTotal: fromCents(subtotal - discountTotal + overheadProfitTotal + vatTotal),
   };
 }

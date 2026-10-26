@@ -138,7 +138,13 @@ Süreler (`marka.md` §23.2) yerelde ölçülür ve kaydedilir.
 - **Doğrulama:** Tam paket boş PG16 üzerinde ve üretim derlemesiyle çalıştı: 1503 testten 1488 geçti, 0 hata, 15 atlandı. Kapsam eşiği geçti (proje satır kapsamı %82,73, arayüz %74,69). Giriş paketi 107,6 KB, sınır 120 KB.
 - **PR #23 notu:** `feat/faz1-excel-akis` dalının üretim derlemesinde SmartCheck rota paketi exceljs parçasını doğrudan referanslıyor (T45-2 ihlali). Sebebi, katalog okuyucunun yalnız SmartCheck tarafından içe aktarılıp rota paketine gömülmesi. Bu dalda katalog sayfası aynı modülü paylaştığı için okuyucu ayrı parçaya ayrıldı ve ihlal kalktı. #23 tek başına birleştirilmemeli.
 - **M-12.6 kalan:** Yeni Teklif ekranındaki "Onaylı Rayiçler" platformun ortak rayiç havuzunu okur, firma kataloğunu değil. Oraya katalog bağlantısı koymak yanıltıcı olacağı için eklenmedi. Elle teklif satırlarının firma kataloğundan fiyat alması (fiyat kaydına bağlama dahil) ayrı dilimdir.
-- **Gözlem (karar gerekiyor):** İcmal özet kartındaki "Genel toplam (KDV hariç)" müteahhitlik kârı ve genel gider yüzdesini (%15 varsayılan) içerir. Aktarılan teklif ise katalog birim fiyatlarıyla oluşur, bu yüzdeyi içermez. Kullanıcı iki farklı toplam görür.
+- **Kâr ve genel gider (Hazar kararı, 27 Ekim 2026: teklife yansısın):** Release 0029 teklif düzeyinde `overhead_profit_percent` ve `overhead_profit_total` ekler.
+  - Yüzde her kalemin netine uygulanır. KDV, kalemin kendi oranıyla "net + pay" üzerinden hesaplanır.
+  - Kalem birim fiyatları fiyat kaydına eşit kalır; fiyat kanıtı kilidi bozulmaz.
+  - İcmaldeki yüzde (varsayılan %15) aktarıma gider. Revizyon, önceki revizyonun yüzdesini taşır.
+  - Teklif ekranı, teklif detayı ve üç PDF şablonu ayrı "Müteahhitlik kârı ve genel gider (%X)" satırı gösterir. Kârlılık hesabı bu tutarı gelir sayar.
+  - ÇŞB birim fiyat modunda yüzde 0'dan başlar; elle girilirse çift sayım uyarısı çıkar. ÇŞB'nin resmi birim fiyat analizlerinde (2020, 2024, 2025, 2026) her kalem "%25 yüklenici kârı ve genel giderler dahil" olarak verilir.
+  - Yüzde 0 iken mevcut tüm teklif toplamları birebir aynıdır.
 
 ### Faz 1 kalan dilimler — kararlar (26 Ekim 2026)
 

@@ -250,6 +250,7 @@ test("Calm transfer is tenant-safe, transactional, replayable and creates exactl
   assert.equal(explicitVatResult.quotation.subtotal, "8375.00");
   assert.equal(explicitVatResult.quotation.vatTotal, "1675.00");
   assert.equal(explicitVatResult.quotation.grandTotal, "10050.00");
+  assert.equal(explicitVatResult.quotation.overheadProfitTotal, "0.00", "no percentage keeps the pre-0029 totals");
 
   await db.update(schema.priceSnapshots).set({ vatPercent: "100.01" }).where(drizzle.eq(schema.priceSnapshots.id, snapshot.id));
   await assert.rejects(
@@ -299,10 +300,15 @@ test("Calm transfer is tenant-safe, transactional, replayable and creates exactl
   const secondResult = await service.transferCalmRowsToQuotationRevision(
     { companyId: companyA.id, userId: actor.id },
     "second-distinct-document",
-    { sourceDocumentId: secondDocument.id, targetQuotationId: successorId, priceSnapshotIdsByCalmLineId: Object.fromEntries(secondLines.map((line) => [line.lineId, snapshot.id])) },
+    { sourceDocumentId: secondDocument.id, targetQuotationId: successorId, priceSnapshotIdsByCalmLineId: Object.fromEntries(secondLines.map((line) => [line.lineId, snapshot.id])), overheadProfitPercent: "10.00" },
     new Date("2026-10-23T12:20:00Z"),
   );
   assert.equal(secondResult.quotation.revisionVersion, 3);
+  // Net 10.885,00 (8.375 + 10 + 2.500); 10% profit and overhead per line; 20% VAT on net plus that share.
+  assert.deepEqual(
+    [secondResult.quotation.overheadProfitPercent, secondResult.quotation.subtotal, secondResult.quotation.overheadProfitTotal, secondResult.quotation.vatTotal, secondResult.quotation.grandTotal],
+    ["10.00", "10885.00", "1088.50", "2394.70", "14368.20"],
+  );
   const latestCalmItems = await db.select().from(schema.quotationItems).where(drizzle.and(
     drizzle.eq(schema.quotationItems.quotationId, secondResult.quotation.id),
     drizzle.eq(schema.quotationItems.sourceRuleVersion, "calm-icmal.v1"),
@@ -346,7 +352,7 @@ test("Calm transfer is tenant-safe, transactional, replayable and creates exactl
   const newLines = service.projectApprovedRowsToCalmQuotationLines([newRow], {});
   const newRequest = {
     sourceDocumentId: newDocument.id,
-    newQuotation: { clientName: "Yeni Müşteri", projectName: "Yeni IFC teklifi" },
+    newQuotation: { clientName: "Yeni Müşteri", projectName: "Yeni IFC teklifi", overheadProfitPercent: "15.00" },
     priceSnapshotIdsByCalmLineId: Object.fromEntries(newLines.map((line) => [line.lineId, snapshot.id])),
   };
   const newAt = new Date("2026-10-23T12:40:00Z");
@@ -355,6 +361,11 @@ test("Calm transfer is tenant-safe, transactional, replayable and creates exactl
   assert.equal(createdNew.replayed, false);
   assert.equal(createdNew.quotation.revisionVersion, 2, "the icmal lands on the successor of an empty starting revision");
   assert.equal(createdNew.quotation.projectName, "Yeni IFC teklifi");
+  // 2 m³ × 2.500 = 5.000 net, 15% = 750, VAT 20% of 5.750 = 1.150; line prices stay equal to the snapshot.
+  assert.deepEqual(
+    [createdNew.quotation.overheadProfitPercent, createdNew.quotation.subtotal, createdNew.quotation.overheadProfitTotal, createdNew.quotation.vatTotal, createdNew.quotation.grandTotal],
+    ["15.00", "5000.00", "750.00", "1150.00", "6900.00"],
+  );
   const [startingRevision] = await db.select().from(schema.quotations).where(drizzle.eq(schema.quotations.id, createdNew.ledger.sourceQuotationId));
   assert.equal(startingRevision.revisionVersion, 1);
   assert.equal(startingRevision.isLatest, false);
@@ -364,7 +375,7 @@ test("Calm transfer is tenant-safe, transactional, replayable and creates exactl
   assert.equal(newClient.name, "Yeni Müşteri");
   assert.equal(newClient.companyId, companyA.id);
   const newItems = await db.select().from(schema.quotationItems).where(drizzle.eq(schema.quotationItems.quotationId, createdNew.quotation.id));
-  assert.deepEqual(newItems.map((item) => [item.quantity, item.priceSnapshotId]), [["2.0000", snapshot.id]]);
+  assert.deepEqual(newItems.map((item) => [item.quantity, item.unitPrice, item.priceSnapshotId]), [["2.0000", "2500.00", snapshot.id]]);
   const replayedNew = await service.transferCalmRowsToNewQuotation({ companyId: companyA.id, userId: actor.id }, "new-quotation", newRequest, newAt);
   assert.equal(replayedNew.replayed, true);
   assert.equal(replayedNew.quotation.id, createdNew.quotation.id, "a retried click must not open a second quotation");

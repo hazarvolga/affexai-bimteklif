@@ -639,6 +639,12 @@ export function QuoteDetail() {
                       <span>İNDİRİM</span>
                       <span className="text-primary font-semibold tabular-nums">-{Number(data.discountTotal).toLocaleString('tr-TR')} {data.currency}</span>
                     </div>
+                    {Number(data.overheadProfitTotal ?? 0) > 0 && (
+                      <div className="flex justify-between items-center text-muted-foreground" data-testid="quote-overhead-profit">
+                        <span>KÂR VE GENEL GİDER (%{Number(data.overheadProfitPercent ?? 0).toLocaleString('tr-TR', { maximumFractionDigits: 2 })})</span>
+                        <span className="text-foreground tabular-nums">{Number(data.overheadProfitTotal).toLocaleString('tr-TR')} {data.currency}</span>
+                      </div>
+                    )}
                     <div className="flex justify-between items-center text-muted-foreground">
                       <span>KDV</span>
                       <span className="text-foreground tabular-nums">{Number(data.vatTotal).toLocaleString('tr-TR')} {data.currency}</span>

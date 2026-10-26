@@ -50,7 +50,7 @@ export async function createManualQuotation(actor: TenantContext, input: ManualQ
     const validatedItems = await resolveBenchmarkProvenance(tx, items, fields.currency);
     const totals = calculateQuotationTotals(items.map(item => ({
       quantity: item.quantity, unitPrice: item.unitPrice, discountPercent: item.discountPercent, vatPercent: item.vatPercent,
-    })));
+    })), { overheadProfitPercent: fields.overheadProfitPercent });
     const [quote] = await tx.insert(quotations).values({
       ...fields,
       industryId: resolvedIndustryId,
@@ -59,6 +59,7 @@ export async function createManualQuotation(actor: TenantContext, input: ManualQ
       escalationVolatilityPercent: String(fields.escalationVolatilityPercent),
       carbonRiskPremiumPercent: String(fields.carbonRiskPremiumPercent),
       informationDeliveryCostPercent: String(fields.informationDeliveryCostPercent),
+      overheadProfitPercent: String(fields.overheadProfitPercent), overheadProfitTotal: String(totals.overheadProfitTotal),
       subtotal: String(totals.subtotal), discountTotal: String(totals.discountTotal),
       vatTotal: String(totals.vatTotal), grandTotal: String(totals.grandTotal),
       revisionVersion: 1, isLatest: true,

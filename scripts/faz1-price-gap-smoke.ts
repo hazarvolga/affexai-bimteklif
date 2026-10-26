@@ -3,7 +3,7 @@
  *
  *   boş katalog -> 5 adımlı sihirbaz (.xlsx, sütunlar, KDV, onay) -> IFC icmalini aç -> beton kataloğa otomatik
  *   eşleşir -> seramik "Katalogdaki fiyatı eşleştir" -> mermer "Firma fiyatı ekle" -> yeni teklif oluştur ->
- *   teklif Rev. 2'de üç fiyat kaydına bağlı kalemle açılır
+ *   teklif Rev. 2'de üç fiyat kaydına bağlı kalemle ve %15 kâr ve genel gider satırıyla açılır
  *
  * Fikstür: işlenmiş, mühendis onaylı satırları ve IFC kanıtı olan bir doküman (worker çalıştırılmaz; satır
  * onayı bu dilimin dışındaki inceleme ekranında yapılır). İzole PostgreSQL şeması kullanır. Kullanım:
@@ -202,7 +202,18 @@ try {
   assert.equal(items.length, 3);
   assert.ok(items.every(item => item.priceSnapshotId && item.vatPercent === '20.00'), 'every line is bound to an approved, VAT-explicit price');
   assert.deepEqual(items.map(item => Number(item.unitPrice)).sort((a, b) => a - b), [610, 1250, 3450]);
+  // Release 0029: the icmal's 15% profit and overhead is a separate quotation row; VAT applies to it as well.
+  assert.deepEqual(
+    [latest.overheadProfitPercent, latest.subtotal, latest.overheadProfitTotal, latest.vatTotal, latest.grandTotal],
+    ['15.00', '74200.00', '11130.00', '17066.00', '102396.00'],
+  );
   await page.screenshot({ path: `${output}/7-quotation-created.png` });
+
+  step = 'quotation detail shows profit and overhead';
+  await clickByText('Oluşturulan teklifi aç');
+  await page.waitForSelector('[data-testid="quote-overhead-profit"]', { timeout: 20_000 });
+  assert.match(await page.$eval('[data-testid="quote-overhead-profit"]', element => element.textContent ?? ''), /KÂR VE GENEL GİDER \(%15\).*11\.130/);
+  await page.screenshot({ path: `${output}/8-quotation-detail.png` });
 
   assert.deepEqual(errors, []);
   console.log(JSON.stringify({ passed: true, screenshots: output, quotation: { revision: latest.revisionVersion, grandTotal: latest.grandTotal } }));

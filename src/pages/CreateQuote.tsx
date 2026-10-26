@@ -135,6 +135,7 @@ export function CreateQuote() {
     carbonRiskPremiumPercent: 0,
     informationDeliveryLevel: 'none' as 'none' | 'as_built' | 'cobie' | 'digital_twin',
     informationDeliveryCostPercent: 0,
+    overheadProfitPercent: 0,
     notes: '',
   });
 
@@ -307,6 +308,7 @@ export function CreateQuote() {
         projectDurationMonths: quote.projectDurationMonths, escalationVolatilityPercent: Number(quote.escalationVolatilityPercent),
         procurementProfile: quote.procurementProfile, carbonRiskPremiumPercent: Number(quote.carbonRiskPremiumPercent),
         informationDeliveryLevel: quote.informationDeliveryLevel, informationDeliveryCostPercent: Number(quote.informationDeliveryCostPercent),
+        overheadProfitPercent: Number(quote.overheadProfitPercent ?? 0),
         notes: quote.notes ?? '',
       });
       setItems(quote.items);
@@ -465,7 +467,7 @@ export function CreateQuote() {
     }
   };
 
-  const totals = calculateQuotationTotals(items);
+  const totals = calculateQuotationTotals(items, { overheadProfitPercent: formData.overheadProfitPercent });
 
   // Same calculation as the server profitability report, including risk premiums (L-4).
   const financials = calculateQuotationFinancials(items, {
@@ -473,6 +475,7 @@ export function CreateQuote() {
     escalationVolatilityPercent: formData.escalationVolatilityPercent,
     carbonRiskPremiumPercent: formData.carbonRiskPremiumPercent,
     informationDeliveryCostPercent: formData.informationDeliveryCostPercent,
+    overheadProfitPercent: formData.overheadProfitPercent,
   });
   const costInputsComplete = items.length > 0 && financials.missingCostItemIndexes.length === 0;
   const estimatedMargin = costInputsComplete ? financials.margin : 0;
@@ -531,6 +534,7 @@ export function CreateQuote() {
       carbonRiskPremiumPercent: 3,
       informationDeliveryLevel: 'cobie',
       informationDeliveryCostPercent: 2,
+      overheadProfitPercent: 0,
       notes: '6306 Sayılı Kentsel Dönüşüm Kanunu kapsamında TSE standartlı 1. sınıf malzeme ve ISO 19650 esaslı BIM teslim formatında hazırlanmış tekliftir.',
     });
 
@@ -1067,6 +1071,15 @@ export function CreateQuote() {
                   <Field label="Teslim Maliyeti %" labelClassName="text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-widest" hint="Şirket kapsam varsayımıdır; ISO/COBie uygunluğu değildir.">
                     <Input type="number" min="0" step="0.1" value={formData.informationDeliveryCostPercent} onChange={(e) => setFormData({...formData, informationDeliveryCostPercent: Math.max(0, Number(e.target.value) || 0)})} className="bg-background border-border text-foreground h-11 font-mono text-xs" />
                   </Field>
+                  <Field label="Kâr ve Genel Gider %" labelClassName="text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-widest" hint="Müşteri fiyatına eklenir ve KDV'ye dahil edilir. ÇŞB birim fiyatlarında %25 zaten dahildir; tekrar eklemeyin.">
+                    <Input
+                      type="number" min="0" max="100" step="0.01"
+                      aria-label="Müteahhitlik kârı ve genel gider yüzdesi"
+                      value={formData.overheadProfitPercent}
+                      onChange={(e) => setFormData({...formData, overheadProfitPercent: Math.min(100, Math.max(0, Math.round((Number(e.target.value) || 0) * 100) / 100))})}
+                      className="bg-background border-border text-foreground h-11 font-mono text-xs"
+                    />
+                  </Field>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
@@ -1106,6 +1119,12 @@ export function CreateQuote() {
                   <span className="text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-widest">İndirimler</span>
                   <span className="font-mono text-xs text-destructive font-semibold tabular-nums">-{totals.discountTotal.toLocaleString('tr-TR')} {formData.currency}</span>
                 </div>
+                {totals.overheadProfitTotal > 0 && (
+                  <div className="flex justify-between items-center" data-testid="create-quote-overhead-profit">
+                    <span className="text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-widest">Kâr ve Genel Gider (%{formData.overheadProfitPercent.toLocaleString('tr-TR')})</span>
+                    <span className="font-mono text-xs text-foreground font-semibold tabular-nums">+{totals.overheadProfitTotal.toLocaleString('tr-TR')} {formData.currency}</span>
+                  </div>
+                )}
                 <div className="flex justify-between items-center">
                   <span className="text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-widest">Yasal Vergi (KDV)</span>
                   <span className="font-mono text-xs text-muted-foreground tabular-nums">+{totals.vatTotal.toLocaleString('tr-TR')} {formData.currency}</span>

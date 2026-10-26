@@ -206,6 +206,13 @@
       "when": 1791417600028,
       "tag": "0028_usage_quotation_version",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1791417600029,
+      "tag": "0029_quotation_overhead_profit",
+      "breakpoints": true
     }
   ]
 }

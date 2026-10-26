@@ -47,7 +47,7 @@ export interface CalmIfcWorkspaceProps {
   quotations?: Array<{ id: string; quoteNumber: string; projectName: string; status: string }>;
   transferTarget?: CalmTransferTarget;
   onTransferTargetChange?: (target: CalmTransferTarget) => void;
-  onTransferToQuote?: (items: CalmTransferUiItem[]) => Promise<void> | void;
+  onTransferToQuote?: (items: CalmTransferUiItem[], options: { overheadProfitPercent: number }) => Promise<void> | void;
   /** Why this icmal cannot become a quotation (e.g. a quota-free sample without IFC evidence). */
   transferUnavailableReason?: string;
   transferBusy?: boolean;
@@ -59,6 +59,13 @@ export interface CalmIfcWorkspaceProps {
 }
 
 type CalmStep = "icmal" | "daireler" | "maliyet";
+
+/** Profit and overhead entered in the icmal: 0–100 with two decimals, as stored on the quotation (release 0029). */
+function clampOverheadPercent(raw: string): number {
+  const value = parseFloat(raw);
+  if (!Number.isFinite(value) || value < 0) return 0;
+  return Math.round(Math.min(value, 100) * 100) / 100;
+}
 const DEFAULT_TRANSFER_TARGET: CalmTransferTarget = { mode: "new", clientName: "", projectName: "" };
 type ResolvedPriceEvidence = { snapshotId: string; sourceId: string; sourceName: string; sourceDocumentHash: string; currency: "TRY"; amount: number; capturedAt: string | null };
 
@@ -197,6 +204,10 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
   const [priceLicenseMode, setPriceLicenseMode] = useState<"BYOL_TENANT_CATALOG" | "CSB_2026_REFERENCE">(
     "BYOL_TENANT_CATALOG",
   );
+  // ÇŞB unit prices already include 25% contractor profit and overhead, so switching to them starts from 0%.
+  useEffect(() => {
+    if (priceLicenseMode === "CSB_2026_REFERENCE") setOverheadPercent(0);
+  }, [priceLicenseMode]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -594,7 +605,7 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
       lineId: item.id,
       sourceQuantityRowIds: item.sourceQuantityRowIds ?? [],
       priceSnapshotId: priceEvidence[item.id]!.snapshotId,
-    })));
+    })), { overheadProfitPercent: overheadPercent });
   };
 
   return (
@@ -1443,12 +1454,10 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
                     type="number"
                     min={0}
                     max={100}
+                    step={0.01}
                     aria-label="Müteahhitlik Kârı Yüzdesi"
                     value={overheadPercent}
-                    onChange={(e) => {
-                      const v = parseFloat(e.target.value);
-                      setOverheadPercent(Number.isFinite(v) && v >= 0 ? v : 0);
-                    }}
+                    onChange={(e) => setOverheadPercent(clampOverheadPercent(e.target.value))}
                     className="w-14 border border-border bg-background px-1.5 py-0.5 text-right font-mono text-xs font-bold text-foreground"
                   />
                 </div>
@@ -1456,6 +1465,14 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
                   {costSummary.pricedItemCount > 0 ? formatTrCurrency(costSummary.overheadAmount) : "Hesaplanmadı"}
                 </span>
               </div>
+              <p className="py-2 text-[10px] leading-relaxed text-muted-foreground" data-testid="overhead-profit-note">
+                Teklife "Müteahhitlik kârı ve genel gider" satırı olarak eklenir; KDV bu tutara da uygulanır. Kalem birim fiyatları katalog fiyatıyla aynı kalır.
+                {priceLicenseMode === "CSB_2026_REFERENCE" && overheadPercent > 0 && (
+                  <span className="mt-1 block font-semibold text-amber-600">
+                    ÇŞB birim fiyatlarına %25 yüklenici kârı ve genel gider zaten dahildir; bu yüzde ikinci kez eklenir.
+                  </span>
+                )}
+              </p>
             </div>
 
             {/* GENEL TOPLAM PAFTA BLOĞU */}
