@@ -36,7 +36,7 @@ history to `archive/` (latest: `archive/WORKING_STATE_until_2026-10-24.md`).
   #23 `feat/faz1-excel-akis` (Rev. 93 Excel-first, one entry, new quotation vs
   revision) → #24 `feat/faz1-fiyat-eksik` (Rev. 94 catalogue wizard, missing-price
   actions, contractor profit/overhead + release 0029) → `feat/faz1-excel-cikti`
-  (Rev. 95 .xlsx exports, demo route removed; PR to open). **Do not merge #23
+  (#25, Rev. 95 .xlsx exports, demo route removed, Rev. 91–95 docs). **Do not merge #23
   alone:** its production build lets the SmartCheck chunk reference exceljs (T45);
   #24 fixes it. Deploy must run 0022–0029 with the app (checklist:
   `docs/operations/UZMAN_ONIZLEME_DEPLOY_VE_GERI_BILDIRIM_2026-10-26.md`).
