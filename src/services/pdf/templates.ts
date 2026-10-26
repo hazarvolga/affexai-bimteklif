@@ -99,7 +99,7 @@ export const templates: PdfTemplate[] = [
       </head>
       <body>
         <div class="header">
-          <div class="logo">TeklifPro AI</div>
+          <div class="logo">${escapeHtml(data.company.name)}</div>
           <div class="company-info">
             <div style="font-weight: 800; color: #18181b; font-size: 12pt;">${escapeHtml(data.company.name)}</div>
             <div>${escapeHtml(data.company.address || "")}</div>
@@ -163,7 +163,7 @@ export const templates: PdfTemplate[] = [
         ${evidenceSummaryHtml(data)}
         <div class="terms">
           <div style="font-weight: 800; margin-bottom: 5px; color: #18181b;">Şartlar ve Koşullar:</div>
-          <div style="margin-bottom: 3px;">• Bu teklif hazırlandığı tarihten itibaren 7 gün geçerlidir.</div>
+          <div style="margin-bottom: 3px;">• Bu teklif ${escapeHtml(data.quotation.expiryDate)} tarihine kadar geçerlidir.</div>
           <div style="margin-bottom: 3px;">• Malzeme fiyatlarındaki aşırı artışlar teklife yansıtılabilir.</div>
           <div style="margin-bottom: 3px;">• Ödeme planı karşılıklı mutabakat sonrası netleştirilecektir.</div>
           <div style="margin-bottom: 3px;">• KDV oranları yasal mevzuat gereği değiştirilebilir.</div>
