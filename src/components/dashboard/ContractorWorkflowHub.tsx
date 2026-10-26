@@ -5,7 +5,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Box, Building2, Eye, FileSpreadsheet, PencilLine, Scale, ShieldCheck, Sparkles } from 'lucide-react';
+import { ArrowRight, Box, Building2, Calculator, Eye, FileSpreadsheet, PencilLine, Scale, ShieldCheck, Sparkles } from 'lucide-react';
 
 interface ContractorWorkflowHubProps {
   compact?: boolean;
@@ -64,6 +64,8 @@ interface ToolLink {
 const MORE_TOOLS: readonly ToolLink[] = [
   { title: 'Arsa ön fizibilitesi', to: '/app/smartcheck#pre-bim-feasibility', icon: Building2 },
   { title: 'Taşeron hakediş kontrolü', to: '/app/smartcheck', icon: ShieldCheck, tour: 'subcontractor-shield' },
+  { title: 'KİK sınır değer (aşırı düşük teklif)', to: '/hesaplayicilar/kik-asiri-dusuk-teklif', icon: Calculator, tour: 'public-procurement' },
+  { title: '4735 fiyat farkı', to: '/hesaplayicilar/fiyat-farki-4735', icon: Calculator },
   { title: 'Mevzuat değişiklikleri', to: '/app/regulations', icon: Scale },
   { title: 'Tarayıcıda hızlı IFC ön inceleme (yetkili sonuç değildir)', to: '/app/ifc-parser', icon: Eye },
 ];
