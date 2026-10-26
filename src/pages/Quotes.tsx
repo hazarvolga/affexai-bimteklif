@@ -129,9 +129,9 @@ export function Quotes() {
                 <Plus size={15} /> Manuel Teklif
               </Button>
             </Link>
-            <Link to="/app/dosyadan-teklif-demo">
+            <Link to="/app/smartcheck">
               <Button size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground gap-1.5 font-semibold shadow-xs">
-                <Box size={15} /> 3D IFC ile Teklif Hazırla
+                <Box size={15} /> IFC Modelinden Teklif
               </Button>
             </Link>
           </div>

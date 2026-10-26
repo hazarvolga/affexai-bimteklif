@@ -17,11 +17,11 @@ export const USER_TOUR_STEPS: readonly TourStep[] = [
     route: "/app",
     targetSelector: '[data-tour="workflow-hub"]',
     pageLabel: "Panel",
-    badge: "EVRE BAZLI ÇALIŞMA",
-    title: "Müteahhitlik Süreç Masası (3 Evre)",
+    badge: "BAŞLANGIÇ",
+    title: "Nereden başlayacaksınız?",
     description:
-      "İş üç evrede ilerler: Evre 01 arsa ön fizibilitesi ve yaklaşık maliyet, Evre 02 IFC modelinden metraj, Evre 03 taşeron hakediş kontrolü.",
-    tip: "Elinizdeki belgeye (arsa bilgisi, Excel veya IFC modeli) göre ilgili evreden başlayabilirsiniz.",
+      "Elinizdeki kaynağı seçin: Excel/CSV metraj, IFC modeli, elle girilecek kalemler veya kotadan düşmeyen örnek proje. Seçim ilgili ekranı doğrudan açar.",
+    tip: "Arsa ön fizibilitesi, taşeron hakediş kontrolü ve mevzuat araçları hemen altındaki \"Diğer araçlar\" satırındadır.",
     preferredPlacement: "bottom",
   },
   {

@@ -110,6 +110,11 @@ export function CreateQuote() {
   const [searchParams] = useSearchParams();
   const startFromExcel = searchParams.get('kaynak') === 'excel';
   const excelImportRef = useRef<HTMLDivElement>(null);
+  const startManually = searchParams.get('kaynak') === 'elle';
+  useEffect(() => {
+    if (!startManually) return;
+    document.querySelector<HTMLInputElement>('[data-testid="quote-items-table"] input')?.focus();
+  }, [startManually]);
   useEffect(() => {
     if (!startFromExcel) return;
     excelImportRef.current?.scrollIntoView({ block: 'center' });
@@ -563,14 +568,7 @@ export function CreateQuote() {
               onClick={() => navigate('/app/smartcheck')}
               className="border-border bg-card hover:bg-muted text-foreground font-mono text-xs uppercase tracking-wider h-10 px-4 gap-2 shadow-none"
             >
-              <ShieldCheck size={14} className="text-muted-foreground" /> SmartCheck & e-PYS
-            </Button>
-            <Button
-              variant="outline" 
-              onClick={() => navigate('/app/ifc-parser')}
-              className="border-border bg-card hover:bg-muted text-foreground font-mono text-xs uppercase tracking-wider h-10 px-4 gap-2 shadow-none"
-            >
-              <Box size={14} className="text-muted-foreground" /> 5D IFC Metraj Yükle
+              <Box size={14} className="text-muted-foreground" /> IFC Modelinden Kalem Al
             </Button>
             <Button 
               variant="outline" 
@@ -852,7 +850,7 @@ export function CreateQuote() {
             <Card className="bg-card border border-border shadow-none overflow-hidden">
               <CardContent className="p-0">
                 <div className="overflow-x-auto">
-                  <Table className="min-w-[980px]">
+                  <Table className="min-w-[980px]" data-testid="quote-items-table">
                     <TableHeader className="bg-muted/40">
                       <TableRow className="border-border">
                         <TableHead className="w-[30%] min-w-[200px] sticky left-0 z-10 bg-card border-r border-border text-muted-foreground font-mono text-xs uppercase pl-5 py-3">Detay / İş Kalemi</TableHead>

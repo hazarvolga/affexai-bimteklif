@@ -5,7 +5,7 @@ import { fetchWithAuth } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { getMappingProfile, MEP_MAPPING_PROFILES } from "@/smartcheck/import/mapping-profiles";
 import { EpysPreflightPanel } from "./EpysPreflightPanel";
 import { PdfPreflightPanel } from "./PdfPreflightPanel";
@@ -298,6 +298,16 @@ export function SmartCheckImportWorkspace() {
       setSampleBusyId(null);
     }
   };
+
+  // Dashboard "Örnek projeyi inceleyeceğim" opens a sample directly (marka.md M-11.4); the URL param is consumed once.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const requestedSample = searchParams.get("ornek");
+  useEffect(() => {
+    if (requestedSample !== "mm-mimari-tablo-9-1" && requestedSample !== "st-statik-tablo-9-2" && requestedSample !== "pdfa-pafta-iso216") return;
+    setSearchParams((current) => { const next = new URLSearchParams(current); next.delete("ornek"); return next; }, { replace: true });
+    void loadSampleProject(requestedSample);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- runs once per requested sample
+  }, [requestedSample]);
 
   const loadPreview = async (id: string) => {
     setPreviewBusy(true);
