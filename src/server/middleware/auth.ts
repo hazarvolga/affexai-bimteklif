@@ -108,7 +108,7 @@ export const createAuthenticate = (dependencies: AuthDependencies = authDependen
       role: membership?.role ?? null,
       email: user.email,
       emailVerified: user.emailVerified,
-      isSuperAdmin: Boolean(user.isSuperAdmin && user.emailVerified && !impersonatedBy),
+      isSuperAdmin: Boolean(user.isSuperAdmin && !impersonatedBy),
       impersonatedBy,
       readOnly: impersonatedBy ? readOnly !== false : Boolean(readOnly),
       impersonationTokenHash,
@@ -153,7 +153,7 @@ export const checkRole = (roles: string[]) => (req: any, res: any, next: any) =>
 };
 
 export const checkSuperAdmin = () => (req: any, res: any, next: any) => {
-  if (!req.user || !req.user.isSuperAdmin || req.user.impersonatedBy || ("emailVerified" in req.user && !req.user.emailVerified)) {
+  if (!req.user || !req.user.isSuperAdmin || req.user.impersonatedBy || req.user.emailVerified === false) {
     return res.status(403).json({ error: "Forbidden: Super Admin only" });
   }
   next();

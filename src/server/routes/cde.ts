@@ -101,7 +101,7 @@ export function registerCdeRoutes(app: Express, service: CdeService = cdeService
     } catch (error) { return cdeError(res, error); }
   });
 
-  app.post("/api/cde/containers/:containerId/transitions", authenticate, requireVerifiedEmail, mutateRateLimit, createProjectRole, async (req, res) => {
+  app.post("/api/cde/containers/:containerId/transitions", authenticate, requireVerifiedEmail, mutateRateLimit, async (req, res) => {
     const containerId = parsed(uuidParam, req.params.containerId, res);
     const input = parsed(cdeTransitionSchema, req.body, res);
     const idempotencyKey = typeof req.header("Idempotency-Key") === "string" ? req.header("Idempotency-Key")!.trim() : "";
