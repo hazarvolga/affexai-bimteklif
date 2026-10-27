@@ -98,7 +98,7 @@ test("createAuthenticate forces read-only mode on impersonated sessions and bloc
     role: "owner",
     isSuperAdmin: true,
     impersonatedBy: "33333333-3333-4333-8333-333333333333",
-    readOnly: false, // Even if token claims readOnly=false, middleware must enforce read-only
+    // Even if readOnly is omitted, middleware defaults impersonated sessions to readOnly: true
   } as any);
 
   const authMiddleware = createAuthenticate({

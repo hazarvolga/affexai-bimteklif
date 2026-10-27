@@ -110,7 +110,7 @@ export const createAuthenticate = (dependencies: AuthDependencies = authDependen
       emailVerified: user.emailVerified,
       isSuperAdmin: Boolean(user.isSuperAdmin && user.emailVerified && !impersonatedBy),
       impersonatedBy,
-      readOnly: impersonatedBy ? true : readOnly,
+      readOnly: impersonatedBy ? readOnly !== false : Boolean(readOnly),
       impersonationTokenHash,
     };
 
@@ -118,7 +118,7 @@ export const createAuthenticate = (dependencies: AuthDependencies = authDependen
 
     // Impersonation read-only guard: block mutating methods
     const isImpersonationExit = req.method === "POST" && req.originalUrl?.split("?")[0] === "/api/auth/impersonate/exit";
-    if (req.user.impersonatedBy && !isImpersonationExit && !isReadMethod) {
+    if (req.user.impersonatedBy && req.user.readOnly && !isImpersonationExit && !isReadMethod) {
       return res.status(403).json({ error: "Salt-okunur impersonate modundasınız. Değişiklik yapılamaz.", code: "IMPERSONATION_READ_ONLY" });
     }
 

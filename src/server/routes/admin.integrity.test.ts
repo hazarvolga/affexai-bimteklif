@@ -12,7 +12,7 @@ test('admin changes are bounded, partial and audited atomically', async t => {
   const [{ db }, schema, { createApiApp }, { AuthService }] = await Promise.all([
     import('../../db'), import('../../db/schema'), import('../app'), import('../../services/auth/authService'),
   ]);
-  const [admin] = await db.insert(schema.users).values({ email: 'admin-boundary@example.test', fullName: 'Admin', isSuperAdmin: true }).returning();
+  const [admin] = await db.insert(schema.users).values({ email: 'admin-boundary@example.test', fullName: 'Admin', isSuperAdmin: true, emailVerified: new Date() }).returning();
   const [company] = await db.insert(schema.companies).values({ name: 'Admin Target' }).returning();
   const [plan] = await db.insert(schema.plans).values({ name: 'Existing', monthlyQuoteLimit: 7, monthlyPrice: 10 }).returning();
   await db.insert(schema.subscriptions).values({ companyId: company.id, planId: plan.id, bonusQuoteLimit: 3, status: 'past_due' });

@@ -73,7 +73,7 @@ export function registerCdeRoutes(app: Express, service: CdeService = cdeService
     catch (error) { return cdeError(res, error); }
   });
 
-  app.post("/api/cde/projects/:projectId/members", authenticate, requireVerifiedEmail, mutateRateLimit, createProjectRole, async (req, res) => {
+  app.post("/api/cde/projects/:projectId/members", authenticate, requireVerifiedEmail, mutateRateLimit, async (req, res) => {
     const projectId = parsed(uuidParam, req.params.projectId, res);
     const input = parsed(assignCdeMemberSchema, req.body, res);
     if (!projectId || !input) return;
@@ -81,7 +81,7 @@ export function registerCdeRoutes(app: Express, service: CdeService = cdeService
     catch (error) { return cdeError(res, error); }
   });
 
-  app.post("/api/cde/projects/:projectId/containers", authenticate, requireVerifiedEmail, mutateRateLimit, createProjectRole, async (req, res) => {
+  app.post("/api/cde/projects/:projectId/containers", authenticate, requireVerifiedEmail, mutateRateLimit, async (req, res) => {
     const projectId = parsed(uuidParam, req.params.projectId, res);
     const input = parsed(createCdeContainerSchema, req.body, res);
     if (!projectId || !input) return;
@@ -91,7 +91,7 @@ export function registerCdeRoutes(app: Express, service: CdeService = cdeService
     } catch (error) { return cdeError(res, error); }
   });
 
-  app.post("/api/cde/containers/:containerId/revisions", authenticate, requireVerifiedEmail, mutateRateLimit, createProjectRole, async (req, res) => {
+  app.post("/api/cde/containers/:containerId/revisions", authenticate, requireVerifiedEmail, mutateRateLimit, async (req, res) => {
     const containerId = parsed(uuidParam, req.params.containerId, res);
     const input = parsed(createCdeRevisionSchema, req.body, res);
     if (!containerId || !input) return;

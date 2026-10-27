@@ -2,6 +2,28 @@ import { fork } from 'node:child_process';
 import path from 'node:path';
 import type { ColumnMapping } from './normalize';
 import type { DocumentPreview, parseDocument as parser } from './spreadsheet-parser';
+const REDACTED_SUBPROCESS_ENV_KEYS = [
+  'DATABASE_URL',
+  'CONTROL_DATABASE_URL',
+  'WORKER_DATABASE_URL',
+  'JWT_SECRET',
+  'GEMINI_API_KEY',
+  'OPENAI_API_KEY',
+  'ANTHROPIC_API_KEY',
+  'RESEND_API_KEY',
+  'SMTP_PASS',
+  'S3_SECRET_ACCESS_KEY',
+  'AWS_SECRET_ACCESS_KEY',
+] as const;
+
+function buildSpreadsheetWorkerEnv(): NodeJS.ProcessEnv {
+  const env: NodeJS.ProcessEnv = { ...process.env };
+  for (const key of REDACTED_SUBPROCESS_ENV_KEYS) {
+    delete env[key];
+  }
+  return env;
+}
+
 let active = 0;
 async function run(content: Buffer, kind: 'csv' | 'xlsx', mode: 'preview' | 'parse', mapping?: ColumnMapping): Promise<any> {
   if (content.length > 25 * 1024 * 1024) throw new Error('FILE_SIZE_INVALID');
@@ -13,11 +35,7 @@ async function run(content: Buffer, kind: 'csv' | 'xlsx', mode: 'preview' | 'par
       const child = fork(path.resolve(production ? 'dist/spreadsheet-worker.cjs' : 'src/smartcheck/import/spreadsheet-worker.ts'), [], {
         execArgv: production ? ['--max-old-space-size=256'] : ['--import', 'tsx', '--max-old-space-size=256'],
         stdio: ['ignore', 'ignore', 'ignore', 'ipc'], serialization: 'advanced',
-        env: {
-          NODE_ENV: process.env.NODE_ENV ?? 'development',
-          PATH: process.env.PATH ?? '/usr/local/bin:/usr/bin:/bin',
-          LANG: process.env.LANG ?? 'C.UTF-8',
-        },
+        env: buildSpreadsheetWorkerEnv(),
       });
       let result: any;
       let failure: Error | undefined;
