@@ -22,7 +22,9 @@ function cellToValue(value: unknown): SheetCell {
       text?: unknown;
       richText?: Array<{ text: string }>;
       model?: { value?: unknown };
+      error?: unknown;
     };
+    if (v.error !== undefined) return null;
     if (v.result !== undefined) return cellToValue(v.result);
     if (typeof v.text === "string") return v.text;
     if (Array.isArray(v.richText)) return v.richText.map((r) => r.text).join("");
@@ -55,7 +57,7 @@ export async function parseQuoteXlsx(
   const ExcelJS = (await import("exceljs")).default;
   const workbook = new ExcelJS.Workbook();
   try {
-    await workbook.xlsx.load(data as ArrayBuffer);
+    await workbook.xlsx.load(data as ArrayBuffer, { ignoreNodes: ["mergeCells"] } as unknown as undefined);
   } catch {
     return {
       items: [],
@@ -70,6 +72,9 @@ export async function parseQuoteXlsx(
     const n = w.name.toLowerCase();
     return (
       n.includes("teklif") ||
+      n.includes("icmal") ||
+      n.includes("keşif") ||
+      n.includes("kesif") ||
       n.includes("quote") ||
       n.includes("estimate") ||
       n.includes("cost") ||
@@ -90,9 +95,15 @@ export async function parseQuoteXlsx(
   }
 
   const rows: SheetCell[][] = [];
-  sheet.eachRow({ includeEmpty: false }, (row) => {
-    const values = (row.values as unknown[]).slice(1);
-    rows.push(values.map(cellToValue));
+  sheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
+    const maxCol = Math.min(256, row.cellCount);
+    const values: SheetCell[] = [];
+    for (let c = 1; c <= maxCol; c += 1) {
+      const cell = row.getCell(c);
+      const master = cell.isMerged && cell.master ? cell.master : cell;
+      values.push(cellToValue(master.value));
+    }
+    rows[rowNumber - 1] = values;
   });
 
   return parseQuoteRows(rows, fileName);

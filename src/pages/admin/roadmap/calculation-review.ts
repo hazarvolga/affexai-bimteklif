@@ -1,9 +1,9 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-27.95",
+  version: "BIM-CALC-2026-10-27.96",
   updatedOn: "27 Ekim 2026",
-  implementationBaseline: "389446b66d83a52807575a903fff4cf7fb1ea1f7",
-  approvalStatus: "Rev. 101 (canlı üretim dağıtımı 0022..0029 + worker control-plane izolasyonu D12 ve canlı ifc-worker consumeIfcUsage kota tamamlama düzeltmesi D13; hesap yöntemi değişmedi), Rev. 100 (elle teklif satırı firma kataloğundaki onaylı fiyat kaydına bağlanabilir; tutar hesabı değişmedi), Rev. 99 (kamuya açık SmartCheck demosu yeniden sıralandı; hesap yöntemi değişmedi), Rev. 98 (arsa fizibilitesi ayrı ekranda, boş formda hata yok; hesap yöntemi değişmedi), Rev. 97 (teklif tablosu görünümü ve dosya bölünmesi; hesap yöntemi değişmedi), Rev. 96 (araç ve görünüm düzeni; hesap yöntemi değişmedi) ve Rev. 95; marka.md incelemesinden çıkan Faz 0 güven düzeltmelerini ve Faz 1 Excel önce / fiyat eksikliği / dışa aktarım dilimlerini kapsar. Hesap yöntemi değişiklikleri: teklif toplamlarına teklif düzeyinde müteahhitlik kârı ve genel gider payı (release 0029; satır neti üzerinden, KDV pay dahil matrah üzerinden), kârlılık hesabında bu payın gelir sayılması, IFC maliyet sekmesinde fiyatı eksik kalemin 0 TL yerine 'fiyat bekliyor' olarak toplam dışında tutulması ve icmal dışa aktarımında satır tutarının tam lira yerine kuruşa yuvarlanması. Doğrulama: 1515 testte 1500 PASS / 0 FAIL / 15 SKIP, kapsam kapısı geçti; gerçek tarayıcı smoke'ları scripts/faz0-trust-ui-smoke.ts, faz1-excel-flow-smoke.ts ve faz1-price-gap-smoke.ts. ÇŞB birim fiyatlarına %25 yüklenici kârı ve genel giderin dahil olduğu ÇŞB analizlerinden doğrulandı. Bu kayıt bağımsız uzman onayı veya L3 değildir; Faz 9 T50–T52 dış kabulleri açıktır.",
+  implementationBaseline: "189ee22815144c241bb85954eadfe78821f2bc4d",
+  approvalStatus: "Rev. 102 (4 katmanlı Akıllı Müteahhit Excel Adaptörü: düz icmal, katlara göre pivot, TOKİ tekrarlayan poz blokları, hibrit sayfa ve otomatik korpus tarayıcı; birim fiyat/tutar aritmetiği değişmedi), Rev. 101 (canlı üretim dağıtımı 0022..0029 + worker control-plane izolasyonu D12 ve canlı ifc-worker consumeIfcUsage kota tamamlama düzeltmesi D13; hesap yöntemi değişmedi), Rev. 100 (elle teklif satırı firma kataloğundaki onaylı fiyat kaydına bağlanabilir; tutar hesabı değişmedi), Rev. 99 (kamuya açık SmartCheck demosu yeniden sıralandı; hesap yöntemi değişmedi), Rev. 98 (arsa fizibilitesi ayrı ekranda, boş formda hata yok; hesap yöntemi değişmedi), Rev. 97 (teklif tablosu görünümü ve dosya bölünmesi; hesap yöntemi değişmedi), Rev. 96 (araç ve görünüm düzeni; hesap yöntemi değişmedi) ve Rev. 95; marka.md incelemesinden çıkan Faz 0 güven düzeltmelerini ve Faz 1 Excel önce / fiyat eksikliği / dışa aktarım dilimlerini kapsar. Hesap yöntemi değişiklikleri: teklif toplamlarına teklif düzeyinde müteahhitlik kârı ve genel gider payı (release 0029; satır neti üzerinden, KDV pay dahil matrah üzerinden), kârlılık hesabında bu payın gelir sayılması, IFC maliyet sekmesinde fiyatı eksik kalemin 0 TL yerine 'fiyat bekliyor' olarak toplam dışında tutulması ve icmal dışa aktarımında satır tutarının tam lira yerine kuruşa yuvarlanması. Doğrulama: 1515 testte 1500 PASS / 0 FAIL / 15 SKIP, kapsam kapısı geçti; gerçek tarayıcı smoke'ları scripts/faz0-trust-ui-smoke.ts, faz1-excel-flow-smoke.ts ve faz1-price-gap-smoke.ts. ÇŞB birim fiyatlarına %25 yüklenici kârı ve genel giderin dahil olduğu ÇŞB analizlerinden doğrulandı. Bu kayıt bağımsız uzman onayı veya L3 değildir; Faz 9 T50–T52 dış kabulleri açıktır.",
 };
 
 export interface ModuleRevisionNote {
@@ -2151,6 +2151,28 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
         before: "Canlı ifc-worker Python IfcOpenShell çıkarımını ve ifc_evidence kaydını tamamladıktan sonra işlem sonundaki consumeIfcUsage adımında kota hatasıyla geri sarıyordu.",
         after: "Canlı üretimde ssss.ifc (402 kanıt satırı), Ifc4_SampleHouse_0_GroundFloor.ifc (9 satır) ve Ifc4_SampleHouse_1_Roof.ifc (1 satır) uçtan uca succeeded (awaiting_review) durumuna geçirildi.",
         basis: "Faz 7 T42 / T44 — Canlı ifc-worker uçtan uca işlem tamamlama doğrulaması",
+      },
+    },
+  },
+  {
+    revision: "Rev. 102",
+    version: "BIM-CALC-2026-10-27.96",
+    date: "27 Ekim 2026",
+    commit: "HEAD",
+    trigger: "4 Katmanlı Akıllı Müteahhit Excel Adaptörü (Antetli Düz İcmal, Katlara Göre Pivot Matris, TOKİ Tekrarlayan Poz Blokları, Hibrit Sayfa ve Otomatik Korpus Tarayıcı)",
+    beforeSummary: "Excel okuyucular (spreadsheet-parser.ts ve quote-excel-import.ts) yalnız 1. satırı başlık olan düz tabloları bekliyor, birleşik hücrelerde ExcelJS MergeValue.toString null hatasıyla çöküyor, 46.588 birleşik hücreli V6 dosyasında 90 saniyede zaman aşımına uğruyor, 5.001 satır sınırı nedeniyle 13.626 satırlık metraj cetvellerini reddediyor ve tekrarlayan POZ NO / İMALATIN ADI / BİRİMİ / Genel Toplam bloklarını okuyamıyordu.",
+    afterSummary: "ignoreNodes:['mergeCells'] ve sütun yayılımı ile 46.588 birleşik hücreli V6 yükleme süresi 90 saniyeden 468 ms'ye indirildi; detectSheetStructure ve extractRepeatingBlockRows ile 4 müteahhit Excel arketipi (flat_table, multi_header_pivot, repeating_block_boq, hybrid_summary_and_blocks) hem SmartCheck hem Teklif içe aktarmada desteklendi; SmartCheck önizleme ekranına arketip rozeti, tablo modu seçicisi, tıklamayla başlık seçimi ve Firma Şablonu kaydetme eklendi; yeni müteahhit dosyaları için npm run excel:corpus ve contractor-excel-corpus.test.ts (5/5 PASS) devreye alındı.",
+    affectedModules: ["satir-dogrulama", "teklif-satir"],
+    moduleDetails: {
+      "satir-dogrulama": {
+        before: "SmartCheck spreadsheet-parser.ts varsayılan olarak 1. satırı başlık kabul ediyor, birleşik hücrelerde cell.text null hatası veriyor ve tekrarlayan TOKİ poz bloklarını desteklemiyordu.",
+        after: "detectSheetStructure ile 4 müteahhit arketipi otomatik algılanır, yatay birleşik hücre kaymaları ve veri odaklı birim sütunu çözülür, tekrarlayan POZ NO bloklarından Genel Toplam miktarları kaynak hücre aralığıyla çıkarılır.",
+        basis: "Faz 1 / Faz 3 / Faz 7 T45 — Gerçek ALLPLAN/TOKİ müteahhit Excel korpusu (4 dosya + sentetik 4 arketip matrisi)",
+      },
+      "teklif-satir": {
+        before: "quote-excel-import.ts ve quote-xlsx.ts yalnız ilk 25 satırdaki düz başlıkları arıyor, açıklama boşken Malzeme Pozu yedeklemesi yapmıyor ve tekrarlayan poz bloklu metraj cetvellerinden kalem çıkaramıyordu.",
+        after: "parseQuoteRows ve parseQuoteXlsx çok satırlı kat pivot başlıklarını, Malzeme Pozu açıklama yedeklemesini, çoklu birim devam satırlarını ve tekrarlayan POZ NO bloklarının Genel Toplamlarını sıfır hatayla teklif kalemine dönüştürür; satır tutarı aritmetiği değişmedi.",
+        basis: "src/lib/quote-excel-import.ts, src/lib/quote-xlsx.ts ve src/smartcheck/import/contractor-excel-corpus.test.ts",
       },
     },
   },

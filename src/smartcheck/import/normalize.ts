@@ -1,7 +1,17 @@
+export type SpreadsheetArchetype =
+  | "flat_table"
+  | "multi_header_pivot"
+  | "repeating_block_boq"
+  | "hybrid_summary_and_blocks";
+
+export type SpreadsheetTableMode = "auto" | "flat_or_pivot" | "repeating_blocks";
+
 export type ColumnMapping = {
   profileId?: string;
   sheet?: string;
   headerRow?: number;
+  tableMode?: SpreadsheetTableMode;
+  detectedArchetype?: SpreadsheetArchetype;
   positionCode?: string;
   description?: string;
   unit?: string;
@@ -26,19 +36,24 @@ export type ParsedQuantityRow = {
 export type Finding = { code: string; severity: "low" | "medium" | "high"; message: string; ruleVersion: string; suggestion: string };
 
 const unitAliases: Record<string, string> = {
-  ad: "adet", adet: "adet", pcs: "adet",
-  m: "m", mt: "m", metre: "m",
-  "m2": "m²", "m²": "m²", "m^2": "m²",
-  "m3": "m³", "m³": "m³", "m^3": "m³",
-  kg: "kg", ton: "ton", t: "ton", set: "set", takım: "set", takim: "set",
+  ad: "adet", "ad.": "adet", adet: "adet", pcs: "adet", br: "adet", boy: "adet",
+  m: "m", "m.": "m", mt: "m", "mt.": "m", metre: "m", mtül: "m", mtul: "m",
+  "m2": "m²", "m2.": "m²", "m²": "m²", "m^2": "m²", mkare: "m²",
+  "m3": "m³", "m3.": "m³", "m³": "m³", "m^3": "m³", mküp: "m³", mkup: "m³",
+  kg: "kg", "kg.": "kg", ton: "ton", t: "ton",
+  set: "set", takım: "set", takim: "set", tk: "set",
+  lt: "lt", litre: "lt",
+  gün: "gün", gun: "gün", saat: "saat", ay: "ay",
+  paket: "paket", pkt: "paket", torba: "torba", sefer: "sefer",
 };
 
 export function normalizeUnit(value: string): string | null {
-  return unitAliases[value.trim().toLocaleLowerCase("tr-TR")] ?? null;
+  const cleaned = value.trim().toLocaleLowerCase("tr-TR");
+  return unitAliases[cleaned] ?? null;
 }
 
 export function parseLocalizedNumber(value: string): number | null {
-  const raw = value.trim().replace(/\s/g, "");
+  const raw = value.trim().replace(/\s/g, "").replace(/[₺$€]/g, "");
   if (!raw) return null;
   const normalized = raw.includes(",") && raw.includes(".")
     ? raw.lastIndexOf(",") > raw.lastIndexOf(".") ? raw.replace(/\./g, "").replace(",", ".") : raw.replace(/,/g, "")
@@ -47,19 +62,63 @@ export function parseLocalizedNumber(value: string): number | null {
   return Number.isFinite(number) ? number : null;
 }
 
+export function cleanTurkishHeader(value: string): string {
+  return value
+    .normalize("NFC")
+    .trim()
+    .toLocaleLowerCase("tr-TR")
+    .replace(/\u0307/g, "")
+    .replace(/ı/g, "i")
+    .replace(/İ/g, "i")
+    .replace(/ç/g, "c")
+    .replace(/ş/g, "s")
+    .replace(/ğ/g, "g")
+    .replace(/ü/g, "u")
+    .replace(/ö/g, "o")
+    .replace(/\s+/g, " ");
+}
+
 export function suggestMapping(headers: string[]): ColumnMapping {
-  const normalized = headers.map((header) => header.trim().toLocaleLowerCase("tr-TR"));
-  const find = (...needles: string[]) => {
-    const index = normalized.findIndex((header) => needles.some((needle) => header.includes(needle)));
+  const normalized = headers.map((header) => header.normalize("NFC").trim().toLocaleLowerCase("tr-TR"));
+  const ascii = headers.map((header) => cleanTurkishHeader(header));
+  const find = (trNeedles: string[], asciiNeedles: string[] = []) => {
+    const index = normalized.findIndex((header, idx) =>
+      header.length > 0 &&
+      header.length <= 45 &&
+      !header.endsWith(":") && (
+        trNeedles.some((needle) => header.includes(needle)) ||
+        asciiNeedles.some((needle) => ascii[idx].includes(needle))
+      ),
+    );
     return index >= 0 ? headers[index] : undefined;
   };
   return {
-    positionCode: find("poz", "kod", "item no"),
-    description: find("açıklama", "aciklama", "tanım", "description"),
-    unit: find("birim", "unit"),
-    quantity: find("miktar", "quantity", "qty"),
-    price: find("birim fiyat", "fiyat", "price"),
-    wastePercent: find("zayiat", "waste"),
+    positionCode: find(
+      ["poz", "kod", "item no", "kalem no", "malzeme pozu"],
+      ["poz", "kod", "item no", "kalem no", "malzeme pozu"],
+    ),
+    description:
+      find(
+        ["açıklama", "aciklama", "tanım", "description", "imalatın tanımı", "imalatın adı", "imalatın cinsi", "iş kalemi"],
+        ["aciklama", "tanim", "description", "imalatin tanimi", "imalatin adi", "imalatin cinsi", "is kalemi"],
+      ) ??
+      find(["malzeme"], ["malzeme"]),
+    unit: find(
+      ["birim", "unit", "ölçü birimi", "birimi"],
+      ["birim", "unit", "olcu birimi", "birimi"],
+    ),
+    quantity: find(
+      ["miktar", "quantity", "qty", "net metraj", "metraj", "toplam", "keşif", "hakediş"],
+      ["miktar", "quantity", "qty", "net metraj", "metraj", "toplam", "kesif", "hakedis"],
+    ),
+    price: find(
+      ["birim fiyat", "fiyat", "price", "b.fiyat", "teklif fiyat"],
+      ["birim fiyat", "fiyat", "price", "b.fiyat", "teklif fiyat"],
+    ),
+    wastePercent: find(
+      ["zayiat", "waste", "fire"],
+      ["zayiat", "waste", "fire"],
+    ),
   };
 }
 

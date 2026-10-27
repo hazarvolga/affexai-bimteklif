@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Link, useSearchParams } from "react-router-dom";
-import { getMappingProfile, MEP_MAPPING_PROFILES } from "@/smartcheck/import/mapping-profiles";
+import { ALL_MAPPING_PROFILES, getMappingProfile, MEP_MAPPING_PROFILES, type SmartCheckMappingProfile } from "@/smartcheck/import/mapping-profiles";
 import { EpysPreflightPanel } from "./EpysPreflightPanel";
 import { PdfPreflightPanel } from "./PdfPreflightPanel";
 import { CalmIfcWorkspace } from "./CalmIfcWorkspace";
@@ -15,7 +15,7 @@ import { PaftaDrawing } from "@/components/ui/PaftaDrawing";
 import { buildCalmIfcDatasetFromElements, parseSmartCheckRowToPseudoElement } from "@/ifc/calm-icmal";
 import { detectAuthoringSoftware, type AuthoringSoftwareDetection } from "@/ifc/authoring-software-diagnostics";
 import type { ParsedIfcElement } from "@/ifc/types";
-import type { ColumnMapping } from "@/smartcheck/import/normalize";
+import { suggestMapping, type ColumnMapping, type SpreadsheetArchetype, type SpreadsheetTableMode } from "@/smartcheck/import/normalize";
 import { buildCalmTransferSelection, calmTransferAttemptScope, calmTransferTargetHint, getOrCreateCalmTransferAttempt, type CalmTransferTarget, type CalmTransferUiItem } from "./calm-transfer-ui";
 import { buildTenantPriceCatalogImportPayload, type TenantPriceCatalogRow } from "@/smartcheck/pricing/catalog-import";
 import { parsePriceCatalogCsv } from "@/lib/price-catalog-import";
@@ -56,6 +56,17 @@ type PreviewSheet = {
   sampleRows: string[][];
   suggestedMapping: ColumnMapping;
   formulaCells: string[];
+  detectedArchetype?: SpreadsheetArchetype;
+  repeatingBlockCount?: number;
+};
+
+const CUSTOM_EXCEL_PROFILES_STORAGE_KEY = "bimmetraj:custom-excel-profiles:v1";
+
+const ARCHETYPE_LABELS: Record<SpreadsheetArchetype, string> = {
+  flat_table: "Düz Metraj / Keşif İcmali",
+  multi_header_pivot: "Katlara / Mahallere Göre Pivot İcmal",
+  repeating_block_boq: "TOKİ / Kamu Tekrarlayan Poz Blokları",
+  hybrid_summary_and_blocks: "Hibrit: Üstte Kat İcmali + Altta Detay Bloklar",
 };
 
 type DocumentPreview = { kind: "xlsx" | "csv"; sheets: PreviewSheet[] };
@@ -162,7 +173,18 @@ export function SmartCheckImportWorkspace() {
   const [previewBusy, setPreviewBusy] = useState(false);
   const [selectedSheet, setSelectedSheet] = useState("");
   const [headerRow, setHeaderRow] = useState("1");
-  const [selectedProfileId, setSelectedProfileId] = useState(MEP_MAPPING_PROFILES[0].id);
+  const [selectedProfileId, setSelectedProfileId] = useState("tr-auto-smart-v1");
+  const [customProfiles, setCustomProfiles] = useState<SmartCheckMappingProfile[]>(() => {
+    try {
+      const raw = window.localStorage.getItem(CUSTOM_EXCEL_PROFILES_STORAGE_KEY);
+      if (!raw) return [];
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  });
+  const [newProfileName, setNewProfileName] = useState("");
   const [quotes, setQuotes] = useState<Array<{ id: string; quoteNumber: string; projectName: string; status: string }>>([]);
   const [queue, setQueue] = useState<QueueItem[]>([]);
   const [quotationId, setQuotationId] = useState("");
@@ -313,6 +335,42 @@ export function SmartCheckImportWorkspace() {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- runs once per requested sample
   }, [requestedSample]);
 
+  const availableProfiles = useMemo<SmartCheckMappingProfile[]>(
+    () => [...ALL_MAPPING_PROFILES, ...customProfiles],
+    [customProfiles],
+  );
+
+  const findProfileById = (profileId: string | undefined) =>
+    availableProfiles.find((p) => p.id === profileId) ?? getMappingProfile(profileId);
+
+  const saveCustomExcelProfile = () => {
+    const label = newProfileName.trim();
+    if (!label) {
+      toast.error("Şablon adı girin (örn. Taşeron Hakediş Şablonum).");
+      return;
+    }
+    const id = `custom-${Date.now()}`;
+    const nextProfile: SmartCheckMappingProfile = {
+      id,
+      label: `Firma Şablonu · ${label}`,
+      description: `Başlık: Satır ${headerRow} · ${mapping.description || "Açıklama"} / ${mapping.quantity || "Miktar"}`,
+      mapping: {
+        ...mapping,
+        headerRow: Number(headerRow) || 1,
+      },
+    };
+    const nextList = [nextProfile, ...customProfiles];
+    setCustomProfiles(nextList);
+    try {
+      window.localStorage.setItem(CUSTOM_EXCEL_PROFILES_STORAGE_KEY, JSON.stringify(nextList));
+    } catch {
+      // Ignore storage quota errors
+    }
+    setSelectedProfileId(id);
+    setNewProfileName("");
+    toast.success(`"${label}" şablonu kaydedildi. Sonraki yüklemelerde listeden tek tıkla seçebilirsiniz.`);
+  };
+
   const loadPreview = async (id: string) => {
     setPreviewBusy(true);
     const response = await fetchWithAuth(`/api/smartcheck/documents/${id}/preview`);
@@ -323,11 +381,29 @@ export function SmartCheckImportWorkspace() {
     setPreview(nextPreview);
     const storedMapping = (body.document?.mapping ?? {}) as ColumnMapping;
     const sheet = storedMapping.sheet ?? nextPreview.sheets[0]?.name ?? "";
-    const profile = getMappingProfile(storedMapping.profileId) ?? MEP_MAPPING_PROFILES[0];
+    const sheetPreview = nextPreview.sheets.find((s) => s.name === sheet) ?? nextPreview.sheets[0];
+    const suggested = sheetPreview?.suggestedMapping ?? {};
+    const hasExplicitStoredColumns = Boolean(storedMapping.description && storedMapping.quantity);
+    const profile = hasExplicitStoredColumns && storedMapping.profileId
+      ? findProfileById(storedMapping.profileId)
+      : undefined;
+    const resolvedHeaderRow =
+      (hasExplicitStoredColumns ? storedMapping.headerRow : undefined) ??
+      suggested.headerRow ??
+      profile?.mapping.headerRow ??
+      1;
+    const resolvedProfileId = profile?.id ?? "tr-auto-smart-v1";
     setSelectedSheet(sheet);
-    setHeaderRow(String(storedMapping.headerRow ?? profile.mapping.headerRow ?? 1));
-    setSelectedProfileId(profile.id);
-    setMapping({ ...profile.mapping, ...storedMapping, profileId: profile.id, sheet });
+    setHeaderRow(String(resolvedHeaderRow));
+    setSelectedProfileId(resolvedProfileId);
+    setMapping({
+      ...(profile?.mapping ?? {}),
+      ...suggested,
+      ...(hasExplicitStoredColumns ? storedMapping : {}),
+      profileId: resolvedProfileId,
+      sheet,
+      headerRow: resolvedHeaderRow,
+    });
   };
 
   const poll = (id: string) => {
@@ -1076,18 +1152,203 @@ export function SmartCheckImportWorkspace() {
           {!isIfcFile && preview && (
             <div className="grid gap-4 lg:grid-cols-[1fr_2fr]">
               <div className="space-y-3 rounded-2xl border border-border bg-card p-4">
-                <div className="flex items-center gap-2 text-xs font-bold text-foreground"><Table2 size={14} className="text-orange-400" /> Kaynak yapısı</div>
-                <div className="grid grid-cols-2 gap-2">
-                  <label className="text-[10px] uppercase tracking-widest text-muted-foreground">Sheet<select aria-label="Sheet" value={selectedSheet} onChange={(event) => { setSelectedSheet(event.target.value); setMapping((current) => ({ ...current, sheet: event.target.value })); }} className="mt-1 h-9 w-full rounded-md border border-border bg-background px-2 text-xs text-foreground">{preview.sheets.map((sheet) => <option key={sheet.name} value={sheet.name}>{sheet.name} · {sheet.rowCount} satır</option>)}</select></label>
-                  <label className="text-[10px] uppercase tracking-widest text-muted-foreground">Başlık satırı<input aria-label="Başlık satırı" type="number" min="1" max="100" value={headerRow} onChange={(event) => setHeaderRow(event.target.value)} className="mt-1 h-9 w-full rounded-md border border-border bg-background px-2 text-xs text-foreground" /></label>
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 text-xs font-bold text-foreground">
+                    <Table2 size={14} className="text-orange-400" /> Kaynak yapısı ve Akıllı Excel Adaptörü
+                  </div>
+                  {activeSheet?.detectedArchetype && (
+                    <Badge className="border-sky-500/30 bg-sky-500/10 text-[10px] text-sky-300">
+                      {ARCHETYPE_LABELS[activeSheet.detectedArchetype]}
+                      {activeSheet.repeatingBlockCount ? ` (${activeSheet.repeatingBlockCount} blok)` : ""}
+                    </Badge>
+                  )}
                 </div>
-                <label className="text-[10px] uppercase tracking-widest text-muted-foreground">MEP eşleme profili<select aria-label="MEP eşleme profili" value={selectedProfileId} onChange={(event) => { const profile = getMappingProfile(event.target.value); if (!profile) return; setSelectedProfileId(profile.id); setMapping((current) => ({ ...profile.mapping, profileId: profile.id, sheet: selectedSheet, headerRow: Number(headerRow) })); }} className="mt-1 h-9 w-full rounded-md border border-border bg-background px-2 text-xs text-foreground">{MEP_MAPPING_PROFILES.map((profile) => <option key={profile.id} value={profile.id}>{profile.label}</option>)}</select></label>
-                <div className="grid grid-cols-2 gap-2">{mappingFields.map((key) => <Input key={key} aria-label={key} placeholder={mappingLabels[key]} value={String(mapping[key] ?? "")} onChange={(event) => setMapping((current) => ({ ...current, [key]: event.target.value }))} className="h-9 border-border bg-background text-xs" />)}</div>
-                <Button disabled={busy || previewBusy || !selectedSheet} onClick={startProcessing} className="w-full gap-2 bg-sky-600 text-white hover:bg-sky-700">{busy ? <Loader2 className="animate-spin" size={15} /> : <Layers3 size={15} />} Eşlemeyi onayla ve işle</Button>
+                <div className="grid grid-cols-2 gap-2">
+                  <label className="text-[10px] uppercase tracking-widest text-muted-foreground">
+                    Sheet
+                    <select
+                      aria-label="Sheet"
+                      value={selectedSheet}
+                      onChange={(event) => {
+                        const nextSheetName = event.target.value;
+                        const nextSheetObj = preview.sheets.find((s) => s.name === nextSheetName);
+                        const nextSuggested = nextSheetObj?.suggestedMapping ?? {};
+                        setSelectedSheet(nextSheetName);
+                        if (nextSuggested.headerRow) setHeaderRow(String(nextSuggested.headerRow));
+                        setMapping((current) => ({ ...current, ...nextSuggested, sheet: nextSheetName }));
+                      }}
+                      className="mt-1 h-9 w-full rounded-md border border-border bg-background px-2 text-xs text-foreground"
+                    >
+                      {preview.sheets.map((sheet) => (
+                        <option key={sheet.name} value={sheet.name}>
+                          {sheet.name} · {sheet.rowCount} satır
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="text-[10px] uppercase tracking-widest text-muted-foreground">
+                    Başlık satırı
+                    <input
+                      aria-label="Başlık satırı"
+                      type="number"
+                      min="1"
+                      max="100"
+                      value={headerRow}
+                      onChange={(event) => {
+                        const nextRow = event.target.value;
+                        setHeaderRow(nextRow);
+                        const rowCells = activeSheet?.sampleRows[Number(nextRow) - 1];
+                        if (rowCells && rowCells.some((c) => c.trim())) {
+                          const reSuggested = suggestMapping(rowCells);
+                          setMapping((current) => ({ ...current, ...reSuggested, headerRow: Number(nextRow) }));
+                        }
+                      }}
+                      className="mt-1 h-9 w-full rounded-md border border-border bg-background px-2 text-xs text-foreground"
+                    />
+                  </label>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <label className="text-[10px] uppercase tracking-widest text-muted-foreground">
+                    Eşleme profili
+                    <select
+                      aria-label="MEP eşleme profili"
+                      value={selectedProfileId}
+                      onChange={(event) => {
+                        const profile = findProfileById(event.target.value);
+                        if (!profile) return;
+                        setSelectedProfileId(profile.id);
+                        if (profile.id === "tr-auto-smart-v1" && activeSheet) {
+                          const autoMap = activeSheet.suggestedMapping;
+                          setHeaderRow(String(autoMap.headerRow ?? 1));
+                          setMapping({ ...autoMap, profileId: profile.id, sheet: selectedSheet });
+                          return;
+                        }
+                        const nextH = profile.mapping.headerRow ?? Number(headerRow);
+                        setHeaderRow(String(nextH));
+                        setMapping((current) => ({
+                          ...current,
+                          ...profile.mapping,
+                          profileId: profile.id,
+                          sheet: selectedSheet,
+                          headerRow: nextH,
+                        }));
+                      }}
+                      className="mt-1 h-9 w-full rounded-md border border-border bg-background px-2 text-xs text-foreground"
+                    >
+                      {availableProfiles.map((profile) => (
+                        <option key={profile.id} value={profile.id}>
+                          {profile.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="text-[10px] uppercase tracking-widest text-muted-foreground">
+                    Okuma modu
+                    <select
+                      aria-label="Tablo okuma modu"
+                      value={mapping.tableMode ?? "auto"}
+                      onChange={(event) => {
+                        const nextMode = event.target.value as SpreadsheetTableMode;
+                        setMapping((current) => ({
+                          ...current,
+                          tableMode: nextMode,
+                          ...(nextMode === "repeating_blocks"
+                            ? {
+                                positionCode: "POZ NO",
+                                description: "İMALATIN ADI",
+                                unit: "BİRİMİ",
+                                quantity: "Genel Toplam",
+                              }
+                            : {}),
+                        }));
+                      }}
+                      className="mt-1 h-9 w-full rounded-md border border-border bg-background px-2 text-xs text-foreground"
+                    >
+                      <option value="auto">Otomatik (Önerilen)</option>
+                      <option value="flat_or_pivot">Düz / Kat İcmal Tablosu</option>
+                      <option value="repeating_blocks">Tekrarlayan Poz Blokları (TOKİ)</option>
+                    </select>
+                  </label>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  {mappingFields.map((key) => (
+                    <Input
+                      key={key}
+                      aria-label={key}
+                      placeholder={mappingLabels[key]}
+                      value={String(mapping[key] ?? "")}
+                      onChange={(event) => setMapping((current) => ({ ...current, [key]: event.target.value }))}
+                      className="h-9 border-border bg-background text-xs"
+                    />
+                  ))}
+                </div>
+                <div className="flex gap-2 pt-1">
+                  <Input
+                    aria-label="Yeni firma Excel şablon adı"
+                    placeholder="Bu düzeni kaydet (örn. X İnşaat Şablonu)"
+                    value={newProfileName}
+                    onChange={(event) => setNewProfileName(event.target.value)}
+                    className="h-8 border-border bg-background text-[11px]"
+                  />
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={saveCustomExcelProfile}
+                    className="h-8 shrink-0 border-border text-[11px]"
+                  >
+                    Şablon Kaydet
+                  </Button>
+                </div>
+                <Button
+                  disabled={busy || previewBusy || !selectedSheet}
+                  onClick={startProcessing}
+                  className="w-full gap-2 bg-sky-600 text-white hover:bg-sky-700"
+                >
+                  {busy ? <Loader2 className="animate-spin" size={15} /> : <Layers3 size={15} />} Eşlemeyi onayla ve işle
+                </Button>
               </div>
               {activeSheet && (
-                <div className="overflow-auto rounded-xl border border-border p-3">
-                  <table className="w-full min-w-[640px] text-left text-[11px]"><tbody>{activeSheet.sampleRows.map((row, rowIndex) => <tr key={`${rowIndex}-${row.join("|")}`} className={rowIndex === Number(headerRow) - 1 ? "bg-orange-500/10 text-orange-200" : "border-t border-border text-muted-foreground"}>{row.map((value, columnIndex) => <td key={`${rowIndex}-${columnIndex}`} className="max-w-48 truncate p-2" title={value}>{value || "—"}</td>)}</tr>)}</tbody></table>
+                <div className="overflow-auto rounded-xl border border-border p-3 space-y-2">
+                  <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+                    <span>İpucu: Tablodaki herhangi bir satıra tıklayarak onu <b>Başlık Satırı</b> olarak seçebilirsiniz.</span>
+                    <span className="font-mono">Seçili Başlık: Satır {headerRow}</span>
+                  </div>
+                  <table className="w-full min-w-[640px] text-left text-[11px]">
+                    <tbody>
+                      {activeSheet.sampleRows.map((row, rowIndex) => (
+                        <tr
+                          key={`${rowIndex}-${row.join("|")}`}
+                          onClick={() => {
+                            const nextRowNum = rowIndex + 1;
+                            setHeaderRow(String(nextRowNum));
+                            if (row.some((c) => c.trim())) {
+                              const reSuggested = suggestMapping(row);
+                              setMapping((current) => ({
+                                ...current,
+                                ...reSuggested,
+                                headerRow: nextRowNum,
+                              }));
+                            }
+                          }}
+                          className={`cursor-pointer transition-colors hover:bg-orange-500/5 ${
+                            rowIndex === Number(headerRow) - 1
+                              ? "bg-orange-500/15 text-orange-200 font-semibold"
+                              : "border-t border-border text-muted-foreground"
+                          }`}
+                        >
+                          <td className="w-10 select-none border-r border-border/60 px-2 py-1.5 font-mono text-[10px] text-muted-foreground">
+                            {rowIndex + 1}
+                          </td>
+                          {row.map((value, columnIndex) => (
+                            <td key={`${rowIndex}-${columnIndex}`} className="max-w-48 truncate p-2" title={value}>
+                              {value || "—"}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               )}
             </div>

@@ -32,6 +32,7 @@
     "smartcheck:integration": "tsx --test src/smartcheck/import/integration-contract.test.ts",
     "smartcheck:http-integration": "tsx --test src/server/routes/smartcheck.integration.test.ts",
     "smartcheck:fixtures": "tsx --test src/smartcheck/import/pilot-fixtures.test.ts",
+    "excel:corpus": "tsx scripts/inspect-contractor-excels.ts",
     "smartcheck:pilot-check": "tsx scripts/smartcheck-pilot-readiness.ts",
     "smartcheck:storage-smoke": "tsx scripts/smartcheck-storage-smoke.ts",
     "smartcheck:worker": "tsx src/smartcheck/import/worker.ts",

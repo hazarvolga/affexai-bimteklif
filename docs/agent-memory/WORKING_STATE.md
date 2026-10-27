@@ -70,6 +70,15 @@ history to `archive/` (latest: `archive/WORKING_STATE_until_2026-10-24.md`).
   them to the approved snapshot via `resolveCatalogProvenance` (same rules as
   Calm transfer) and writes price evidence; editing price/unit/VAT drops the
   link client-side. Bound quotes stay non-editable in the form (existing rule).
+  Rev. 101 (`189ee22`, `BIM-CALC-2026-10-27.95`): live production deployment of
+  0022..0029 + worker control-plane isolation (`D12`) & `lockedIfcUsage` worker
+  entitlement fix (`D13`).
+  Rev. 102 (`BIM-CALC-2026-10-27.96`): 4-layer Turkish Contractor Excel Adapter
+  (`flat_table`, `multi_header_pivot`, `repeating_block_boq`, `hybrid_summary_and_blocks`)
+  with `ignoreNodes: ["mergeCells"]` (192x speedup on 46,588-merge workbooks),
+  visual archetype/tableMode/row-click mapping + custom company template memory in
+  `SmartCheckImportWorkspace.tsx`, and extensible corpus scanner (`npm run excel:corpus` /
+  `scripts/inspect-contractor-excels.ts` + `src/smartcheck/import/contractor-excel-corpus.test.ts` `5/5 PASS`).
   Next: Faz 1 remainder (CalmIfcWorkspace / SmartCheckImportWorkspace split,
   demo data de-duplication), then the three-persona acceptance run.
 - CI: the job runs with `NODE_ENV=test` (React development build). The T45
