@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
-import { describe, it } from "node:test";
-import { calculateLineBreakdown, calculateLineItemTotal, calculateQuotationTotals, roundMoney, validateQuotationItems } from "./calculations";
+import test, { describe, it } from "node:test";
+import { calculateLineBreakdown, calculateLineItemTotal, calculateQuotationTotals, normalizeOverheadProfitPercent, roundMoney, validateQuotationItems } from "./calculations";
 import { calculateQuotationFinancials, escalationPremiumFor } from "./financial-calculations";
 import { auditQuotationItems } from "./quotation-audit";
 
@@ -21,6 +21,7 @@ describe("quotation calculations", () => {
     ]), {
       subtotal: 1500,
       discountTotal: 100,
+      overheadProfitTotal: 0,
       vatTotal: 230,
       grandTotal: 1630,
     });
@@ -32,6 +33,7 @@ describe("quotation calculations", () => {
     ]), {
       subtotal: 0,
       discountTotal: 0,
+      overheadProfitTotal: 0,
       vatTotal: 0,
       grandTotal: 0,
     });
@@ -194,4 +196,47 @@ describe("inceleme düzeltmeleri", () => {
     assert.equal(fin.costBreakdown.labor, 0.34);
     assert.equal(fin.totalCost, 1.02);
   });
+});
+
+test("profit and overhead is added on the net subtotal and carries each line's VAT rate", () => {
+  // Faz 1 browser-smoke figures: 74.200,00 TL net, %15 profit and overhead, %20 VAT.
+  const items = [
+    { quantity: 12.5, unitPrice: 3450, vatPercent: 20 },
+    { quantity: 32.5, unitPrice: 610, vatPercent: 20 },
+    { quantity: 9, unitPrice: 1250, vatPercent: 20 },
+  ];
+  const totals = calculateQuotationTotals(items, { overheadProfitPercent: 15 });
+  assert.deepEqual(totals, { subtotal: 74200, discountTotal: 0, overheadProfitTotal: 11130, vatTotal: 17066, grandTotal: 102396 });
+  assert.deepEqual(calculateQuotationTotals(items), { subtotal: 74200, discountTotal: 0, overheadProfitTotal: 0, vatTotal: 14840, grandTotal: 89040 }, "no percentage keeps existing totals unchanged");
+  assert.deepEqual(calculateQuotationTotals(items, { overheadProfitPercent: "0.00" }), calculateQuotationTotals(items));
+});
+
+test("profit and overhead follows discounts and mixed VAT rates line by line", () => {
+  const totals = calculateQuotationTotals([
+    { quantity: 1, unitPrice: 1000, discountPercent: 10, vatPercent: 20 },
+    { quantity: 1, unitPrice: 1000, vatPercent: 1 },
+  ], { overheadProfitPercent: "25" });
+  // Line 1: net 900, share 225, VAT 20% of 1125 = 225. Line 2: net 1000, share 250, VAT 1% of 1250 = 12,50.
+  assert.deepEqual(totals, { subtotal: 2000, discountTotal: 100, overheadProfitTotal: 475, vatTotal: 237.5, grandTotal: 2612.5 });
+});
+
+test("an out-of-range profit and overhead percentage is refused, not clamped", () => {
+  for (const invalid of [-1, 100.01, "abc", Number.NaN]) {
+    assert.throws(() => calculateQuotationTotals([{ quantity: 1, unitPrice: 1 }], { overheadProfitPercent: invalid }), /OVERHEAD_PROFIT_PERCENT_INVALID/);
+  }
+  assert.equal(normalizeOverheadProfitPercent(null), 0);
+  assert.equal(normalizeOverheadProfitPercent("12.5"), 12.5);
+});
+
+test("profitability counts profit and overhead as revenue on top of the evidence-bound lines", () => {
+  // Faz 1 smoke: cost equals catalogue price, so without the share the margin is 0.
+  const items = [
+    { quantity: 12.5, unitPrice: 3450, costUnitPrice: 3450, vatPercent: 20 },
+    { quantity: 32.5, unitPrice: 610, costUnitPrice: 610, vatPercent: 20 },
+    { quantity: 9, unitPrice: 1250, costUnitPrice: 1250, vatPercent: 20 },
+  ];
+  assert.equal(calculateQuotationFinancials(items).profit, 0);
+  const withShare = calculateQuotationFinancials(items, { overheadProfitPercent: 15 });
+  assert.deepEqual([withShare.salesNet, withShare.totalCost, withShare.profit, withShare.margin], [85330, 74200, 11130, 13.04]);
+  assert.equal(withShare.salesNet, calculateQuotationTotals(items, { overheadProfitPercent: 15 }).subtotal + 11130, "same revenue as the quotation totals");
 });

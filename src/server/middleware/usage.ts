@@ -5,7 +5,8 @@ import { quotaUnavailable } from "../../services/billing/quota-policy";
 import { recordUsage } from "../../services/billing/usage-audit";
 import { AI_USAGE_FEATURE, reserveAiUsage } from "../../services/billing/ai-quota";
 import { featureQuotaUnavailable, isMeteredFeature, type MeteredFeature } from "../../services/billing/feature-limits";
-import { releaseFeatureUsage, reserveFeatureUsage } from "../../services/billing/feature-quota";
+import { releaseFeatureUsage, reserveFeatureUsage, type UsageSubject } from "../../services/billing/feature-quota";
+import type { Request } from "express";
 
 export { PLAN_LIMITS } from "../../services/billing/limits";
 
@@ -13,19 +14,16 @@ type UsageDependencies = {
   checkQuota(companyId: string, userId: string): Promise<unknown>;
   logUsage(companyId: string, userId: string, feature: string): Promise<unknown>;
   reserveAiQuota?(companyId: string, userId: string): Promise<unknown>;
-  reserveFeatureQuota?(companyId: string, userId: string, feature: MeteredFeature): Promise<{ id: string }>;
+  reserveFeatureQuota?(companyId: string, userId: string, feature: MeteredFeature, subject?: UsageSubject): Promise<{ id: string; reused?: boolean }>;
   releaseFeatureQuota?(companyId: string, reservationId: string): Promise<unknown>;
 };
 
 const isSuccess = (status: number) => status >= 200 && status < 300;
 
-export const createUsageTracker = (dependencies: UsageDependencies = {
-  checkQuota: (companyId, userId) => withAppTenantTransaction({ companyId, userId }, tx => checkQuotationQuota(tx, companyId)),
-  logUsage: recordUsage,
-  reserveAiQuota: reserveAiUsage,
-  reserveFeatureQuota: reserveFeatureUsage,
-  releaseFeatureQuota: releaseFeatureUsage,
-}) => (feature: string): RequestHandler => async (req, res, next) => {
+/** Optional per-request subject (e.g. the quotation version a PDF is for); null skips the reservation so the route can answer 404. */
+export type UsageSubjectResolver = (req: Request) => Promise<UsageSubject | null>;
+
+export const createUsageTrackerWith = (dependencies: UsageDependencies) => (feature: string, resolveSubject?: UsageSubjectResolver): RequestHandler => async (req, res, next) => {
   try {
     const { companyId, userId } = req.user;
     // Preflight is advisory UX only; the creation transaction owns quota consumption.
@@ -35,8 +33,18 @@ export const createUsageTracker = (dependencies: UsageDependencies = {
       await dependencies.reserveAiQuota(companyId, userId);
     } else if (isMeteredFeature(feature)) {
       if (!dependencies.reserveFeatureQuota || !dependencies.releaseFeatureQuota) throw featureQuotaUnavailable(feature);
-      const reservation = await dependencies.reserveFeatureQuota(companyId, userId, feature);
+      const subject = resolveSubject ? await resolveSubject(req) : undefined;
+      if (subject === null) {
+        next();
+        return;
+      }
+      const reservation = await dependencies.reserveFeatureQuota(companyId, userId, feature, subject);
       const release = dependencies.releaseFeatureQuota;
+      // A reused reservation belongs to an earlier successful render; this request never owns it.
+      if (reservation.reused) {
+        next();
+        return;
+      }
       // The reservation is the usage event; a failed or aborted response never consumed the allowance.
       // "close" fires for both delivered and aborted responses; "finish" never fires on abort.
       res.once("close", () => {
@@ -62,5 +70,15 @@ export const createUsageTracker = (dependencies: UsageDependencies = {
   }
   next();
 };
+
+const defaultUsageDependencies: UsageDependencies = {
+  checkQuota: (companyId, userId) => withAppTenantTransaction({ companyId, userId }, tx => checkQuotationQuota(tx, companyId)),
+  logUsage: recordUsage,
+  reserveAiQuota: reserveAiUsage,
+  reserveFeatureQuota: reserveFeatureUsage,
+  releaseFeatureQuota: releaseFeatureUsage,
+};
+
+export const createUsageTracker = (dependencies: UsageDependencies = defaultUsageDependencies) => createUsageTrackerWith(dependencies);
 
 export const usageTracker = createUsageTracker();

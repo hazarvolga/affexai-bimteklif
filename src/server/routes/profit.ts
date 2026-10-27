@@ -30,6 +30,7 @@ export function registerProfitRoutes(app: Express, profitService: ProfitService,
         escalationVolatilityPercent: Number(quote.escalationVolatilityPercent),
         carbonRiskPremiumPercent: Number(quote.carbonRiskPremiumPercent),
         informationDeliveryCostPercent: Number(quote.informationDeliveryCostPercent),
+        overheadProfitPercent: Number(quote.overheadProfitPercent),
       }, () => reserveAiUsage(req.user.companyId, req.user.userId));
 
       await withAppTenant(tenant, async (tenantDb) => {

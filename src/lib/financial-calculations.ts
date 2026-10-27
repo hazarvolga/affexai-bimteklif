@@ -1,4 +1,4 @@
-import { calculateLineBreakdown, roundMoney, toFiniteNumber } from './calculations';
+import { calculateLineBreakdown, normalizeOverheadProfitPercent, roundMoney, toFiniteNumber } from './calculations';
 
 export type CostCategory = 'material' | 'labor' | 'logistics' | 'subcontractor' | 'overhead';
 
@@ -42,7 +42,9 @@ export function escalationPremiumFor(escalatingCost: number, durationMonths: num
   return roundMoney(premium);
 }
 
-export function calculateQuotationFinancials(items: FinancialLineItem[], riskInputs: { projectDurationMonths?: number; escalationVolatilityPercent?: number; carbonRiskPremiumPercent?: number; informationDeliveryCostPercent?: number } = {}): QuotationFinancialCalculation {
+export function calculateQuotationFinancials(items: FinancialLineItem[], riskInputs: { projectDurationMonths?: number; escalationVolatilityPercent?: number; carbonRiskPremiumPercent?: number; informationDeliveryCostPercent?: number; overheadProfitPercent?: number | string | null } = {}): QuotationFinancialCalculation {
+  // Profit and overhead is charged to the customer on top of the lines, so it is revenue, not cost (release 0029).
+  const overheadProfitPercent = normalizeOverheadProfitPercent(riskInputs.overheadProfitPercent);
   const costBreakdown = Object.fromEntries(categories.map((category) => [category, 0])) as Record<CostCategory, number>;
   const missingCostItemIndexes: number[] = [];
   let salesNet = 0;
@@ -56,7 +58,8 @@ export function calculateQuotationFinancials(items: FinancialLineItem[], riskInp
     const waste = Math.max(0, toFiniteNumber(item.wastePercent));
 
     // Same per-line cent rounding as quotation totals, so margin reconciles with the PDF.
-    salesNet += calculateLineBreakdown(item).net;
+    const lineNet = calculateLineBreakdown(item).net;
+    salesNet += lineNet + roundMoney(lineNet * (overheadProfitPercent / 100));
     if (!Number.isFinite(costUnitPrice) || costUnitPrice < 0) {
       missingCostItemIndexes.push(index);
       return;

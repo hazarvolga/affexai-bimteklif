@@ -51,7 +51,7 @@ export function ProgressPayments() {
         </div>
       </div>
       {error && <div role="alert" className="border border-destructive/40 bg-destructive/10 p-4 text-sm text-destructive">{error}</div>}
-      {!error && !loading && contracts.length === 0 && <div className="border border-dashed border-border p-10 text-center text-sm text-muted-foreground">Henüz hakediş sözleşmesi yok. Pilot API üzerinden kanıtlı sözleşme ve kalem snapshot'ı oluşturulmalıdır.</div>}
+      {!error && !loading && contracts.length === 0 && <div className="border border-dashed border-border p-10 text-center text-sm text-muted-foreground">Henüz hakediş sözleşmesi yok. Hakediş modülü pilot kapsamında açılır; sözleşme ve kalemler pilot kurulumunda tanımlanır.</div>}
       <div className="grid gap-4 lg:grid-cols-2">
         {contracts.map((contract) => (
           <Card key={contract.id} className="border-border">

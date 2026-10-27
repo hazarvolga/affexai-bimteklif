@@ -50,6 +50,7 @@ interface PublicBankAccount {
   descriptionNote: string | null;
 }
 
+// Only the free trial is kept offline; paid plans are shown from the live catalogue only (marka.md M-7.11).
 const FALLBACK_PLANS: PublicPlanOption[] = [
   {
     id: '2b507e20-83d1-4b21-9fc1-000000000001',
@@ -63,58 +64,6 @@ const FALLBACK_PLANS: PublicPlanOption[] = [
     displayOrder: 10,
     marketingBadge: '0 ₺ · Anında Aktif',
     marketingDescription: 'Teklif, PDF/A ve IFC e-PYS ön kontrol akışını kendi projenizle ücretsiz deneyin.',
-  },
-  {
-    id: '2b507e20-83d1-4b21-9fc1-000000000002',
-    name: 'e-PYS & BIM Standart Denetçi',
-    monthlyPrice: 1250,
-    monthlyQuoteLimit: 5,
-    monthlyIfcLimit: 5,
-    ifcMaxFileMb: 35,
-    ifcMaxConcurrent: 1,
-    isFeatured: false,
-    displayOrder: 20,
-    marketingBadge: 'Pilot',
-    marketingDescription: 'RG 33331 eklerine göre IFC ön kontrolü, EK-9 taslak raporu ve IDS/ALLPLAN şablonları.',
-  },
-  {
-    id: '2b507e20-83d1-4b21-9fc1-000000000003',
-    name: 'Teklif & Şantiye',
-    monthlyPrice: 2950,
-    monthlyQuoteLimit: 25,
-    monthlyIfcLimit: 5,
-    ifcMaxFileMb: 40,
-    ifcMaxConcurrent: 1,
-    isFeatured: false,
-    displayOrder: 30,
-    marketingBadge: 'Başlangıç',
-    marketingDescription: 'Excel metrajı, ÇŞB 2026 poz kataloğu ve piyasa istihbaratıyla teklif hazırlama.',
-  },
-  {
-    id: '2b507e20-83d1-4b21-9fc1-000000000004',
-    name: '5D BIM & SmartCheck',
-    monthlyPrice: 5450,
-    monthlyQuoteLimit: 75,
-    monthlyIfcLimit: 15,
-    ifcMaxFileMb: 60,
-    ifcMaxConcurrent: 1,
-    isFeatured: true,
-    displayOrder: 40,
-    marketingBadge: 'En Çok Tercih Edilen',
-    marketingDescription: '5D BIM metraj çıkarımı, SmartCheck kalite denetimi, Minha motoru ve tam kaynak izi.',
-  },
-  {
-    id: '2b507e20-83d1-4b21-9fc1-000000000005',
-    name: 'Kurumsal Taahhüt & e-PYS',
-    monthlyPrice: 8900,
-    monthlyQuoteLimit: 200,
-    monthlyIfcLimit: 35,
-    ifcMaxFileMb: 85,
-    ifcMaxConcurrent: 2,
-    isFeatured: false,
-    displayOrder: 50,
-    marketingBadge: 'Kurumsal',
-    marketingDescription: 'Çoklu disiplin ekip yönetimi, yüksek kapasiteli IFC/PDF işleme ve öncelikli kuyruk.',
   },
 ];
 
@@ -133,6 +82,7 @@ export function Register() {
   const [marketingConsent, setMarketingConsent] = useState(false);
   const [website, setWebsite] = useState('');
   const [plans, setPlans] = useState<PublicPlanOption[]>(FALLBACK_PLANS);
+  const [catalogUnavailable, setCatalogUnavailable] = useState(false);
   const [bankAccounts, setBankAccounts] = useState<PublicBankAccount[]>([]);
 
   const formStartedAt = useRef(Date.now());
@@ -161,7 +111,12 @@ export function Register() {
       })
         .then((res) => (res.ok ? res.json() : null))
         .then((data) => {
-          if (!active || !Array.isArray(data) || data.length === 0) return;
+          if (!active) return;
+          if (!Array.isArray(data) || data.length === 0) {
+            setCatalogUnavailable(true);
+            return;
+          }
+          setCatalogUnavailable(false);
           setPlans(data);
           setSelectedPlanId((prev) => {
             if (requestedPlanId && data.some((p: PublicPlanOption) => p.id === requestedPlanId)) {
@@ -174,7 +129,7 @@ export function Register() {
             return trial ? trial.id : prev;
           });
         })
-        .catch(() => {});
+        .catch(() => { if (active) setCatalogUnavailable(true); });
 
       fetch('/api/public/bank-accounts', {
         cache: 'no-store',
@@ -344,6 +299,11 @@ export function Register() {
               </div>
 
               <div className="space-y-2.5">
+                {catalogUnavailable && (
+                  <p role="status" className="border border-amber-500/50 bg-amber-500/10 p-3 text-xs text-foreground">
+                    Ücretli paket bilgileri şu anda yüklenemedi. Ücretsiz denemeyle başlayabilir veya sayfayı yenileyerek tekrar deneyebilirsiniz.
+                  </p>
+                )}
                 {plans.map((plan) => {
                   const isSelected = plan.id === selectedPlan.id;
                   const isFree = plan.monthlyPrice === 0;

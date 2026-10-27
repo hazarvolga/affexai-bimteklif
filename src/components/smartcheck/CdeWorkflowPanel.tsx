@@ -65,7 +65,7 @@ export function CdeWorkflowPanel({ documentId, targetState, suitabilityCode, rev
     return (
       <div className="mt-3 border border-amber-500/30 bg-amber-500/5 p-3 text-[11px] leading-relaxed text-amber-700 dark:text-amber-300">
         <strong className="block font-semibold">Bu dokümana bağlı sunucu CDE kaydı hazır değil.</strong>
-        Proje, konteyner ve revizyon; yetkili sunucu iş akışında gerçek doküman özeti ile doğrulanmış source/rule/result/code hash kanıtları kullanılarak oluşturulmalıdır. Tarayıcı sahte hash veya yerel onay geçmişi üretmez.
+        Proje, klasör ve revizyon kaydı yetkili sunucu iş akışında, doğrulanmış dosya ve kural kayıtlarıyla oluşturulur. Tarayıcı kendi başına onay geçmişi üretmez.
       </div>
     );
   }
@@ -115,7 +115,7 @@ export function CdeWorkflowPanel({ documentId, targetState, suitabilityCode, rev
         <>
           <div className="mt-3 grid gap-2 sm:grid-cols-4">
             <div className="border border-border bg-background p-2"><span className="block text-[9px] uppercase">Konteyner</span><b className="text-foreground">{workflow.history.container.containerCode}</b></div>
-            <div className="border border-border bg-background p-2"><span className="block text-[9px] uppercase">Kanonik durum</span><b className="text-foreground">{workflow.history.container.currentState}</b></div>
+            <div className="border border-border bg-background p-2"><span className="block text-[9px] uppercase">Kayıtlı durum</span><b className="text-foreground">{workflow.history.container.currentState}</b></div>
             <div className="border border-border bg-background p-2"><span className="block text-[9px] uppercase">Güncel revizyon</span><b className="text-foreground">{activeRevision?.revisionCode ?? "Hazır değil"}</b></div>
             <div className="border border-border bg-background p-2"><span className="block text-[9px] uppercase">Projection sürümü</span><b className="text-foreground">v{workflow.history.container.lockVersion}</b></div>
           </div>
@@ -158,7 +158,7 @@ export function CdeWorkflowPanel({ documentId, targetState, suitabilityCode, rev
           {workflow.feedback && <p className="mt-2 border-t border-border pt-2 text-foreground">{workflow.feedback}</p>}
 
           <div className="mt-3 border-t border-border pt-2">
-            <strong className="text-foreground">Salt okunur kanonik karar geçmişi</strong>
+            <strong className="text-foreground">Değiştirilemeyen karar geçmişi</strong>
             {events.length === 0 ? (
               <p className="mt-1">Henüz sunucu olayı yok.</p>
             ) : (

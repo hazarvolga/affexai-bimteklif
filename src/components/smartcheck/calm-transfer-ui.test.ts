@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { buildCalmTransferSelection, getOrCreateCalmTransferAttempt } from "./calm-transfer-ui";
+import { buildCalmTransferSelection, calmTransferAttemptScope, calmTransferTargetHint, getOrCreateCalmTransferAttempt, isCalmTransferTargetReady } from "./calm-transfer-ui";
 import { buildCalmIfcDatasetFromElements, parseSmartCheckRowToPseudoElement } from "../../ifc/calm-icmal";
 import { projectApprovedRowsToCalmQuotationLines } from "../../services/quotations/calm-transfer";
 
@@ -69,4 +69,18 @@ test("UI and server produce identical canonical Calm lines for layered minha fix
     serverLines.map((line) => ({ lineId: line.lineId, quantity: Number(line.quantity), sourceRowIds: line.sourceRows.map((row) => row.rowId) })),
     uiItems.sort((a, b) => a.id.localeCompare(b.id)).map((item) => ({ lineId: item.id, quantity: item.netQuantity, sourceRowIds: item.sourceQuantityRowIds })),
   );
+});
+
+test("Calm transfer target separates a new quotation from a revision and scopes retries by what the server hashes", () => {
+  const fresh = { mode: "new" as const, clientName: "  ", projectName: "" };
+  assert.equal(isCalmTransferTargetReady(fresh), false);
+  assert.equal(calmTransferTargetHint(fresh), "Yeni teklif için müşteri adını yazın.");
+  const named = { ...fresh, clientName: "Örnek Yapı A.Ş.", projectName: "Konut A Blok" };
+  assert.equal(isCalmTransferTargetReady(named), true);
+  assert.equal(calmTransferTargetHint(named), null);
+  assert.equal(calmTransferAttemptScope(named), calmTransferAttemptScope({ ...named, clientName: " Örnek Yapı A.Ş. " }));
+  assert.notEqual(calmTransferAttemptScope(named), calmTransferAttemptScope({ ...named, clientName: "Başka Firma" }));
+  const revision = { mode: "revision" as const, quotationId: "" };
+  assert.equal(calmTransferTargetHint(revision), "Revizyon eklenecek teklifi seçin.");
+  assert.equal(calmTransferAttemptScope({ mode: "revision", quotationId: "q-1" }), "q-1", "revision attempts keep their existing storage key");
 });

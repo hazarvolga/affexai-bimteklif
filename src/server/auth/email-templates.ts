@@ -3,7 +3,8 @@ export type EmailTemplateId =
   | 'reset_password'
   | 'invitation'
   | 'payment_order_created'
-  | 'subscription_activated';
+  | 'subscription_activated'
+  | 'expert_feedback';
 
 export interface EmailDetailRow {
   label: string;
@@ -137,6 +138,20 @@ export const DEFAULT_EMAIL_TEMPLATES: Record<EmailTemplateId, EmailTemplateDefin
     ctaColor: '#059669',
     expiryNotice: 'Fatura ve abonelik süresi detaylarınızı dilediğiniz zaman Faturalama & Kotalar ekranından görüntüleyebilirsiniz.',
     securityNotice: 'BIMMetraj’ı tercih ettiğiniz için teşekkür ederiz.',
+  },
+  expert_feedback: {
+    id: 'expert_feedback',
+    subject: 'BIMMetraj — Uzman Geri Bildirimi',
+    preheader: 'Uzman önizlemesinde bir hesap veya ekran için geri bildirim gönderildi.',
+    badgeText: 'UZMAN GERİ BİLDİRİMİ',
+    badgeColor: { bg: '#fffbeb', text: '#b45309', border: '#fde68a' },
+    heading: 'Yeni Uzman Geri Bildirimi',
+    intro:
+      'Uzman önizlemesindeki bir kullanıcı aşağıdaki geri bildirimi gönderdi. Girdi ve sonuç değerleri yalnızca kullanıcı paylaşım onayı verdiyse bu e-postada yer alır.',
+    ctaLabel: 'Uzman Saha Testi Rehberini Aç',
+    ctaColor: '#b45309',
+    expiryNotice: 'Bu kayıt bağımsız uzman onayı (L3) değildir; T50 kanıt dosyasına ancak uzman kimliği ve imzasıyla eklenebilir.',
+    securityNotice: 'Bu e-posta yalnızca uzman geri bildirimleri için tanımlanan adrese gönderilir.',
   },
 };
 

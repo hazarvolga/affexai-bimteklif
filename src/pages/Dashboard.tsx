@@ -67,6 +67,8 @@ export function Dashboard() {
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  // The status strip states the real catalogue state instead of a fixed "kanıtlı katalog" label (marka.md M-11.6).
+  const [priceCatalog, setPriceCatalog] = useState<'loading' | 'ready' | 'empty' | 'unknown'>('loading');
 
   const loadQuotes = () => {
     setLoading(true);
@@ -90,6 +92,19 @@ export function Dashboard() {
     if (!user?.isSuperAdmin) {
       loadQuotes();
     }
+  }, [user?.isSuperAdmin]);
+
+  useEffect(() => {
+    if (user?.isSuperAdmin) return;
+    let active = true;
+    fetchWithAuth('/api/pricing/snapshots?status=approved&limit=1')
+      .then(async (res) => {
+        if (!res.ok) throw new Error('İstek başarısız');
+        const rows: unknown = await res.json();
+        if (active) setPriceCatalog(Array.isArray(rows) && rows.length > 0 ? 'ready' : 'empty');
+      })
+      .catch(() => { if (active) setPriceCatalog('unknown'); });
+    return () => { active = false; };
   }, [user?.isSuperAdmin]);
 
   // Redirect super admins to their operational dashboard
@@ -157,8 +172,13 @@ export function Dashboard() {
           </div>
           <div className="h-3.5 w-px bg-border hidden sm:block" />
           <div className="flex items-center gap-2">
-            <span className="text-muted-foreground uppercase">KAYNAK:</span>
-            <span className="text-primary font-bold">Kanıtlı Metraj & Fiyat Kataloğu</span>
+            <span className="text-muted-foreground uppercase">FİYAT KATALOĞU:</span>
+            {priceCatalog === 'ready' && <span className="text-foreground font-semibold">Firma fiyatlarınız ekli</span>}
+            {priceCatalog === 'empty' && (
+              <Link to="/app/fiyat-katalogu" className="text-primary font-semibold underline">Henüz eklenmedi — fiyat listenizi ekleyin</Link>
+            )}
+            {priceCatalog === 'unknown' && <span className="text-muted-foreground">Durum yüklenemedi</span>}
+            {priceCatalog === 'loading' && <span className="text-muted-foreground">Yükleniyor…</span>}
           </div>
           <div className="h-3.5 w-px bg-border hidden md:block" />
           <div className="hidden md:flex items-center gap-2">

@@ -75,6 +75,8 @@ export async function generateQuotationPdf(quotationId: string, templateId: stri
       revisionVersion: quote.revisionVersion,
       subtotal: Number(quote.subtotal),
       discountTotal: Number(quote.discountTotal),
+      overheadProfitPercent: Number(quote.overheadProfitPercent),
+      overheadProfitTotal: Number(quote.overheadProfitTotal),
       vatTotal: Number(quote.vatTotal),
       grandTotal: Number(quote.grandTotal),
     },

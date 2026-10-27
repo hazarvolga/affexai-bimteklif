@@ -103,6 +103,7 @@ services:
       OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       SENTRY_DSN: ${SENTRY_DSN:-}
+      EXPERT_FEEDBACK_EMAIL: ${EXPERT_FEEDBACK_EMAIL:-}
     expose: ['3000']
     healthcheck:
       test: [CMD, node, -e, "fetch('http://127.0.0.1:3000/readyz',{signal:AbortSignal.timeout(4000)}).then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]

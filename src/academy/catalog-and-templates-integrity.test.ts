@@ -111,7 +111,7 @@ test("PDF templates and transactional email templates render and escape HTML saf
   assert.equal(escapeHtml(`A&B<C>"D"'E'`), "A&amp;B&lt;C&gt;&quot;D&quot;&#39;E&#39;");
 
   const templateIds = Object.keys(DEFAULT_EMAIL_TEMPLATES) as EmailTemplateId[];
-  assert.equal(templateIds.length, 5);
+  assert.equal(templateIds.length, 6);
   for (const id of templateIds) {
     const rendered = renderTransactionalEmail(id, "https://bimmetraj.com/verify?t=1&x=2", {
       recipientName: "Hazar <Admin>",

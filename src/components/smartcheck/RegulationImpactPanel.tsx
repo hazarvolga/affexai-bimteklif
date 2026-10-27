@@ -88,13 +88,13 @@ export function RegulationImpactPanel() {
     <Card className="bg-card border-border shadow-none">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-foreground"><Search size={15} className="text-orange-500" /> Teklif etki analizi</CardTitle>
-        <CardDescription className="text-[10px] leading-relaxed text-muted-foreground">Reviewer onaylı advisory sürümleri teklif geçmişine otomatik uygulamaz; yalnızca yürürlük tarihi ve olası eşleşmeleri görünür kılar.</CardDescription>
+        <CardDescription className="text-[10px] leading-relaxed text-muted-foreground">İncelenip onaylanan mevzuat değişiklikleri teklif geçmişine otomatik uygulanmaz; yalnızca yürürlük tarihi ve etkilenebilecek teklifler gösterilir.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
         {loading ? (
           <div className="flex items-center gap-2 py-3 text-[10px] font-black uppercase tracking-widest text-muted-foreground"><Loader2 size={14} className="animate-spin text-orange-500" /> Advisory sürümler okunuyor</div>
         ) : versions.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-border bg-background p-4 text-xs leading-relaxed text-muted-foreground">Henüz reviewer onaylı advisory mevzuat sürümü yok. Kaynak diff'i onaylandığında burada etkilenebilecek teklifler listelenir.</div>
+          <div className="rounded-xl border border-dashed border-border bg-background p-4 text-xs leading-relaxed text-muted-foreground">Henüz onaylanmış mevzuat değişikliği yok. Bir kaynak değişikliği onaylandığında etkilenebilecek teklifler burada listelenir.</div>
         ) : versions.slice(0, 8).map((version) => {
           const isExpanded = expandedId === version.id;
           const versionImpacts = impacts[version.id];

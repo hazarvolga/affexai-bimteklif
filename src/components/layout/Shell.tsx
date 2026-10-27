@@ -14,6 +14,7 @@ import {
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
+import { GeneralFeedbackButton } from '@/features/expert-feedback/GeneralFeedbackButton';
 import { useEffect, useState } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { fetchWithAuth } from '@/lib/api';
@@ -288,6 +289,7 @@ export function Shell() {
               <Compass size={14} className="text-primary shrink-0" />
               <span className="hidden sm:inline">Hızlı Tur</span>
             </button>
+            <GeneralFeedbackButton />
             <ThemeToggle />
             {!isLearner && (
               <Link to="/app/quotes/new" className="pafta-button !min-h-9 !py-2 !px-3.5">

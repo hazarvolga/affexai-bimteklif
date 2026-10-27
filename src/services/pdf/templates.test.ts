@@ -52,3 +52,28 @@ for (const template of templates) {
     assert.equal(JSON.stringify(fixture), before);
   });
 }
+
+test("default template shows the contractor's name and the offer's real validity date", () => {
+  const template = templates.find((candidate) => candidate.id === "default_construction")!;
+  const html = template.htmlTemplate({
+    company: { name: "Örnek Yapı A.Ş." },
+    client: { name: "Müşteri" },
+    quotation: { quoteNumber: "T-1", projectName: "P", date: "26.10.2026", expiryDate: "25.11.2026", currency: "TRY", status: "sent" as never, revisionVersion: 1, subtotal: 0, discountTotal: 0, vatTotal: 0, grandTotal: 0 },
+    items: [],
+  });
+  assert.doesNotMatch(html, /TeklifPro/);
+  assert.match(html, /<div class="logo">Örnek Yapı A\.Ş\.<\/div>/);
+  assert.match(html, /25\.11\.2026 tarihine kadar geçerlidir/);
+  assert.doesNotMatch(html, /7 gün geçerlidir/);
+});
+
+for (const template of templates) {
+  test(`${template.id}: shows profit and overhead as its own row only when the quotation adds it`, () => {
+    const withShare = template.htmlTemplate({ ...fixture, quotation: { ...fixture.quotation, overheadProfitPercent: 15, overheadProfitTotal: 185.1 } });
+    assert.match(withShare, /Müteahhitlik Kârı ve Genel Gider \(%15\):/);
+    assert.match(withShare, /185,1/);
+    for (const quotation of [fixture.quotation, { ...fixture.quotation, overheadProfitPercent: 0, overheadProfitTotal: 0 }]) {
+      assert.doesNotMatch(template.htmlTemplate({ ...fixture, quotation }), /Genel Gider/);
+    }
+  });
+}

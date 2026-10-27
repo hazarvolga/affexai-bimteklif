@@ -32,6 +32,9 @@ export interface PdfData {
     revisionVersion: number;
     subtotal: number;
     discountTotal: number;
+    /** Release 0029; omitted or zero when the quotation adds no profit and overhead. */
+    overheadProfitPercent?: number;
+    overheadProfitTotal?: number;
     vatTotal: number;
     grandTotal: number;
   };
@@ -50,6 +53,14 @@ export interface PdfData {
     ruleVersions: string[];
   };
 }
+
+/** "Müteahhitlik kârı ve genel gider" sits between the net and VAT, so the customer sees how the total is built. */
+const overheadProfitRow = (data: PdfData, valueClass: string) => {
+  const total = data.quotation.overheadProfitTotal ?? 0;
+  if (!(total > 0)) return '';
+  const percent = (data.quotation.overheadProfitPercent ?? 0).toLocaleString('tr-TR', { maximumFractionDigits: 2 });
+  return `<div class="total-row"><span>Müteahhitlik Kârı ve Genel Gider (%${escapeHtml(percent)}):</span> <span class="${valueClass}">${escapeHtml(total.toLocaleString('tr-TR'))} ${escapeHtml(data.quotation.currency)}</span></div>`;
+};
 
 const evidenceSummaryHtml = (data: PdfData) => data.evidenceSummary ? `
   <div class="terms" style="border: 1px solid #e4e4e7; border-radius: 8px; padding: 14px;">
@@ -99,7 +110,7 @@ export const templates: PdfTemplate[] = [
       </head>
       <body>
         <div class="header">
-          <div class="logo">TeklifPro AI</div>
+          <div class="logo">${escapeHtml(data.company.name)}</div>
           <div class="company-info">
             <div style="font-weight: 800; color: #18181b; font-size: 12pt;">${escapeHtml(data.company.name)}</div>
             <div>${escapeHtml(data.company.address || "")}</div>
@@ -155,6 +166,7 @@ export const templates: PdfTemplate[] = [
           <div class="totals-box">
             <div class="total-row"><span>Ara Toplam:</span> <span class="font-mono">${escapeHtml(data.quotation.subtotal.toLocaleString('tr-TR'))} ${escapeHtml(data.quotation.currency)}</span></div>
             <div class="total-row"><span>İndirim:</span> <span class="font-mono" style="color: #ea580c">-${escapeHtml(data.quotation.discountTotal.toLocaleString('tr-TR'))} ${escapeHtml(data.quotation.currency)}</span></div>
+            ${overheadProfitRow(data, 'font-mono')}
             <div class="total-row"><span>KDV:</span> <span class="font-mono">${escapeHtml(data.quotation.vatTotal.toLocaleString('tr-TR'))} ${escapeHtml(data.quotation.currency)}</span></div>
             <div class="total-row grand-total"><span>TOPLAM:</span> <span class="font-mono">${escapeHtml(data.quotation.grandTotal.toLocaleString('tr-TR'))} ${escapeHtml(data.quotation.currency)}</span></div>
           </div>
@@ -163,7 +175,7 @@ export const templates: PdfTemplate[] = [
         ${evidenceSummaryHtml(data)}
         <div class="terms">
           <div style="font-weight: 800; margin-bottom: 5px; color: #18181b;">Şartlar ve Koşullar:</div>
-          <div style="margin-bottom: 3px;">• Bu teklif hazırlandığı tarihten itibaren 7 gün geçerlidir.</div>
+          <div style="margin-bottom: 3px;">• Bu teklif ${escapeHtml(data.quotation.expiryDate)} tarihine kadar geçerlidir.</div>
           <div style="margin-bottom: 3px;">• Malzeme fiyatlarındaki aşırı artışlar teklife yansıtılabilir.</div>
           <div style="margin-bottom: 3px;">• Ödeme planı karşılıklı mutabakat sonrası netleştirilecektir.</div>
           <div style="margin-bottom: 3px;">• KDV oranları yasal mevzuat gereği değiştirilebilir.</div>
@@ -255,6 +267,7 @@ export const templates: PdfTemplate[] = [
           <div class="totals-box">
             <div class="total-row"><span>Hakediş Toplamı:</span> <span>${escapeHtml(data.quotation.subtotal.toLocaleString('tr-TR'))} ${escapeHtml(data.quotation.currency)}</span></div>
             <div class="total-row"><span>İskonto Kamu:</span> <span style="color: #ea580c">-${escapeHtml(data.quotation.discountTotal.toLocaleString('tr-TR'))} ${escapeHtml(data.quotation.currency)}</span></div>
+            ${overheadProfitRow(data, '')}
             <div class="total-row"><span>KDV Tevkifat (%20):</span> <span>${escapeHtml(data.quotation.vatTotal.toLocaleString('tr-TR'))} ${escapeHtml(data.quotation.currency)}</span></div>
             <div class="total-row grand-total"><span>GENEL YEKÜN:</span> <span>${escapeHtml(data.quotation.grandTotal.toLocaleString('tr-TR'))} ${escapeHtml(data.quotation.currency)}</span></div>
           </div>
@@ -341,6 +354,7 @@ export const templates: PdfTemplate[] = [
 
         <div class="totals-container">
           <div class="totals-box">
+            ${overheadProfitRow(data, '')}
             <div class="total-row"><span>TOPLAM</span> <span style="font-weight: 700;">${escapeHtml(data.quotation.grandTotal.toLocaleString('tr-TR'))} ${escapeHtml(data.quotation.currency)}</span></div>
             <div style="font-size: 7pt; color: #a1a1aa; text-align: right; margin-top: 5px;">KDV DAHİLDİR</div>
           </div>

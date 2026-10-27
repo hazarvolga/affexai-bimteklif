@@ -47,7 +47,7 @@ export const CALC_MODULES: CalcModule[] = [
     area: "Teklif",
     status: "mevzuat",
     sourceFiles: ["src/lib/calculations.ts", "src/lib/quote-excel-import.ts", "src/lib/quote-excel-import.test.ts"],
-    references: ["3065 sayılı KDV Kanunu (matrah: iskonto sonrası bedel)", "VUK — tutarların kuruş hassasiyeti"],
+    references: ["3065 sayılı KDV Kanunu (matrah: iskonto sonrası bedel)", "VUK — tutarların kuruş hassasiyeti", "ÇŞB inşaat birim fiyat analizleri (2020, 2024, 2025, 2026): birim fiyatlara %25 yüklenici kârı ve genel giderler dahildir"],
     purpose: "Her teklif satırının brüt tutarını, iskontosunu, KDV matrahını, KDV'sini ve toplamını hesaplar; teklif toplamlarını satırlardan türetir. Ekran, sunucu ve PDF aynı fonksiyonu kullanır.",
     formulas: [
       "brüt = yuvarla(miktar × birim fiyat)",
@@ -56,12 +56,15 @@ export const CALC_MODULES: CalcModule[] = [
       "KDV = yuvarla(net × KDV% / 100)",
       "satır toplamı = net + KDV",
       "Teklif ara toplamı = Σ brüt;  iskonto toplamı = Σ iskonto;  KDV toplamı = Σ KDV;  genel toplam = Σ(net + KDV)",
+      "Müteahhitlik kârı ve genel gider (Rev. 94, release 0029): pay = yuvarla(net × kâr% / 100) her satırda;  KDV = yuvarla((net + pay) × KDV% / 100);  genel toplam = Σ(net + pay + KDV). Kâr% = 0 iken sonuç yukarıdakiyle aynıdır.",
     ],
     rules: { columns: ["Doğrulama", "Kural"], rows: [
       ["Miktar", "> 0 olmalı"],
       ["Birim fiyat", "≥ 0 olmalı (0 TL satır 'fiyat eksik' uyarısı alır)"],
       ["İskonto ve KDV oranı", "0–100 arasında"],
       ["Toplamlar", "Kuruş cinsinden satır toplamlarından türetilir; PDF'teki satırların toplamı her zaman ara toplama eşittir"],
+      ["Kâr ve genel gider %", "0–100 arasında, en fazla iki ondalık; aralık dışı değer reddedilir (kırpılmaz). Kalem birim fiyatları fiyat kaydına eşit kalır; pay teklifte, PDF'te ve Excel çıktısında ayrı satırdır"],
+      ["ÇŞB birim fiyatı", "ÇŞB fiyat modunda kâr% 0'dan başlar; elle girilirse çift sayım uyarısı gösterilir"],
     ] },
     example: {
       inputs: [["Satır 1", "12,5 × 1.840,35 TL, %7,5 iskonto, %20 KDV"], ["Satır 2", "3 × 0,335 TL, iskonto yok, %20 KDV"]],
@@ -71,10 +74,12 @@ export const CALC_MODULES: CalcModule[] = [
       ],
       result: "Ara toplam 23.005,39 · iskonto 1.725,33 · KDV 4.256,01 · genel toplam 25.536,07 TL",
     },
-    assumptions: ["İskonto KDV'den önce uygulanır.", "Yuvarlama satır bazındadır; e-fatura satır yuvarlamasıyla aynı yaklaşımdır."],
+    assumptions: ["İskonto KDV'den önce uygulanır.", "Yuvarlama satır bazındadır; e-fatura satır yuvarlamasıyla aynı yaklaşımdır.", "Kâr ve genel gider payı KDV matrahına dahildir (müşteriye satış bedelinin parçasıdır)."],
     questions: [
       "Satır bazında yuvarlayıp toplamak, sizin hakediş ve fatura pratiğinizle uyumlu mu? (Alternatif: toplamı tek seferde yuvarlamak, birkaç kuruş fark verir.)",
       "İskontonun KDV matrahını düşürmesi teklif sözleşmelerinizde her zaman geçerli mi?",
+      "Kâr ve genel gideri teklifte ayrı satır olarak göstermek mi, birim fiyatlara dağıtmak mı tercih edilir? (Ayrı satır, fiyat kaydına bağlı birim fiyatı değiştirmediği için seçildi.)",
+      "Kâr ve genel gider payının satır bazında hesaplanıp her satırın kendi KDV oranıyla vergilendirilmesi, karışık KDV oranlı (ör. %1/%10/%20) tekliflerde sizin pratiğinizle uyumlu mu?",
     ],
   },
   {
@@ -103,7 +108,7 @@ export const CALC_MODULES: CalcModule[] = [
     references: ["Şirket içi maliyet muhasebesi uygulaması"],
     purpose: "Satış neti ile fire dahil gerçek maliyeti karşılaştırıp kâr ve marjı hesaplar. Teklif ekranı ve kârlılık raporu aynı fonksiyonu kullanır.",
     formulas: [
-      "satış neti = Σ satır net (iskonto sonrası, KDV hariç; satır kuruşlarıyla)",
+      "satış neti = Σ satır net (iskonto sonrası, KDV hariç; satır kuruşlarıyla) + Σ kâr ve genel gider payı (Rev. 94: teklif düzeyinde müşteriye eklenen pay gelirdir, maliyet değildir)",
       "satır maliyeti = miktar × maliyet birim fiyatı × (1 + fire% / 100)",
       "maliyet = Σ satır maliyeti; kategori dökümü: malzeme, işçilik, lojistik, taşeron, genel gider",
       "risk primli maliyet = maliyet + eskalasyon primi + karbon primi + bilgi teslim primi",

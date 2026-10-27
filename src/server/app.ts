@@ -68,6 +68,7 @@ import type { CompanyIndustrySettingsService } from "../services/company-industr
 import { registerCdeRoutes } from "./routes/cde";
 import type { CdeService } from "../services/cde/service";
 import { registerProgressPaymentRoutes } from "./routes/progress-payments";
+import { registerExpertFeedbackRoutes } from "./routes/expert-feedback";
 import { assertProductionEnvironment, validateSmartcheckStorageEnvironment } from "./config/production";
 import { validateAuthEmailEnvironment } from './auth/email-policy';
 import { pruneExpiredRateLimits } from "./auth/security";
@@ -196,6 +197,7 @@ export function createApiApp(options?: { configureRoutes?: (app: express.Express
   registerPilotEvidenceRoutes(app, options?.pilotEvidenceService, options?.pilotEvidenceRateLimiter);
   registerCdeRoutes(app, options?.cdeService);
   registerProgressPaymentRoutes(app);
+  registerExpertFeedbackRoutes(app);
 
   if (options?.configureRoutes) {
     options.configureRoutes(app);

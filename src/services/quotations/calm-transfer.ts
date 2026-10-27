@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { and, desc, eq, inArray, or, sql } from "drizzle-orm";
 import { withAppTenantTransaction } from "../../db/app-tenant";
 import {
+  clients,
   documentProcessingRuns,
   documentProcessingArtifacts,
   documents,
@@ -20,6 +21,7 @@ import { calculateLineItemTotal, calculateQuotationTotals } from "../../lib/calc
 import { evaluatePriceSourceAuthorization, hasCommercialQuotationCapability, licensePermitsCommercialQuotation, type PriceAuthorizationStatus } from "../../smartcheck/pricing/authorization";
 import { priceSnapshotMatchesQuotationItem } from "../../smartcheck/pricing/integrity";
 import { isPriceSnapshotStale, sha256Payload } from "../../smartcheck/pricing/snapshots";
+import { consumeQuotationQuota } from "../billing/quota";
 import { copyRevisionItems } from "./revision-copy";
 
 export type CalmTransferSourceRow = {
@@ -168,6 +170,7 @@ export function buildCalmTransferRequestHash(input: {
   sourceDocumentId: string;
   targetQuotationId: string;
   priceSnapshotIdsByCalmLineId: Readonly<Record<string, string>>;
+  overheadProfitPercent?: string;
 }): string {
   return sha256Payload({
     companyId: input.companyId,
@@ -175,6 +178,8 @@ export function buildCalmTransferRequestHash(input: {
     sourceDocumentId: input.sourceDocumentId,
     targetQuotationId: input.targetQuotationId,
     lines: Object.entries(input.priceSnapshotIdsByCalmLineId).sort(([a], [b]) => a.localeCompare(b)).map(([lineId, priceSnapshotId]) => ({ lineId, priceSnapshotId })),
+    // Only when given, so requests made before release 0029 keep their idempotency hash.
+    ...(input.overheadProfitPercent === undefined ? {} : { overheadProfitPercent: input.overheadProfitPercent }),
   });
 }
 
@@ -258,6 +263,8 @@ export type CalmTransferRequest = {
   sourceDocumentId: string;
   targetQuotationId: string;
   priceSnapshotIdsByCalmLineId: Readonly<Record<string, string>>;
+  /** Profit and overhead for the new revision, as a two-decimal string; the latest revision's value when absent. */
+  overheadProfitPercent?: string;
 };
 
 type Transaction = Parameters<Parameters<typeof withAppTenantTransaction>[1]>[0];
@@ -506,6 +513,7 @@ async function createSuccessorRevision(
   actor: CalmTransferActor,
   locked: Awaited<ReturnType<typeof lockLatestQuotation>>,
   at: Date,
+  overheadProfitPercent: string | undefined,
 ) {
   await tx.update(quotations).set({ isLatest: false, updatedAt: at }).where(locked.seriesScope);
   const { id: _id, createdAt: _createdAt, updatedAt: _updatedAt, ...quotationFields } = locked.latest;
@@ -519,6 +527,7 @@ async function createSuccessorRevision(
     pricingSnapshotLockedAt: null,
     pricingSnapshotLockedByUserId: null,
     pricingSnapshotLockHash: null,
+    overheadProfitPercent: overheadProfitPercent ?? locked.latest.overheadProfitPercent,
     updatedAt: at,
   }).returning();
   return successor;
@@ -591,16 +600,17 @@ function buildTransferLineage(args: {
 async function updateSuccessorTotals(
   tx: Transaction,
   actor: CalmTransferActor,
-  successorId: string,
+  successor: typeof quotations.$inferSelect,
   items: Array<typeof quotationItems.$inferInsert>,
   at: Date,
 ) {
+  const successorId = successor.id;
   try { for (const item of items) assertQuotationItemCalculationSafe(item as Required<Pick<typeof quotationItems.$inferInsert, "quantity" | "unitPrice" | "discountPercent" | "vatPercent">>); }
   catch (error) { transferError(error instanceof Error ? error.message : "CALM_TRANSFER_TOTAL_RANGE_UNSUPPORTED"); }
-  const totals = calculateQuotationTotals(items.map((item) => ({ quantity: Number(item.quantity), unitPrice: Number(item.unitPrice), discountPercent: Number(item.discountPercent), vatPercent: Number(item.vatPercent) })));
-  if ([totals.subtotal, totals.discountTotal, totals.vatTotal, totals.grandTotal].some((value) => !Number.isFinite(value) || !Number.isSafeInteger(Math.round(value * 100)))) transferError("CALM_TRANSFER_TOTAL_RANGE_UNSUPPORTED");
+  const totals = calculateQuotationTotals(items.map((item) => ({ quantity: Number(item.quantity), unitPrice: Number(item.unitPrice), discountPercent: Number(item.discountPercent), vatPercent: Number(item.vatPercent) })), { overheadProfitPercent: successor.overheadProfitPercent });
+  if ([totals.subtotal, totals.discountTotal, totals.overheadProfitTotal, totals.vatTotal, totals.grandTotal].some((value) => !Number.isFinite(value) || !Number.isSafeInteger(Math.round(value * 100)))) transferError("CALM_TRANSFER_TOTAL_RANGE_UNSUPPORTED");
   const [quotation] = await tx.update(quotations).set({
-    subtotal: String(totals.subtotal), discountTotal: String(totals.discountTotal), vatTotal: String(totals.vatTotal), grandTotal: String(totals.grandTotal), updatedAt: at,
+    subtotal: String(totals.subtotal), discountTotal: String(totals.discountTotal), overheadProfitTotal: String(totals.overheadProfitTotal), vatTotal: String(totals.vatTotal), grandTotal: String(totals.grandTotal), updatedAt: at,
   }).where(and(eq(quotations.id, successorId), eq(quotations.companyId, actor.companyId))).returning();
   return quotation;
 }
@@ -612,9 +622,10 @@ async function persistTransfer(args: {
   pricing: Awaited<ReturnType<typeof loadPricingContext>>;
   baseline: Awaited<ReturnType<typeof loadQuotationBaseline>>;
   scope: ReturnType<typeof createScopeSnapshot>;
+  overheadProfitPercent: string | undefined;
 }) {
-  const { tx, actor, idempotencyKey, requestPayloadHash, at, locked, source, pricing, baseline, scope } = args;
-  const successor = await createSuccessorRevision(tx, actor, locked, at);
+  const { tx, actor, idempotencyKey, requestPayloadHash, at, locked, source, pricing, baseline, scope, overheadProfitPercent } = args;
+  const successor = await createSuccessorRevision(tx, actor, locked, at, overheadProfitPercent);
   const cloned = copyRevisionItems(baseline.items, baseline.evidence, successor.id, baseline.aggregateProvenanceItemIds);
   if (cloned.items.length) await tx.insert(quotationItems).values(cloned.items);
   if (cloned.evidence.length) await tx.insert(quotationItemEvidence).values(cloned.evidence);
@@ -623,7 +634,7 @@ async function persistTransfer(args: {
   const ledgerId = randomUUID();
   const lineage = buildTransferLineage({ actor, ledgerId, successorId: successor.id, source, newItems, requestHash: scope.requestHash });
   if (lineage.evidence.length) await tx.insert(quotationItemEvidence).values(lineage.evidence);
-  const quotation = await updateSuccessorTotals(tx, actor, successor.id, [...cloned.items, ...newItems.map(({ record }) => record)], at);
+  const quotation = await updateSuccessorTotals(tx, actor, successor, [...cloned.items, ...newItems.map(({ record }) => record)], at);
   const [ledger] = await tx.insert(quotationTransferLedgers).values({
     id: ledgerId, companyId: actor.companyId, actorUserId: actor.userId,
     sourceDocumentId: source.document.id, sourceProcessingRunId: source.run.id, sourceArtifactId: source.artifact.id,
@@ -653,13 +664,24 @@ async function performCalmTransfer(
 ) {
   const replay = await authorizeActorAndFindReplay(tx, actor, idempotencyKey, requestPayloadHash);
   if (replay) return replay;
+  return transferIntoLatestRevision(tx, actor, idempotencyKey, input, requestPayloadHash, at);
+}
+
+async function transferIntoLatestRevision(
+  tx: Transaction,
+  actor: CalmTransferActor,
+  idempotencyKey: string,
+  input: CalmTransferRequest,
+  requestPayloadHash: string,
+  at: Date,
+) {
   const locked = await lockLatestQuotation(tx, actor, input.targetQuotationId);
   const source = await loadSourceProjection(tx, actor, input);
   const pricing = await loadPricingContext(tx, actor, source.lines, locked.latest, at);
   const baseline = await loadQuotationBaseline(tx, actor, locked.latest.id, locked.rootId);
   await assertNoPriorSourceTransfer(tx, actor, locked.rootId, source.rows.map((row) => row.id));
   const scope = createScopeSnapshot({ requestPayloadHash, at, quotation: locked.latest, items: baseline.items, evidence: baseline.evidence, source, pricing });
-  return persistTransfer({ tx, actor, idempotencyKey, requestPayloadHash, at, locked, source, pricing, baseline, scope });
+  return persistTransfer({ tx, actor, idempotencyKey, requestPayloadHash, at, locked, source, pricing, baseline, scope, overheadProfitPercent: input.overheadProfitPercent });
 }
 
 /** Creates one successor quotation revision and never mutates source items/evidence. */
@@ -677,4 +699,97 @@ export async function transferCalmRowsToQuotationRevision(
     ...input,
   });
   return withAppTenantTransaction(actor, (tx) => performCalmTransfer(tx, actor, cleanIdempotencyKey, input, requestPayloadHash, at));
+}
+
+export type CalmTransferNewQuotation = {
+  clientName: string;
+  projectName?: string;
+  currency?: "TRY" | "USD" | "EUR";
+  /** Contractor profit and overhead percentage as a two-decimal string; "0" when absent. */
+  overheadProfitPercent?: string;
+};
+export type CalmTransferNewQuotationRequest = {
+  sourceDocumentId: string;
+  newQuotation: CalmTransferNewQuotation;
+  priceSnapshotIdsByCalmLineId: Readonly<Record<string, string>>;
+};
+
+const NEW_QUOTATION_EXPIRY_DAYS = 30;
+
+export function buildCalmNewQuotationRequestHash(input: { companyId: string; actorUserId: string } & CalmTransferNewQuotationRequest): string {
+  return sha256Payload({
+    mode: "new_quotation",
+    companyId: input.companyId,
+    actorUserId: input.actorUserId,
+    sourceDocumentId: input.sourceDocumentId,
+    newQuotation: { clientName: input.newQuotation.clientName.trim(), projectName: input.newQuotation.projectName?.trim() || null, currency: input.newQuotation.currency ?? "TRY", overheadProfitPercent: input.newQuotation.overheadProfitPercent ?? "0" },
+    lines: Object.entries(input.priceSnapshotIdsByCalmLineId).sort(([a], [b]) => a.localeCompare(b)).map(([lineId, priceSnapshotId]) => ({ lineId, priceSnapshotId })),
+  });
+}
+
+function calmQuoteNumber(at: Date): string {
+  return `IFC-${at.toISOString().slice(0, 10).replaceAll("-", "")}-${randomUUID().slice(0, 8).toUpperCase()}`;
+}
+
+/**
+ * Opens an empty starting revision (Rev. 1) and transfers the Calm icmal into its successor (Rev. 2) in the
+ * same transaction. The ledger stays revision-bound (source ≠ target, immediate successor), so a new quotation
+ * gets exactly the provenance guarantees of "add revision to an existing quotation". Consumes one quotation quota;
+ * any failure rolls back the client, both revisions and the quota.
+ */
+async function createStartingQuotation(tx: Transaction, actor: CalmTransferActor, request: CalmTransferNewQuotationRequest, at: Date) {
+  const [document] = await tx.select({ originalFileName: documents.originalFileName }).from(documents).where(and(
+    eq(documents.id, request.sourceDocumentId),
+    eq(documents.companyId, actor.companyId),
+  ));
+  if (!document) transferError("CALM_TRANSFER_DOCUMENT_NOT_FOUND", 404);
+  await consumeQuotationQuota(tx, actor.companyId, at);
+  const [client] = await tx.insert(clients).values({
+    companyId: actor.companyId,
+    name: request.newQuotation.clientName.trim(),
+    type: "company",
+    notes: `IFC icmali aktarımı için oluşturuldu. Kaynak: ${document.originalFileName}`,
+  }).returning();
+  const [quotation] = await tx.insert(quotations).values({
+    companyId: actor.companyId,
+    clientId: client.id,
+    quoteNumber: calmQuoteNumber(at),
+    projectName: request.newQuotation.projectName?.trim() || `IFC icmali · ${document.originalFileName}`,
+    date: at,
+    expiryDate: new Date(at.getTime() + NEW_QUOTATION_EXPIRY_DAYS * 86_400_000),
+    currency: request.newQuotation.currency ?? "TRY",
+    overheadProfitPercent: request.newQuotation.overheadProfitPercent ?? "0",
+    notes: "Boş başlangıç revizyonu; IFC icmali bir sonraki revizyona aktarıldı.",
+    status: "draft",
+    subtotal: "0", discountTotal: "0", vatTotal: "0", grandTotal: "0",
+    revisionVersion: 1,
+    isLatest: true,
+    createdAt: at,
+    updatedAt: at,
+  }).returning();
+  return quotation;
+}
+
+/** "Yeni teklif oluştur": a new quotation series whose first priced revision is the Calm icmal. */
+export async function transferCalmRowsToNewQuotation(
+  actor: CalmTransferActor,
+  idempotencyKey: string,
+  request: CalmTransferNewQuotationRequest,
+  at = new Date(),
+) {
+  const cleanIdempotencyKey = idempotencyKey.trim();
+  if (!cleanIdempotencyKey || cleanIdempotencyKey.length > 160) transferError("CALM_TRANSFER_IDEMPOTENCY_KEY_INVALID", 400);
+  if (!request.newQuotation.clientName.trim()) transferError("CALM_TRANSFER_CLIENT_NAME_REQUIRED", 400);
+  const requestPayloadHash = buildCalmNewQuotationRequestHash({ companyId: actor.companyId, actorUserId: actor.userId, ...request });
+  return withAppTenantTransaction(actor, async (tx) => {
+    const replay = await authorizeActorAndFindReplay(tx, actor, cleanIdempotencyKey, requestPayloadHash);
+    if (replay) return replay;
+    const starting = await createStartingQuotation(tx, actor, request, at);
+    return transferIntoLatestRevision(tx, actor, cleanIdempotencyKey, {
+      sourceDocumentId: request.sourceDocumentId,
+      targetQuotationId: starting.id,
+      priceSnapshotIdsByCalmLineId: request.priceSnapshotIdsByCalmLineId,
+      overheadProfitPercent: request.newQuotation.overheadProfitPercent,
+    }, requestPayloadHash, at);
+  });
 }

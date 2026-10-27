@@ -9,6 +9,7 @@ import {
   type LandOwnerTaxpayerStatus,
   type LandTradingActivityStatus,
 } from "@/lib/kat-karsiligi";
+import { CalculationFeedback } from "@/features/expert-feedback/CalculationFeedback";
 import { CalcField, CalculatorShell, calcInputClass, fmtNum, fmtTry } from "./CalculatorShell";
 
 /**
@@ -88,6 +89,7 @@ export const KatKarsiligiCalculatorPage: React.FC = () => {
       title="Kat Karşılığı Paylaşım ve KDV Ön Hesabı | BIMMetraj"
       description="Arsa sahibi ve müteahhit payını ve konut KDV'sini (150 m² kademeli) kendi girdilerinizle hesaplayın. Bilgilendirme amaçlıdır."
       canonicalPath="/hesaplayicilar/kat-karsiligi-ve-kentsel-donusum"
+      preview
       heading="Kat Karşılığı Paylaşım ve KDV Ön Hesabı"
       intro="Tüm çarpanlar ve bedeller sizin girdinizdir; hiçbir değer varsayılmaz. KDV yalnızca 1/4/2022 ve sonrası yapı ruhsatlı konutlar için hesaplanır."
       sources={[
@@ -180,6 +182,16 @@ export const KatKarsiligiCalculatorPage: React.FC = () => {
           </div>
         </div>
       </section>
+
+      <CalculationFeedback
+        engineId="kat_karsiligi_kdv"
+        question="Paylaşım ve KDV sonucu sizin hesabınızla tutuyor mu?"
+        inputs={{ ...form, satisTuru, permitDate, deliveryDate, evidence6306, taxpayerStatus, activityStatus, taxUnits }}
+        result={{
+          paylasim: "result" in outcome ? outcome.result : { durum: outcome.error },
+          kdv: taxOutcome,
+        }}
+      />
     </CalculatorShell>
   );
 };

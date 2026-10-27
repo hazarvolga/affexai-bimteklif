@@ -25,6 +25,8 @@ export const manualQuotationInput = z.object({
   carbonRiskPremiumPercent: percent.default(0),
   informationDeliveryLevel: z.enum(["none", "as_built", "cobie", "digital_twin"]).default("none"),
   informationDeliveryCostPercent: percent.default(0),
+  /** "Müteahhitlik kârı ve genel gider" on the net subtotal; added to the customer price, VAT included on it. */
+  overheadProfitPercent: percent.default(0),
   items: z.array(z.object({
     benchmarkStagingId: z.string().uuid().optional(),
     description: text,

@@ -4,12 +4,14 @@ import {
   Users,
   Settings,
   BookOpen,
+  BookOpenCheck,
   ShieldCheck,
   TrendingUp,
   CreditCard,
   Briefcase,
   FileCheck2,
-  Calculator
+  Calculator,
+  ClipboardCheck
 } from 'lucide-react';
 import { ACADEMY_ENABLED } from '@/config/features';
 import { PROGRESS_PAYMENTS_ENABLED } from '@/config/client-features';
@@ -81,6 +83,20 @@ export const navigationConfig: NavItem[] = [
     path: "/app/nasil-calisir",
     icon: Calculator,
     roles: ["owner", "admin", "manager", "viewer"],
+    group: "Araçlar",
+  },
+  {
+    label: "Uzman Önizlemesi",
+    path: "/app/uzman-onizleme",
+    icon: ClipboardCheck,
+    roles: ["owner", "admin", "manager", "viewer"],
+    group: "Araçlar",
+  },
+  {
+    label: "Fiyat Kataloğu",
+    path: "/app/fiyat-katalogu",
+    icon: BookOpenCheck,
+    roles: ["owner", "admin", "manager"],
     group: "Araçlar",
   },
   {

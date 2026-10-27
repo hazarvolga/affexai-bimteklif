@@ -9,6 +9,7 @@ import {
   getPilotCapabilities,
   getRoadmapCapabilities,
 } from './registry';
+import { llmsFullTxt, llmsTxt, sitemapXml } from '../server/security/web-hardening';
 
 const REPO_ROOT = path.resolve(import.meta.dirname, '..', '..');
 
@@ -143,9 +144,23 @@ test('Yayımlanmamış hesaplayıcılar: kaynak doğrulaması bitmeyen yetenekle
     assert.equal(cap.status, 'roadmap');
     assert.equal(cap.level, 'L1');
   }
+  // Uzman önizlemesi: yalnız oturum gerektiren /app/uzman-onizleme/* altında, "yayında değil" uyarısıyla açılabilirler.
   const app = fs.readFileSync(path.resolve(REPO_ROOT, 'src/App.tsx'), 'utf8');
-  assert.equal(app.includes('KatKarsiligiCalculatorPage'), false);
-  assert.equal(app.includes('YambisCalculatorPage'), false);
+  const protectedStart = app.indexOf('<Route element={<ProtectedRoute />}>');
+  const appShellStart = app.indexOf('<Route path="/app" element={<Shell />}>');
+  assert.ok(protectedStart > 0 && appShellStart > protectedStart, 'korumalı /app kabuğu bulunamadı');
+  for (const component of ['KatKarsiligiCalculatorPage', 'YambisCalculatorPage']) {
+    const routes = [...app.matchAll(new RegExp(`<Route path="([^"]+)" element={<${component} />} />`, 'g'))];
+    assert.equal(routes.length, 1, `${component}: tek bir rota olmalı`);
+    const [match] = routes;
+    assert.match(match[1], /^uzman-onizleme\/[a-z-]+$/, `${component}: yalnız /app/uzman-onizleme altında olabilir`);
+    assert.ok(match.index! > appShellStart, `${component}: rota oturum gerektiren /app kabuğunun içinde olmalı`);
+    const source = fs.readFileSync(path.resolve(REPO_ROOT, `src/pages/calculators/${component}.tsx`), 'utf8');
+    assert.match(source, /<CalculatorShell[\s\S]*?\n\s+preview\n/, `${component}: önizleme kabuğu (uyarı, herkese açık meta yok) kullanılmalı`);
+  }
+  for (const generated of [sitemapXml('https://bimmetraj.com'), llmsTxt('https://bimmetraj.com'), llmsFullTxt('https://bimmetraj.com')]) {
+    assert.doesNotMatch(generated, /\/app\/uzman-onizleme|\/hesaplayicilar\/(yambis|kat-karsiligi)/i);
+  }
 });
 
 test('Halka açık hesaplayıcılar boş başlar: sayfalarda başlangıç değeri (varsayılan) bulunamaz', () => {

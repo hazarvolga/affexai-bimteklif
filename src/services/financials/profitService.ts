@@ -24,7 +24,7 @@ export class ProfitService {
 
   constructor(provider: string | TextProvider) { this.provider = typeof provider === "string" ? new GeminiProvider(provider) : provider; }
 
-  async analyzeProfitability(items: any[], industryId: string, currency = "TRY", riskInputs: { projectDurationMonths?: number; escalationVolatilityPercent?: number; carbonRiskPremiumPercent?: number; informationDeliveryCostPercent?: number } = {}, beforePaidCall?: () => Promise<unknown>): Promise<FinancialAnalysis> {
+  async analyzeProfitability(items: any[], industryId: string, currency = "TRY", riskInputs: { projectDurationMonths?: number; escalationVolatilityPercent?: number; carbonRiskPremiumPercent?: number; informationDeliveryCostPercent?: number; overheadProfitPercent?: number } = {}, beforePaidCall?: () => Promise<unknown>): Promise<FinancialAnalysis> {
     const calculation = calculateQuotationFinancials(items, riskInputs);
     const costStatus = calculation.missingCostItemIndexes.length === 0 ? "complete" : "incomplete";
     if (costStatus === "incomplete") {

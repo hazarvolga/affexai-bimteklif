@@ -16,7 +16,8 @@ test('quota display handles zero, null and unenforced limits without inventing a
 test('usageLabels covers all backend metered features with Turkish labels', () => {
   assert.equal(usageLabels.QUOTATION_CREATED, 'Teklif');
   assert.equal(usageLabels.AI_QUOTATION_GENERATED, 'AI Teklif Üretimi');
-  assert.equal(usageLabels.PDF_GENERATED, 'PDF / PDF-A Çıktısı');
+  // PDF/A pre-checks are counted separately; this card measures quotation PDFs only.
+  assert.equal(usageLabels.PDF_GENERATED, 'Teklif PDF Çıktısı');
   assert.equal(usageLabels.REGULATION_CHECK_RUN, 'Mevzuat Denetimi');
   assert.equal(usageLabels.PROFIT_ANALYSIS_RUN, 'Kârlılık Analizi');
   assert.equal(usageLabels.IFC_IMPORTED, 'IFC Model Analizi');

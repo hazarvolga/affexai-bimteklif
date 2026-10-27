@@ -28,6 +28,9 @@ test("Calm transfer is tenant-safe, transactional, replayable and creates exactl
     { companyId: companyA.id, userId: authorizer.id, role: "admin" },
     { companyId: companyB.id, userId: otherActor.id, role: "owner" },
   ]);
+  const [plan] = await db.insert(schema.plans).values({ name: `Calm plan ${suffix}`, monthlyQuoteLimit: 5, monthlyPrice: 1 }).returning();
+  await db.insert(schema.subscriptions).values({ companyId: companyA.id, planId: plan.id, currentPeriodStart: new Date("2020-01-01") });
+  const quoteUsage = async () => (await db.select().from(schema.usageRecords).where(drizzle.eq(schema.usageRecords.companyId, companyA.id))).reduce((sum, row) => sum + row.quoteCount, 0);
   const [client] = await db.insert(schema.clients).values({ companyId: companyA.id, name: "Calm Client", type: "company" }).returning();
   const quote = async (name: string) => (await db.insert(schema.quotations).values({
     companyId: companyA.id,
@@ -247,6 +250,7 @@ test("Calm transfer is tenant-safe, transactional, replayable and creates exactl
   assert.equal(explicitVatResult.quotation.subtotal, "8375.00");
   assert.equal(explicitVatResult.quotation.vatTotal, "1675.00");
   assert.equal(explicitVatResult.quotation.grandTotal, "10050.00");
+  assert.equal(explicitVatResult.quotation.overheadProfitTotal, "0.00", "no percentage keeps the pre-0029 totals");
 
   await db.update(schema.priceSnapshots).set({ vatPercent: "100.01" }).where(drizzle.eq(schema.priceSnapshots.id, snapshot.id));
   await assert.rejects(
@@ -296,10 +300,15 @@ test("Calm transfer is tenant-safe, transactional, replayable and creates exactl
   const secondResult = await service.transferCalmRowsToQuotationRevision(
     { companyId: companyA.id, userId: actor.id },
     "second-distinct-document",
-    { sourceDocumentId: secondDocument.id, targetQuotationId: successorId, priceSnapshotIdsByCalmLineId: Object.fromEntries(secondLines.map((line) => [line.lineId, snapshot.id])) },
+    { sourceDocumentId: secondDocument.id, targetQuotationId: successorId, priceSnapshotIdsByCalmLineId: Object.fromEntries(secondLines.map((line) => [line.lineId, snapshot.id])), overheadProfitPercent: "10.00" },
     new Date("2026-10-23T12:20:00Z"),
   );
   assert.equal(secondResult.quotation.revisionVersion, 3);
+  // Net 10.885,00 (8.375 + 10 + 2.500); 10% profit and overhead per line; 20% VAT on net plus that share.
+  assert.deepEqual(
+    [secondResult.quotation.overheadProfitPercent, secondResult.quotation.subtotal, secondResult.quotation.overheadProfitTotal, secondResult.quotation.vatTotal, secondResult.quotation.grandTotal],
+    ["10.00", "10885.00", "1088.50", "2394.70", "14368.20"],
+  );
   const latestCalmItems = await db.select().from(schema.quotationItems).where(drizzle.and(
     drizzle.eq(schema.quotationItems.quotationId, secondResult.quotation.id),
     drizzle.eq(schema.quotationItems.sourceRuleVersion, "calm-icmal.v1"),
@@ -318,6 +327,76 @@ test("Calm transfer is tenant-safe, transactional, replayable and creates exactl
   assert.equal(carriedItem?.verificationStatus, "verified");
   const originalJunctionRows = await db.select().from(schema.quotationTransferSourceRows).where(drizzle.eq(schema.quotationTransferSourceRows.transferLedgerId, storedLedger.id));
   assert.deepEqual(new Set(originalJunctionRows.map((row) => row.sourceQuantityRowId)), new Set(rows.map((row) => row.id)));
+
+  const [newDocument] = await db.insert(schema.documents).values({
+    companyId: companyA.id, uploadedByUserId: actor.id, originalFileName: "calm-new.ifc", displayName: "Calm IFC yeni",
+    mimeType: "application/x-step", fileSizeBytes: 512, storageKey: `${companyA.id}/calm-new.ifc`, checksumSha256: "3".repeat(64),
+  }).returning();
+  const [newRun] = await db.insert(schema.documentProcessingRuns).values({
+    companyId: companyA.id, documentId: newDocument.id, status: "succeeded", currentStage: "completed",
+    idempotencyKey: `calm-new-${suffix}`, pipelineVersion: 5, provider: "ifcopenshell", model: "0.8.5",
+    progressPercent: 100, completedAt: new Date("2026-10-23T12:30:00Z"),
+  }).returning();
+  await db.insert(schema.documentProcessingArtifacts).values({
+    companyId: companyA.id, documentId: newDocument.id, processingRunId: newRun.id, artifactType: "ifc_evidence",
+    storageKey: `${companyA.id}/${newRun.id}/ifc-evidence.json`, checksumSha256: "4".repeat(64), schemaVersion: 1,
+    contentType: "application/json", sizeBytes: 96,
+  });
+  const [newRow] = await db.insert(schema.normalizedQuantityRows).values({
+    companyId: companyA.id, documentId: newDocument.id, processingRunId: newRun.id, sheetName: "IFC", sourceRowNumber: 1,
+    sourceCellRange: "IfcSlab#new", rawDescription: "IfcSlab · Beton_C30", rawPositionCode: "15.150.1006", rawUnit: "m3", rawQuantity: "2.0000",
+    normalizedDescription: "C30/37 Betonarme", normalizedPositionCode: "15.150.1006", normalizedUnit: "m³", normalizedQuantity: "2.0000",
+    formulaJson: { materialLayers: JSON.stringify(["Beton_C30"]) }, quantitySource: "ifc_qto", reviewStatus: "approved",
+    reviewerUserId: reviewer.id, reviewedAt: new Date("2026-10-23T12:35:00Z"),
+  }).returning();
+  const newLines = service.projectApprovedRowsToCalmQuotationLines([newRow], {});
+  const newRequest = {
+    sourceDocumentId: newDocument.id,
+    newQuotation: { clientName: "Yeni Müşteri", projectName: "Yeni IFC teklifi", overheadProfitPercent: "15.00" },
+    priceSnapshotIdsByCalmLineId: Object.fromEntries(newLines.map((line) => [line.lineId, snapshot.id])),
+  };
+  const newAt = new Date("2026-10-23T12:40:00Z");
+  const usageBeforeNew = await quoteUsage();
+  const createdNew = await service.transferCalmRowsToNewQuotation({ companyId: companyA.id, userId: actor.id }, "new-quotation", newRequest, newAt);
+  assert.equal(createdNew.replayed, false);
+  assert.equal(createdNew.quotation.revisionVersion, 2, "the icmal lands on the successor of an empty starting revision");
+  assert.equal(createdNew.quotation.projectName, "Yeni IFC teklifi");
+  // 2 m³ × 2.500 = 5.000 net, 15% = 750, VAT 20% of 5.750 = 1.150; line prices stay equal to the snapshot.
+  assert.deepEqual(
+    [createdNew.quotation.overheadProfitPercent, createdNew.quotation.subtotal, createdNew.quotation.overheadProfitTotal, createdNew.quotation.vatTotal, createdNew.quotation.grandTotal],
+    ["15.00", "5000.00", "750.00", "1150.00", "6900.00"],
+  );
+  const [startingRevision] = await db.select().from(schema.quotations).where(drizzle.eq(schema.quotations.id, createdNew.ledger.sourceQuotationId));
+  assert.equal(startingRevision.revisionVersion, 1);
+  assert.equal(startingRevision.isLatest, false);
+  assert.equal(createdNew.quotation.parentId, startingRevision.id);
+  assert.equal((await db.select().from(schema.quotationItems).where(drizzle.eq(schema.quotationItems.quotationId, startingRevision.id))).length, 0);
+  const [newClient] = await db.select().from(schema.clients).where(drizzle.eq(schema.clients.id, createdNew.quotation.clientId));
+  assert.equal(newClient.name, "Yeni Müşteri");
+  assert.equal(newClient.companyId, companyA.id);
+  const newItems = await db.select().from(schema.quotationItems).where(drizzle.eq(schema.quotationItems.quotationId, createdNew.quotation.id));
+  assert.deepEqual(newItems.map((item) => [item.quantity, item.unitPrice, item.priceSnapshotId]), [["2.0000", "2500.00", snapshot.id]]);
+  const replayedNew = await service.transferCalmRowsToNewQuotation({ companyId: companyA.id, userId: actor.id }, "new-quotation", newRequest, newAt);
+  assert.equal(replayedNew.replayed, true);
+  assert.equal(replayedNew.quotation.id, createdNew.quotation.id, "a retried click must not open a second quotation");
+  assert.equal(await quoteUsage(), usageBeforeNew + 1, "a new quotation consumes exactly one quota, the replay none");
+  await assert.rejects(
+    service.transferCalmRowsToNewQuotation({ companyId: companyA.id, userId: actor.id }, "new-quotation", { ...newRequest, newQuotation: { clientName: "Başka Müşteri" } }, newAt),
+    (error: unknown) => error instanceof service.CalmTransferError && error.code === "CALM_TRANSFER_IDEMPOTENCY_CONFLICT",
+  );
+  const clientsBeforeFailure = (await db.select().from(schema.clients).where(drizzle.eq(schema.clients.companyId, companyA.id))).length;
+  await assert.rejects(
+    service.transferCalmRowsToNewQuotation({ companyId: companyA.id, userId: actor.id }, "new-quotation-bad-price", {
+      ...newRequest, priceSnapshotIdsByCalmLineId: Object.fromEntries(newLines.map((line) => [line.lineId, crypto.randomUUID()])),
+    }, newAt),
+    (error: unknown) => error instanceof service.CalmTransferError && error.code === "CALM_TRANSFER_PRICE_SNAPSHOT_INVALID",
+  );
+  assert.equal((await db.select().from(schema.clients).where(drizzle.eq(schema.clients.companyId, companyA.id))).length, clientsBeforeFailure, "a failed transfer leaves no orphan client or quotation");
+  assert.equal(await quoteUsage(), usageBeforeNew + 1, "a failed transfer rolls its quota back");
+  await assert.rejects(
+    service.transferCalmRowsToNewQuotation({ companyId: companyB.id, userId: otherActor.id }, "new-cross-tenant", newRequest, newAt),
+    (error: unknown) => error instanceof service.CalmTransferError && error.code === "CALM_TRANSFER_DOCUMENT_NOT_FOUND",
+  );
 
   await db.update(schema.memberships).set({ role: "viewer" }).where(drizzle.and(
     drizzle.eq(schema.memberships.companyId, companyA.id),

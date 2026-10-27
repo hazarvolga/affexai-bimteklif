@@ -26,7 +26,7 @@ import {
   formatBillingCycleLabel,
   normalizeBillingCycle,
 } from '@/services/billing/billing-periods';
-import { UsageStat, usageDisplay, usageLabels } from './billing-usage';
+import { UsageStat, usageDisplay, usageHints, usageLabels } from './billing-usage';
 
 interface BillingData {
   plan: string;
@@ -322,11 +322,6 @@ export function Billing() {
     }
   };
 
-  const cost = (value: number) =>
-    Number.isFinite(value)
-      ? `${value.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD`
-      : 'Belirtilmedi';
-
   const selectedPlanObj = plans.find((p) => p.id === (activeOrder?.planId || selectedPlanId));
 
   return (
@@ -390,8 +385,8 @@ export function Billing() {
                     />
                   )}
                   <p className="text-xs text-muted-foreground">
-                    {stat.enforced ? 'Uygulanan kota' : 'Bilgilendirme; bu limit uygulanmıyor'} · Tahmini işlem maliyeti:{' '}
-                    {cost(stat.cost)}
+                    {stat.enforced ? 'Paketinize dahil aylık hak' : 'Bilgilendirme; bu limit uygulanmıyor'}
+                    {usageHints[stat.feature] ? ` · ${usageHints[stat.feature]}` : ''}
                   </p>
                   {view.alert && (
                     <p role="status" className="flex items-start gap-2 text-sm text-amber-300">
@@ -408,11 +403,6 @@ export function Billing() {
             })}
           </div>
 
-          <section className="py-8 border-b border-border space-y-2">
-            <h2 className="text-lg font-medium">Tahmini işlem maliyeti</h2>
-            <p className="text-xl tabular-nums">{cost(data.totalMonthlyCost)}</p>
-            <p className="text-sm text-muted-foreground">Bu tutar fatura veya kart tahsilatı değildir.</p>
-          </section>
 
           {/* Paket Seçimi ve Yükseltme Kataloğu */}
           {plans.length > 0 && (

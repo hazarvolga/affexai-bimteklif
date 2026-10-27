@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { evaluateContractorGroups, type ContractorInput } from "@/lib/yambis-classification";
+import { CalculationFeedback } from "@/features/expert-feedback/CalculationFeedback";
 import { CalcField, CalculatorShell, calcInputClass, fmtNum, fmtTry } from "./CalculatorShell";
 
 /**
@@ -67,6 +68,7 @@ export const YambisCalculatorPage: React.FC = () => {
       title="Müteahhitlik Yetki Belgesi Grubu Ön Değerlendirmesi | BIMMetraj"
       description="Yapı Müteahhitlerinin Sınıflandırılması Yönetmeliği'ndeki grup koşullarını (iş deneyimi, iş gücü, bilanço oranları, ciro) kendi verilerinizle karşılaştırın. Bilgilendirme amaçlıdır."
       canonicalPath="/hesaplayicilar/yambis-muteahhitlik-grubu"
+      preview
       heading="Müteahhitlik Yetki Belgesi Grubu Ön Değerlendirmesi"
       intro="Değerleri yönetmelik tanımlarına göre siz girersiniz; hiçbir değer varsayılmaz. Sonuç Bakanlığın başvuru incelemesinin yerini tutmaz."
       sources={[
@@ -149,6 +151,13 @@ export const YambisCalculatorPage: React.FC = () => {
           )}
         </div>
       </section>
+
+      <CalculationFeedback
+        engineId="yambis"
+        question="Bu grup değerlendirmesi sizin bildiğinizle tutuyor mu?"
+        inputs={form}
+        result={"result" in outcome ? outcome.result : { durum: outcome.error }}
+      />
     </CalculatorShell>
   );
 };

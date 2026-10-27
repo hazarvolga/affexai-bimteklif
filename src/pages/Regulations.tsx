@@ -92,7 +92,7 @@ export function Regulations() {
     <PageContainer>
       <PageHeader 
         title="Mevzuat İstihbaratı" 
-        description="Resmî kaynak değişiklikleri advisory olarak izlenir; reviewer onayı olmadan tekliflere veya kanonik kurallara uygulanmaz."
+        description="Resmî kaynaklardaki değişiklikler öneri olarak izlenir; inceleyen kişi onaylamadan tekliflere veya kurallara uygulanmaz."
         icon={Scale}
         actions={
           <Button 
@@ -131,7 +131,7 @@ export function Regulations() {
               <CardContent className="flex flex-col items-center justify-center p-16 text-muted-foreground text-center">
                 <FileSearch size={48} className="mb-6 opacity-10" />
                 <p className="text-sm font-bold text-muted-foreground mb-2">Henüz bir mevzuat güncellemesi kayıtlı değil.</p>
-                <p className="text-xs text-muted-foreground mb-6 max-w-xs">Kaynak değişikliğini önce advisory olarak inceleyin; reviewer onayı olmadan hiçbir kural veya fiyat değişmez.</p>
+                <p className="text-xs text-muted-foreground mb-6 max-w-xs">Kaynak değişikliğini önce öneri olarak inceleyin; onay verilmeden hiçbir kural veya fiyat değişmez.</p>
                 <Button onClick={handleSync} disabled={syncing || !sourceUrl.trim()} className="bg-surface-elevated hover:bg-surface-elevated text-foreground dark:text-muted-foreground font-bold text-[10px] tracking-widest uppercase h-9 px-6">Belgeyi İncelemeye Al</Button>
               </CardContent>
             </Card>

@@ -733,7 +733,7 @@ test("T44 — Worker, runtime topology, S3/partial upload rollback, crash lease 
 
     // 5f. Verify forward migration ledger compatibility on restored database (no-op idempotency)
     const pendingAfterRestore = await applyMigrations(restoredClient, migrations);
-    assert.deepEqual(pendingAfterRestore, [], "Restored database must have 28/28 release migrations recorded with zero drift");
+    assert.deepEqual(pendingAfterRestore, [], "Restored database must have every release migration recorded with zero drift");
 
     console.log(
       JSON.stringify({

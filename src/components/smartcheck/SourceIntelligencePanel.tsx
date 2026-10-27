@@ -36,7 +36,7 @@ type ReviewItem = {
 const healthCopy: Record<SourceHealth["health"], { label: string; className: string }> = {
   never_run: { label: "İlk çalıştırma bekliyor", className: "text-muted-foreground border-border bg-card" },
   error: { label: "Hata", className: "text-red-400 border-red-500/20 bg-red-500/10" },
-  awaiting_review: { label: "Reviewer bekliyor", className: "text-amber-400 border-amber-500/20 bg-amber-500/10" },
+  awaiting_review: { label: "İnceleme bekliyor", className: "text-amber-400 border-amber-500/20 bg-amber-500/10" },
   healthy: { label: "Sağlıklı", className: "text-emerald-400 border-emerald-500/20 bg-emerald-500/10" },
 };
 
@@ -83,7 +83,7 @@ export function SourceIntelligencePanel() {
       await readJson(`/api/source-intelligence/review-items/${item.id}`, {
         method: "PATCH",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ status, notes: "TeklifPro reviewer kuyruğunda karara bağlandı." }),
+        body: JSON.stringify({ status, notes: "İnceleme kuyruğunda karara bağlandı." }),
       });
       toast.success(status === "approved" ? "Kaynak verisi onaylandı." : "Kaynak verisi reddedildi.");
       await refresh();
@@ -148,7 +148,7 @@ export function SourceIntelligencePanel() {
         <div className="border-t border-border pt-4">
           <div className="mb-3 flex items-center justify-between gap-2">
             <div>
-              <p className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-foreground dark:text-muted-foreground"><ShieldCheck size={13} className="text-orange-500" /> Reviewer kuyruğu</p>
+              <p className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-foreground dark:text-muted-foreground"><ShieldCheck size={13} className="text-orange-500" /> İnceleme kuyruğu</p>
               <p className="mt-1 text-[10px] text-muted-foreground">{queue.length ? `${queue.length} karar bekliyor` : "Bekleyen kaynak kararı yok"}</p>
             </div>
             {queue.length > 0 && <Badge variant="outline" className="border-amber-500/20 bg-amber-500/10 text-[10px] font-black uppercase tracking-widest text-amber-400">ONAY GEREKİYOR</Badge>}

@@ -55,8 +55,13 @@ const Clients = page(() => import('@/pages/Clients'), 'Clients');
 const Settings = page(() => import('@/pages/Settings'), 'Settings');
 const Regulations = page(() => import('@/pages/Regulations'), 'Regulations');
 const MarketIntelligence = page(() => import('@/pages/MarketIntelligence'), 'MarketIntelligence');
+const PriceCatalog = page(() => import('@/pages/PriceCatalog'), 'PriceCatalog');
 const PilotEvidence = page(() => import('@/pages/PilotEvidence'), 'PilotEvidence');
 const HowItWorks = page(() => import('@/pages/HowItWorks'), 'HowItWorks');
+// Expert preview only: signed-in routes for calculators awaiting expert sign-off (not public, sitemap or llms.txt).
+const ExpertPreview = page(() => import('@/pages/ExpertPreview'), 'ExpertPreview');
+const YambisCalculatorPage = page(() => import('@/pages/calculators/YambisCalculatorPage'), 'YambisCalculatorPage');
+const KatKarsiligiCalculatorPage = page(() => import('@/pages/calculators/KatKarsiligiCalculatorPage'), 'KatKarsiligiCalculatorPage');
 const CRM = page(() => import('@/pages/CRM'), 'CRM');
 const DealDetail = page(() => import('@/pages/DealDetail'), 'DealDetail');
 const AIAssistant = page(() => import('@/pages/AIAssistant'), 'AIAssistant');
@@ -92,7 +97,6 @@ const AcademyProfilePage = page(() => import('@/pages/AcademyProfilePage'), 'def
 const AcademyCADPage = page(() => import('@/pages/AcademyCADPage'), 'default');
 const AcademyExamPage = page(() => import('@/pages/AcademyExamPage'), 'default');
 const BimIfcParserPage = page(() => import('@/pages/BimIfcParserPage'), 'default');
-const DosyadanTeklifDemo = page(() => import('@/pages/DosyadanTeklifDemo'), 'default');
 const ProgressPayments = page(() => import('@/pages/ProgressPayments'), 'ProgressPayments');
 
 function AppRoutes() {
@@ -161,9 +165,13 @@ function AppRoutes() {
           <Route path="progress-payments" element={<ProgressPayments />} />
           <Route path="clients" element={<Clients />} />
           <Route path="regulations" element={<Regulations />} />
+          <Route path="fiyat-katalogu" element={<PriceCatalog />} />
           <Route path="market-intelligence" element={<MarketIntelligence />} />
           <Route path="pilot-evidence" element={<PilotEvidence />} />
           <Route path="nasil-calisir" element={<HowItWorks />} />
+          <Route path="uzman-onizleme" element={<ExpertPreview />} />
+          <Route path="uzman-onizleme/yambis" element={<YambisCalculatorPage />} />
+          <Route path="uzman-onizleme/kat-karsiligi" element={<KatKarsiligiCalculatorPage />} />
           <Route path="crm" element={<CRM />} />
           <Route path="crm/deals/:id" element={<DealDetail />} />
           <Route path="ai" element={<AIAssistant />} />
@@ -171,7 +179,8 @@ function AppRoutes() {
           <Route path="billing" element={<Billing />} />
           <Route path="pilot-applications" element={<Navigate to="/admin/leads" replace />} />
           <Route path="settings" element={<Settings />} />
-          <Route path="dosyadan-teklif-demo" element={<DosyadanTeklifDemo />} />
+          {/* M-15.2: the demo used fixed unit prices; old links land on the single IFC entry. */}
+          <Route path="dosyadan-teklif-demo" element={<Navigate to="/app/smartcheck" replace />} />
           <Route path="smartcheck" element={<SmartCheck />} />
           <Route path="smartcheck/checks/demo" element={<SmartCheckDemo />} />
           {ACADEMY_ENABLED ? <>

@@ -1102,13 +1102,19 @@ export function buildCalmIfcDatasetFromElements(
     ? Number(residentialUnits.reduce((s, u) => s + (u.generalGrossM2 as number), 0).toFixed(2))
     : null;
 
+  // Claim deducted openings only when the model carries a door/window list (marka.md M-13.6).
+  const openingsNote = summary?.openings === undefined
+    ? "Kapı/Pencere Bilgisi Bulunamadı — Boşluk Düşümü Değerlendirilemedi"
+    : summary.openings.length === 0
+      ? "Modelde Kapı/Pencere Yok"
+      : "Minha Düşülmüş Net Metraj";
   const layerNote = hasMultiLayerCoverings
     ? "Çok Katmanlı IfcCovering Ayrıştırması Aktif"
     : "Modelde Çoklu Katman (materialLayers) Bilgisi Yok — Tekil Eleman Metrajı";
 
   return {
     projectTitle: fileName ? `${fileName}` : "Yüklenen IFC Proje İcmali",
-    projectSubtitle: `Toplam ${elements.length.toLocaleString("tr-TR")} IFC Elemanı · ${layerNote} · Minha Düşülmüş Net Metraj`,
+    projectSubtitle: `Toplam ${elements.length.toLocaleString("tr-TR")} IFC Elemanı · ${layerNote} · ${openingsNote}`,
     residentialUnitCount: residentialUnits.length,
     totalNetSweepableM2,
     totalBalconyM2,

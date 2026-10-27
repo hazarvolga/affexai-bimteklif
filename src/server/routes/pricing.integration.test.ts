@@ -203,6 +203,35 @@ test("pricing catalog import creates advisory snapshots without cross-tenant lea
     const tenantBSuggestionBody = await tenantBSuggestionResponse.json() as { suggestions: Array<{ decision: string; bestSuggestion: unknown | null }> };
     assert.equal(tenantBSuggestionBody.suggestions[0].decision, "no_match");
     assert.equal(tenantBSuggestionBody.suggestions[0].bestSuggestion, null);
+    // Faz 1 (M-17.3): the import wizard approves a reviewed, VAT-explicit company catalogue in one step.
+    const approvedImportPayload = { ...importPayload, sourceName: "Sihirbaz kataloğu", sourceDocumentIdentifier: `wizard-${suffix}.xlsx`, vatStatus: "excluded", vatPercent: "20", reviewDecision: "approved", rows: [
+      { positionCode: "M-WIZ-001", description: "Sihirbaz beton", unit: "m3", amount: 3450, currency: "TRY" },
+    ] };
+    for (const [label, payload] of [
+      ["vat unknown", { ...approvedImportPayload, vatStatus: undefined }],
+      ["vat percent missing", { ...approvedImportPayload, vatPercent: undefined }],
+      ["supplier quote", { ...approvedImportPayload, sourceType: "supplier_quote", licenseStatus: "verified" }],
+      ["manual override", { ...approvedImportPayload, sourceType: "manual_override", ownershipDeclaration: undefined }],
+      ["unknown decision", { ...approvedImportPayload, reviewDecision: "rejected" }],
+    ] as const) {
+      const refused = await request("/api/pricing/catalog/import", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(payload) });
+      assert.equal(refused.status, 400, label);
+      assert.equal((await refused.json() as { code?: string }).code, "CATALOG_IMPORT_APPROVAL_SCOPE_INVALID", label);
+    }
+    const approvedImport = await request("/api/pricing/catalog/import", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(approvedImportPayload) });
+    assert.equal(approvedImport.status, 201);
+    const approvedBody = await approvedImport.json() as { source: { id: string }; snapshots: Array<{ id: string; reviewStatus: string; reviewedByUserId: string | null; reviewedAt: string | null; vatStatus: string; vatPercent: string | null }> };
+    importedSourceIds.push(approvedBody.source.id);
+    importedSnapshotIds.push(...approvedBody.snapshots.map((snapshot) => snapshot.id));
+    assert.deepEqual(approvedBody.snapshots.map(({ reviewStatus, reviewedByUserId, vatStatus, vatPercent }) => ({ reviewStatus, reviewedByUserId, vatStatus, vatPercent })), [
+      { reviewStatus: "approved", reviewedByUserId: userA.id, vatStatus: "excluded", vatPercent: "20.00" },
+    ]);
+    assert.ok(approvedBody.snapshots[0].reviewedAt);
+    const wizardSuggestion = await request("/api/pricing/snapshot-suggestions", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ rows: [{ rowId: "wizard-row", positionCode: "M-WIZ-001", description: "Sihirbaz beton", unit: "m³" }] }) });
+    const wizardSuggestionBody = await wizardSuggestion.json() as { suggestions: Array<{ decision: string; bestSuggestion: null | { snapshot: { id: string } } }> };
+    assert.equal(wizardSuggestionBody.suggestions[0].decision, "safe_candidate", "an approved import prices an item without a separate review step");
+    assert.equal(wizardSuggestionBody.suggestions[0].bestSuggestion?.snapshot.id, approvedBody.snapshots[0].id);
+
     const invalidImport = await request("/api/pricing/catalog/import", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ ...importPayload, sourceName: "Invalid catalog", sourceType: "official_reference" }) });
     assert.equal(invalidImport.status, 400);
     const invalidDateImport = await request("/api/pricing/catalog/import", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ ...importPayload, sourceName: "Invalid date catalog", validUntil: "+061231-02-19T21:00:00.000Z" }) });
