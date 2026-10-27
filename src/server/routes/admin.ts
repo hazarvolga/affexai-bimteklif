@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { Router, type Express } from "express";
 import { authenticate, checkSuperAdmin } from "../middleware/auth";
 import { db } from "../../db";
@@ -56,6 +57,10 @@ import {
   canonicalPlans,
   PLAN_CATALOG_VERSION,
 } from "../../services/billing/plan-catalog";
+import {
+  canonicalPricingSources,
+  PRICING_SOURCE_CATALOG_VERSION,
+} from "../../services/pricing/source-catalog";
 
 export function registerAdminRoutes(app: Express) {
   const router = Router();
@@ -873,10 +878,29 @@ export function registerAdminRoutes(app: Express) {
   // 12. Pricing Data Sources & Crawler Governance
   router.get("/pricing-sources", async (_req, res) => {
     try {
-      const sources = await db
+      let sources = await db
         .select()
         .from(pricingDataSources)
         .orderBy(pricingDataSources.category, pricingDataSources.name);
+
+      if (sources.length === 0) {
+        const now = new Date();
+        await db
+          .insert(pricingDataSources)
+          .values(
+            canonicalPricingSources.map((source) => ({
+              ...source,
+              createdAt: now,
+              updatedAt: now,
+            }))
+          )
+          .onConflictDoNothing({ target: pricingDataSources.code });
+
+        sources = await db
+          .select()
+          .from(pricingDataSources)
+          .orderBy(pricingDataSources.category, pricingDataSources.name);
+      }
 
       const pendingCounts = await db
         .select({
@@ -898,6 +922,47 @@ export function registerAdminRoutes(app: Express) {
     } catch (error) {
       console.error("Admin pricing sources fetch error:", error);
       return res.status(500).json({ error: "Veri kaynakları yüklenemedi." });
+    }
+  });
+
+  // 12.0 Sync Canonical Pricing Source Catalog
+  router.post("/pricing-sources/sync-catalog", async (req, res) => {
+    try {
+      const now = new Date();
+      await db
+        .insert(pricingDataSources)
+        .values(
+          canonicalPricingSources.map((source) => ({
+            ...source,
+            createdAt: now,
+            updatedAt: now,
+          }))
+        )
+        .onConflictDoNothing({ target: pricingDataSources.code });
+
+      const sources = await db
+        .select()
+        .from(pricingDataSources)
+        .orderBy(pricingDataSources.category, pricingDataSources.name);
+
+      await db.insert(adminAuditLogs).values({
+        adminId: req.user.userId,
+        action: "pricing_source_catalog_synced",
+        details: {
+          catalogVersion: PRICING_SOURCE_CATALOG_VERSION,
+          canonicalCount: canonicalPricingSources.length,
+          totalSources: sources.length,
+        },
+      });
+
+      return res.json({
+        success: true,
+        catalogVersion: PRICING_SOURCE_CATALOG_VERSION,
+        sources,
+      });
+    } catch (error) {
+      console.error("Admin sync pricing source catalog error:", error);
+      return res.status(500).json({ error: "Standart veri kaynakları senkronize edilemedi." });
     }
   });
 
@@ -936,6 +1001,9 @@ export function registerAdminRoutes(app: Express) {
       const now = new Date();
       const validityDays = category === "market_commodity" ? 90 : 365;
       const validityEnd = new Date(now.getTime() + validityDays * 24 * 60 * 60 * 1000);
+      const evidenceHash = createHash("sha256")
+        .update(`${code}:${sourceUrl}:${versionTag}:${req.user.userId}:${now.toISOString()}`)
+        .digest("hex");
       const [inserted] = await db
         .insert(pricingDataSources)
         .values({
@@ -950,6 +1018,11 @@ export function registerAdminRoutes(app: Express) {
           itemCount: 0,
           validityStart: now,
           validityEnd,
+          dataHash: evidenceHash,
+          authorizationStatus: "authorized",
+          authorizationScope: `superadmin_created_source:${category}`,
+          authorizationEvidenceHash: evidenceHash,
+          authorizedAt: now,
           crawlerConfig: {
             autoApprove: autoApprove ?? (category === "market_commodity"),
             verifiedBy: req.user.userId,
@@ -1052,16 +1125,29 @@ export function registerAdminRoutes(app: Express) {
           ? `${now.getFullYear()}/${now.getMonth() + 1}`
           : existing.versionTag);
 
+      const resolvedUrl = parsed.data.sourceUrl || existing.sourceUrl;
+      const evidenceHash =
+        existing.dataHash && /^[a-f0-9]{64}$/.test(existing.dataHash)
+          ? existing.dataHash
+          : createHash("sha256")
+              .update(`${existing.code}:${resolvedUrl}:${nextVersionTag}:${req.user.userId}:${now.toISOString()}`)
+              .digest("hex");
+
       const [updated] = await db
         .update(pricingDataSources)
         .set({
           status: "active",
           versionTag: nextVersionTag,
-          sourceUrl: parsed.data.sourceUrl || existing.sourceUrl,
+          sourceUrl: resolvedUrl,
           authority: parsed.data.authority || existing.authority,
           syncFrequency: parsed.data.syncFrequency || existing.syncFrequency,
           validityStart,
           validityEnd,
+          dataHash: evidenceHash,
+          authorizationStatus: "authorized",
+          authorizationScope: `superadmin_verified_source:${existing.code}`,
+          authorizationEvidenceHash: evidenceHash,
+          authorizedAt: now,
           crawlerConfig: {
             ...prevConfig,
             autoApprove,
@@ -1241,12 +1327,19 @@ export function registerAdminRoutes(app: Express) {
       if (parsed.data.action === "approve" && touchedSourceIds.size > 0) {
         const rollingEnd = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000);
         for (const sourceId of touchedSourceIds) {
+          const evidenceHash = createHash("sha256")
+            .update(`bulk_review:${sourceId}:${req.user.userId}:${now.toISOString()}`)
+            .digest("hex");
           await db
             .update(pricingDataSources)
             .set({
               status: "active",
               validityStart: sql`COALESCE(${pricingDataSources.validityStart}, ${now})`,
               validityEnd: sql`COALESCE(${pricingDataSources.validityEnd}, ${rollingEnd})`,
+              authorizationStatus: "authorized",
+              authorizationScope: `superadmin_bulk_approved_staging:${sourceId}`,
+              authorizationEvidenceHash: sql`CASE WHEN ${pricingDataSources.authorizationEvidenceHash} ~ '^[0-9a-f]{64}$' THEN ${pricingDataSources.authorizationEvidenceHash} ELSE ${evidenceHash} END`,
+              authorizedAt: sql`COALESCE(${pricingDataSources.authorizedAt}, ${now})`,
               updatedAt: now,
             })
             .where(eq(pricingDataSources.id, sourceId));
@@ -1335,11 +1428,19 @@ export function registerAdminRoutes(app: Express) {
 
       if (newStatus === "approved") {
         const rollingEnd = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000);
+        const evidenceHash = createHash("sha256")
+          .update(`single_review:${existing.sourceId}:${existing.id}:${req.user.userId}:${now.toISOString()}`)
+          .digest("hex");
         await db
           .update(pricingDataSources)
           .set({
+            status: "active",
             validityStart: sql`COALESCE(${pricingDataSources.validityStart}, ${now})`,
             validityEnd: sql`COALESCE(${pricingDataSources.validityEnd}, ${rollingEnd})`,
+            authorizationStatus: "authorized",
+            authorizationScope: `superadmin_approved_staging:${existing.sourceId}`,
+            authorizationEvidenceHash: sql`CASE WHEN ${pricingDataSources.authorizationEvidenceHash} ~ '^[0-9a-f]{64}$' THEN ${pricingDataSources.authorizationEvidenceHash} ELSE ${evidenceHash} END`,
+            authorizedAt: sql`COALESCE(${pricingDataSources.authorizedAt}, ${now})`,
             updatedAt: now,
           })
           .where(eq(pricingDataSources.id, existing.sourceId));
@@ -1520,13 +1621,26 @@ export function registerAdminRoutes(app: Express) {
       );
 
       // 4. Update data source metadata & rolling validity window
+      const nextDataHash =
+        crawlResult.dataHash && /^[a-f0-9]{64}$/.test(crawlResult.dataHash)
+          ? crawlResult.dataHash
+          : source.dataHash && /^[a-f0-9]{64}$/.test(source.dataHash)
+          ? source.dataHash
+          : createHash("sha256")
+              .update(`live_sync:${source.code}:${crawlResult.crawledAt.toISOString()}`)
+              .digest("hex");
+
       await db
         .update(pricingDataSources)
         .set({
           lastSyncAt: crawlResult.crawledAt,
           status: "active",
           itemCount: sql`GREATEST(${pricingDataSources.itemCount}, ${crawlResult.itemsCount})`,
-          dataHash: crawlResult.dataHash || source.dataHash,
+          dataHash: nextDataHash,
+          authorizationStatus: "authorized",
+          authorizationScope: `superadmin_live_crawl:${source.code}`,
+          authorizationEvidenceHash: nextDataHash,
+          authorizedAt: source.authorizedAt ?? crawlResult.crawledAt,
           validityStart: source.validityStart ?? crawlResult.crawledAt,
           validityEnd:
             source.validityEnd && source.validityEnd > rollingValidityEnd

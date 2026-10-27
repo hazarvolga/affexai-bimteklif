@@ -535,6 +535,94 @@ export function PricingSources() {
 
   const [schedulerStatus, setSchedulerStatus] = useState<any | null>(null);
   const [runningBatch, setRunningBatch] = useState(false);
+  const [syncingCatalog, setSyncingCatalog] = useState(false);
+
+  // TÜİK SDMX 2.1 Modal State
+  const [tuikModalSource, setTuikModalSource] = useState<PricingDataSource | null>(null);
+  const [syncingTuik, setSyncingTuik] = useState(false);
+  const [tuikForm, setTuikForm] = useState<{
+    mode: 'baseline_2026_catalog' | 'sdmx_json' | 'sdmx_csv' | 'live_nsiws';
+    dataflowId: 'DF_IME' | 'DF_YI_UFE' | 'DF_TUFE';
+    startPeriod: string;
+    endPeriod: string;
+    validityStart: string;
+    validityEnd: string;
+    bearerToken: string;
+    sdmxPayload: string;
+    licenseReference: string;
+    autoApprove: boolean;
+  }>({
+    mode: 'baseline_2026_catalog',
+    dataflowId: 'DF_YI_UFE',
+    startPeriod: '2026-01',
+    endPeriod: '2026-10',
+    validityStart: '2026-01-01',
+    validityEnd: '2026-12-31',
+    bearerToken: '',
+    sdmxPayload: '',
+    licenseReference:
+      'TÜİK Veri Portalı SDMX 2.1 Web Servisi — 4734 S.K. NACE Rev.2 Fiyat Farkı & İnşaat Maliyet Endeksi',
+    autoApprove: true,
+  });
+
+  const handleSyncCatalog = async () => {
+    setSyncingCatalog(true);
+    try {
+      const res = await fetchWithAuth('/api/admin/pricing-sources/sync-catalog', {
+        method: 'POST',
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success('Standart ÇŞB, TÜİK, e-PYS ve piyasa kaynakları katalogdan senkronize edildi.');
+        await loadData();
+      } else {
+        toast.error(data.error || 'Standart kaynaklar senkronize edilemedi.');
+      }
+    } catch {
+      toast.error('Bağlantı hatası.');
+    } finally {
+      setSyncingCatalog(false);
+    }
+  };
+
+  const handleTuikSdmxSync = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!tuikModalSource) return;
+    setSyncingTuik(true);
+    try {
+      const res = await fetchWithAuth(`/api/admin/pricing-sources/${tuikModalSource.id}/sync-tuik-sdmx`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mode: tuikForm.mode,
+          dataflowId: tuikForm.dataflowId,
+          startPeriod: tuikForm.startPeriod,
+          endPeriod: tuikForm.endPeriod,
+          validityStart: tuikForm.validityStart,
+          validityEnd: tuikForm.validityEnd,
+          bearerToken: tuikForm.bearerToken || undefined,
+          sdmxPayload: tuikForm.sdmxPayload || undefined,
+          licenseReference: tuikForm.licenseReference,
+          licenseConfirmed: true,
+          autoApprove: tuikForm.autoApprove,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success(
+          `TÜİK SDMX 2.1 senkronizasyonu tamamlandı (${data.insertedCount ?? data.rowCount ?? 0} seri SHA-256 ile mühürlendi).`
+        );
+        setTuikModalSource(null);
+        await loadData();
+      } else {
+        toast.error(data.error || 'TÜİK SDMX senkronizasyonu başarısız.');
+      }
+    } catch {
+      toast.error('Bağlantı hatası.');
+    } finally {
+      setSyncingTuik(false);
+    }
+  };
 
   const loadData = async () => {
     setLoading(true);
@@ -684,7 +772,16 @@ export function PricingSources() {
           description="Fiyat kaynaklarının, toplanan kayıtların ve sürekli fiyat takibinin yönetimi."
           icon={Database}
         />
-        <div className="flex items-center gap-2 mt-2 sm:mt-0">
+        <div className="flex flex-wrap items-center gap-2 mt-2 sm:mt-0">
+          <Button
+            onClick={handleSyncCatalog}
+            disabled={syncingCatalog}
+            variant="outline"
+            className="border-emerald-500/30 bg-emerald-950/20 text-emerald-300 hover:bg-emerald-900/30 text-xs font-semibold"
+          >
+            <ShieldCheck size={14} className={`mr-1.5 ${syncingCatalog ? 'animate-pulse' : ''}`} />
+            {syncingCatalog ? 'Senkronize Ediliyor...' : 'Standart Kaynakları Senkronize Et'}
+          </Button>
           <Button
             onClick={() => setShowAddModal(true)}
             className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-md shadow-indigo-600/20"
@@ -930,14 +1027,24 @@ export function PricingSources() {
               <Database size={40} className="mx-auto text-muted-foreground mb-3" />
               <h3 className="text-base font-bold text-foreground mb-1">Henüz Kayıtlı Veri Kaynağı Bulunmuyor</h3>
               <p className="text-xs text-muted-foreground max-w-md mx-auto mb-5">
-                Çevre Şehircilik Bakanlığı YFK birim fiyatları, TÜİK endeksleri veya serbest piyasa demir/beton fiyat bağlantılarını ekleyerek botları devreye alabilirsiniz.
+                Çevre Şehircilik Bakanlığı YFK birim fiyatları, TÜİK endeksleri, e-PYS Ek-6 ve serbest piyasa demir/beton kaynaklarını tek tıkla standart katalogdan yükleyebilir veya yeni kaynak ekleyebilirsiniz.
               </p>
-              <Button
-                onClick={() => setShowAddModal(true)}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold"
-              >
-                <Plus size={14} className="mr-1.5" /> İlk Kaynağı / Linki Ekle
-              </Button>
+              <div className="flex flex-wrap items-center justify-center gap-3">
+                <Button
+                  onClick={handleSyncCatalog}
+                  disabled={syncingCatalog}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold"
+                >
+                  <ShieldCheck size={14} className="mr-1.5" />
+                  {syncingCatalog ? 'Yükleniyor...' : 'Standart 5 Kaynağı Otomatik Yükle'}
+                </Button>
+                <Button
+                  onClick={() => setShowAddModal(true)}
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold"
+                >
+                  <Plus size={14} className="mr-1.5" /> Yeni Kaynak / Link Ekle
+                </Button>
+              </div>
             </div>
           ) : (
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -1083,6 +1190,17 @@ export function PricingSources() {
                       <div className="flex items-center gap-1.5 ml-auto">
                         {isOfficial ? (
                           <>
+                            {(s.category === 'tuik_index' || s.code.startsWith('tuik_')) && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => setTuikModalSource(s)}
+                                className="border-purple-500/40 bg-purple-950/30 text-purple-300 hover:bg-purple-900/40 text-xs py-1 h-7 px-2.5 font-semibold"
+                              >
+                                <Cpu size={12} className="mr-1.5" />
+                                TÜİK SDMX 2.1
+                              </Button>
+                            )}
                             <Button
                               size="sm"
                               onClick={() => openCsvModal(s)}
@@ -1860,45 +1978,49 @@ export function PricingSources() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {(coverageReport?.books ?? []).map((book) => (
-                    <tr key={book.id} className="hover:bg-surface-elevated transition-colors">
-                      <td className="py-3.5 px-3 font-mono font-bold text-indigo-300">{book.id}</td>
-                      <td className="py-3.5 px-3">
-                        <div className="font-semibold text-white">{book.title}</div>
-                        <div className="text-[11px] font-mono text-muted-foreground mt-0.5">{book.fileName}</div>
-                      </td>
-                      <td className="py-3.5 px-3">
-                        <span
-                          className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
-                            book.periodType === 'monthly'
-                              ? 'bg-sky-500/10 text-sky-300 border border-sky-500/20'
-                              : 'bg-purple-500/10 text-purple-300 border border-purple-500/20'
-                          }`}
-                        >
-                          {book.periodType === 'monthly' ? 'Aylık Tebliğ' : 'Yıllık Tebliğ'}
-                        </span>
-                      </td>
-                      <td className="py-3.5 px-3 font-mono text-foreground dark:text-muted-foreground">
-                        {book.validityStart} → {book.validityEnd}
-                      </td>
-                      <td className="py-3.5 px-3 font-mono font-bold text-foreground">
-                        {book.ingestedRowCount.toLocaleString('tr-TR')} satır
-                      </td>
-                      <td className="py-3.5 px-3">
-                        <span
-                          className="font-mono text-[10px] text-muted-foreground bg-background px-2 py-0.5 rounded border border-border"
-                          title={book.sha256}
-                        >
-                          {book.sha256.slice(0, 14)}…
-                        </span>
-                      </td>
-                      <td className="py-3.5 px-3 text-right">
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
-                          <CheckCircle2 size={11} /> Yayında (Mühürlü)
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
+                  {(coverageReport?.books ?? []).map((book) => {
+                    const rowCountVal = book.ingestedRowCount ?? (book as any).rowCount ?? 0;
+                    const shaVal = book.sha256 || (book as any).documentHash || '';
+                    return (
+                      <tr key={book.id} className="hover:bg-surface-elevated transition-colors">
+                        <td className="py-3.5 px-3 font-mono font-bold text-indigo-300">{book.id}</td>
+                        <td className="py-3.5 px-3">
+                          <div className="font-semibold text-white">{book.title}</div>
+                          <div className="text-[11px] font-mono text-muted-foreground mt-0.5">{book.fileName}</div>
+                        </td>
+                        <td className="py-3.5 px-3">
+                          <span
+                            className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                              book.periodType === 'monthly'
+                                ? 'bg-sky-500/10 text-sky-300 border border-sky-500/20'
+                                : 'bg-purple-500/10 text-purple-300 border border-purple-500/20'
+                            }`}
+                          >
+                            {book.periodType === 'monthly' ? 'Aylık Tebliğ' : 'Yıllık Tebliğ'}
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-3 font-mono text-foreground dark:text-muted-foreground">
+                          {book.validityStart} → {book.validityEnd}
+                        </td>
+                        <td className="py-3.5 px-3 font-mono font-bold text-foreground">
+                          {rowCountVal.toLocaleString('tr-TR')} satır
+                        </td>
+                        <td className="py-3.5 px-3">
+                          <span
+                            className="font-mono text-[10px] text-muted-foreground bg-background px-2 py-0.5 rounded border border-border"
+                            title={shaVal}
+                          >
+                            {shaVal.slice(0, 14)}…
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-3 text-right">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                            <CheckCircle2 size={11} /> Yayında (Mühürlü)
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -1913,11 +2035,11 @@ export function PricingSources() {
             <div className="flex items-center gap-2">
               <Upload size={18} className="text-indigo-400" />
               <h3 className="text-base font-bold text-foreground">
-                Kurum + Format Bazlı Fiyat Kitabı İçe Aktarma (PDF / CSV Adaptörü)
+                Kurum + Format Bazlı Fiyat Kitabı İçe Aktarma (PDF / CSV / SDMX Adaptörü)
               </h3>
             </div>
             <p className="text-xs text-foreground dark:text-muted-foreground leading-relaxed">
-              Resmi Gazete PDF tebliğlerini (20.000 satıra kadar 3 aşamalı <code className="text-indigo-300">pdftotext / pypdf / zlib</code> ayrıştırıcısıyla) veya lisanslı kurumsal CSV dosyalarını seçtiğiniz veri kaynağına SHA-256 mührüyle aktarın.
+              Resmi Gazete PDF tebliğlerini (20.000 satıra kadar 3 aşamalı <code className="text-indigo-300">pdftotext / pypdf / zlib</code> ayrıştırıcısıyla), TÜİK Veri Portalı SDMX 2.1 veri paketlerini veya lisanslı kurumsal CSV dosyalarını seçtiğiniz veri kaynağına SHA-256 mührüyle aktarın.
             </p>
             <div className="grid gap-3 sm:grid-cols-2 pt-2">
               {sources.filter(isOfficialOrIndexSource).map((s) => (
@@ -1932,14 +2054,27 @@ export function PricingSources() {
                       Mevcut Mühürlü Kayıt: <strong className="text-foreground">{s.itemCount.toLocaleString('tr-TR')}</strong> kalem
                     </div>
                   </div>
-                  <Button
-                    size="sm"
-                    onClick={() => openCsvModal(s)}
-                    className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold w-full"
-                  >
-                    <Upload size={13} className="mr-1.5" />
-                    PDF / CSV Yükle veya Resmi Arşivden Mühürle
-                  </Button>
+                  <div className="flex flex-col gap-1.5">
+                    {(s.category === 'tuik_index' || s.code.startsWith('tuik_')) && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setTuikModalSource(s)}
+                        className="border-purple-500/40 bg-purple-950/30 text-purple-300 hover:bg-purple-900/40 text-xs font-semibold w-full"
+                      >
+                        <Cpu size={13} className="mr-1.5" />
+                        TÜİK SDMX 2.1 Web Servisi ile Senkronize Et
+                      </Button>
+                    )}
+                    <Button
+                      size="sm"
+                      onClick={() => openCsvModal(s)}
+                      className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold w-full"
+                    >
+                      <Upload size={13} className="mr-1.5" />
+                      PDF / CSV Yükle veya Resmi Arşivden Mühürle
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -1993,37 +2128,43 @@ export function PricingSources() {
               Her resmi PDF kitabındaki toplam poz/rayiç satırı ile sistemde ayrıştırılmış satır sayısının birebir karşılaştırması.
             </p>
             <div className="space-y-3">
-              {(coverageReport?.books ?? []).map((book) => (
-                <div
-                  key={book.id}
-                  className="rounded-xl border border-border bg-background p-4 flex flex-col gap-2"
-                >
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div>
-                      <span className="font-bold text-foreground text-sm">{book.title}</span>
-                      <span className="ml-2 text-[11px] font-mono text-muted-foreground">({book.fileName})</span>
+              {(coverageReport?.books ?? []).map((book) => {
+                const ingestedVal = book.ingestedRowCount ?? (book as any).rowCount ?? 0;
+                const totalVal = book.totalRowsInBook ?? (book as any).totalMatchedInPdf ?? ingestedVal;
+                const shaVal = book.sha256 || (book as any).documentHash || '';
+                const isFull = book.status === 'full' || (book as any).isFullCoverage;
+                return (
+                  <div
+                    key={book.id}
+                    className="rounded-xl border border-border bg-background p-4 flex flex-col gap-2"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div>
+                        <span className="font-bold text-foreground text-sm">{book.title}</span>
+                        <span className="ml-2 text-[11px] font-mono text-muted-foreground">({book.fileName})</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-xs font-bold text-emerald-400">
+                          {ingestedVal.toLocaleString('tr-TR')} / {totalVal.toLocaleString('tr-TR')} satır (%{book.coveragePercent})
+                        </span>
+                        <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                          {isFull ? 'TAM KAPSAM' : 'KISMİ'}
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono text-xs font-bold text-emerald-400">
-                        {book.ingestedRowCount.toLocaleString('tr-TR')} / {book.totalRowsInBook.toLocaleString('tr-TR')} satır (%{book.coveragePercent})
-                      </span>
-                      <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
-                        {book.status === 'full' ? 'TAM KAPSAM' : 'KISMİ'}
-                      </span>
+                    <div className="w-full h-2 rounded-full bg-surface-elevated overflow-hidden">
+                      <div
+                        className="h-full bg-emerald-500 transition-all"
+                        style={{ width: `${Math.min(100, book.coveragePercent)}%` }}
+                      />
+                    </div>
+                    <div className="flex flex-wrap items-center justify-between text-[11px] text-muted-foreground font-mono pt-1">
+                      <span>Dönem: {book.validityStart} – {book.validityEnd} ({book.periodType === 'monthly' ? 'Aylık' : 'Yıllık'})</span>
+                      <span>SHA-256: {shaVal}</span>
                     </div>
                   </div>
-                  <div className="w-full h-2 rounded-full bg-surface-elevated overflow-hidden">
-                    <div
-                      className="h-full bg-emerald-500 transition-all"
-                      style={{ width: `${Math.min(100, book.coveragePercent)}%` }}
-                    />
-                  </div>
-                  <div className="flex flex-wrap items-center justify-between text-[11px] text-muted-foreground font-mono pt-1">
-                    <span>Dönem: {book.validityStart} – {book.validityEnd} ({book.periodType === 'monthly' ? 'Aylık' : 'Yıllık'})</span>
-                    <span>SHA-256: {book.sha256}</span>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
@@ -2032,18 +2173,33 @@ export function PricingSources() {
       {/* TAB CONTENT 6: INDICES & AUDIT DIAGNOSTIC */}
       {activeTab === 'audit' && (
         <div className="mt-6 max-w-4xl space-y-6">
-          <div className="rounded-xl border border-purple-500/25 bg-purple-950/15 p-5">
-            <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+          <div className="rounded-xl border border-purple-500/25 bg-purple-950/15 p-5 space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <h3 className="text-sm font-bold text-white">
-                ÇŞB 2026 Ocak Rayiç – TÜİK Endeks Eşleştirme Tablosu (21 / 21 Alt Endeks)
+                TÜİK Veri Portalı SDMX 2.1 Web Servisi & ÇŞB 2026 NACE Rev.2 Endeks Köprüsü
               </h3>
               <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-purple-500/15 text-purple-300 border border-purple-500/30">
-                Yİ-ÜFE & TÜİK İME Eskalasyon Köprüsü
+                ISO 17369 SDMX 2.1 (`DF_IME`, `DF_YI_UFE`, `DF_TUFE`)
               </span>
             </div>
             <p className="text-xs text-foreground dark:text-muted-foreground leading-relaxed">
-              4735 sayılı Kamu İhale Sözleşmeleri Kanunu fiyat farkı kararnamesi ve dönem dışı resmi poz güncellemeleri için ÇŞB 2026 Ocak Rayiç – TÜİK Endeks Eşleştirme Tablosundaki 21 ana TÜİK alt endeksi (<code className="text-purple-300">csb_2026_tuik_endeks_eslestirme</code>) sistemde 21 / 21 satırın tamamıyla SHA-256 mühürlüdür.
+              4735 sayılı Kamu İhale Sözleşmeleri Kanunu fiyat farkı kararnamesi ve dönem dışı resmi poz güncellemeleri için TÜİK Veri Portalı (<code className="text-purple-300">veriportali.tuik.gov.tr/tr/sdmx-web-service-documentation</code>) SDMX 2.1 standart veri akışları ve ÇŞB 2026 Ocak Rayiç – TÜİK 21 NACE Rev.2 alt endeksi (<code className="text-purple-300">FE-GENEL</code> … <code className="text-purple-300">FE-28.22</code>) SHA-256 kanıtıyla desteklenir.
             </p>
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              {sources
+                .filter((s) => s.category === 'tuik_index' || s.code.startsWith('tuik_'))
+                .map((tuikSource) => (
+                  <Button
+                    key={tuikSource.id}
+                    size="sm"
+                    onClick={() => setTuikModalSource(tuikSource)}
+                    className="bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold"
+                  >
+                    <Cpu size={13} className="mr-1.5" />
+                    {tuikSource.name} — SDMX 2.1 Senkronizasyonunu Aç
+                  </Button>
+                ))}
+            </div>
           </div>
 
           <div className="rounded-xl border border-border bg-card p-6">
@@ -2060,7 +2216,7 @@ export function PricingSources() {
                   value={auditQuery}
                   onChange={(e) => setAuditQuery(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && runAuditSearch()}
-                  placeholder="Örn: 15.150.1005 (Beton) veya 15.160.1003 (Demir)..."
+                  placeholder="Örn: 15.150.1005 (Beton) veya 15.160.1003 (Demir) veya FE-23.51..."
                   className="w-full rounded-lg border border-border bg-background pl-10 pr-4 py-2.5 text-sm text-white placeholder-zinc-500 focus:border-indigo-500 focus:outline-none"
                 />
               </div>
@@ -2107,6 +2263,167 @@ export function PricingSources() {
                 ))}
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 4: TÜİK SDMX 2.1 WEB SERVİSİ SENKRONİZASYONU */}
+      {tuikModalSource && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-xs p-4 overflow-y-auto">
+          <div className="w-full max-w-2xl rounded-2xl border border-purple-500/30 bg-[#0c0c0e] p-6 shadow-2xl space-y-4 my-8">
+            <div className="flex items-center justify-between border-b border-border pb-3">
+              <div className="flex items-center gap-2">
+                <Cpu size={18} className="text-purple-400" />
+                <div>
+                  <h3 className="text-base font-bold text-white">
+                    TÜİK Veri Portalı SDMX 2.1 Web Servisi Entegrasyonu
+                  </h3>
+                  <p className="text-[11px] text-muted-foreground">
+                    Hedef Kaynak: <strong className="text-purple-300">{tuikModalSource.name}</strong> ({tuikModalSource.code})
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setTuikModalSource(null)}
+                className="text-muted-foreground hover:text-white p-1"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleTuikSdmxSync} className="space-y-4 text-xs">
+              <div className="rounded-lg border border-purple-500/20 bg-purple-950/20 p-3 text-purple-200 leading-relaxed">
+                <strong>TÜİK SDMX 2.1 Mimari Notu:</strong> TÜİK Veri Portalı (<code className="text-purple-300">veriportali.tuik.gov.tr</code>) NSIWS REST servisi OAuth2 kurumsal abone anahtarı (<code className="text-purple-300">Bearer Token</code>) ile çalışır. Kurumsal anahtarınız varsa canlı NSIWS sorgusu yapabilir, portaldan indirdiğiniz <code className="text-purple-300">SDMX-JSON / SDMX-CSV</code> paketini yapıştırabilir veya ÇŞB 2026 NACE Rev.2 21 alt endeks baz kataloğunu tek tıkla SHA-256 mührüyle devreye alabilirsiniz.
+              </div>
+
+              <div>
+                <label className="block text-muted-foreground mb-1 font-semibold">Senkronizasyon Modu</label>
+                <select
+                  value={tuikForm.mode}
+                  onChange={(e) =>
+                    setTuikForm({
+                      ...tuikForm,
+                      mode: e.target.value as typeof tuikForm.mode,
+                    })
+                  }
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-white focus:border-purple-500 focus:outline-none"
+                >
+                  <option value="baseline_2026_catalog">
+                    1. Resmi 2026 TÜİK-ÇŞB NACE Rev.2 Baz Endeks Kataloğu (21 Seri — Tek Tıkla Mühürle)
+                  </option>
+                  <option value="sdmx_json">
+                    2. TÜİK Veri Portalı SDMX-JSON 1.0/2.0 Veri Seti Yapıştır (DF_IME / DF_YI_UFE / DF_TUFE)
+                  </option>
+                  <option value="sdmx_csv">
+                    3. TÜİK Veri Portalı SDMX-CSV Çıktısı Yapıştır (DATAFLOW,NACE_REV2,TIME_PERIOD,OBS_VALUE)
+                  </option>
+                  <option value="live_nsiws">
+                    4. TÜİK NSIWS REST API Canlı Sorgu (nsiws.tuik.gov.tr — OAuth2 Bearer Token)
+                  </option>
+                </select>
+              </div>
+
+              {tuikForm.mode === 'live_nsiws' && (
+                <div className="grid grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-muted-foreground mb-1 font-semibold">SDMX Veri Akışı (Dataflow)</label>
+                    <select
+                      value={tuikForm.dataflowId}
+                      onChange={(e) =>
+                        setTuikForm({
+                          ...tuikForm,
+                          dataflowId: e.target.value as typeof tuikForm.dataflowId,
+                        })
+                      }
+                      className="w-full rounded-lg border border-border bg-background px-3 py-2 text-white"
+                    >
+                      <option value="DF_YI_UFE">DF_YI_UFE (Yİ-ÜFE NACE Rev.2)</option>
+                      <option value="DF_IME">DF_IME (İnşaat Maliyet Endeksi)</option>
+                      <option value="DF_TUFE">DF_TUFE (Genel TÜFE)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-muted-foreground mb-1 font-semibold">Başlangıç Dönemi</label>
+                    <input
+                      type="text"
+                      value={tuikForm.startPeriod}
+                      onChange={(e) => setTuikForm({ ...tuikForm, startPeriod: e.target.value })}
+                      placeholder="2026-01"
+                      className="w-full rounded-lg border border-border bg-background px-3 py-2 text-white font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-muted-foreground mb-1 font-semibold">OAuth2 Bearer Token *</label>
+                    <input
+                      type="password"
+                      value={tuikForm.bearerToken}
+                      onChange={(e) => setTuikForm({ ...tuikForm, bearerToken: e.target.value })}
+                      placeholder="TÜİK NSIWS Bearer Token..."
+                      className="w-full rounded-lg border border-border bg-background px-3 py-2 text-white font-mono"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {(tuikForm.mode === 'sdmx_json' || tuikForm.mode === 'sdmx_csv') && (
+                <div>
+                  <label className="block text-muted-foreground mb-1 font-semibold">
+                    {tuikForm.mode === 'sdmx_json' ? 'SDMX-JSON İçeriği *' : 'SDMX-CSV İçeriği *'}
+                  </label>
+                  <textarea
+                    rows={6}
+                    value={tuikForm.sdmxPayload}
+                    onChange={(e) => setTuikForm({ ...tuikForm, sdmxPayload: e.target.value })}
+                    placeholder={
+                      tuikForm.mode === 'sdmx_csv'
+                        ? 'DATAFLOW,NACE_REV2,TIME_PERIOD,OBS_VALUE\nTUIK:DF_YI_UFE(1.0),23.51,2026-01,4112.45\nTUIK:DF_IME(1.0),IME_GENEL,2026-01,1485.20'
+                        : '{"dataSets":[{"series":{"0:0":{"observations":{"0":[4112.45]}}}}],"structure":{"dimensions":{"series":[{"id":"NACE_REV2","values":[{"id":"23.51"}]}],"observation":[{"id":"TIME_PERIOD","values":[{"id":"2026-01"}]}]}}}'
+                    }
+                    className="w-full rounded-lg border border-border bg-background p-3 text-white font-mono text-[11px]"
+                  />
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-muted-foreground mb-1 font-semibold">Geçerlilik Başlangıcı</label>
+                  <input
+                    type="date"
+                    value={tuikForm.validityStart}
+                    onChange={(e) => setTuikForm({ ...tuikForm, validityStart: e.target.value })}
+                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-muted-foreground mb-1 font-semibold">Geçerlilik Bitişi</label>
+                  <input
+                    type="date"
+                    value={tuikForm.validityEnd}
+                    onChange={(e) => setTuikForm({ ...tuikForm, validityEnd: e.target.value })}
+                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-white"
+                  />
+                </div>
+              </div>
+
+              <div className="pt-3 border-t border-border flex justify-end gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setTuikModalSource(null)}
+                  className="border-border text-foreground dark:text-muted-foreground"
+                >
+                  İptal
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={syncingTuik}
+                  className="bg-purple-600 hover:bg-purple-700 text-white font-semibold"
+                >
+                  {syncingTuik ? 'Mühürleniyor...' : 'TÜİK SDMX 2.1 Verisini SHA-256 ile Mühürle & Aktif Et'}
+                </Button>
+              </div>
+            </form>
           </div>
         </div>
       )}

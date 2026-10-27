@@ -35,7 +35,11 @@ history to `archive/` (latest: `archive/WORKING_STATE_until_2026-10-24.md`).
 
 ## Code (main / working branch)
 
-- **Rev. 91–95 merged to `main` on 2026-10-27 (`78bf661`), not deployed.**
+- **Rev. 103 (`BIM-CALC-2026-10-27.97`) — `/admin/pricing-sources`, Crawler & TÜİK SDMX 2.1 Integration:**
+  `GET /api/admin/pricing-sources` auto-seeds `canonicalPricingSources` (`csb_yfk_2026`, `epys_ek6`, `market_concrete_marmara`, `market_steel_karabuk`, `tuik_ime`) when the table is empty, and `POST /api/admin/pricing-sources/sync-catalog` restores any missing canonical sources. Fixed `getOfficialCatalogCoverageReport` schema fields (`ingestedRowCount`, `totalRowsInBook`, `sha256`, `totalBooks`, `fullCoverageBooks`, `totalIngestedRows`) so Tabs 2 and 5 on `/admin/pricing-sources` render without error. Source verification, sealed catalog imports, staging reviews, and live crawls now populate `authorizationStatus = 'authorized'` and a 64-hex SHA-256 `authorizationEvidenceHash`, and `canApproveCrawlerPrice` accepts `row >= 1` plus `[licensed-pdf-v1]`, `[official-csb-catalog-v1]`, and `[tuik-sdmx-v1]`. Fixed `isPublicAddress` IPv6 global unicast (`2001::/16` allowed while `2001:db8::/32` and `2001:0::/32` remain blocked), validated HTTP redirects (up to 3 hops), and `gzip`/`deflate`/`br` decompression in `safe-fetch.ts`. Added `src/server/crawler/tuik-sdmx-adapter.ts` + UI modal supporting TÜİK Veri Portalı SDMX 2.1 (`DF_IME`, `DF_YI_UFE` 20 NACE Rev.2 sub-indices, `DF_TUFE` via SDMX-JSON 1.0/2.0, SDMX-CSV, or NSIWS OAuth2 REST).
+- **Rev. 102 (`285dbcc`, `BIM-CALC-2026-10-27.96`) — 4-Layer Contractor Excel Multi-Archetype Adapter:**
+  Supports `flat_table`, `multi_header_pivot`, `repeating_block_boq`, and `hybrid_summary_and_blocks` across SmartCheck & Quote Excel import; `ignoreNodes: ['mergeCells']` + span expansion cuts 13,626-row / 46,588-merge V6 parse time from 90s to 468ms; corpus scanner (`npm run excel:corpus`) and `src/smartcheck/import/contractor-excel-corpus.test.ts` (5/5 PASS) added.
+- **Rev. 91–95 merged to `main` on 2026-10-27 (`78bf661`), deployed in Rev. 101.**
   PRs #21–#25 were merged top-down with merge commits (#25→#24→#23→#22 into
   their bases, then #21 into `main` after the combined CI passed). `main` now
   holds the expert preview + feedback, Faz 0 trust fixes (release 0028), Faz 1
