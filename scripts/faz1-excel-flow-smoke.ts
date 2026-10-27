@@ -98,6 +98,9 @@ try {
   await page.waitForFunction(() => location.pathname === '/app/quotes/new', { timeout: 10_000 });
   await page.waitForFunction(() => (document.body.textContent ?? '').includes('Excel Şablonu İndir (.xlsx)'), { timeout: 10_000 });
   await page.screenshot({ path: `${output}/2-excel-entry.png` });
+  // M-12.4: risk and delivery assumptions start in a closed "Gelişmiş" section with a value summary.
+  assert.equal(await page.$eval('[data-testid="quote-advanced"]', element => (element as HTMLDetailsElement).open), false);
+  assert.match(await page.$eval('[data-testid="quote-advanced-summary"]', element => element.textContent ?? ''), /ay · %/);
 
   step = 'xlsx template download';
   // C-1: the primary template is a real .xlsx workbook, CSV stays as a secondary link.
@@ -141,6 +144,15 @@ try {
   assert.equal(await page.$('[data-testid="calm-transfer-target"]'), null);
   assert.doesNotMatch(await text(), /Aktarım için önce mevcut bir teklif oluşturulmalıdır/);
   await (await page.$('[data-testid="calm-transfer-unavailable"]'))!.screenshot({ path: `${output}/4-sample-transfer-note.png` });
+
+  step = 'public tender tools';
+  // M-14.5: KİK and 4735 tools appear only for a public tender; the choice is remembered in this browser.
+  await page.$eval('[data-testid="cost-tools"]', element => { (element as HTMLDetailsElement).open = true; });
+  assert.doesNotMatch(await text(), /4734 KİK m\.38/);
+  await page.click('[data-testid="public-tender-toggle"]');
+  await page.waitForFunction(() => (document.body.textContent ?? '').includes('4734 KİK m.38'), { timeout: 10_000 });
+  assert.match(await text(), /4735 FİYAT FARKI/);
+  await (await page.$('[data-testid="cost-tools"]'))!.screenshot({ path: `${output}/5-public-tender-tools.png` });
 
   step = 'retired demo route';
   // M-15.2: the fixed-price demo is gone; old links land on the single IFC entry.

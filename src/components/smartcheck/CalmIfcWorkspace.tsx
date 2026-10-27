@@ -62,6 +62,24 @@ export interface CalmIfcWorkspaceProps {
 
 type CalmStep = "icmal" | "daireler" | "maliyet";
 
+const PUBLIC_TENDER_KEY = "bimmetraj:calm-public-tender:v1";
+
+function readStoredFlag(key: string): boolean {
+  try {
+    return window.localStorage.getItem(key) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function writeStoredFlag(key: string, value: boolean): void {
+  try {
+    window.localStorage.setItem(key, value ? "1" : "0");
+  } catch {
+    // Private mode or blocked storage: the choice simply is not remembered.
+  }
+}
+
 /** Profit and overhead entered in the icmal: 0–100 with two decimals, as stored on the quotation (release 0029). */
 function clampOverheadPercent(raw: string): number {
   const value = parseFloat(raw);
@@ -140,6 +158,10 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
   const [priceResolutionStatus, setPriceResolutionStatus] = useState<"idle" | "loading" | "ready" | "blocked">("idle");
   const [matchCandidates, setMatchCandidates] = useState<Record<string, PriceSuggestionCandidate>>({});
   const [priceRefreshKey, setPriceRefreshKey] = useState(0);
+  // Per-viewer convenience: whether this user prices public tenders; the tools stay one click away either way.
+  const [publicTender, setPublicTender] = useState<boolean>(() => readStoredFlag(PUBLIC_TENDER_KEY));
+  const [toolsOpen, setToolsOpen] = useState(false);
+  useEffect(() => { writeStoredFlag(PUBLIC_TENDER_KEY, publicTender); }, [publicTender]);
   // Prices the user bound by hand survive a re-resolution, but only while the same snapshot is still offered.
   const boundSnapshotByItem = useRef<Record<string, string>>({});
   const [overheadPercent, setOverheadPercent] = useState<number>(15);
@@ -1586,362 +1608,394 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
             </div>
             )}
 
-            {/* 4734 KİK m.38 AŞIRI DÜŞÜK TEKLİF (SINIR DEĞER & %80 PARETO) ANALİZİ */}
-            <div className="mt-5 border border-border bg-background p-4">
-              <div className="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-border">
-                <span className="font-mono text-[10px] font-semibold uppercase tracking-wider text-primary">
-                  4734 KİK m.38 · SINIR DEĞER &amp; %80 PARETO ANALİZİ
-                </span>
-                <div className="inline-flex border border-border bg-card text-[10px] font-mono">
-                  <button
-                    type="button"
-                    onClick={() => setKikWorkCategory("ust_yapi")}
-                    className={`px-2 py-0.5 ${
-                      kikWorkCategory === "ust_yapi"
-                        ? "bg-primary text-primary-foreground font-semibold"
-                        : "text-muted-foreground"
-                    }`}
-                  >
-                    Üstyapı (N=1,00)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setKikWorkCategory("alt_yapi")}
-                    className={`px-2 py-0.5 ${
-                      kikWorkCategory === "alt_yapi"
-                        ? "bg-primary text-primary-foreground font-semibold"
-                        : "text-muted-foreground"
-                    }`}
-                  >
-                    Diğer Yapım / Altyapı (N=1,20)
-                  </button>
-                </div>
-              </div>
-
-              <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-mono">
-                <label className="block">
-                  <span className="text-[10px] text-muted-foreground block mb-1">
-                    İdare Yaklaşık Maliyeti (YM - TL)
-                  </span>
+            {/* ARAÇLAR (M-14.5): kamu ihalesi araçları yalnız işaretlenince; ISO 19650 kartı her zaman bölüm içinde */}
+            <details
+              className="mt-5 border border-border bg-card"
+              data-testid="cost-tools"
+              open={toolsOpen}
+              onToggle={(event) => setToolsOpen((event.currentTarget as HTMLDetailsElement).open)}
+            >
+              <summary className="cursor-pointer px-4 py-3 font-mono text-[10px] font-semibold uppercase tracking-wider text-foreground">
+                Araçlar · kamu ihalesi, fiyat farkı, ISO 19650
+              </summary>
+              <div className="border-t border-border px-4 pb-4">
+                <label className="mt-3 flex items-start gap-2 text-xs text-foreground">
                   <input
-                    type="text"
-                    inputMode="numeric"
-                    aria-label="İdare Yaklaşık Maliyeti (YM - TL)"
-                    value={tenderYmInput}
-                    onChange={(e) => setTenderYmInput(e.target.value)}
-                    placeholder="Örn: 125000000"
-                    className="w-full border border-border bg-card px-2 py-1 text-xs font-mono text-foreground focus:border-primary focus:outline-none tabular-nums"
+                    type="checkbox"
+                    data-testid="public-tender-toggle"
+                    checked={publicTender}
+                    onChange={(event) => setPublicTender(event.target.checked)}
+                    className="mt-0.5"
                   />
-                </label>
-                <label className="block">
-                  <span className="text-[10px] text-muted-foreground block mb-1">
-                    Rakip Teklifler (TL, noktalı virgül ile)
-                  </span>
-                  <input
-                    type="text"
-                    aria-label="Rakip Teklifler (TL, noktalı virgül ile)"
-                    value={tenderBidsInput}
-                    onChange={(e) => setTenderBidsInput(e.target.value)}
-                    placeholder="Örn: 98000000; 102500000; 106000000"
-                    className="w-full border border-border bg-card px-2 py-1 text-xs font-mono text-foreground focus:border-primary focus:outline-none tabular-nums"
-                  />
-                </label>
-              </div>
-
-              {kikAdtAnalysis.hasTenderSessionInputs ? (
-                <div className="mt-3 grid grid-cols-2 gap-2 text-xs font-mono">
-                  <div className="border border-border bg-card p-2">
-                    <div className="text-[10px] text-muted-foreground">
-                      Sınır Değer (SD = K × Tort2 / (C × N))
-                    </div>
-                    <div className="mt-0.5 font-bold text-foreground tabular-nums">
-                      {formatTrCurrency(kikAdtAnalysis.boundaryValueTry)}
-                    </div>
-                  </div>
-                  <div className="border border-border bg-card p-2">
-                    <div className="text-[10px] text-muted-foreground">KİK m.38 Durumu</div>
-                    <div
-                      className={`mt-0.5 font-bold tabular-nums ${
-                        kikAdtAnalysis.isAbnormallyLow ? "text-primary" : "text-foreground"
-                      }`}
-                    >
-                      {kikAdtAnalysis.isAbnormallyLow
-                        ? `Aşırı Düşük (${formatTrNumber(kikAdtAnalysis.marginToBoundaryPercent, 1)}%)`
-                        : `Sınır Değer Üstü (+${formatTrNumber(kikAdtAnalysis.marginToBoundaryPercent, 1)}%)`}
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="mt-3 border border-border bg-card p-2.5 text-[11px] font-mono text-muted-foreground">
-                  {pricingComplete
-                    ? "Sınır değer (SD) hesabı için ihale açılış tutanağındaki İdare Yaklaşık Maliyeti (YM) ve geçerli teklifleri giriniz (varsayılan uydurma değer kullanılmaz)."
-                    : `Teklif tutarınız tüm kalemler fiyatlandıktan sonra sınır değerle karşılaştırılır (${costPendingLabel}).`}
-                </div>
-              )}
-
-              <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2 text-[11px] font-mono text-muted-foreground">
-                <span>
-                  Tebliğ m.45.1.2 resmî %80 listesi:{" "}
-                  <strong className="text-foreground">
-                    {kikAdtAnalysis.officialExplanationListStatus === "evaluated"
-                      ? `${kikAdtAnalysis.explanationRequiredItems.length} kalem`
-                      : "Değerlendirilmedi"}
-                  </strong>
-                </span>
-                <span className="stamp-badge bg-card text-muted-foreground">
-                  EKAP Tutanak İçe Aktarımı: Yol Haritasında · 2026 Q4 (Faz 3)
-                </span>
-              </div>
-              {kikAdtAnalysis.officialExplanationListStatus === "not_evaluated" && (
-                <div className="mt-2 border border-amber-500/30 bg-amber-500/5 p-2 text-[11px] text-amber-700 dark:text-amber-300">
-                  {kikAdtAnalysis.officialExplanationListReason} Teklif satırlarından üretilen {kikAdtAnalysis.advisoryOfferExplanationRequiredItems.length} kalem yalnız danışma karşılaştırmasıdır.
-                </div>
-              )}
-            </div>
-
-            {/* TS EN ISO 19650-1/2 & RG 33331 EK-2 CDE / LOIN BİLGİ YÖNETİMİ KARTI */}
-            <div className="mt-4 border border-border bg-background p-4">
-              <div className="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-border">
-                <span className="font-mono text-[10px] font-semibold uppercase tracking-wider text-primary">
-                  ISO 19650 / EN 17412 · LİSANSLI METİN İNCELEMESİ GEREKİR
-                </span>
-                <span className="stamp-badge bg-card text-foreground">
-                  LOIN ({iso19650Evaluation.loinMilestone?.targetLod ?? "LOD 350"}): %
-                  {formatTrNumber(
-                    iso19650Evaluation.loinMilestone?.overallCompletenessPercent ??
-                      iso19650Evaluation.loin.alphanumericCompletenessRatio * 100,
-                    1,
-                  )}
-                </span>
-              </div>
-
-              <div className="mt-3 grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs font-mono">
-                <label className="block">
-                  <span className="text-[10px] text-muted-foreground block mb-1">CDE Durumu</span>
-                  <select
-                    aria-label="ISO 19650 CDE Durumu"
-                    value={cdeStateInput}
-                    onChange={(e) => setCdeStateInput(e.target.value as CdeState | "")}
-                    className="w-full border border-border bg-card px-2 py-1 text-xs font-mono text-foreground focus:border-primary focus:outline-none"
-                  >
-                    <option value="">Seçilmedi</option>
-                    <option value="WIP">WIP (Çalışma)</option>
-                    <option value="SHARED">SHARED (Paylaşılan)</option>
-                    <option value="PUBLISHED">PUBLISHED (Yayımlanan)</option>
-                    <option value="ARCHIVED">ARCHIVED (Arşiv)</option>
-                  </select>
-                </label>
-
-                <label className="block">
-                  <span className="text-[10px] text-muted-foreground block mb-1">Uygunluk Kodu</span>
-                  <select
-                    aria-label="ISO 19650 Uygunluk Kodu"
-                    value={suitabilityInput}
-                    onChange={(e) => setSuitabilityInput(e.target.value as SuitabilityCode | "")}
-                    className="w-full border border-border bg-card px-2 py-1 text-xs font-mono text-foreground focus:border-primary focus:outline-none"
-                  >
-                    <option value="">Seçilmedi</option>
-                    <option value="S0">S0 (WIP)</option>
-                    <option value="S1">S1 (Koordinasyon)</option>
-                    <option value="S2">S2 (Bilgi İçin)</option>
-                    <option value="S3">S3 (İnceleme/Yorum)</option>
-                    <option value="S4">S4 (Aşama Onayı)</option>
-                    <option value="S5">S5 (Yetkilendirilmiş)</option>
-                    <option value="S6">S6 (PIM Yetkilendirme)</option>
-                    <option value="S7">S7 (AIM Yetkilendirme)</option>
-                    <option value="A1">A1 (İhale/İmalata Uygun)</option>
-                    <option value="A2">A2 (İmalata Uygun)</option>
-                    <option value="A3">A3 (İnşaata Uygun)</option>
-                    <option value="A4">A4 (As-Built Teslim)</option>
-                    <option value="A5">A5 (Varlık Yönetimi)</option>
-                    <option value="A6">A6 (Arşiv Onayı)</option>
-                    <option value="A7">A7 (Sözleşmesel Onay)</option>
-                    <option value="B">B (Arşiv)</option>
-                  </select>
-                </label>
-
-                <label className="block">
-                  <span className="text-[10px] text-muted-foreground block mb-1">Revizyon Kodu</span>
-                  <input
-                    type="text"
-                    aria-label="ISO 19650 Revizyon Kodu"
-                    value={revisionInput}
-                    onChange={(e) => setRevisionInput(e.target.value)}
-                    placeholder="Örn: P01.01 veya C01/001"
-                    className="w-full border border-border bg-card px-2 py-1 text-xs font-mono text-foreground focus:border-primary focus:outline-none"
-                  />
-                </label>
-
-                <label className="block">
-                  <span className="text-[10px] text-muted-foreground block mb-1">Teslim Aşaması</span>
-                  <select
-                    aria-label="ISO 19650 Teslim Aşaması"
-                    value={deliveryStageInput}
-                    onChange={(e) => setDeliveryStageInput(e.target.value as "COORDINATION" | "TENDER_OR_PERMIT")}
-                    className="w-full border border-border bg-card px-2 py-1 text-xs font-mono text-foreground focus:border-primary focus:outline-none"
-                  >
-                    <option value="COORDINATION">Tasarım Koordinasyonu</option>
-                    <option value="TENDER_OR_PERMIT">İhale / e-PYS Ruhsat</option>
-                  </select>
-                </label>
-
-                <label className="block">
-                  <span className="text-[10px] text-muted-foreground block mb-1">EIR / LOIN Şablonu</span>
-                  <select
-                    aria-label="EIR LOIN Teslim Şablonu"
-                    value={eirMilestoneInput}
-                    onChange={(e) => setEirMilestoneInput(e.target.value as EirDeliveryMilestone)}
-                    className="w-full border border-border bg-card px-2 py-1 text-xs font-mono text-foreground focus:border-primary focus:outline-none"
-                  >
-                    <option value="CONCEPT">Avan Proje (LOD 200)</option>
-                    <option value="DEFINITIVE">Kesin Proje (LOD 300)</option>
-                    <option value="IMPLEMENTATION">Uygulama / Ruhsat (LOD 350)</option>
-                    <option value="AS_BUILT">İş Sonu / As-Built (LOD 400)</option>
-                  </select>
-                </label>
-              </div>
-
-              <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2">
-                <span className="text-[11px] font-mono text-muted-foreground">
-                  Dosya Adı Şablonu:{" "}
-                  <strong className="text-foreground">{isoContainerIdentity.namingStandard}</strong>
-                </span>
-                <span className="stamp-badge bg-card text-muted-foreground">Karar geçmişi: sunucuda kayıtlı</span>
-              </div>
-
-              <div className="mt-2.5 border border-border bg-card p-2.5 text-[11px] font-mono text-muted-foreground space-y-1.5">
-                {iso19650Evaluation.cdeEvaluationStatus === "not_evaluated" ? (
-                  <div>
-                    CDE Değerlendirilmedi — Doküman CDE durumu, uygunluk ve revizyon kodu girildiğinde TS EN ISO 19650-2 geçiş kuralları denetlenir.
-                  </div>
-                ) : iso19650Evaluation.errors.length === 0 ? (
-                  <div className="text-foreground font-semibold">
-                    CDE Durumu Geçerli ({iso19650Evaluation.cdeState} · {iso19650Evaluation.suitabilityCode ?? "—"} · {iso19650Evaluation.revisionCode ?? "—"})
-                  </div>
-                ) : (
-                  <div className="text-primary font-semibold">
-                    {iso19650Evaluation.errors[0]}
-                  </div>
-                )}
-              </div>
-              <CdeWorkflowPanel
-                documentId={documentId}
-                targetState={cdeStateInput}
-                suitabilityCode={suitabilityInput}
-                revisionCode={revisionInput}
-              />
-            </div>
-
-            {/* 4735 SAYILI KANUN FİYAT FARKI & ÇŞB 2026 – TÜİK 21 ALT ENDEKS MOTORU (FAZ 2.5) */}
-            <div className="mt-4 border border-border bg-background p-4">
-              <div className="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-border">
-                <span className="font-mono text-[10px] font-semibold uppercase tracking-wider text-primary">
-                  4735 FİYAT FARKI (F = A_n × B × (P_n − 1)) · ÇŞB-TÜİK 21 ALT ENDEKS
-                </span>
-                <span className="stamp-badge bg-card text-foreground">
-                  B = 0,90 · 21 Resmi Alt Endeks
-                </span>
-              </div>
-
-              <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs font-mono">
-                <label className="block sm:col-span-1">
-                  <span className="text-[10px] text-muted-foreground block mb-1">
-                    ÇŞB 2026 – TÜİK Alt Endeksi (21 Grup)
-                  </span>
-                  <select
-                    aria-label="TÜİK Alt Endeks Seçimi"
-                    value={selectedTuikIndex}
-                    onChange={(e) => setSelectedTuikIndex(e.target.value as TuikSubIndexCode)}
-                    className="w-full border border-border bg-card px-2 py-1 text-xs font-mono text-foreground focus:border-primary focus:outline-none"
-                  >
-                    {CSB_2026_TUIK_SUB_INDICES.map((idx) => (
-                      <option key={idx.code} value={idx.code}>
-                        {idx.tuikSectorCode} — {idx.title}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-
-                <label className="block">
-                  <span className="text-[10px] text-muted-foreground block mb-1">
-                    Temel Endeks (E_0 — Baz Ayı)
-                  </span>
-                  <input
-                    type="text"
-                    inputMode="decimal"
-                    aria-label="Temel Endeks (E_0 — Baz Ayı)"
-                    value={tuikBaseIndexInput}
-                    onChange={(e) => setTuikBaseIndexInput(e.target.value)}
-                    placeholder="Örn: 240.00"
-                    className="w-full border border-border bg-card px-2 py-1 text-xs font-mono text-foreground focus:border-primary focus:outline-none tabular-nums"
-                  />
-                </label>
-
-                <label className="block">
-                  <span className="text-[10px] text-muted-foreground block mb-1">
-                    Güncel Endeks (E_n — Uygulama Ayı)
-                  </span>
-                  <input
-                    type="text"
-                    inputMode="decimal"
-                    aria-label="Güncel Endeks (E_n — Uygulama Ayı)"
-                    value={tuikCurrentIndexInput}
-                    onChange={(e) => setTuikCurrentIndexInput(e.target.value)}
-                    placeholder="Örn: 276.00"
-                    className="w-full border border-border bg-card px-2 py-1 text-xs font-mono text-foreground focus:border-primary focus:outline-none tabular-nums"
-                  />
-                </label>
-              </div>
-
-              {escalationPreview ? (
-                <div className="mt-3 space-y-2 text-xs font-mono">
-                  <div className="grid grid-cols-3 gap-2">
-                    <div className="border border-border bg-card p-2">
-                      <div className="text-[10px] text-muted-foreground">P_n Katsayısı</div>
-                      <div className="mt-0.5 font-bold text-foreground tabular-nums">
-                        {formatTrNumber(escalationPreview.pnFactor, 4)}
-                      </div>
-                    </div>
-                    <div className="border border-border bg-card p-2">
-                      <div className="text-[10px] text-muted-foreground">Fiyat Farkı (F)</div>
-                      <div className="mt-0.5 font-bold text-primary tabular-nums">
-                        {formatTrCurrency(escalationPreview.priceDifferenceTl)}
-                      </div>
-                    </div>
-                    <div className="border border-border bg-card p-2">
-                      <div className="text-[10px] text-muted-foreground">Güncel Toplam (A_n + F)</div>
-                      <div className="mt-0.5 font-bold text-foreground tabular-nums">
-                        {formatTrCurrency(escalationPreview.adjustedTotalTl)}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <span className="text-[10px] text-muted-foreground">
-                      {escalationPreview.formulaSummary}
+                  <span>
+                    Bu iş kamu ihalesi (4734 / 4735 kapsamında)
+                    <span className="mt-0.5 block text-[10px] text-muted-foreground">
+                      KİK aşırı düşük teklif sınır değeri ve 4735 fiyat farkı yalnız 4734'e tabi kamu ihalelerinde ve sözleşmelerinde uygulanır; özel sektör işlerinde gizli kalır.
                     </span>
-                    <button
-                      type="button"
-                      onClick={handleApplyTuikIndexToPrices}
-                      className="border border-primary/40 bg-primary/10 px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-wider text-primary hover:bg-primary hover:text-primary-foreground transition-colors"
-                    >
-                      Birim Fiyatları E_n/E_0 İle Güncelle (Tahmini)
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div className="mt-3 border border-border bg-card p-2.5 text-[11px] font-mono text-muted-foreground">
-                  {pricingComplete
-                    ? "4735 Sayılı Kanun Fiyat Farkı (F = A_n × 0,90 × (P_n − 1)) ve dönem dışı birim fiyat güncellemesi için TÜİK Temel Endeks (E_0) ve Güncel Endeks (E_n) değerlerini giriniz (sabit enflasyon oranı varsayılmaz)."
-                    : `Fiyat farkı, tüm kalemler fiyatlandıktan sonra hesaplanır (${costPendingLabel}).`}
-                </div>
-              )}
+                  </span>
+                </label>
+                {publicTender && (
+                  <>
+                    {/* 4734 KİK m.38 AŞIRI DÜŞÜK TEKLİF (SINIR DEĞER & %80 PARETO) ANALİZİ */}
+                    <div className="mt-5 border border-border bg-background p-4">
+                      <div className="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-border">
+                        <span className="font-mono text-[10px] font-semibold uppercase tracking-wider text-primary">
+                          4734 KİK m.38 · SINIR DEĞER &amp; %80 PARETO ANALİZİ
+                        </span>
+                        <div className="inline-flex border border-border bg-card text-[10px] font-mono">
+                          <button
+                            type="button"
+                            onClick={() => setKikWorkCategory("ust_yapi")}
+                            className={`px-2 py-0.5 ${
+                              kikWorkCategory === "ust_yapi"
+                                ? "bg-primary text-primary-foreground font-semibold"
+                                : "text-muted-foreground"
+                            }`}
+                          >
+                            Üstyapı (N=1,00)
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setKikWorkCategory("alt_yapi")}
+                            className={`px-2 py-0.5 ${
+                              kikWorkCategory === "alt_yapi"
+                                ? "bg-primary text-primary-foreground font-semibold"
+                                : "text-muted-foreground"
+                            }`}
+                          >
+                            Diğer Yapım / Altyapı (N=1,20)
+                          </button>
+                        </div>
+                      </div>
 
-              {tuikIndexedAppliedNote && (
-                <div className="mt-2 border border-primary/40 bg-primary/10 p-2 text-[10px] font-mono text-foreground">
-                  {tuikIndexedAppliedNote}
+                      <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-mono">
+                        <label className="block">
+                          <span className="text-[10px] text-muted-foreground block mb-1">
+                            İdare Yaklaşık Maliyeti (YM - TL)
+                          </span>
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            aria-label="İdare Yaklaşık Maliyeti (YM - TL)"
+                            value={tenderYmInput}
+                            onChange={(e) => setTenderYmInput(e.target.value)}
+                            placeholder="Örn: 125000000"
+                            className="w-full border border-border bg-card px-2 py-1 text-xs font-mono text-foreground focus:border-primary focus:outline-none tabular-nums"
+                          />
+                        </label>
+                        <label className="block">
+                          <span className="text-[10px] text-muted-foreground block mb-1">
+                            Rakip Teklifler (TL, noktalı virgül ile)
+                          </span>
+                          <input
+                            type="text"
+                            aria-label="Rakip Teklifler (TL, noktalı virgül ile)"
+                            value={tenderBidsInput}
+                            onChange={(e) => setTenderBidsInput(e.target.value)}
+                            placeholder="Örn: 98000000; 102500000; 106000000"
+                            className="w-full border border-border bg-card px-2 py-1 text-xs font-mono text-foreground focus:border-primary focus:outline-none tabular-nums"
+                          />
+                        </label>
+                      </div>
+
+                      {kikAdtAnalysis.hasTenderSessionInputs ? (
+                        <div className="mt-3 grid grid-cols-2 gap-2 text-xs font-mono">
+                          <div className="border border-border bg-card p-2">
+                            <div className="text-[10px] text-muted-foreground">
+                              Sınır Değer (SD = K × Tort2 / (C × N))
+                            </div>
+                            <div className="mt-0.5 font-bold text-foreground tabular-nums">
+                              {formatTrCurrency(kikAdtAnalysis.boundaryValueTry)}
+                            </div>
+                          </div>
+                          <div className="border border-border bg-card p-2">
+                            <div className="text-[10px] text-muted-foreground">KİK m.38 Durumu</div>
+                            <div
+                              className={`mt-0.5 font-bold tabular-nums ${
+                                kikAdtAnalysis.isAbnormallyLow ? "text-primary" : "text-foreground"
+                              }`}
+                            >
+                              {kikAdtAnalysis.isAbnormallyLow
+                                ? `Aşırı Düşük (${formatTrNumber(kikAdtAnalysis.marginToBoundaryPercent, 1)}%)`
+                                : `Sınır Değer Üstü (+${formatTrNumber(kikAdtAnalysis.marginToBoundaryPercent, 1)}%)`}
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="mt-3 border border-border bg-card p-2.5 text-[11px] font-mono text-muted-foreground">
+                          {pricingComplete
+                            ? "Sınır değer (SD) hesabı için ihale açılış tutanağındaki İdare Yaklaşık Maliyeti (YM) ve geçerli teklifleri giriniz (varsayılan uydurma değer kullanılmaz)."
+                            : `Teklif tutarınız tüm kalemler fiyatlandıktan sonra sınır değerle karşılaştırılır (${costPendingLabel}).`}
+                        </div>
+                      )}
+
+                      <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2 text-[11px] font-mono text-muted-foreground">
+                        <span>
+                          Tebliğ m.45.1.2 resmî %80 listesi:{" "}
+                          <strong className="text-foreground">
+                            {kikAdtAnalysis.officialExplanationListStatus === "evaluated"
+                              ? `${kikAdtAnalysis.explanationRequiredItems.length} kalem`
+                              : "Değerlendirilmedi"}
+                          </strong>
+                        </span>
+                        <span className="stamp-badge bg-card text-muted-foreground">
+                          EKAP Tutanak İçe Aktarımı: Yol Haritasında · 2026 Q4 (Faz 3)
+                        </span>
+                      </div>
+                      {kikAdtAnalysis.officialExplanationListStatus === "not_evaluated" && (
+                        <div className="mt-2 border border-amber-500/30 bg-amber-500/5 p-2 text-[11px] text-amber-700 dark:text-amber-300">
+                          {kikAdtAnalysis.officialExplanationListReason} Teklif satırlarından üretilen {kikAdtAnalysis.advisoryOfferExplanationRequiredItems.length} kalem yalnız danışma karşılaştırmasıdır.
+                        </div>
+                      )}
+                    </div>
+
+                    {/* 4735 SAYILI KANUN FİYAT FARKI & ÇŞB 2026 – TÜİK 21 ALT ENDEKS MOTORU (FAZ 2.5) */}
+                    <div className="mt-4 border border-border bg-background p-4">
+                      <div className="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-border">
+                        <span className="font-mono text-[10px] font-semibold uppercase tracking-wider text-primary">
+                          4735 FİYAT FARKI (F = A_n × B × (P_n − 1)) · ÇŞB-TÜİK 21 ALT ENDEKS
+                        </span>
+                        <span className="stamp-badge bg-card text-foreground">
+                          B = 0,90 · 21 Resmi Alt Endeks
+                        </span>
+                      </div>
+
+                      <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs font-mono">
+                        <label className="block sm:col-span-1">
+                          <span className="text-[10px] text-muted-foreground block mb-1">
+                            ÇŞB 2026 – TÜİK Alt Endeksi (21 Grup)
+                          </span>
+                          <select
+                            aria-label="TÜİK Alt Endeks Seçimi"
+                            value={selectedTuikIndex}
+                            onChange={(e) => setSelectedTuikIndex(e.target.value as TuikSubIndexCode)}
+                            className="w-full border border-border bg-card px-2 py-1 text-xs font-mono text-foreground focus:border-primary focus:outline-none"
+                          >
+                            {CSB_2026_TUIK_SUB_INDICES.map((idx) => (
+                              <option key={idx.code} value={idx.code}>
+                                {idx.tuikSectorCode} — {idx.title}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+
+                        <label className="block">
+                          <span className="text-[10px] text-muted-foreground block mb-1">
+                            Temel Endeks (E_0 — Baz Ayı)
+                          </span>
+                          <input
+                            type="text"
+                            inputMode="decimal"
+                            aria-label="Temel Endeks (E_0 — Baz Ayı)"
+                            value={tuikBaseIndexInput}
+                            onChange={(e) => setTuikBaseIndexInput(e.target.value)}
+                            placeholder="Örn: 240.00"
+                            className="w-full border border-border bg-card px-2 py-1 text-xs font-mono text-foreground focus:border-primary focus:outline-none tabular-nums"
+                          />
+                        </label>
+
+                        <label className="block">
+                          <span className="text-[10px] text-muted-foreground block mb-1">
+                            Güncel Endeks (E_n — Uygulama Ayı)
+                          </span>
+                          <input
+                            type="text"
+                            inputMode="decimal"
+                            aria-label="Güncel Endeks (E_n — Uygulama Ayı)"
+                            value={tuikCurrentIndexInput}
+                            onChange={(e) => setTuikCurrentIndexInput(e.target.value)}
+                            placeholder="Örn: 276.00"
+                            className="w-full border border-border bg-card px-2 py-1 text-xs font-mono text-foreground focus:border-primary focus:outline-none tabular-nums"
+                          />
+                        </label>
+                      </div>
+
+                      {escalationPreview ? (
+                        <div className="mt-3 space-y-2 text-xs font-mono">
+                          <div className="grid grid-cols-3 gap-2">
+                            <div className="border border-border bg-card p-2">
+                              <div className="text-[10px] text-muted-foreground">P_n Katsayısı</div>
+                              <div className="mt-0.5 font-bold text-foreground tabular-nums">
+                                {formatTrNumber(escalationPreview.pnFactor, 4)}
+                              </div>
+                            </div>
+                            <div className="border border-border bg-card p-2">
+                              <div className="text-[10px] text-muted-foreground">Fiyat Farkı (F)</div>
+                              <div className="mt-0.5 font-bold text-primary tabular-nums">
+                                {formatTrCurrency(escalationPreview.priceDifferenceTl)}
+                              </div>
+                            </div>
+                            <div className="border border-border bg-card p-2">
+                              <div className="text-[10px] text-muted-foreground">Güncel Toplam (A_n + F)</div>
+                              <div className="mt-0.5 font-bold text-foreground tabular-nums">
+                                {formatTrCurrency(escalationPreview.adjustedTotalTl)}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <span className="text-[10px] text-muted-foreground">
+                              {escalationPreview.formulaSummary}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={handleApplyTuikIndexToPrices}
+                              className="border border-primary/40 bg-primary/10 px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-wider text-primary hover:bg-primary hover:text-primary-foreground transition-colors"
+                            >
+                              Birim Fiyatları E_n/E_0 İle Güncelle (Tahmini)
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="mt-3 border border-border bg-card p-2.5 text-[11px] font-mono text-muted-foreground">
+                          {pricingComplete
+                            ? "4735 Sayılı Kanun Fiyat Farkı (F = A_n × 0,90 × (P_n − 1)) ve dönem dışı birim fiyat güncellemesi için TÜİK Temel Endeks (E_0) ve Güncel Endeks (E_n) değerlerini giriniz (sabit enflasyon oranı varsayılmaz)."
+                            : `Fiyat farkı, tüm kalemler fiyatlandıktan sonra hesaplanır (${costPendingLabel}).`}
+                        </div>
+                      )}
+
+                      {tuikIndexedAppliedNote && (
+                        <div className="mt-2 border border-primary/40 bg-primary/10 p-2 text-[10px] font-mono text-foreground">
+                          {tuikIndexedAppliedNote}
+                        </div>
+                      )}
+                    </div>
+                  </>
+                )}
+                {/* TS EN ISO 19650-1/2 & RG 33331 EK-2 CDE / LOIN BİLGİ YÖNETİMİ KARTI */}
+                <div className="mt-4 border border-border bg-background p-4">
+                  <div className="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-border">
+                    <span className="font-mono text-[10px] font-semibold uppercase tracking-wider text-primary">
+                      ISO 19650 / EN 17412 · LİSANSLI METİN İNCELEMESİ GEREKİR
+                    </span>
+                    <span className="stamp-badge bg-card text-foreground">
+                      LOIN ({iso19650Evaluation.loinMilestone?.targetLod ?? "LOD 350"}): %
+                      {formatTrNumber(
+                        iso19650Evaluation.loinMilestone?.overallCompletenessPercent ??
+                          iso19650Evaluation.loin.alphanumericCompletenessRatio * 100,
+                        1,
+                      )}
+                    </span>
+                  </div>
+
+                  <div className="mt-3 grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs font-mono">
+                    <label className="block">
+                      <span className="text-[10px] text-muted-foreground block mb-1">CDE Durumu</span>
+                      <select
+                        aria-label="ISO 19650 CDE Durumu"
+                        value={cdeStateInput}
+                        onChange={(e) => setCdeStateInput(e.target.value as CdeState | "")}
+                        className="w-full border border-border bg-card px-2 py-1 text-xs font-mono text-foreground focus:border-primary focus:outline-none"
+                      >
+                        <option value="">Seçilmedi</option>
+                        <option value="WIP">WIP (Çalışma)</option>
+                        <option value="SHARED">SHARED (Paylaşılan)</option>
+                        <option value="PUBLISHED">PUBLISHED (Yayımlanan)</option>
+                        <option value="ARCHIVED">ARCHIVED (Arşiv)</option>
+                      </select>
+                    </label>
+
+                    <label className="block">
+                      <span className="text-[10px] text-muted-foreground block mb-1">Uygunluk Kodu</span>
+                      <select
+                        aria-label="ISO 19650 Uygunluk Kodu"
+                        value={suitabilityInput}
+                        onChange={(e) => setSuitabilityInput(e.target.value as SuitabilityCode | "")}
+                        className="w-full border border-border bg-card px-2 py-1 text-xs font-mono text-foreground focus:border-primary focus:outline-none"
+                      >
+                        <option value="">Seçilmedi</option>
+                        <option value="S0">S0 (WIP)</option>
+                        <option value="S1">S1 (Koordinasyon)</option>
+                        <option value="S2">S2 (Bilgi İçin)</option>
+                        <option value="S3">S3 (İnceleme/Yorum)</option>
+                        <option value="S4">S4 (Aşama Onayı)</option>
+                        <option value="S5">S5 (Yetkilendirilmiş)</option>
+                        <option value="S6">S6 (PIM Yetkilendirme)</option>
+                        <option value="S7">S7 (AIM Yetkilendirme)</option>
+                        <option value="A1">A1 (İhale/İmalata Uygun)</option>
+                        <option value="A2">A2 (İmalata Uygun)</option>
+                        <option value="A3">A3 (İnşaata Uygun)</option>
+                        <option value="A4">A4 (As-Built Teslim)</option>
+                        <option value="A5">A5 (Varlık Yönetimi)</option>
+                        <option value="A6">A6 (Arşiv Onayı)</option>
+                        <option value="A7">A7 (Sözleşmesel Onay)</option>
+                        <option value="B">B (Arşiv)</option>
+                      </select>
+                    </label>
+
+                    <label className="block">
+                      <span className="text-[10px] text-muted-foreground block mb-1">Revizyon Kodu</span>
+                      <input
+                        type="text"
+                        aria-label="ISO 19650 Revizyon Kodu"
+                        value={revisionInput}
+                        onChange={(e) => setRevisionInput(e.target.value)}
+                        placeholder="Örn: P01.01 veya C01/001"
+                        className="w-full border border-border bg-card px-2 py-1 text-xs font-mono text-foreground focus:border-primary focus:outline-none"
+                      />
+                    </label>
+
+                    <label className="block">
+                      <span className="text-[10px] text-muted-foreground block mb-1">Teslim Aşaması</span>
+                      <select
+                        aria-label="ISO 19650 Teslim Aşaması"
+                        value={deliveryStageInput}
+                        onChange={(e) => setDeliveryStageInput(e.target.value as "COORDINATION" | "TENDER_OR_PERMIT")}
+                        className="w-full border border-border bg-card px-2 py-1 text-xs font-mono text-foreground focus:border-primary focus:outline-none"
+                      >
+                        <option value="COORDINATION">Tasarım Koordinasyonu</option>
+                        <option value="TENDER_OR_PERMIT">İhale / e-PYS Ruhsat</option>
+                      </select>
+                    </label>
+
+                    <label className="block">
+                      <span className="text-[10px] text-muted-foreground block mb-1">EIR / LOIN Şablonu</span>
+                      <select
+                        aria-label="EIR LOIN Teslim Şablonu"
+                        value={eirMilestoneInput}
+                        onChange={(e) => setEirMilestoneInput(e.target.value as EirDeliveryMilestone)}
+                        className="w-full border border-border bg-card px-2 py-1 text-xs font-mono text-foreground focus:border-primary focus:outline-none"
+                      >
+                        <option value="CONCEPT">Avan Proje (LOD 200)</option>
+                        <option value="DEFINITIVE">Kesin Proje (LOD 300)</option>
+                        <option value="IMPLEMENTATION">Uygulama / Ruhsat (LOD 350)</option>
+                        <option value="AS_BUILT">İş Sonu / As-Built (LOD 400)</option>
+                      </select>
+                    </label>
+                  </div>
+
+                  <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2">
+                    <span className="text-[11px] font-mono text-muted-foreground">
+                      Dosya Adı Şablonu:{" "}
+                      <strong className="text-foreground">{isoContainerIdentity.namingStandard}</strong>
+                    </span>
+                    <span className="stamp-badge bg-card text-muted-foreground">Karar geçmişi: sunucuda kayıtlı</span>
+                  </div>
+
+                  <div className="mt-2.5 border border-border bg-card p-2.5 text-[11px] font-mono text-muted-foreground space-y-1.5">
+                    {iso19650Evaluation.cdeEvaluationStatus === "not_evaluated" ? (
+                      <div>
+                        CDE Değerlendirilmedi — Doküman CDE durumu, uygunluk ve revizyon kodu girildiğinde TS EN ISO 19650-2 geçiş kuralları denetlenir.
+                      </div>
+                    ) : iso19650Evaluation.errors.length === 0 ? (
+                      <div className="text-foreground font-semibold">
+                        CDE Durumu Geçerli ({iso19650Evaluation.cdeState} · {iso19650Evaluation.suitabilityCode ?? "—"} · {iso19650Evaluation.revisionCode ?? "—"})
+                      </div>
+                    ) : (
+                      <div className="text-primary font-semibold">
+                        {iso19650Evaluation.errors[0]}
+                      </div>
+                    )}
+                  </div>
+                  <CdeWorkflowPanel
+                    documentId={documentId}
+                    targetState={cdeStateInput}
+                    suitabilityCode={suitabilityInput}
+                    revisionCode={revisionInput}
+                  />
                 </div>
-              )}
-            </div>
+
+              </div>
+            </details>
           </div>
         </div>
       )}

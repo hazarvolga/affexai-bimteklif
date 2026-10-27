@@ -29,29 +29,30 @@ history to `archive/` (latest: `archive/WORKING_STATE_until_2026-10-24.md`).
 
 ## Code (main / working branch)
 
-- **Unmerged stacked PR chain (Rev. 91–95, 26–27 Oct 2026), not on `main`, not
-  deployed.** Merge in order; each PR's base is the previous branch:
-  #21 `feat/expert-feedback` (Rev. 91 expert preview + feedback) →
-  #22 `feat/faz0-guven` (Rev. 92 Faz 0 trust fixes + release 0028) →
-  #23 `feat/faz1-excel-akis` (Rev. 93 Excel-first, one entry, new quotation vs
-  revision) → #24 `feat/faz1-fiyat-eksik` (Rev. 94 catalogue wizard, missing-price
-  actions, contractor profit/overhead + release 0029) → `feat/faz1-excel-cikti`
-  (#25, Rev. 95 .xlsx exports, demo route removed, Rev. 91–95 docs). **Do not merge #23
-  alone:** its production build lets the SmartCheck chunk reference exceljs (T45);
-  #24 fixes it. Deploy must run 0022–0029 with the app (checklist:
-  `docs/operations/UZMAN_ONIZLEME_DEPLOY_VE_GERI_BILDIRIM_2026-10-26.md`).
-  Product plan and per-slice status: `docs/plans/URUN_YOL_HARITASI_MARKA_UZMAN_ONIZLEME_2026-10-26.md`.
-  Verified on 2026-10-27 at the chain head: full suite on a fresh PG16 with
-  0000–0029 (`1515` tests, `1500` PASS, `0` FAIL, coverage gate PASS, 82.7% lines),
-  release-migration tests, Prisma shadow contract, and real-browser smokes
-  `scripts/faz0-trust-ui-smoke.ts`, `faz1-excel-flow-smoke.ts`,
-  `faz1-price-gap-smoke.ts` (catalogue → icmal → new quotation 102.396,00 TL →
-  quotation/icmal .xlsx). Not verified: live data, CI on the last branch, expert
-  review of the profit/overhead method. Next: Faz 1 remainder (M-12.4/M-14.5
-  project-type tools, M-12.5 table, M-13.3/13.4, M-10.x demo, M-12.6 manual quote
-  from the company catalogue), then the three-persona acceptance run.
-- CI gap: `t45-performance-budget.test.ts` bundle checks skip when `dist/` is
-  absent, and CI builds after tests, so the T45 bundle gate never runs in CI.
+- **Rev. 91–95 merged to `main` on 2026-10-27 (`78bf661`), not deployed.**
+  PRs #21–#25 were merged top-down with merge commits (#25→#24→#23→#22 into
+  their bases, then #21 into `main` after the combined CI passed). `main` now
+  holds the expert preview + feedback, Faz 0 trust fixes (release 0028), Faz 1
+  Excel-first / one entry / new quotation vs revision, the catalogue wizard and
+  missing-price actions, contractor profit and overhead (release 0029) and the
+  .xlsx exports. Live is still Rev. 72 (`f474e99`): a deploy must run
+  0022–0029 with the app (checklist:
+  `docs/operations/UZMAN_ONIZLEME_DEPLOY_VE_GERI_BILDIRIM_2026-10-26.md`; set
+  `EXPERT_FEEDBACK_EMAIL`). Product plan and per-slice status:
+  `docs/plans/URUN_YOL_HARITASI_MARKA_UZMAN_ONIZLEME_2026-10-26.md`.
+  Verified before merge: full suite on a fresh PG16 with 0000–0029 (`1515`
+  tests, `1500` PASS, `0` FAIL, coverage gate PASS), combined CI on #21 green,
+  real-browser smokes `scripts/faz0-trust-ui-smoke.ts`,
+  `faz1-excel-flow-smoke.ts`, `faz1-price-gap-smoke.ts`. Not verified: live
+  data, expert review of the profit/overhead method. The CI image build now
+  frees runner disk first (it failed twice with Errno 28). Old branches
+  `feat/expert-feedback`, `feat/faz0-guven`, `feat/faz1-*` can be deleted.
+  Rev. 96 (branch `feat/faz1-proje-turu`): KİK/4735 tools only for public
+  tenders, "Gelişmiş" section on the quote form, CI T45 bundle step and runner
+  disk cleanup. Next: Faz 1 remainder (M-12.5 table, M-13.3/13.4, M-10.x demo, M-12.6 manual quote from
+  the company catalogue), then the three-persona acceptance run.
+- CI: the job runs with `NODE_ENV=test` (React development build). The T45
+  bundle gate runs in its own production-build step (`REQUIRE_PRODUCTION_BUNDLE=true`).
 - Latest roadmap revision: **Rev. 90** (`BIM-CALC-2026-10-25.84`): Faz 7 `T43` R+2..R+4 coverage ratchet closed (`src/pages/t43-ui-pages-and-components.test.ts` `6/6 PASS`, `src/pages/Dashboard.tsx` `D11` React Rules-of-Hooks fix, `coverage-thresholds.json` ratcheted to `project` lines **`82.58%`** floor `82%` / branches `75.01%` floor `75%` / functions `71.41%` floor `71%` and `UI` lines `74.77%` floor `74%`, `1427/1434` tests PASS, `0` FAIL) & Faz 11 `T56` complete traceability and final evidence matrix (`docs/audits/phase-11/final-evidence-matrix.json`, `docs/audits/phase-11/PHASE_11_T56_FINAL_EVIDENCE_MATRIX_2026-10-26.md`, `src/contracts/t56-final-evidence-matrix.test.ts` `3/3 PASS` binding `56/56` To-Do items [`39` `[x]` + `13` `PARTIAL` + `4` external-only], `31/31` audit IDs, `6/6` calculation engines, and `11` production defects `D01–D11`).
   Rev. 89 (`BIM-CALC-2026-10-25.83`): Faz 10 T53 source-backed market inventory & T54 comparable 6-stage capability matrix (`docs/audits/phase-10/market-inventory-register.json`, `docs/audits/phase-10/PHASE_10_T53_T54_MARKET_INVENTORY_2026-10-26.md`, `src/contracts/t53-t54-market-inventory.test.ts` `4/4 PASS`, and `scripts/phase-0-evidence-validator.test.ts` `23/23 PASS`; 12 products evaluated with `unverified_publicly` vs `pilot_l2_unapproved` discipline and `singleClaimPermitted = false` until `T50–T52` & `T55` legal review).
   Rev. 88 (`BIM-CALC-2026-10-25.82`): T45 performance & operating budget (`src/server/config/performance-budgets.ts` `BIM-PERF-2026-10-26.1` pre-registered budgets, `src/lib/quote-xlsx.ts` + `CreateQuote.tsx` dynamic import + `vite.config.ts` `manualChunks`/`modulePreload` isolating `940 kB` `exceljs` from `CreateQuote-*.js` `49.67 kB` and `index-*.js` `106.47 kB ≤ 120 kB`, and `src/contracts/t45-performance-budget.test.ts` `5/5 PASS`: 1,000-row XLSX + `256 MB` isolated worker `1,489.98 ms ≤ 2,500 ms` + `SPREADSHEET_BUSY` recovery, 20-request concurrent multi-tenant PG16 `p95 = 21.90 ms ≤ 250 ms`, queue claim `3.78 ms ≤ 150 ms`, Sentry PII scrub `p95 < 1 ms ≤ 5 ms`, AI router failover `< 5 ms ≤ 50 ms`).

@@ -157,6 +157,22 @@ Süreler (`marka.md` §23.2) yerelde ölçülür ve kaydedilir.
 - **M-15.2 kapandı:** `dosyadan-teklif-demo` sayfası (sabit beton 2.450, donatı 24.500, kalıp 1.250 TL) kaldırıldı. Eski adres `/app/smartcheck`'e yönlenir.
 - **Kanıt:** `export-xlsx.test.ts`. Gerçek tarayıcıda `faz1-price-gap-smoke.ts` icmal ve teklif dosyalarını indirip toplamları doğrular (teklif dosyası 102.396,00 TL, PDF ile aynı). `faz1-excel-flow-smoke.ts` yönlendirmeyi doğrular.
 
+### Faz 1 durumu — proje türü araçları ve gelişmiş görünüm (27 Ekim 2026, dal `feat/faz1-proje-turu`)
+
+- **PR zinciri #21–#25** 27 Ekim'de `main`'e birleştirildi (`78bf661`). Canlıya alınmadı.
+- **M-14.5 kapandı:**
+  - İcmal maliyet adımındaki KİK m.38, 4735/TÜİK ve ISO 19650 kartları kapalı başlayan "Araçlar" bölümünde toplandı.
+  - KİK ve 4735 yalnız "Bu iş kamu ihalesi (4734 / 4735 kapsamında)" işaretlenince görünür. Seçim bu tarayıcıda hatırlanır.
+- **M-12.4 kapandı:**
+  - Yeni Teklif ekranında süre, aylık volatilite, tedarik profili, karbon primi, bilgi teslimi ve teslim maliyeti kapalı "Gelişmiş" bölümüne alındı.
+  - Gizli değerler maliyeti ve marjı etkilediği için bölüm başlığı bu değerlerin özetini gösterir.
+  - Temel görünümde müşteri, proje başlığı, para birimi, KDV ile kâr ve genel gider kalır.
+- **CI:**
+  - İş `NODE_ENV=test` ile çalıştığı için CI'daki derleme React'in geliştirme sürümünü içeriyordu ve T45 paket kontrolü `dist/` olmadığından hiç çalışmıyordu.
+  - Yeni "T45 production bundle budget" adımı üretim modunda derleyip T45-2'yi çalıştırır. `REQUIRE_PRODUCTION_BUNDLE=true` iken `dist/` yoksa test başarısız olur.
+  - İmaj derlemesinden önce runner diski açılır (iki kez Errno 28 yaşandı).
+- **Kanıt:** t43 render testleri (KİK/4735 gizli ve görünür durumları, gelişmiş bölümün kapalı ve özetli başlaması). Gerçek tarayıcıda `faz1-excel-flow-smoke.ts` aynı davranışı doğrular.
+
 ### Faz 1 kalan dilimler — kararlar (26 Ekim 2026)
 
 Kaynak: NotebookLM araştırma defteri, bağımsız web araştırmasıyla karşılaştırıldı. Doğrulanamayan iddialar karar gerekçesi olarak kullanılmadı.

@@ -1894,6 +1894,11 @@ test('T43 UI Slice 2: Çalışma alanı ve ticari sayfalar (CreateQuote, Quotes,
     },
   );
   assert.ok(createQuoteHtml.length > 400);
+  // M-12.4: risk and delivery assumptions live in a closed "Gelişmiş" section that states their values.
+  assert.match(createQuoteHtml, /data-testid="quote-advanced"/);
+  assert.match(createQuoteHtml, /Gelişmiş · süre, risk primleri, bilgi teslimi/);
+  assert.match(createQuoteHtml, /data-testid="quote-advanced-summary">[^<]*ay · %/);
+  assert.doesNotMatch(createQuoteHtml, /<details[^>]*data-testid="quote-advanced"[^>]* open=""/, 'advanced section starts closed');
 
   const quotesHtml = await renderInRouter(
     createElement(Quotes),
@@ -2201,6 +2206,29 @@ test('T43 UI Slice 4: SmartCheck, CalmIfcWorkspace, BimIfcParser, BimGapAnalysis
     },
   );
   assert.ok(calmHtml.length > 500);
+
+  // M-14.5: KİK and 4735 tools only for public tenders; the ISO 19650 card stays in the Araçlar section.
+  const calmCostProps = {
+    dataset: calmDataset,
+    documentId: 'doc-1',
+    quotations: [{ id: 'quote-1', quoteNumber: 'TKF-2026-001', projectName: 'Kadıköy B Blok', status: 'draft' }],
+    transferTarget: { mode: 'revision' as const, quotationId: 'quote-1' },
+  };
+  localStorage.removeItem('bimmetraj:calm-public-tender:v1');
+  const privateCostHtml = await renderInRouter(createElement(CalmIfcWorkspace, calmCostProps), '/app/smartcheck', '/app/smartcheck', async (container) => {
+    clickButtonsByText(container, ['Maliyet']);
+  });
+  assert.match(privateCostHtml, /data-testid="cost-tools"/);
+  assert.doesNotMatch(privateCostHtml, /4734 KİK m\.38/, 'private work hides the public tender threshold tool');
+  assert.doesNotMatch(privateCostHtml, /4735 FİYAT FARKI/);
+  assert.match(privateCostHtml, /ISO 19650/);
+  localStorage.setItem('bimmetraj:calm-public-tender:v1', '1');
+  const publicCostHtml = await renderInRouter(createElement(CalmIfcWorkspace, calmCostProps), '/app/smartcheck', '/app/smartcheck', async (container) => {
+    clickButtonsByText(container, ['Maliyet']);
+  });
+  assert.match(publicCostHtml, /4734 KİK m\.38/);
+  assert.match(publicCostHtml, /4735 FİYAT FARKI/);
+  localStorage.removeItem('bimmetraj:calm-public-tender:v1');
 
   const smartCheckWsHtml = await renderInRouter(
     createElement(SmartCheckImportWorkspace),
