@@ -101,6 +101,15 @@ try {
   // M-12.4: risk and delivery assumptions start in a closed "Gelişmiş" section with a value summary.
   assert.equal(await page.$eval('[data-testid="quote-advanced"]', element => (element as HTMLDetailsElement).open), false);
   assert.match(await page.$eval('[data-testid="quote-advanced-summary"]', element => element.textContent ?? ''), /ay · %/);
+  // M-12.5: the items table opens in the basic view; cost, waste, discount and VAT sit in each row's detail.
+  const columnHeaders = () => page.$$eval('[data-testid="quote-items-table"] thead th', cells => cells.map(cell => cell.textContent?.trim()).filter(Boolean));
+  assert.deepEqual(await columnHeaders(), ['İş Kalemi', 'Birim', 'Miktar', 'Birim Fiyat', 'Tutar (KDV hariç)', 'İşlemler']);
+  await page.click('[data-row-detail-toggle]');
+  await page.waitForSelector('[data-row-detail] input[aria-label="Maliyet birim fiyatı"]', { timeout: 5_000 });
+  await (await page.$('[data-testid="quote-items-table"]'))!.screenshot({ path: `${output}/2b-table-basic-detail.png` });
+  await page.click('[data-table-view="detailed"]');
+  assert.equal((await columnHeaders()).length, 11);
+  await page.click('[data-table-view="basic"]');
 
   step = 'xlsx template download';
   // C-1: the primary template is a real .xlsx workbook, CSV stays as a secondary link.
