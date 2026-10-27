@@ -326,6 +326,78 @@ test("T43 R+1 route coverage ratchet: admin, pricing-file-import, academy, billi
   const schedulerStatus = await reqJson("GET", "/api/admin/pricing-sources/scheduler/status", adminToken);
   assert.equal(schedulerStatus.status, 200);
 
+  const syncPricingCatalog = await reqJson("POST", "/api/admin/pricing-sources/sync-catalog", adminToken, {});
+  assert.equal(syncPricingCatalog.status, 200);
+  assert.equal(syncPricingCatalog.json.success, true);
+
+  const tuikMeta = await reqJson("GET", "/api/admin/pricing-sources/tuik-sdmx/metadata", adminToken);
+  assert.equal(tuikMeta.status, 200);
+  assert.equal(tuikMeta.json.standard, "SDMX 2.1 (ISO 17369)");
+
+  assert.equal(
+    (await reqJson("POST", "/api/admin/pricing-sources/not-a-uuid/sync-tuik-sdmx", adminToken, {})).status,
+    400,
+  );
+  assert.equal(
+    (await reqJson("POST", `/api/admin/pricing-sources/${sourceId}/sync-tuik-sdmx`, adminToken, {})).status,
+    400,
+  );
+  assert.equal(
+    (
+      await reqJson("POST", `/api/admin/pricing-sources/${sourceId}/sync-tuik-sdmx`, adminToken, {
+        mode: "live_nsiws",
+        licenseConfirmed: true,
+      })
+    ).status,
+    400,
+  );
+  assert.equal(
+    (
+      await reqJson("POST", `/api/admin/pricing-sources/${sourceId}/sync-tuik-sdmx`, adminToken, {
+        mode: "baseline_2026_catalog",
+        licenseConfirmed: true,
+        autoApprove: true,
+      })
+    ).status,
+    201,
+  );
+  assert.equal(
+    (
+      await reqJson("POST", `/api/admin/pricing-sources/${sourceId}/sync-tuik-sdmx`, adminToken, {
+        mode: "sdmx_csv",
+        licenseConfirmed: true,
+        autoApprove: true,
+        sdmxPayload: [
+          "DATAFLOW,NACE_REV2,TIME_PERIOD,OBS_VALUE",
+          "TUIK:DF_IME(1.0),IME_GENEL,2026-02,1485.60",
+        ].join("\n"),
+      })
+    ).status,
+    201,
+  );
+  assert.equal(
+    (
+      await reqJson("POST", `/api/admin/pricing-sources/${sourceId}/sync-tuik-sdmx`, adminToken, {
+        mode: "sdmx_json",
+        licenseConfirmed: true,
+        autoApprove: true,
+        sdmxPayload: JSON.stringify({
+          dataSets: [{ series: { "0:0": { observations: { "0": [4112.45] } } } }],
+          structure: {
+            dimensions: {
+              series: [
+                { id: "FREQ", values: [{ id: "M" }] },
+                { id: "NACE_REV2", values: [{ id: "23.51", name: "Çimento" }] },
+              ],
+              observation: [{ id: "TIME_PERIOD", values: [{ id: "2026-02" }] }],
+            },
+          },
+        }),
+      })
+    ).status,
+    201,
+  );
+
   // Additional admin & pricing-file-import validation/filter branches
   assert.equal((await reqJson("GET", `/api/admin/tenants?search=T43&status=active`, adminToken)).status, 200);
   assert.equal((await reqJson("PATCH", "/api/admin/tenants/not-a-uuid", adminToken, {})).status, 400);

@@ -35,6 +35,9 @@ history to `archive/` (latest: `archive/WORKING_STATE_until_2026-10-24.md`).
 
 ## Code (main / working branch)
 
+- **Rev. 105 (`BIM-CALC-2026-10-27.99`) — `CalmIfcWorkspace` Modular Split (`2004 → 795 lines`, PR #31) & `T43` CI Coverage Ratchet Reinforcement:**
+  1. Split `src/components/smartcheck/CalmIfcWorkspace.tsx` from `2,004` lines to `795` lines (`marka.md` C-5 `<= 800` lines rule) by extracting `CalmApartmentsStep.tsx`, `CalmCostTools.tsx`, `CalmEscalationPanel.tsx`, `CalmIcmalEvidenceCard.tsx`, `CalmIsoCdePanel.tsx`, `CalmKikPanel.tsx`, `CalmPriceTable.tsx`, `CalmStepTabs.tsx`, `calm-format.ts`, `useCalmSessionInputs.ts`, `useCatalogPriceResolution.ts`, and `useTuikEscalation.ts`.
+  2. Strengthened `T43` CI coverage ratchet gates (`coverage-thresholds.json`) for `SmartCheck rules, IFC import and quantity` (`>= 90%`) and `HTTP API routes` (`>= 80%`) by expanding synthetic tests in `src/smartcheck/import/contractor-excel-corpus.test.ts` (`spreadsheet-parser.ts` line coverage `97.33%`) and adding `/api/admin/pricing-sources/sync-catalog`, `/tuik-sdmx/metadata`, and `/sync-tuik-sdmx` routes to `src/server/routes/t43-route-ratchet.integration.test.ts`.
 - **Rev. 104 (`BIM-CALC-2026-10-27.98`) — Full 6-Phase Security Audit Remediation & Defense-in-Depth Hardening:**
   Closed all 5 validated findings (2 HIGH, 2 MEDIUM, 1 LOW) and 8 defense-in-depth hardening items from the `"standard"` profile security audit:
   1. **Academy Admin Enrollment Gate (`[HIGH]`):** `/api/academy/allplan/admin/enrollments` routes now require `requireVerifiedEmail`, `checkSuperAdmin()`, and `isAcademyRuntimeEnabled()`.
