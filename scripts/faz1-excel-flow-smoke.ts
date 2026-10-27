@@ -173,6 +173,25 @@ try {
   await page.waitForFunction(() => (document.body.textContent ?? '').includes('Arsa alanı pozitif olmalı'), { timeout: 5_000 });
   await page.screenshot({ path: `${output}/6-parcel-feasibility.png` });
 
+  step = 'public SmartCheck demo';
+  // M-10.2/10.4/10.6: a signed-out visitor sees the problem first, a quantity (not label) fix, and a sign-up exit.
+  const visitor = await (await browser.createBrowserContext()).newPage();
+  await visitor.setViewport({ width: 1440, height: 1000 });
+  visitor.on('pageerror', error => errors.push(error instanceof Error ? error.message : String(error)));
+  await visitor.goto(`${base}/smartcheck`, { waitUntil: 'networkidle0' });
+  await visitor.waitForSelector('[data-testid="demo-intro"]', { timeout: 10_000 });
+  const demoText = () => visitor.evaluate(() => document.body.textContent ?? '');
+  assert.doesNotMatch(await demoText(), /Re-check|Yeniden Kontrolü Tetikleyin/);
+  assert.match(await demoText(), /120,00 m² × 0,20 m = 24,00 m³/);
+  await visitor.click('[data-testid="demo-apply-fix"]');
+  await visitor.waitForSelector('[data-testid="demo-recheck"]', { timeout: 5_000 });
+  await visitor.click('[data-testid="demo-recheck"]');
+  await visitor.waitForFunction(() => (document.querySelector('[data-demo-finding="finding-a"]')?.textContent ?? '').includes('Çözüldü'), { timeout: 5_000 });
+  assert.equal(await visitor.$eval('[data-testid="demo-back-link"]', element => element.getAttribute('href')), '/');
+  assert.deepEqual(await visitor.$$eval('[data-testid="demo-try-own-file"] a', links => links.map(link => link.getAttribute('href'))), ['/register', '/']);
+  await visitor.screenshot({ path: `${output}/7-public-demo.png`, fullPage: true });
+  await visitor.close();
+
   step = 'retired demo route';
   // M-15.2: the fixed-price demo is gone; old links land on the single IFC entry.
   await page.goto(`${base}/app/dosyadan-teklif-demo`, { waitUntil: 'networkidle0' });

@@ -120,7 +120,7 @@ export const initialFindings: DemoFinding[] = [
   {
     id: 'finding-c',
     ruleId: 'rule-wall-priority',
-    title: 'Taşıyıcı Duvar Priority Çakışması',
+    title: 'Taşıyıcı Duvar Öncelik Çakışması',
     skillCode: 'allplan.wall.priority',
     sourceType: 'simulated_model_finding',
     authorityStatus: 'non_authoritative_demo',
