@@ -157,6 +157,15 @@ Süreler (`marka.md` §23.2) yerelde ölçülür ve kaydedilir.
 - **M-15.2 kapandı:** `dosyadan-teklif-demo` sayfası (sabit beton 2.450, donatı 24.500, kalıp 1.250 TL) kaldırıldı. Eski adres `/app/smartcheck`'e yönlenir.
 - **Kanıt:** `export-xlsx.test.ts`. Gerçek tarayıcıda `faz1-price-gap-smoke.ts` icmal ve teklif dosyalarını indirip toplamları doğrular (teklif dosyası 102.396,00 TL, PDF ile aynı). `faz1-excel-flow-smoke.ts` yönlendirmeyi doğrular.
 
+### Faz 1 durumu — IFC icmal çalışma alanı bölündü (27 Ekim 2026, dal `feat/faz1-calm-split`)
+
+- **Refactor:** `CalmIfcWorkspace.tsx` 2004 satırdan 795 satıra indi (kural: dosya başına en çok 800 satır).
+  - Hook'lar: katalog fiyat çözümleme, oturum girdileri (KİK, CDE, minha), TÜİK fiyat farkı.
+  - Bileşenler: KİK paneli, fiyat farkı paneli, ISO 19650 kartı, Araçlar bölümü, birim fiyat cetveli, icmal kanıt kartı, daire adımı, adım çubuğu.
+- **Davranış değişmedi:** Durum üst bileşende kaldı; adım değiştirince girdiler kaybolmaz. Fiyat eksikliği, Excel/IFC ve Faz 0 güven smoke testleri aynı sonuçla geçti (teklif toplamı 102.396,00 TL).
+- **Koruma testi:** Uydurma yaklaşık maliyet / rakip teklif formülü yasağı artık ayrılan dosyaların hepsini tarıyor.
+- **Kalan:** `SmartCheckImportWorkspace.tsx` (1130 satır) bölünmesi ve demo verisinin tek kaynağa indirilmesi.
+
 ### Faz 1 durumu — elle teklifte firma kataloğu (27 Ekim 2026, dal `feat/faz1-firma-katalog`)
 
 - **#28 ve #29** `main`'e birleştirildi (`67484bd`, `fb69c07`).
