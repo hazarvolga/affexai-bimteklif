@@ -77,6 +77,13 @@ function Field(props: { label: string; value: string; onChange: (v: string) => v
   );
 }
 
+// Users read the plan check in words, not as the engine's status code (marka.md M-14.4).
+const PLAN_STATUS_LABEL = {
+  not_evaluated: "Değerlendirilmedi (doğrulanmış plan belgesi yok)",
+  within_limit: "Plan sınırı içinde",
+  exceeds_limit: "Plan sınırını aşıyor",
+} as const;
+
 export const PreBimFeasibilityPanel: React.FC = () => {
   const navigate = useNavigate();
   const nextId = useRef(2);
@@ -92,6 +99,8 @@ export const PreBimFeasibilityPanel: React.FC = () => {
   const [unitCost, setUnitCost] = useState("");
   const [split, setSplit] = useState({ kaba: "", ince: "", mek: "", elk: "", pey: "" });
   const [csvMessage, setCsvMessage] = useState("");
+  // M-13.4: an untouched form shows no errors; checks start once any value is entered or a file is imported.
+  const [imported, setImported] = useState(false);
 
   const parcels: ParcelInput[] = rows.map((r) => {
     const limited = num(r.harici);
@@ -124,6 +133,10 @@ export const PreBimFeasibilityPanel: React.FC = () => {
   });
 
   const hasSplit = Object.values(split).some((v) => v.trim() !== "");
+  const touched = imported
+    || rows.some(({ id: _id, ...fields }) => Object.values(fields).some((value) => String(value).trim() !== ""))
+    || [shareBase, sharePct, netGross, units, promised, unitCost].some((value) => String(value).trim() !== "")
+    || hasSplit;
 
   const result = useMemo(
     () =>
@@ -188,6 +201,7 @@ export const PreBimFeasibilityPanel: React.FC = () => {
         })),
       );
     }
+    setImported(true);
     setCsvMessage(
       `${parsed.parcels.length} parsel okundu.` + (parsed.errors.length ? ` Hatalar: ${parsed.errors.join(" ")}` : ""),
     );
@@ -196,7 +210,12 @@ export const PreBimFeasibilityPanel: React.FC = () => {
   const promise = result.promise;
 
   return (
-    <section id="pre-bim-feasibility" className="mt-8 border border-border bg-background" data-testid="pre-bim-feasibility">
+    <section
+      id="pre-bim-feasibility"
+      className="border border-border bg-background"
+      data-testid="pre-bim-feasibility"
+      data-touched={touched}
+    >
       <div className="px-6 py-4 border-b border-border bg-card">
         <span className="section-index">IFC ÖNCESİ · ÖN TEKLİF / KAT KARŞILIĞI</span>
         <h3 className="font-display-serif text-2xl text-foreground mt-0.5">Arsa, TAKS–KAKS ve Daire Paylaşımı</h3>
@@ -354,7 +373,7 @@ export const PreBimFeasibilityPanel: React.FC = () => {
             {result.parcels.map((parcel, index) => (
               <div key={`${parcel.name}-${index}`} className="mt-1 flex justify-between gap-3 text-[11px]">
                 <span>{parcel.name}</span>
-                <span className="font-mono">{parcel.planningComplianceStatus}</span>
+                <span data-plan-status={parcel.planningComplianceStatus}>{PLAN_STATUS_LABEL[parcel.planningComplianceStatus]}</span>
               </div>
             ))}
             <p className="mt-2 text-[10px] text-muted-foreground">Kurum, belge numarası, geçerli tarih ve SHA-256 ile doğrulanmış yerel plan belgesi yoksa sonuç yalnız aritmetik danışmanlıktır ve değerlendirilmedi kalır. Formdaki serbest metin tek başına resmî kanıt değildir.</p>
@@ -393,12 +412,17 @@ export const PreBimFeasibilityPanel: React.FC = () => {
             </div>
           )}
 
-          {result.parcels.some((p) => !p.valid) && (
+          {!touched && (
+            <p className="text-[11px] text-muted-foreground" data-testid="feasibility-untouched">
+              Parsel ve imar değerlerini girdiğinizde kontroller ve sonuç burada görünür.
+            </p>
+          )}
+          {touched && result.parcels.some((p) => !p.valid) && (
             <ul className="list-disc pl-4 text-destructive space-y-0.5">
               {result.parcels.filter((p) => !p.valid).flatMap((p) => p.errors.map((e) => <li key={p.name + e}>{p.name}: {e}</li>))}
             </ul>
           )}
-          {result.warnings.length > 0 && (
+          {touched && result.warnings.length > 0 && (
             <ul className="list-disc pl-4 text-muted-foreground space-y-0.5 text-[11px]">
               {result.warnings.map((w) => <li key={w}>{w}</li>)}
             </ul>

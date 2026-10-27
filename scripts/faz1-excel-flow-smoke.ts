@@ -163,6 +163,16 @@ try {
   assert.match(await text(), /4735 FİYAT FARKI/);
   await (await page.$('[data-testid="cost-tools"]'))!.screenshot({ path: `${output}/5-public-tender-tools.png` });
 
+  step = 'parcel feasibility screen';
+  // M-13.3/13.4: feasibility has its own screen; an untouched form shows a hint, checks start once typing begins.
+  await page.goto(`${base}/app/smartcheck#pre-bim-feasibility`, { waitUntil: 'networkidle0' });
+  await page.waitForFunction(() => location.pathname === '/app/arsa-fizibilitesi', { timeout: 10_000 });
+  await page.waitForSelector('[data-testid="feasibility-untouched"]', { timeout: 10_000 });
+  assert.doesNotMatch(await text(), /Arsa alanı pozitif olmalı/);
+  await page.type('[data-testid="pre-bim-feasibility"] input[placeholder="ad"]', 'Ada 101 Parsel 5');
+  await page.waitForFunction(() => (document.body.textContent ?? '').includes('Arsa alanı pozitif olmalı'), { timeout: 5_000 });
+  await page.screenshot({ path: `${output}/6-parcel-feasibility.png` });
+
   step = 'retired demo route';
   // M-15.2: the fixed-price demo is gone; old links land on the single IFC entry.
   await page.goto(`${base}/app/dosyadan-teklif-demo`, { waitUntil: 'networkidle0' });
