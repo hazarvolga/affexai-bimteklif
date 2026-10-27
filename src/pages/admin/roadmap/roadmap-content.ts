@@ -185,7 +185,7 @@ export const ROADMAP_SECTIONS: DocSection[] = [
   },
   {
     id: "durum",
-    title: "Uygulama durumu (27 Ekim 2026 · Rev. 95 geliştirme)",
+    title: "Uygulama durumu (27 Ekim 2026 · Rev. 96 geliştirme)",
     blocks: [
       { type: "table", columns: ["Yetenek", "Durum", "Not"], rows: [
         ["RG 33331 IFC ön kontrolü (EK-1/2/3/5/6/7/9)", "Hazır (Tam Kapsam)", "EK-1 6 haneli proje kodu–dosya adı eşleşmesi, EK-2 Tablo 2.1–2.14, EK-3 Tablo 3.1–3.2 (~130 mahal), EK-5 (69 zorunlu + 67 isteğe bağlı sınıf), EK-6 (Tablo 6.1–6.68) ve EK-7 Tablo 7.1–7.9 (IfcAnnotation SURVEY dahil) sunucuda çalışır; gerçek yüklenen dosya adı (dosya_adi) ve iç içe IfcComplexProperty kümeleri de denetlenir"],
@@ -281,17 +281,17 @@ export const ROADMAP_SECTIONS: DocSection[] = [
   },
   {
     id: "revizyon-gunlugu",
-    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 95 · 13–27 Ekim 2026)",
+    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 96 · 13–27 Ekim 2026)",
     blocks: [
       {
         type: "callout",
         tone: "info",
-        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 95)",
-        text: "Bu bölüm, BIMMetraj'ın teknik evrimini Rev. 0'dan 27 Ekim 2026 Rev. 95 · BIM-CALC-2026-10-27.89 sürümüne kadar katı kronolojik sırayla kaydeder. Rev. 91–95, marka.md ürün incelemesinden çıkan uzman önizlemesi, Faz 0 güven düzeltmeleri ve Faz 1 Excel önce / fiyat eksikliği / dışa aktarım dilimleridir; bu dallar main'e birleşip canlıya alınana kadar geliştirme durumundadır. Rev. 90 ile T43 ≥%80 proje kapsam hedefi (%82,58) ve T56 nihai izlenebilirlik matrisi tamamlanarak dış girdi gerektirmeyen tüm teknik adımlar kapatılmıştır. Harici fixture lisansı, T45 izinli gerçek büyük müşteri dosyası/VPS post-deploy kanıtı, T50–T52 uzman/müşteri/canlı kabulü ve T55 hukuk incelemesi açık olduğundan Faz 7, Faz 9, Faz 10 ve Faz 11 dış kabuller tamamlanana dek PARTIAL kalır.",
+        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 96)",
+        text: "Bu bölüm, BIMMetraj'ın teknik evrimini Rev. 0'dan 27 Ekim 2026 Rev. 96 · BIM-CALC-2026-10-27.90 sürümüne kadar katı kronolojik sırayla kaydeder. Rev. 91–96, marka.md ürün incelemesinden çıkan uzman önizlemesi, Faz 0 güven düzeltmeleri ve Faz 1 Excel önce / fiyat eksikliği / dışa aktarım dilimleridir; Rev. 91–95 27 Ekim'de main'e birleştirildi (78bf661); canlıya alınana kadar geliştirme durumundadır. Rev. 90 ile T43 ≥%80 proje kapsam hedefi (%82,58) ve T56 nihai izlenebilirlik matrisi tamamlanarak dış girdi gerektirmeyen tüm teknik adımlar kapatılmıştır. Harici fixture lisansı, T45 izinli gerçek büyük müşteri dosyası/VPS post-deploy kanıtı, T50–T52 uzman/müşteri/canlı kabulü ve T55 hukuk incelemesi açık olduğundan Faz 7, Faz 9, Faz 10 ve Faz 11 dış kabuller tamamlanana dek PARTIAL kalır.",
       },
       {
         type: "p",
-        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 95):",
+        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 96):",
       },
       {
         type: "table",
@@ -869,16 +869,22 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "Firma kataloğu yükleyen kullanıcının icmali hiç fiyatlandıramadığı boşluk kapatıldı: 5 adımlı katalog sihirbazı, içe aktarımda onay (yalnız company_actual, KDV hariç ve oran belirtilmiş), icmalde fiyatı eksik kalem için doğrudan eylemler. Release 0029 teklife müteahhitlik kârı ve genel gider yüzdesini ekler; pay satır neti üzerinden, KDV pay dahil matrah üzerinden hesaplanır, kalem fiyatları fiyat kaydına eşit kalır. Uçtan uca tarayıcı: katalog → icmal → yeni teklif, 102.396,00 TL (scripts/faz1-price-gap-smoke.ts).",
           ],
           [
-            "Rev. 95 (Güncel geliştirme)",
+            "Rev. 95",
             "27 Ekim 2026 (Teklif ve İcmal Excel Çıktısı, Sabit Fiyatlı Demo Rotasının Kaldırılması)",
             "BIM-CALC-2026-10-27.89 (bda207b)",
             "Teklif detayında .xlsx çıktısı (PDF ile aynı toplamlar, formülsüz); icmalin birincil indirmesi .xlsx (sade icmal + daire icmali + ayrı Fiyat Kaynakları sayfası), teknik CSV ikincil. İcmal CSV'sindeki tam lira yuvarlaması kuruşa düzeltildi. /app/dosyadan-teklif-demo kaldırılıp SmartCheck'e yönlendirildi. 1515 testte 1500 PASS / 0 FAIL / 15 SKIP.",
+          ],
+          [
+            "Rev. 96 (Güncel geliştirme)",
+            "27 Ekim 2026 (Proje Türüne Bağlı Kamu İhalesi Araçları, Yeni Teklifte Gelişmiş Görünüm, CI Paket Bütçesi)",
+            "BIM-CALC-2026-10-27.90",
+            "İcmal maliyet adımındaki KİK m.38, 4735/TÜİK ve ISO 19650 kartları kapalı başlayan 'Araçlar' bölümünde toplandı; KİK ve 4735 yalnız 'Bu iş kamu ihalesi' işaretlenince görünür (4734/4735 yalnız kamu ihalelerinde geçerlidir). Yeni Teklif ekranında risk ve bilgi teslimi varsayımları kapalı 'Gelişmiş' bölümüne alındı; bölüm başlığı etkili değerlerin özetini gösterir. CI'da T45 paket bütçesi üretim derlemesiyle çalışır, imaj derlemesinden önce runner diski açılır. Hesap yöntemleri değişmedi.",
           ],
         ],
       },
       {
         type: "p",
-        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 95 · Önceki Durum → Yeni Durum):",
+        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 96 · Önceki Durum → Yeni Durum):",
       },
       {
         type: "table",
@@ -1652,6 +1658,13 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "Teklif yalnız PDF olarak alınabiliyordu; icmalin 'Excel İndir' düğmesi teknik sütunlu CSV veriyor ve satır tutarlarını tam liraya yuvarlıyordu; dosyadan-teklif-demo sabit beton/donatı/kalıp fiyatları taşıyordu.",
             "quote-export-xlsx.ts (PDF ile aynı toplamlar) ve icmal-export-xlsx.ts (sade icmal, daire icmali, ayrı Fiyat Kaynakları); CSV kuruş yuvarlaması; exceljs yalnız tıklamada yüklenir (T45); demo rotası /app/smartcheck'e yönlenir.",
             "src/lib/quote-export-xlsx.ts, src/lib/icmal-export-xlsx.ts, src/lib/export-xlsx.test.ts, src/pages/QuoteDetail.tsx, src/components/smartcheck/CalmIfcWorkspace.tsx, src/App.tsx",
+          ],
+          [
+            "Rev. 96 · 27 Ekim 2026 (Proje Türüne Bağlı Kamu İhalesi Araçları, Yeni Teklifte Gelişmiş Görünüm, CI Paket Bütçesi)",
+            "marka.md M-14.5, M-12.4; T45 CI kapısı",
+            "Özel sektör işinde de KİK aşırı düşük teklif ve 4735 fiyat farkı kartları maliyet adımında açık duruyordu; ilk teklifte karbon, volatilite ve bilgi teslimi alanları temel alanlarla aynı düzlemdeydi; CI işi NODE_ENV=test ile derlediği ve T45 paket kontrolü dist/ yokken kendini atladığı için paket bütçesi CI'da hiç ölçülmüyordu; imaj derlemesi iki kez runner diski dolduğu için düştü.",
+            "CalmIfcWorkspace 'Araçlar' bölümü (kamu ihalesi seçimi tarayıcıda hatırlanır); CreateQuote 'Gelişmiş' bölümü ve değer özeti; verify.yml 'T45 production bundle budget' adımı (NODE_ENV=production vite build + REQUIRE_PRODUCTION_BUNDLE=true) ve 'Free runner disk for image builds' adımı.",
+            "src/components/smartcheck/CalmIfcWorkspace.tsx, src/pages/CreateQuote.tsx, src/pages/t43-ui-pages-and-components.test.ts, .github/workflows/verify.yml, src/contracts/t45-performance-budget.test.ts, scripts/faz1-excel-flow-smoke.ts",
           ],
         ],
       },

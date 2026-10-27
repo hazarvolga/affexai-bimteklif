@@ -47,11 +47,12 @@ history to `archive/` (latest: `archive/WORKING_STATE_until_2026-10-24.md`).
   data, expert review of the profit/overhead method. The CI image build now
   frees runner disk first (it failed twice with Errno 28). Old branches
   `feat/expert-feedback`, `feat/faz0-guven`, `feat/faz1-*` can be deleted.
-  Next: Faz 1 remainder (M-14.5/M-12.4 project-type tools and basic/advanced
-  quote view, M-12.5 table, M-13.3/13.4, M-10.x demo, M-12.6 manual quote from
+  Rev. 96 (branch `feat/faz1-proje-turu`): KİK/4735 tools only for public
+  tenders, "Gelişmiş" section on the quote form, CI T45 bundle step and runner
+  disk cleanup. Next: Faz 1 remainder (M-12.5 table, M-13.3/13.4, M-10.x demo, M-12.6 manual quote from
   the company catalogue), then the three-persona acceptance run.
-- CI gap: `t45-performance-budget.test.ts` bundle checks skip when `dist/` is
-  absent, and CI builds after tests, so the T45 bundle gate never runs in CI.
+- CI: the job runs with `NODE_ENV=test` (React development build). The T45
+  bundle gate runs in its own production-build step (`REQUIRE_PRODUCTION_BUNDLE=true`).
 - Latest roadmap revision: **Rev. 90** (`BIM-CALC-2026-10-25.84`): Faz 7 `T43` R+2..R+4 coverage ratchet closed (`src/pages/t43-ui-pages-and-components.test.ts` `6/6 PASS`, `src/pages/Dashboard.tsx` `D11` React Rules-of-Hooks fix, `coverage-thresholds.json` ratcheted to `project` lines **`82.58%`** floor `82%` / branches `75.01%` floor `75%` / functions `71.41%` floor `71%` and `UI` lines `74.77%` floor `74%`, `1427/1434` tests PASS, `0` FAIL) & Faz 11 `T56` complete traceability and final evidence matrix (`docs/audits/phase-11/final-evidence-matrix.json`, `docs/audits/phase-11/PHASE_11_T56_FINAL_EVIDENCE_MATRIX_2026-10-26.md`, `src/contracts/t56-final-evidence-matrix.test.ts` `3/3 PASS` binding `56/56` To-Do items [`39` `[x]` + `13` `PARTIAL` + `4` external-only], `31/31` audit IDs, `6/6` calculation engines, and `11` production defects `D01–D11`).
   Rev. 89 (`BIM-CALC-2026-10-25.83`): Faz 10 T53 source-backed market inventory & T54 comparable 6-stage capability matrix (`docs/audits/phase-10/market-inventory-register.json`, `docs/audits/phase-10/PHASE_10_T53_T54_MARKET_INVENTORY_2026-10-26.md`, `src/contracts/t53-t54-market-inventory.test.ts` `4/4 PASS`, and `scripts/phase-0-evidence-validator.test.ts` `23/23 PASS`; 12 products evaluated with `unverified_publicly` vs `pilot_l2_unapproved` discipline and `singleClaimPermitted = false` until `T50–T52` & `T55` legal review).
   Rev. 88 (`BIM-CALC-2026-10-25.82`): T45 performance & operating budget (`src/server/config/performance-budgets.ts` `BIM-PERF-2026-10-26.1` pre-registered budgets, `src/lib/quote-xlsx.ts` + `CreateQuote.tsx` dynamic import + `vite.config.ts` `manualChunks`/`modulePreload` isolating `940 kB` `exceljs` from `CreateQuote-*.js` `49.67 kB` and `index-*.js` `106.47 kB ≤ 120 kB`, and `src/contracts/t45-performance-budget.test.ts` `5/5 PASS`: 1,000-row XLSX + `256 MB` isolated worker `1,489.98 ms ≤ 2,500 ms` + `SPREADSHEET_BUSY` recovery, 20-request concurrent multi-tenant PG16 `p95 = 21.90 ms ≤ 250 ms`, queue claim `3.78 ms ≤ 150 ms`, Sentry PII scrub `p95 < 1 ms ≤ 5 ms`, AI router failover `< 5 ms ≤ 50 ms`).
