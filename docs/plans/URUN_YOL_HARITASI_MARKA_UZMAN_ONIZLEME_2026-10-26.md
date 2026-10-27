@@ -157,6 +157,19 @@ Süreler (`marka.md` §23.2) yerelde ölçülür ve kaydedilir.
 - **M-15.2 kapandı:** `dosyadan-teklif-demo` sayfası (sabit beton 2.450, donatı 24.500, kalıp 1.250 TL) kaldırıldı. Eski adres `/app/smartcheck`'e yönlenir.
 - **Kanıt:** `export-xlsx.test.ts`. Gerçek tarayıcıda `faz1-price-gap-smoke.ts` icmal ve teklif dosyalarını indirip toplamları doğrular (teklif dosyası 102.396,00 TL, PDF ile aynı). `faz1-excel-flow-smoke.ts` yönlendirmeyi doğrular.
 
+### Faz 1 durumu — arsa fizibilitesi ayrı ekranda (27 Ekim 2026, dal `feat/faz1-fizibilite`)
+
+- **#27** `main`'e birleştirildi (`5ddcf27`).
+- **M-13.3 kapandı:** Arsa ön fizibilitesi IFC/Excel yükleme ekranından çıkarıldı; kendi ekranı `/app/arsa-fizibilitesi`.
+  - SmartCheck ekranında yalnızca bu ekrana giden bir bağlantı kaldı.
+  - Paneldeki "Arsa ön fizibilitesi" bağlantısı yeni adrese gider. Eski `/app/smartcheck#pre-bim-feasibility` bağlantısı da yeni ekrana yönlenir.
+- **M-13.4 kapandı:** Boş form açılışta hata göstermez; yerine "değerleri girdiğinizde kontroller burada görünür" ipucu gelir.
+  - Herhangi bir alan doldurulunca ya da dosya içe aktarılınca kontroller başlar. Form tekrar boşaltılınca susar.
+  - "Dokunuldu" durumu olaydan değil girilen veriden türetilir.
+- **Ek düzeltme:** Parsel bazlı plan değerlendirmesinde ham `not_evaluated` kodu yerine Türkçe durum ("Değerlendirilmedi (doğrulanmış plan belgesi yok)") gösterilir; uyarı metnindeki kod da kaldırıldı.
+- **Kanıt:** `pre-bim-feasibility-ui.test.ts`, t43 render testi. Gerçek tarayıcıda `faz1-excel-flow-smoke.ts` eski bağlantının yönlenmesini, ipucunu ve yazınca başlayan kontrolleri doğrular.
+- **Test notu:** t43'ün etkileşim yardımcısı kontrollü input'ları güncellemiyor (yazılan değer duruma yansımıyor). Bu yüzden t43'teki "HTML uzunluğu" kontrollerinin etkileşim kısmı gerçek davranışı sınamıyor; Faz 4'te davranış testleriyle değiştirilecek (C-6).
+
 ### Faz 1 durumu — teklif tablosu ve CreateQuote bölünmesi (27 Ekim 2026, dal `feat/faz1-teklif-tablosu`)
 
 - **#26** `main`'e birleştirildi (`03d41a1`).

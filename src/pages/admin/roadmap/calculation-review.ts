@@ -1,9 +1,9 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-27.91",
+  version: "BIM-CALC-2026-10-27.92",
   updatedOn: "27 Ekim 2026",
-  implementationBaseline: "03d41a1d6cd1c815778ae48d346914c81c00ed35",
-  approvalStatus: "Rev. 97 (teklif tablosu görünümü ve dosya bölünmesi; hesap yöntemi değişmedi), Rev. 96 (araç ve görünüm düzeni; hesap yöntemi değişmedi) ve Rev. 95; marka.md incelemesinden çıkan Faz 0 güven düzeltmelerini ve Faz 1 Excel önce / fiyat eksikliği / dışa aktarım dilimlerini kapsar. Hesap yöntemi değişiklikleri: teklif toplamlarına teklif düzeyinde müteahhitlik kârı ve genel gider payı (release 0029; satır neti üzerinden, KDV pay dahil matrah üzerinden), kârlılık hesabında bu payın gelir sayılması, IFC maliyet sekmesinde fiyatı eksik kalemin 0 TL yerine 'fiyat bekliyor' olarak toplam dışında tutulması ve icmal dışa aktarımında satır tutarının tam lira yerine kuruşa yuvarlanması. Doğrulama: 1515 testte 1500 PASS / 0 FAIL / 15 SKIP, kapsam kapısı geçti; gerçek tarayıcı smoke'ları scripts/faz0-trust-ui-smoke.ts, faz1-excel-flow-smoke.ts ve faz1-price-gap-smoke.ts. ÇŞB birim fiyatlarına %25 yüklenici kârı ve genel giderin dahil olduğu ÇŞB analizlerinden doğrulandı. Bu kayıt bağımsız uzman onayı veya L3 değildir; Faz 9 T50–T52 dış kabulleri açıktır.",
+  implementationBaseline: "5ddcf272a12be2f68bd889769dd6ae7764bad161",
+  approvalStatus: "Rev. 98 (arsa fizibilitesi ayrı ekranda, boş formda hata yok; hesap yöntemi değişmedi), Rev. 97 (teklif tablosu görünümü ve dosya bölünmesi; hesap yöntemi değişmedi), Rev. 96 (araç ve görünüm düzeni; hesap yöntemi değişmedi) ve Rev. 95; marka.md incelemesinden çıkan Faz 0 güven düzeltmelerini ve Faz 1 Excel önce / fiyat eksikliği / dışa aktarım dilimlerini kapsar. Hesap yöntemi değişiklikleri: teklif toplamlarına teklif düzeyinde müteahhitlik kârı ve genel gider payı (release 0029; satır neti üzerinden, KDV pay dahil matrah üzerinden), kârlılık hesabında bu payın gelir sayılması, IFC maliyet sekmesinde fiyatı eksik kalemin 0 TL yerine 'fiyat bekliyor' olarak toplam dışında tutulması ve icmal dışa aktarımında satır tutarının tam lira yerine kuruşa yuvarlanması. Doğrulama: 1515 testte 1500 PASS / 0 FAIL / 15 SKIP, kapsam kapısı geçti; gerçek tarayıcı smoke'ları scripts/faz0-trust-ui-smoke.ts, faz1-excel-flow-smoke.ts ve faz1-price-gap-smoke.ts. ÇŞB birim fiyatlarına %25 yüklenici kârı ve genel giderin dahil olduğu ÇŞB analizlerinden doğrulandı. Bu kayıt bağımsız uzman onayı veya L3 değildir; Faz 9 T50–T52 dış kabulleri açıktır.",
 };
 
 export interface ModuleRevisionNote {
@@ -2101,6 +2101,16 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
     beforeSummary: "Teklif tablosu maliyet, zayiat, iskonto ve KDV dahil 11 sütunu birlikte gösteriyordu.",
     afterSummary: "Temel görünüm beş sütun gösterir; diğer alanlar satır ayrıntısında, ayrıntılı görünümde tümü birlikte. Satır tutarı, teklif toplamları ve marj hesabı aynı fonksiyonlardan gelir; hesap yöntemleri ve sonuçlar değişmedi.",
     affectedModules: ["teklif-satir", "maliyet-marj"],
+  },
+  {
+    revision: "Rev. 98",
+    version: "BIM-CALC-2026-10-27.92",
+    date: "27 Ekim 2026",
+    commit: "5ddcf272a12be2f68bd889769dd6ae7764bad161",
+    trigger: "marka.md M-13.3 ve M-13.4: arsa ön fizibilitesi ayrı ekranda; boş formda doğrulama hatası gösterilmez.",
+    beforeSummary: "Fizibilite paneli SmartCheck yükleme ekranındaydı ve boş form açılışta doğrulama hataları gösteriyordu; plan değerlendirmesi ham durum koduyla görünüyordu.",
+    afterSummary: "Panel /app/arsa-fizibilitesi ekranında; kontroller değer girilince başlar; plan durumu Türkçe etiketlidir. computeFeasibility girdileri, kuralları ve sonuçları değişmedi.",
+    affectedModules: ["on-teklif-fizibilite"],
   },
 ];
 
