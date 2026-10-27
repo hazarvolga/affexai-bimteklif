@@ -459,13 +459,19 @@ export function registerAdminRoutes(app: Express) {
 
       const targetCompanyId = (parsed.data.targetCompanyId || parsed.data.companyId)!;
       let targetUserId = parsed.data.targetUserId || parsed.data.userId;
-      const allowWrite = parsed.data.allowWrite !== undefined
-        ? parsed.data.allowWrite
-        : parsed.data.readOnly !== undefined
-          ? !parsed.data.readOnly
-          : false;
+      // Impersonation is strictly read-only to preserve tenant Maker-Checker and suspended-tenant invariants
+      const allowWrite = false;
 
-      if (!targetUserId) {
+      if (targetUserId) {
+        const [verifiedMembership] = await db
+          .select({ userId: memberships.userId })
+          .from(memberships)
+          .where(and(eq(memberships.companyId, targetCompanyId), eq(memberships.userId, targetUserId)))
+          .limit(1);
+        if (!verifiedMembership) {
+          return res.status(404).json({ error: "Belirtilen kullanıcı bu firmanın üyesi değil." });
+        }
+      } else {
         // Find owner or admin of the company
         const [ownerMembership] = await db
           .select({ userId: memberships.userId })
@@ -482,12 +488,12 @@ export function registerAdminRoutes(app: Express) {
         targetUserId = ownerMembership.userId;
       }
 
-      // Generate 15-minute token with impersonation claims
+      // Generate 15-minute token with read-only impersonation claims
       const token = AuthService.generateImpersonationToken({
         userId: targetUserId,
         companyId: targetCompanyId,
         impersonatedBy: req.user.userId,
-        readOnly: !allowWrite,
+        readOnly: true,
       });
 
       // Audit log

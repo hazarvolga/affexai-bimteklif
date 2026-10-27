@@ -23,9 +23,11 @@ test("official source adapter ingest is hash-bound, review-gated, and tenant-iso
     db.insert(schema.companies).values({ name: `Source Integration B ${suffix}` }).returning(),
   ]).then(([a, b]) => [a[0], b[0]] as const);
   const [userA] = await db.insert(schema.users).values({ email: `source-a-${suffix}@example.test`, fullName: "Source Tenant A", emailVerified: new Date() }).returning();
+  const [reviewerA] = await db.insert(schema.users).values({ email: `source-reviewer-a-${suffix}@example.test`, fullName: "Source Reviewer A", emailVerified: new Date() }).returning();
   const [userB] = await db.insert(schema.users).values({ email: `source-b-${suffix}@example.test`, fullName: "Source Tenant B", emailVerified: new Date() }).returning();
-  await db.insert(schema.memberships).values([{ companyId: companyA.id, userId: userA.id, role: "owner" }, { companyId: companyB.id, userId: userB.id, role: "owner" }]);
+  await db.insert(schema.memberships).values([{ companyId: companyA.id, userId: userA.id, role: "owner" }, { companyId: companyA.id, userId: reviewerA.id, role: "admin" }, { companyId: companyB.id, userId: userB.id, role: "owner" }]);
   const tokenA = AuthService.generateToken({ userId: userA.id, companyId: companyA.id, role: "owner" });
+  const tokenReviewerA = AuthService.generateToken({ userId: reviewerA.id, companyId: companyA.id, role: "admin" });
   const tokenB = AuthService.generateToken({ userId: userB.id, companyId: companyB.id, role: "owner" });
   const app = createApiApp();
   const server = http.createServer(app);
@@ -60,7 +62,9 @@ test("official source adapter ingest is hash-bound, review-gated, and tenant-iso
     const queueItems = await queue.json() as Array<{ id: string; itemType: string; run: { id: string }; adapter: { adapterKey: string } }>;
     assert.equal(queueItems.length, 1);
     assert.equal(queueItems[0].itemType, "price_snapshot");
-    const review = await request(`/api/source-intelligence/review-items/${queueItems[0].id}`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ status: "approved", notes: "YFK resmi kaynak kontrolü tamamlandı." }) });
+    const selfReview = await request(`/api/source-intelligence/review-items/${queueItems[0].id}`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ status: "approved", notes: "Kendi kendime onay" }) }, tokenA);
+    assert.equal(selfReview.status, 409);
+    const review = await request(`/api/source-intelligence/review-items/${queueItems[0].id}`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ status: "approved", notes: "YFK resmi kaynak kontrolü tamamlandı." }) }, tokenReviewerA);
     assert.equal(review.status, 200);
     const [approvedSnapshot] = await db.select().from(schema.priceSnapshots).where(and(eq(schema.priceSnapshots.id, snapshotId), eq(schema.priceSnapshots.companyId, companyA.id)));
     assert.equal(approvedSnapshot.reviewStatus, "approved");
@@ -77,7 +81,7 @@ test("official source adapter ingest is hash-bound, review-gated, and tenant-iso
     const regulationQueue = await request("/api/source-intelligence/review-queue");
     const regulationItem = (await regulationQueue.json() as Array<{ id: string; itemType: string }>).find((item) => item.itemType === "regulation_diff");
     assert.ok(regulationItem);
-    assert.equal((await request(`/api/source-intelligence/review-items/${regulationItem.id}`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ status: "approved", notes: "Değişiklik canonical rule üretmeden advisory olarak kabul edildi." }) })).status, 200);
+    assert.equal((await request(`/api/source-intelligence/review-items/${regulationItem.id}`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ status: "approved", notes: "Değişiklik canonical rule üretmeden advisory olarak kabul edildi." }) }, tokenReviewerA)).status, 200);
     const regulationVersions = await db.select().from(schema.regulationVersions).where(and(eq(schema.regulationVersions.companyId, companyA.id), eq(schema.regulationVersions.sourceReviewItemId, regulationItem.id)));
     assert.equal(regulationVersions.length, 1);
     assert.equal(regulationVersions[0].governanceStatus, "advisory");
@@ -97,8 +101,10 @@ test("official source adapter ingest is hash-bound, review-gated, and tenant-iso
     await db.delete(schema.smartcheckAuditLogs).where(eq(schema.smartcheckAuditLogs.companyId, companyA.id));
     await db.delete(schema.sourceIntelligenceAdapters).where(eq(schema.sourceIntelligenceAdapters.companyId, companyA.id));
     await db.delete(schema.memberships).where(eq(schema.memberships.userId, userA.id));
+    await db.delete(schema.memberships).where(eq(schema.memberships.userId, reviewerA.id));
     await db.delete(schema.memberships).where(eq(schema.memberships.userId, userB.id));
     await db.delete(schema.users).where(eq(schema.users.id, userA.id));
+    await db.delete(schema.users).where(eq(schema.users.id, reviewerA.id));
     await db.delete(schema.users).where(eq(schema.users.id, userB.id));
     await db.delete(schema.companies).where(eq(schema.companies.id, companyA.id));
     await db.delete(schema.companies).where(eq(schema.companies.id, companyB.id));

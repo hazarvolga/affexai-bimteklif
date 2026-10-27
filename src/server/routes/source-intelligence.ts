@@ -257,17 +257,45 @@ export function registerSourceIntelligenceRoutes(app: Express) {
   app.patch("/api/source-intelligence/review-items/:id", ...mutateStack, async (req, res) => {
     const status = textValue(req.body?.status, 20);
     if (status !== "approved" && status !== "rejected") return res.status(400).json({ error: "Review durumu approved veya rejected olabilir." });
+    const reviewerNotes = textValue(req.body?.notes, 2000) || null;
+    if (status === "approved" && !reviewerNotes) {
+      return res.status(400).json({ error: "Onay kararı için inceleme notu zorunludur.", code: "REVIEW_NOTES_REQUIRED" });
+    }
     const actor = tenantOf(req.user);
-    const [item] = await withAppTenant(actor, (tenantDb) =>
-      tenantDb.select().from(sourceReviewItems).where(and(eq(sourceReviewItems.id, req.params.id), eq(sourceReviewItems.companyId, req.user.companyId)))
-    , { readOnly: true });
+    const { item, run, snapshot, source } = await withAppTenant(actor, async (tenantDb) => {
+      const [item] = await tenantDb.select().from(sourceReviewItems).where(and(eq(sourceReviewItems.id, req.params.id), eq(sourceReviewItems.companyId, req.user.companyId)));
+      if (!item) return { item: undefined, run: undefined, snapshot: undefined, source: undefined };
+      const [run] = await tenantDb.select().from(sourceIngestionRuns).where(and(eq(sourceIngestionRuns.id, item.ingestionRunId), eq(sourceIngestionRuns.companyId, req.user.companyId)));
+      const [snapshot] = item.priceSnapshotId
+        ? await tenantDb.select().from(priceSnapshots).where(and(eq(priceSnapshots.id, item.priceSnapshotId), eq(priceSnapshots.companyId, req.user.companyId)))
+        : [undefined];
+      const priceSourceId = snapshot?.priceSourceId ?? run?.priceSourceId ?? null;
+      const [source] = priceSourceId
+        ? await tenantDb.select().from(priceSources).where(and(eq(priceSources.id, priceSourceId), eq(priceSources.companyId, req.user.companyId)))
+        : [undefined];
+      return { item, run, snapshot, source };
+    }, { readOnly: true });
     if (!item) return res.status(404).json({ error: "Kaynak review item bulunamadı." });
     if (item.status !== "pending") return res.status(409).json({ error: "Review item daha önce karara bağlandı." });
+    if (status === "approved") {
+      if (run?.requestedByUserId === req.user.userId || snapshot?.createdByUserId === req.user.userId) {
+        return res.status(409).json({
+          error: "Kaynağı içe aktaran kullanıcı aynı kaydı kendi başına onaylayamaz (Maker-Checker kuralı).",
+          code: "SOURCE_TWO_PERSON_REVIEW_REQUIRED",
+        });
+      }
+      if (source && source.authorizationStatus === "restricted") {
+        return res.status(409).json({
+          error: "Kısıtlanmış (restricted) fiyat kaynağı onaylanamaz.",
+          code: "PRICE_SOURCE_NOT_AUTHORIZED",
+        });
+      }
+    }
     const reviewedAt = new Date();
     let updated: typeof item;
     await withAppTenantTransaction(actor, async (tx) => {
-      [updated] = await tx.update(sourceReviewItems).set({ status, reviewedByUserId: req.user.userId, reviewedAt, reviewerNotes: textValue(req.body?.notes, 2000) || null, updatedAt: reviewedAt }).where(and(eq(sourceReviewItems.id, item.id), eq(sourceReviewItems.companyId, req.user.companyId))).returning();
-      if (item.priceSnapshotId) await tx.update(priceSnapshots).set({ reviewStatus: status, reviewedByUserId: req.user.userId, reviewedAt, reviewerNotes: textValue(req.body?.notes, 2000) || null }).where(and(eq(priceSnapshots.id, item.priceSnapshotId), eq(priceSnapshots.companyId, req.user.companyId)));
+      [updated] = await tx.update(sourceReviewItems).set({ status, reviewedByUserId: req.user.userId, reviewedAt, reviewerNotes, updatedAt: reviewedAt }).where(and(eq(sourceReviewItems.id, item.id), eq(sourceReviewItems.companyId, req.user.companyId))).returning();
+      if (item.priceSnapshotId) await tx.update(priceSnapshots).set({ reviewStatus: status, reviewedByUserId: req.user.userId, reviewedAt, reviewerNotes }).where(and(eq(priceSnapshots.id, item.priceSnapshotId), eq(priceSnapshots.companyId, req.user.companyId)));
       if (status === "approved" && item.itemType === "regulation_diff") {
         const [run] = await tx.select().from(sourceIngestionRuns).where(and(eq(sourceIngestionRuns.id, item.ingestionRunId), eq(sourceIngestionRuns.companyId, req.user.companyId)));
         const [adapter] = run ? await tx.select().from(sourceIntelligenceAdapters).where(and(eq(sourceIntelligenceAdapters.id, run.adapterId), eq(sourceIntelligenceAdapters.companyId, req.user.companyId))) : [];

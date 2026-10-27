@@ -193,7 +193,16 @@ export class ProgressPaymentService {
       if (input.action === "submit") await this.validateDraftForSubmission(client, actor, period);
       let approvalScopeHash: string | null = null;
       if (input.action === "approve") {
-        if (period.submitted_by_user_id === actor.userId) throw new ProgressPaymentServiceError(409, "MAKER_CHECKER_REQUIRED", "Hakedişi hazırlayan kullanıcı aynı revizyonu onaylayamaz.");
+        if (period.submitted_by_user_id === actor.userId || period.created_by_user_id === actor.userId) {
+          throw new ProgressPaymentServiceError(409, "MAKER_CHECKER_REQUIRED", "Hakedişi hazırlayan veya onaya sunan kullanıcı aynı revizyonu onaylayamaz.");
+        }
+        const authoredMeasurements = await client.query(
+          "select 1 from progress_measurements where company_id=$1 and period_id=$2 and created_by_user_id=$3 limit 1",
+          [actor.companyId, periodId, actor.userId],
+        );
+        if (authoredMeasurements.rowCount) {
+          throw new ProgressPaymentServiceError(409, "MAKER_CHECKER_REQUIRED", "Hakediş ölçümlerini kaydeden kullanıcı aynı revizyonu onaylayamaz.");
+        }
         const incompletePredecessor = await client.query(`select 1 from progress_payment_periods
           where company_id=$1 and contract_id=$2 and is_current=true and payment_number<$3
             and (status<>'approved' or sealed_at is null or scope_hash is null) limit 1`, [actor.companyId, period.contract_id, period.payment_number]);
@@ -239,8 +248,8 @@ export class ProgressPaymentService {
         (company_id, contract_id, period_id, contract_item_id, parent_measurement_id, location, element_key, source_type, quantity, unit,
          source_document_id, source_processing_run_id, source_quantity_row_id, source_cell_range, source_identity, review_status, correction_reason, created_by_user_id)
         select company_id, contract_id, $1, contract_item_id, id, location, element_key, source_type, quantity, unit,
-         source_document_id, source_processing_run_id, source_quantity_row_id, source_cell_range, source_identity || ':r' || $2, 'pending_review', $3, $4
-        from progress_measurements where period_id=$5 and company_id=$6`, [(successor as { id: string }).id, period.revision_number + 1, reason, actor.userId, periodId, actor.companyId]);
+         source_document_id, source_processing_run_id, source_quantity_row_id, source_cell_range, source_identity || ':r' || $2, 'pending_review', $3, created_by_user_id
+        from progress_measurements where period_id=$4 and company_id=$5`, [(successor as { id: string }).id, period.revision_number + 1, reason, periodId, actor.companyId]);
       await client.query(`insert into progress_payment_events
         (company_id, contract_id, period_id, action, from_status, to_status, expected_version, resulting_version, idempotency_key, request_hash, reason, actor_user_id)
         values ($1,$2,$3,'correct','approved','superseded',$4,$5,$6,$7,$8,$9)`, [actor.companyId, period.contract_id, periodId, expectedVersion, expectedVersion + 1, idempotencyKey, requestHash, reason, actor.userId]);

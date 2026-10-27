@@ -237,6 +237,10 @@ export function registerMarketIntelligenceRoutes(app: Express) {
   app.patch("/api/market-intelligence/supplier-quote-entries/:id/review", ...mutateStack, async (req, res) => {
     const status = textValue(req.body?.status, 20);
     if (status !== "approved" && status !== "rejected") return res.status(400).json({ error: "Review durumu approved veya rejected olabilir." });
+    const reviewerNotes = textValue(req.body?.notes, 2000) || null;
+    if (status === "approved" && !reviewerNotes) {
+      return res.status(400).json({ error: "Onay kararı için inceleme notu zorunludur.", code: "REVIEW_NOTES_REQUIRED" });
+    }
     const actor = tenantOf(req.user);
     const { entry, submission } = await withAppTenant(actor, async (tenantDb) => {
       const [entry] = await tenantDb.select().from(supplierQuoteEntries).where(and(eq(supplierQuoteEntries.id, req.params.id), eq(supplierQuoteEntries.companyId, req.user.companyId)));
@@ -246,26 +250,42 @@ export function registerMarketIntelligenceRoutes(app: Express) {
     if (!entry) return res.status(404).json({ error: "Tedarikçi teklif satırı bulunamadı." });
     if (entry.reviewStatus !== "pending") return res.status(409).json({ error: "Satır daha önce karara bağlandı." });
     if (!submission) return res.status(404).json({ error: "Tedarikçi teklifi bulunamadı." });
+    if (status === "approved" && submission.createdByUserId === req.user.userId) {
+      return res.status(409).json({
+        error: "Tedarikçi teklifini oluşturan kullanıcı aynı teklif satırını kendi başına onaylayamaz (Maker-Checker kuralı).",
+        code: "SUPPLIER_QUOTE_TWO_PERSON_REVIEW_REQUIRED",
+      });
+    }
     const reviewedAt = new Date();
     let priceSnapshotId: string | null = entry.priceSnapshotId;
-    await withAppTenantTransaction(actor, async (tx) => {
-      if (status === "approved") {
-        let [source] = await tx.select().from(priceSources).where(and(eq(priceSources.companyId, req.user.companyId), eq(priceSources.sourceType, "supplier_quote"), eq(priceSources.sourceDocumentHash, submission.sourceDocumentHash), eq(priceSources.sourceDocumentIdentifier, submission.sourceDocumentIdentifier))).limit(1);
-        if (!source) {
-          [source] = await tx.insert(priceSources).values({ companyId: req.user.companyId, sourceType: "supplier_quote", name: `${submission.supplierName}${submission.quoteNumber ? ` · ${submission.quoteNumber}` : ""}`, authority: submission.supplierName, sourceUrl: submission.sourceUrl, sourceDocumentIdentifier: submission.sourceDocumentIdentifier, sourceDocumentHash: submission.sourceDocumentHash, licenseStatus: "not_applicable", jurisdiction: "TR", region: submission.region, createdByUserId: req.user.userId, metadataJson: { supplierQuoteSubmissionId: submission.id, deliveryTerms: submission.deliveryTerms, deliveryLocation: submission.deliveryLocation } }).returning();
+    try {
+      await withAppTenantTransaction(actor, async (tx) => {
+        if (status === "approved") {
+          let [source] = await tx.select().from(priceSources).where(and(eq(priceSources.companyId, req.user.companyId), eq(priceSources.sourceType, "supplier_quote"), eq(priceSources.sourceDocumentHash, submission.sourceDocumentHash), eq(priceSources.sourceDocumentIdentifier, submission.sourceDocumentIdentifier))).limit(1);
+          if (source && source.authorizationStatus === "restricted") {
+            throw new Error("PRICE_SOURCE_RESTRICTED");
+          }
+          if (!source) {
+            [source] = await tx.insert(priceSources).values({ companyId: req.user.companyId, sourceType: "supplier_quote", name: `${submission.supplierName}${submission.quoteNumber ? ` · ${submission.quoteNumber}` : ""}`, authority: submission.supplierName, sourceUrl: submission.sourceUrl, sourceDocumentIdentifier: submission.sourceDocumentIdentifier, sourceDocumentHash: submission.sourceDocumentHash, licenseStatus: "not_applicable", jurisdiction: "TR", region: submission.region, createdByUserId: submission.createdByUserId ?? req.user.userId, metadataJson: { supplierQuoteSubmissionId: submission.id, deliveryTerms: submission.deliveryTerms, deliveryLocation: submission.deliveryLocation } }).returning();
+          }
+          const capturedAt = submission.quoteDate ?? reviewedAt;
+          const snapshotKey = buildPriceSnapshotKey({ sourceDocumentHash: submission.sourceDocumentHash, positionCode: entry.positionCode, description: entry.description, unit: entry.unit, amount: entry.unitPrice, currency: entry.currency, capturedAt });
+          const [snapshot] = await tx.insert(priceSnapshots).values({ companyId: req.user.companyId, priceSourceId: source.id, snapshotKey, positionCode: entry.positionCode, description: entry.description, unit: entry.unit, amount: entry.unitPrice, currency: entry.currency, vatStatus: entry.vatStatus, vatPercent: entry.vatPercent, freightStatus: entry.freightStatus, region: entry.region ?? submission.region, validFrom: entry.validFrom, validUntil: entry.validUntil, capturedAt, sourceDocumentHash: submission.sourceDocumentHash, sourceVersion: submission.quoteNumber, confidence: entry.confidence, reviewStatus: "approved", reviewedByUserId: req.user.userId, reviewedAt, reviewerNotes, createdByUserId: submission.createdByUserId ?? req.user.userId, metadataJson: { supplierQuoteSubmissionId: submission.id, supplierQuoteEntryId: entry.id, outlierStatus: entry.outlierStatus, baselineCount: entry.baselineCount } }).onConflictDoNothing({ target: [priceSnapshots.companyId, priceSnapshots.priceSourceId, priceSnapshots.snapshotKey] }).returning({ id: priceSnapshots.id });
+          priceSnapshotId = snapshot?.id ?? (await tx.select({ id: priceSnapshots.id }).from(priceSnapshots).where(and(eq(priceSnapshots.companyId, req.user.companyId), eq(priceSnapshots.priceSourceId, source.id), eq(priceSnapshots.snapshotKey, snapshotKey))))[0]?.id ?? null;
+          if (!priceSnapshotId) throw new Error("SUPPLIER_SNAPSHOT_CREATE_FAILED");
         }
-        const capturedAt = submission.quoteDate ?? reviewedAt;
-        const snapshotKey = buildPriceSnapshotKey({ sourceDocumentHash: submission.sourceDocumentHash, positionCode: entry.positionCode, description: entry.description, unit: entry.unit, amount: entry.unitPrice, currency: entry.currency, capturedAt });
-        const [snapshot] = await tx.insert(priceSnapshots).values({ companyId: req.user.companyId, priceSourceId: source.id, snapshotKey, positionCode: entry.positionCode, description: entry.description, unit: entry.unit, amount: entry.unitPrice, currency: entry.currency, vatStatus: entry.vatStatus, vatPercent: entry.vatPercent, freightStatus: entry.freightStatus, region: entry.region ?? submission.region, validFrom: entry.validFrom, validUntil: entry.validUntil, capturedAt, sourceDocumentHash: submission.sourceDocumentHash, sourceVersion: submission.quoteNumber, confidence: entry.confidence, reviewStatus: "approved", reviewedByUserId: req.user.userId, reviewedAt, reviewerNotes: textValue(req.body?.notes, 2000) || null, createdByUserId: req.user.userId, metadataJson: { supplierQuoteSubmissionId: submission.id, supplierQuoteEntryId: entry.id, outlierStatus: entry.outlierStatus, baselineCount: entry.baselineCount } }).onConflictDoNothing({ target: [priceSnapshots.companyId, priceSnapshots.priceSourceId, priceSnapshots.snapshotKey] }).returning({ id: priceSnapshots.id });
-        priceSnapshotId = snapshot?.id ?? (await tx.select({ id: priceSnapshots.id }).from(priceSnapshots).where(and(eq(priceSnapshots.companyId, req.user.companyId), eq(priceSnapshots.priceSourceId, source.id), eq(priceSnapshots.snapshotKey, snapshotKey))))[0]?.id ?? null;
-        if (!priceSnapshotId) throw new Error("SUPPLIER_SNAPSHOT_CREATE_FAILED");
+        await tx.update(supplierQuoteEntries).set({ reviewStatus: status, reviewerUserId: req.user.userId, reviewedAt, reviewerNotes, priceSnapshotId, updatedAt: reviewedAt }).where(and(eq(supplierQuoteEntries.id, entry.id), eq(supplierQuoteEntries.companyId, req.user.companyId)));
+        const allEntries = await tx.select({ reviewStatus: supplierQuoteEntries.reviewStatus }).from(supplierQuoteEntries).where(and(eq(supplierQuoteEntries.submissionId, submission.id), eq(supplierQuoteEntries.companyId, req.user.companyId)));
+        if (allEntries.length > 0 && allEntries.every((row) => row.reviewStatus !== "pending")) {
+          await tx.update(supplierQuoteSubmissions).set({ status: allEntries.some((row) => row.reviewStatus === "rejected") ? "rejected" : "approved", reviewedByUserId: req.user.userId, reviewedAt, reviewerNotes, updatedAt: reviewedAt }).where(and(eq(supplierQuoteSubmissions.id, submission.id), eq(supplierQuoteSubmissions.companyId, req.user.companyId)));
+        }
+      });
+    } catch (error) {
+      if (error instanceof Error && error.message === "PRICE_SOURCE_RESTRICTED") {
+        return res.status(409).json({ error: "Kısıtlanmış (restricted) fiyat kaynağı onaylanamaz.", code: "PRICE_SOURCE_NOT_AUTHORIZED" });
       }
-      await tx.update(supplierQuoteEntries).set({ reviewStatus: status, reviewerUserId: req.user.userId, reviewedAt, reviewerNotes: textValue(req.body?.notes, 2000) || null, priceSnapshotId, updatedAt: reviewedAt }).where(and(eq(supplierQuoteEntries.id, entry.id), eq(supplierQuoteEntries.companyId, req.user.companyId)));
-      const allEntries = await tx.select({ reviewStatus: supplierQuoteEntries.reviewStatus }).from(supplierQuoteEntries).where(and(eq(supplierQuoteEntries.submissionId, submission.id), eq(supplierQuoteEntries.companyId, req.user.companyId)));
-      if (allEntries.length > 0 && allEntries.every((row) => row.reviewStatus !== "pending")) {
-        await tx.update(supplierQuoteSubmissions).set({ status: allEntries.some((row) => row.reviewStatus === "rejected") ? "rejected" : "approved", reviewedByUserId: req.user.userId, reviewedAt, reviewerNotes: textValue(req.body?.notes, 2000) || null, updatedAt: reviewedAt }).where(and(eq(supplierQuoteSubmissions.id, submission.id), eq(supplierQuoteSubmissions.companyId, req.user.companyId)));
-      }
-    });
+      throw error;
+    }
     const [updated] = await withAppTenant(actor, (tenantDb) => tenantDb.select().from(supplierQuoteEntries).where(and(eq(supplierQuoteEntries.id, entry.id), eq(supplierQuoteEntries.companyId, req.user.companyId))));
     await audit(req, `supplier_quote_entry_${status}`, "supplier_quote_entry", entry.id, { submissionId: submission.id, priceSnapshotId, outlierStatus: entry.outlierStatus, canonicalPromotion: false });
     res.json(updated);

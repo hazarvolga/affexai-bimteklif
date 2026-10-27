@@ -132,7 +132,17 @@ export function parseVeraPdfXml(xml: string): ParsedXmlReport {
 
 async function runBoundedProcess(executablePath: string, args: string[], timeoutMs: number, maxOutputBytes: number): Promise<ProcessResult> {
   return new Promise((resolve, reject) => {
-    const child = spawn(executablePath, args, { shell: false, stdio: ["ignore", "pipe", "pipe"] });
+    const child = spawn(executablePath, args, {
+      shell: false,
+      stdio: ["ignore", "pipe", "pipe"],
+      env: {
+        PATH: process.env.PATH ?? "/usr/local/bin:/usr/bin:/bin",
+        HOME: process.env.HOME ?? "/tmp",
+        TMPDIR: process.env.TMPDIR ?? "/tmp",
+        LANG: process.env.LANG ?? "C.UTF-8",
+        JAVA_HOME: process.env.JAVA_HOME,
+      },
+    });
     let stdout = Buffer.alloc(0);
     let stderr = Buffer.alloc(0);
     let outputBytes = 0;

@@ -5,8 +5,8 @@ import { db } from "../../db";
 import { tenantOf, withAppTenant, withAppTenantTransaction } from "../../db/app-tenant";
 import { getControlDatabase } from "../../db/control-plane";
 import { academyAcquisitionEvents, academyActivationEvents, academyEditions, academyEnrollmentAuditLogs, academyEnrollments, academyLearnerProfiles, academyPaymentEvents, academyProducts, allplanCertificateAuditLogs, allplanCertificates, allplanCheckpointAttempts, allplanExamAttempts, allplanLessonActivity, allplanLessonBookmarks, allplanLessonNotes, allplanLessonProgress, companies, memberships, usageLogs, users } from "../../db/schema";
-import { authenticate, checkRole, requireVerifiedEmail } from "../middleware/auth";
-import { requireAllplanEntitlement } from "../middleware/academyEntitlement";
+import { authenticate, checkRole, checkSuperAdmin, requireVerifiedEmail } from "../middleware/auth";
+import { isAcademyRuntimeEnabled, requireAllplanEntitlement } from "../middleware/academyEntitlement";
 import { ALLPLAN_DETAILED_LESSONS, ALLPLAN_TRACK, getAllplanCoverageReport } from "../../academy/allplan/track";
 import type { AllplanCurriculumNode, AllplanLesson, AllplanLessonSummary } from "../../academy/allplan/types";
 import { ALLPLAN_ASSESSMENT, ALLPLAN_MAX_DAILY_ATTEMPTS, ALLPLAN_PROGRAM_VERSION, evaluateCertificationEligibility, publicAssessment, scoreAssessment } from "../../academy/allplan/certification";
@@ -171,7 +171,8 @@ export function registerAcademyRoutes(app: Express) {
     return res.status(outcome.duplicate ? 200 : event.type === "academy.purchase.completed" ? 201 : 200).json({ processed: true, duplicate: outcome.duplicate, enrollmentId: outcome.enrollmentId, status: "status" in outcome ? outcome.status : undefined });
   });
 
-  route.get("/api/academy/allplan/admin/enrollments", authenticate, checkRole(["owner", "admin"]), async (req, res) => {
+  route.get("/api/academy/allplan/admin/enrollments", authenticate, requireVerifiedEmail, checkSuperAdmin(), async (req, res) => {
+    if (!isAcademyRuntimeEnabled()) return res.status(403).json({ error: "Allplan Academy çalışma zamanı şu anda kapalıdır.", code: "ACADEMY_DISABLED" });
     const rows = await withAppTenant(tenantOf(req.user), tenantDb =>
       tenantDb.select({ id: academyEnrollments.id, userId: academyEnrollments.userId, userName: users.fullName, userEmail: users.email, status: academyEnrollments.status, source: academyEnrollments.source, startsAt: academyEnrollments.startsAt, endsAt: academyEnrollments.endsAt, edition: academyEditions.version, accessMode: academyEditions.accessMode })
         .from(academyEnrollments)
@@ -184,7 +185,8 @@ export function registerAcademyRoutes(app: Express) {
     return res.json({ enrollments: rows.map(row => ({ ...row, accessMode: row.source === "purchase" ? "paid" : row.accessMode })) });
   });
 
-  route.post("/api/academy/allplan/admin/enrollments", authenticate, checkRole(["owner", "admin"]), async (req, res) => {
+  route.post("/api/academy/allplan/admin/enrollments", authenticate, requireVerifiedEmail, checkSuperAdmin(), async (req, res) => {
+    if (!isAcademyRuntimeEnabled()) return res.status(403).json({ error: "Allplan Academy çalışma zamanı şu anda kapalıdır.", code: "ACADEMY_DISABLED" });
     const { userId } = req.body ?? {};
     const source = typeof req.body?.source === "string" ? req.body.source : "admin";
     if (!validUuid(userId) || !["pilot", "invite", "admin"].includes(source)) return res.status(400).json({ error: "Geçersiz enrollment isteği." });
@@ -210,7 +212,8 @@ export function registerAcademyRoutes(app: Express) {
     return res.status(existing ? 200 : 201).json({ enrollment });
   });
 
-  route.post("/api/academy/allplan/admin/enrollments/:enrollmentId/status", authenticate, checkRole(["owner", "admin"]), async (req, res) => {
+  route.post("/api/academy/allplan/admin/enrollments/:enrollmentId/status", authenticate, requireVerifiedEmail, checkSuperAdmin(), async (req, res) => {
+    if (!isAcademyRuntimeEnabled()) return res.status(403).json({ error: "Allplan Academy çalışma zamanı şu anda kapalıdır.", code: "ACADEMY_DISABLED" });
     if (!validUuid(req.params.enrollmentId) || !["revoked", "refunded"].includes(req.body?.status)) return res.status(400).json({ error: "Geçersiz enrollment statüsü." });
     const reason = typeof req.body?.reason === "string" ? req.body.reason.trim().slice(0, 1000) : "";
     if (!reason) return res.status(400).json({ error: "Statü değişikliği nedeni zorunludur." });

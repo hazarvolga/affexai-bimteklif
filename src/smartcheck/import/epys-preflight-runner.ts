@@ -85,7 +85,16 @@ export async function runEpysPreflight(options: {
     await new Promise<void>((resolve, reject) => {
       const child = spawn(options.pythonBin ?? resolvePythonBin(),
         [scriptPath, "--input", options.inputPath, "--output", outputPath, "--file-name", options.fileName],
-        { stdio: ["ignore", "ignore", "pipe"] });
+        {
+          stdio: ["ignore", "ignore", "pipe"],
+          env: {
+            PATH: process.env.PATH ?? "/usr/local/bin:/usr/bin:/bin",
+            HOME: os.tmpdir(),
+            TMPDIR: os.tmpdir(),
+            LANG: process.env.LANG ?? "C.UTF-8",
+            PYTHONIOENCODING: "utf-8",
+          },
+        });
       let stderr = "";
       child.stderr.on("data", (chunk: Buffer) => { if (stderr.length < MAX_STDERR) stderr += chunk.toString("utf8"); });
       const timer = setTimeout(() => {

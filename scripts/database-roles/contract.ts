@@ -169,6 +169,11 @@ export const DATABASE_PUBLIC_RESTRICTED_TABLE_ACL = Object.freeze({
   leads: Object.freeze({ bimmetraj_app: Object.freeze(["INSERT", "SELECT"]), bimmetraj_control: Object.freeze([]), bimmetraj_worker: Object.freeze([]) }),
   pilot_applications: Object.freeze({ bimmetraj_app: Object.freeze(["INSERT", "SELECT", "UPDATE"]), bimmetraj_control: Object.freeze(["DELETE", "INSERT", "SELECT", "UPDATE"]), bimmetraj_worker: Object.freeze([]) }),
   usage_records: Object.freeze({ bimmetraj_app: Object.freeze(["INSERT", "SELECT", "UPDATE"]), bimmetraj_control: Object.freeze(["SELECT"]), bimmetraj_worker: Object.freeze(["INSERT", "SELECT", "UPDATE"]) }),
+  rate_limit_buckets: Object.freeze({ bimmetraj_app: Object.freeze(["DELETE", "INSERT", "SELECT", "UPDATE"]), bimmetraj_control: Object.freeze([]), bimmetraj_worker: Object.freeze([]) }),
+  cost_components: Object.freeze({ bimmetraj_app: Object.freeze(["DELETE", "INSERT", "SELECT", "UPDATE"]), bimmetraj_control: Object.freeze([]), bimmetraj_worker: Object.freeze([]) }),
+  quotation_financials: Object.freeze({ bimmetraj_app: Object.freeze(["DELETE", "INSERT", "SELECT", "UPDATE"]), bimmetraj_control: Object.freeze([]), bimmetraj_worker: Object.freeze([]) }),
+  pricing_data_sources: Object.freeze({ bimmetraj_app: Object.freeze(["DELETE", "INSERT", "SELECT", "UPDATE"]), bimmetraj_control: Object.freeze([]), bimmetraj_worker: Object.freeze(["SELECT", "UPDATE"]) }),
+  price_feed_staging: Object.freeze({ bimmetraj_app: Object.freeze(["DELETE", "INSERT", "SELECT", "UPDATE"]), bimmetraj_control: Object.freeze([]), bimmetraj_worker: Object.freeze(["INSERT", "SELECT", "UPDATE"]) }),
 } as const);
 
 export const DATABASE_CONTROL_TABLE_ACL = Object.freeze({

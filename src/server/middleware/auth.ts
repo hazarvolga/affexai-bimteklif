@@ -108,9 +108,9 @@ export const createAuthenticate = (dependencies: AuthDependencies = authDependen
       role: membership?.role ?? null,
       email: user.email,
       emailVerified: user.emailVerified,
-      isSuperAdmin: user.isSuperAdmin,
+      isSuperAdmin: Boolean(user.isSuperAdmin && user.emailVerified && !impersonatedBy),
       impersonatedBy,
-      readOnly: impersonatedBy ? readOnly ?? true : readOnly,
+      readOnly: impersonatedBy ? true : readOnly,
       impersonationTokenHash,
     };
 
@@ -118,12 +118,12 @@ export const createAuthenticate = (dependencies: AuthDependencies = authDependen
 
     // Impersonation read-only guard: block mutating methods
     const isImpersonationExit = req.method === "POST" && req.originalUrl?.split("?")[0] === "/api/auth/impersonate/exit";
-    if (req.user.impersonatedBy && req.user.readOnly && !isImpersonationExit && !isReadMethod) {
+    if (req.user.impersonatedBy && !isImpersonationExit && !isReadMethod) {
       return res.status(403).json({ error: "Salt-okunur impersonate modundasınız. Değişiklik yapılamaz.", code: "IMPERSONATION_READ_ONLY" });
     }
 
     // Suspended tenant guard: block mutating methods for non-active subscription
-    if (!req.user.isSuperAdmin && !req.user.impersonatedBy && companyId && !isReadMethod && dependencies.findSubscription) {
+    if (!req.user.isSuperAdmin && companyId && !isReadMethod && dependencies.findSubscription) {
       const sub = await dependencies.findSubscription(companyId, userId);
       if (sub && sub.status !== "active") {
         return res.status(403).json({
@@ -153,7 +153,7 @@ export const checkRole = (roles: string[]) => (req: any, res: any, next: any) =>
 };
 
 export const checkSuperAdmin = () => (req: any, res: any, next: any) => {
-  if (!req.user || !req.user.isSuperAdmin) {
+  if (!req.user || !req.user.isSuperAdmin || req.user.impersonatedBy || ("emailVerified" in req.user && !req.user.emailVerified)) {
     return res.status(403).json({ error: "Forbidden: Super Admin only" });
   }
   next();

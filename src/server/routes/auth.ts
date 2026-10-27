@@ -121,7 +121,7 @@ export function registerAuthRoutes(app: Express) {
           .limit(1) : [];
         if (intent === "academy" && !edition) throw new Error("ACADEMY_EDITION_UNAVAILABLE");
         const [company] = await tx.insert(companies).values({ name: companyName, isSmartcheckEnabled: true }).returning();
-        const [user] = await tx.insert(users).values({ email, fullName, passwordHash, isSuperAdmin: isPlatformSuperAdminEmail(email) }).returning();
+        const [user] = await tx.insert(users).values({ email, fullName, passwordHash, isSuperAdmin: false }).returning();
         await tx.insert(memberships).values({ userId: user.id, companyId: company.id, role: "owner" });
         const trialPlan = await selectTrialPlan(tx);
         const now = new Date();
@@ -228,7 +228,9 @@ export function registerAuthRoutes(app: Express) {
           isNull(authActionTokens.consumedAt), gt(authActionTokens.expiresAt, sql`clock_timestamp()`)))
         .returning({ userId: authActionTokens.userId });
       if (claimed) {
-        await tx.update(users).set({ emailVerified: now }).where(eq(users.id, claimed.userId));
+        const [targetUser] = await tx.select({ email: users.email, isSuperAdmin: users.isSuperAdmin }).from(users).where(eq(users.id, claimed.userId));
+        const promoteSuperAdmin = targetUser ? (targetUser.isSuperAdmin || isPlatformSuperAdminEmail(targetUser.email)) : false;
+        await tx.update(users).set({ emailVerified: now, isSuperAdmin: promoteSuperAdmin }).where(eq(users.id, claimed.userId));
         return true;
       }
       // Preserve successful verification-link replay without repeating the mutation.
@@ -335,7 +337,7 @@ export function registerAuthRoutes(app: Express) {
       if (!user || !(await AuthService.comparePassword(password, user.passwordHash || ""))) {
         return res.status(401).json({ error: "Invalid credentials" });
       }
-      if (!user.isSuperAdmin && isPlatformSuperAdminEmail(user.email)) {
+      if (!user.isSuperAdmin && Boolean(user.emailVerified) && isPlatformSuperAdminEmail(user.email)) {
         await getControlDatabase().db.update(users).set({ isSuperAdmin: true }).where(eq(users.id, user.id));
         user.isSuperAdmin = true;
       }

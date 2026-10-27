@@ -20,7 +20,7 @@ export function registerCompanyRoutes(app: Express, industrySettingsService: Com
         tenantDb.select({ count: count() }).from(quotations).where(eq(quotations.companyId, req.user.companyId)),
         tenantDb.select({ count: count() }).from(quotationItems).where(and(eq(quotationItems.companyId, req.user.companyId), isNotNull(quotationItems.costUnitPrice))),
         tenantDb.select({ count: count() }).from(quotationFinancials).innerJoin(quotations, eq(quotationFinancials.quotationId, quotations.id)).where(eq(quotations.companyId, req.user.companyId)),
-        tenantDb.select({ count: count() }).from(pilotApplications),
+        tenantDb.select({ count: count() }).from(pilotApplications).where(eq(pilotApplications.provisionedCompanyId, req.user.companyId)),
         tenantDb.select({ count: count() }).from(quotations).where(and(eq(quotations.companyId, req.user.companyId), eq(quotations.calibrationStatus, "collected"))),
       ]);
       return { quotes: q, pricedItems: pi, financialReports: fr, pilots: p, observedQuotes: oq };

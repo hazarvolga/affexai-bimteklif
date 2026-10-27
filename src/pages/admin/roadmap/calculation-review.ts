@@ -1,9 +1,9 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-27.97",
+  version: "BIM-CALC-2026-10-27.98",
   updatedOn: "27 Ekim 2026",
-  implementationBaseline: "285dbcc08fb8cc99e6f47e009132f4bde618c3c7",
-  approvalStatus: "Rev. 103 (/admin/pricing-sources otomatik katalog tohumlama, yetki kanıtı zinciri, canlı crawler iyileştirmesi ve TÜİK Veri Portalı SDMX 2.1 entegrasyonu; hesap yöntemi değişmedi), Rev. 102 (4 katmanlı Akıllı Müteahhit Excel Adaptörü: düz icmal, katlara göre pivot, TOKİ tekrarlayan poz blokları, hibrit sayfa ve otomatik korpus tarayıcı; birim fiyat/tutar aritmetiği değişmedi), Rev. 101 (canlı üretim dağıtımı 0022..0029 + worker control-plane izolasyonu D12 ve canlı ifc-worker consumeIfcUsage kota tamamlama düzeltmesi D13; hesap yöntemi değişmedi), Rev. 100 (elle teklif satırı firma kataloğundaki onaylı fiyat kaydına bağlanabilir; tutar hesabı değişmedi), Rev. 99 (kamuya açık SmartCheck demosu yeniden sıralandı; hesap yöntemi değişmedi), Rev. 98 (arsa fizibilitesi ayrı ekranda, boş formda hata yok; hesap yöntemi değişmedi), Rev. 97 (teklif tablosu görünümü ve dosya bölünmesi; hesap yöntemi değişmedi), Rev. 96 (araç ve görünüm düzeni; hesap yöntemi değişmedi) ve Rev. 95; marka.md incelemesinden çıkan Faz 0 güven düzeltmelerini ve Faz 1 Excel önce / fiyat eksikliği / dışa aktarım dilimlerini kapsar. Hesap yöntemi değişiklikleri: teklif toplamlarına teklif düzeyinde müteahhitlik kârı ve genel gider payı (release 0029; satır neti üzerinden, KDV pay dahil matrah üzerinden), kârlılık hesabında bu payın gelir sayılması, IFC maliyet sekmesinde fiyatı eksik kalemin 0 TL yerine 'fiyat bekliyor' olarak toplam dışında tutulması ve icmal dışa aktarımında satır tutarının tam lira yerine kuruşa yuvarlanması. Doğrulama: 1515 testte 1500 PASS / 0 FAIL / 15 SKIP, kapsam kapısı geçti; gerçek tarayıcı smoke'ları scripts/faz0-trust-ui-smoke.ts, faz1-excel-flow-smoke.ts ve faz1-price-gap-smoke.ts. ÇŞB birim fiyatlarına %25 yüklenici kârı ve genel giderin dahil olduğu ÇŞB analizlerinden doğrulandı. Bu kayıt bağımsız uzman onayı veya L3 değildir; Faz 9 T50–T52 dış kabulleri açıktır.",
+  implementationBaseline: "048495f43cce561fd6422b8a5cfd5c2823704eee",
+  approvalStatus: "Rev. 104 (6 aşamalı güvenlik denetimi bulguları ve derinlemesine savunma sertleştirmesi: hakediş/fiyat istihbaratı/CDE maker-checker ve rol sınırları, Academy super-admin kapısı, IFC/PDF ayrıştırıcı bellek/döngü sınırları, alt süreç env izolasyonu ve DB rol ACL daraltması; hesap formülleri değişmedi), Rev. 103 (/admin/pricing-sources otomatik katalog tohumlama, yetki kanıtı zinciri, canlı crawler iyileştirmesi ve TÜİK Veri Portalı SDMX 2.1 entegrasyonu; hesap yöntemi değişmedi), Rev. 102 (4 katmanlı Akıllı Müteahhit Excel Adaptörü: düz icmal, katlara göre pivot, TOKİ tekrarlayan poz blokları, hibrit sayfa ve otomatik korpus tarayıcı; birim fiyat/tutar aritmetiği değişmedi), Rev. 101 (canlı üretim dağıtımı 0022..0029 + worker control-plane izolasyonu D12 ve canlı ifc-worker consumeIfcUsage kota tamamlama düzeltmesi D13; hesap yöntemi değişmedi), Rev. 100 (elle teklif satırı firma kataloğundaki onaylı fiyat kaydına bağlanabilir; tutar hesabı değişmedi), Rev. 99 (kamuya açık SmartCheck demosu yeniden sıralandı; hesap yöntemi değişmedi), Rev. 98 (arsa fizibilitesi ayrı ekranda, boş formda hata yok; hesap yöntemi değişmedi), Rev. 97 (teklif tablosu görünümü ve dosya bölünmesi; hesap yöntemi değişmedi), Rev. 96 (araç ve görünüm düzeni; hesap yöntemi değişmedi) ve Rev. 95; marka.md incelemesinden çıkan Faz 0 güven düzeltmelerini ve Faz 1 Excel önce / fiyat eksikliği / dışa aktarım dilimlerini kapsar. Hesap yöntemi değişiklikleri: teklif toplamlarına teklif düzeyinde müteahhitlik kârı ve genel gider payı (release 0029; satır neti üzerinden, KDV pay dahil matrah üzerinden), kârlılık hesabında bu payın gelir sayılması, IFC maliyet sekmesinde fiyatı eksik kalemin 0 TL yerine 'fiyat bekliyor' olarak toplam dışında tutulması ve icmal dışa aktarımında satır tutarının tam lira yerine kuruşa yuvarlanması. Doğrulama: 1515 testte 1500 PASS / 0 FAIL / 15 SKIP, kapsam kapısı geçti; gerçek tarayıcı smoke'ları scripts/faz0-trust-ui-smoke.ts, faz1-excel-flow-smoke.ts ve faz1-price-gap-smoke.ts. ÇŞB birim fiyatlarına %25 yüklenici kârı ve genel giderin dahil olduğu ÇŞB analizlerinden doğrulandı. Bu kayıt bağımsız uzman onayı veya L3 değildir; Faz 9 T50–T52 dış kabulleri açıktır.",
 };
 
 export interface ModuleRevisionNote {
@@ -2180,7 +2180,7 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
     revision: "Rev. 103",
     version: "BIM-CALC-2026-10-27.97",
     date: "27 Ekim 2026",
-    commit: "285dbcc",
+    commit: "048495f",
     trigger: "/admin/pricing-sources Otomatik Katalog Tohumlama, Yetki Kanıtı Zinciri, Canlı Crawler & TÜİK Veri Portalı SDMX 2.1 Entegrasyonu",
     beforeSummary:
       "/admin/pricing-sources sayfası boş veritabanında standart kaynakları otomatik tohumlamıyor, getOfficialCatalogCoverageReport alan uyuşmazlığı nedeniyle Sekme 2 ve Sekme 5'te hata veriyor, doğrulanmış/mühürlenmiş kaynaklarda authorizationStatus='authorized' ve authorizationEvidenceHash eksik kaldığı için /api/pricing/benchmarks sorgusu boş dönüyor, safe-fetch.ts 2001::/16 küresel IPv6 ve sıkıştırılmış/yönlendirmeli yanıtları reddediyor ve TÜİK SDMX 2.1 veri portalı için yapılandırılmış bir adaptör bulunmuyordu.",
@@ -2197,6 +2197,50 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
         before: "TÜİK İnşaat Maliyet Endeksi ve 4735 Sayılı Kanun Fiyat Farkı NACE Rev.2 alt endeksleri yalnız statik katalog veya düz CSV ile yüklenebiliyor; TÜİK Veri Portalı SDMX 2.1 (SDMX-JSON / SDMX-CSV / NSIWS REST) formatları doğrudan ayrıştırılamıyordu.",
         after: "tuik-sdmx-adapter.ts ile 25 TÜİK serisi (4 DF_IME + 1 DF_TUFE + 20 DF_YI_UFE NACE Rev.2 alt sektörü) SDMX-JSON 1.0/2.0, SDMX-CSV ve NSIWS REST üzerinden en güncel dönem seçimi ve SHA-256 mührüyle içe aktarılır; Pn ve eskalasyon formülü değişmedi.",
         basis: "4735 Sayılı Kanun Fiyat Farkı Esasları & TÜİK Veri Portalı SDMX 2.1 (ISO 17369)",
+      },
+    },
+  },
+  {
+    revision: "Rev. 104",
+    version: "BIM-CALC-2026-10-27.98",
+    date: "27 Ekim 2026",
+    commit: "048495f",
+    trigger: "6 Aşamalı Tam Kapsamlı Güvenlik Denetimi Bulguları ve Derinlemesine Savunma Sertleştirmesi (Maker-Checker, RBAC, Alt Süreç/IFC/PDF Sınırları & DB Rol ACL)",
+    beforeSummary:
+      "1) /api/academy/allplan/admin/enrollments rotaları checkRole(['owner','admin']) ile korunduğundan sıradan tenant sahipleri kendilerine ücretsiz kurs lisansı atayabiliyordu. 2) Hakediş transition('approve') yalnız approved_by_user_id kontrolü yapıyor, submitted_by_user_id/created_by_user_id ile aynı kişinin onaylamasını ve correct() kopyasında oluşturanın ezilmesini engellemiyordu. 3) CDE POST rotalarında çalışma alanı rol kontrolü yoktu ve viewer üyeye CDE'de yüksek rol atanabiliyordu. 4) Source/Market Intelligence onaylarında kendi yüklediği veriyi tek başına onaylama (self-approval) açıktı. 5) /api/company/risk-calibration içinde pilotApplications sorgusu şirket filtresizdi. 6) Kayıtta doğrulanmamış e-posta ile isSuperAdmin atanabiliyor, impersonate oturumlarında allowWrite açılabiliyor, alt süreçlere tüm process.env aktarılıyor ve worker konteynerine JWT_SECRET veriliyordu.",
+    afterSummary:
+      "1) Academy admin kayıt rotaları requireVerifiedEmail + checkSuperAdmin() + isAcademyRuntimeEnabled() altına alındı. 2) Hakediş onayında submitted_by_user_id, created_by_user_id ve progress_measurements.created_by_user_id ayrımı zorunlu kılındı; correct() orijinal created_by_user_id değerini korur. 3) CDE POST rotalarına createProjectRole eklendi ve workspace viewer üyelerinin CDE rolü viewer ile sınırlandı. 4) Source/Market Intelligence onaylarına iki-kişi (Maker-Checker) kuralı, zorunlu onay notu ve restricted kaynak engeli eklendi. 5) risk-calibration pilotApplications sorgusu provisionedCompanyId ile filtrelendi. 6) Doğrulanmamış e-posta için isSuperAdmin kapalı tutuldu, impersonate oturumları zorunlu readOnly:true yapıldı, pilot başvurularında clientAddress(req) kullanıldı, IFC/PDF ayrıştırıcılarına döngü/RLIMIT/inflate sınırları ve alt süreç env beyaz listesi eklendi, worker konteynerinden JWT_SECRET kaldırıldı, GeminiProvider 128 KB girdi sınırına alındı ve DATABASE_PUBLIC_RESTRICTED_TABLE_ACL içinde bimmetraj_worker yetkileri daraltıldı. Hesap formülleri değişmedi.",
+    affectedModules: ["hakedis-donem", "iso-19650", "fiyat-eslestirme", "tedarikci-sapma", "ifc-metraj", "epys-on-kontrol"],
+    moduleDetails: {
+      "hakedis-donem": {
+        before: "ProgressPaymentService transition('approve') yalnız önceki approved_by_user_id ile karşılaştırma yapıyor; dönemi oluşturan (created_by_user_id), onaya sunan (submitted_by_user_id) veya ölçümleri giren (progress_measurements.created_by_user_id) kişinin kendi hakedişini onaylamasını ve correct() adımında created_by_user_id bilgisinin ezilmesini engellemiyordu.",
+        after: "transition('approve') içinde onaylayanın submitted_by_user_id, created_by_user_id ve döneme ait tüm progress_measurements.created_by_user_id kayıtlarından farklı olması zorunlu kılındı (409 Conflict); correct() yeni revizyon satırına orijinal created_by_user_id değerini taşır.",
+        basis: "Faz 6 T35 / OWASP ASVS v4.0.3 — İki Kişili Hakediş Onay (Maker-Checker) Kontratı",
+      },
+      "iso-19650": {
+        before: "CDE POST mutasyon rotalarında çalışma alanı rol kontrolü yoktu ve workspace rolü viewer olan bir üyeye CDE proje düzeyinde approver/coordinator rolü atanabiliyordu.",
+        after: "CDE POST rotalarına createProjectRole (owner/admin/manager) eklendi; CdeService.assignMember ve requireProjectRole içinde workspace rolü viewer olan üyelerin CDE rolü viewer ile sınırlandı.",
+        basis: "Faz 4 T28 — ISO 19650-2 CDE Çalışma Alanı ve Proje Rol Sınırı",
+      },
+      "fiyat-eslestirme": {
+        before: "Source Intelligence inceleme kuyruğunda (/api/source-intelligence/review-items/:id) veriyi içeri aktaran kullanıcı kendi kaydını tek başına onaylayabiliyordu.",
+        after: "Onay adımında zorunlu inceleme notu, restricted kaynak engeli ve iki-kişi (Maker-Checker: run.requestedByUserId !== userId ve snapshot.createdByUserId !== userId) kontrolü zorunlu kılındı.",
+        basis: "Faz 1 T05–T08 — Resmi Kaynak İstihbaratı İki Kişili Onay Kapısı",
+      },
+      "tedarikci-sapma": {
+        before: "Market Intelligence tedarikçi teklif kalemi onayında (/api/market-intelligence/supplier-quote-entries/:id/review) teklifi giren kullanıcı kendi fiyatını onaylayarak priceSnapshots belleğine yazabiliyordu.",
+        after: "Onay adımında submission.createdByUserId !== req.user.userId iki-kişi kontrolü ve zorunlu inceleme notu devreye alındı.",
+        basis: "Faz 1 T06 — Tedarikçi Fiyat İstihbaratı İki Kişili Onay Kapısı",
+      },
+      "ifc-metraj": {
+        before: "ifc_extract.py içinde iter_pset_single_values özyinelemesi ve ortak.py içinde kati() uzamsal ebeveyn yürüyüşü döngüsel STEP referanslarına karşı sınırsızdı; alt süreçlere tüm process.env aktarılıyordu.",
+        after: "kati() fonksiyonuna visited kümesi + 16 adım sınırı, iter_pset_single_values fonksiyonuna visited_complex + derinlik 8 + 512 öğe sınırı, ifc_extract.py ve epys_preflight.py süreçlerine RLIMIT_AS (2 GiB) + RLIMIT_CPU ve alt süreç çağrılarına dar ortam değişkeni beyaz listesi eklendi.",
+        basis: "Faz 2 T11 / Faz 7 T44 — IFC Worker Süreç ve Bellek İzolasyonu",
+      },
+      "epys-on-kontrol": {
+        before: "ortak.py kati(e) fonksiyonu döngüsel IfcRelAggregates zincirlerinde sonsuz döngüye girebiliyordu ve epys_preflight.py alt sürecine uygulama ortam değişkenleri aktarılıyordu.",
+        after: "kati(e) döngü koruması, RLIMIT_AS/RLIMIT_CPU sınırları ve minimal ortam değişkeni beyaz listesi devreye alındı.",
+        basis: "RG 33331 e-PYS Ön Kontrol Worker Güvenliği",
       },
     },
   },

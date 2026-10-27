@@ -13,6 +13,11 @@ async function run(content: Buffer, kind: 'csv' | 'xlsx', mode: 'preview' | 'par
       const child = fork(path.resolve(production ? 'dist/spreadsheet-worker.cjs' : 'src/smartcheck/import/spreadsheet-worker.ts'), [], {
         execArgv: production ? ['--max-old-space-size=256'] : ['--import', 'tsx', '--max-old-space-size=256'],
         stdio: ['ignore', 'ignore', 'ignore', 'ipc'], serialization: 'advanced',
+        env: {
+          NODE_ENV: process.env.NODE_ENV ?? 'development',
+          PATH: process.env.PATH ?? '/usr/local/bin:/usr/bin:/bin',
+          LANG: process.env.LANG ?? 'C.UTF-8',
+        },
       });
       let result: any;
       let failure: Error | undefined;
