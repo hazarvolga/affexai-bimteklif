@@ -12,6 +12,7 @@ import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
 import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
 import dotenv from 'dotenv';
+import { eq } from 'drizzle-orm';
 import puppeteer from 'puppeteer';
 import { createServer as createViteServer } from 'vite';
 import { createTestIsolation } from '../src/server/routes/test-isolation';
@@ -46,6 +47,20 @@ try {
   await db.insert(schema.memberships).values({ userId: owner.id, companyId: company.id, role: 'owner' });
   const [plan] = await db.insert(schema.plans).values({ name: 'Faz 1', monthlyQuoteLimit: 20, monthlyPrice: 0, monthlyPdfLimit: 20, monthlyIfcLimit: 5 }).returning();
   await db.insert(schema.subscriptions).values({ companyId: company.id, planId: plan.id, currentPeriodStart: new Date('2020-01-01') });
+  // M-12.6 fixture: one client and one approved, authorised company catalogue price.
+  const [quoteClient] = await db.insert(schema.clients).values({ companyId: company.id, name: 'Faz 1 Müşteri', type: 'company' }).returning();
+  const [catalogSource] = await db.insert(schema.priceSources).values({
+    companyId: company.id, sourceType: 'supplier_quote', name: 'Firma kataloğu', sourceDocumentHash: 'c'.repeat(64),
+    licenseStatus: 'verified', authorizationStatus: 'authorized',
+    authorizationScope: JSON.stringify({ version: 1, capabilities: ['commercial_quotation'], tenantScope: 'own' }),
+    authorizationEvidenceHash: 'd'.repeat(64), authorizedAt: new Date('2026-10-01T09:00:00Z'), authorizedByUserId: owner.id, createdByUserId: owner.id,
+  }).returning();
+  const [catalogSnapshot] = await db.insert(schema.priceSnapshots).values({
+    companyId: company.id, priceSourceId: catalogSource.id, snapshotKey: 'faz1-catalog-beton', positionCode: '15.150.1006',
+    description: 'C30/37 hazır beton', unit: 'm³', amount: '2500', currency: 'TRY', vatStatus: 'excluded', vatPercent: '20',
+    validFrom: new Date('2026-01-01T00:00:00Z'), validUntil: new Date('2099-12-31T23:59:59Z'), sourceDocumentHash: 'e'.repeat(64),
+    reviewStatus: 'approved', reviewedByUserId: owner.id, reviewedAt: new Date('2026-10-02T09:00:00Z'), createdByUserId: owner.id,
+  }).returning();
 
   const app = createApiApp();
   vite = await createViteServer({ server: { middlewareMode: true, hmr: false }, appType: 'spa' });
@@ -172,6 +187,35 @@ try {
   await page.type('[data-testid="pre-bim-feasibility"] input[placeholder="ad"]', 'Ada 101 Parsel 5');
   await page.waitForFunction(() => (document.body.textContent ?? '').includes('Arsa alanı pozitif olmalı'), { timeout: 5_000 });
   await page.screenshot({ path: `${output}/6-parcel-feasibility.png` });
+
+  step = 'company catalogue in a manual quote';
+  // M-12.6: a manual quote line picked from the company catalogue is saved bound to the approved price snapshot.
+  await page.goto(`${base}/app/quotes/new?kaynak=elle`, { waitUntil: 'networkidle0' });
+  await page.click('[data-testid="company-catalog-toggle"]');
+  await page.waitForSelector(`[data-catalog-row="${catalogSnapshot.id}"]`, { timeout: 10_000 });
+  await page.click(`[data-catalog-row="${catalogSnapshot.id}"] button`);
+  await page.waitForSelector('[data-catalog-bound]', { timeout: 5_000 });
+  assert.match(await page.$eval('[data-catalog-bound]', element => element.textContent ?? ''), /Firma kataloğu · 15\.150\.1006/);
+  const quantity = (await page.$('[data-quote-row] input[aria-label="Miktar"]'))!;
+  await quantity.evaluate(element => (element as HTMLInputElement).select());
+  await quantity.type('24');
+  await page.type('input[aria-label="Proje başlığı"]', 'Katalog Faz 1');
+  await page.$eval('#quote-client', element => element.scrollIntoView({ block: 'center' }));
+  await page.click('#quote-client');
+  await page.waitForSelector('[role="option"]', { timeout: 5_000 });
+  await page.evaluate(() => ([...document.querySelectorAll('[role="option"]')].find(option => option.textContent?.includes('Faz 1 Müşteri')) as HTMLElement | undefined)?.click());
+  await (await page.$('[data-testid="company-catalog-picker"]'))!.screenshot({ path: `${output}/8-company-catalog.png` });
+  await clickByText('Taslağı Kaydet');
+  await page.waitForFunction(() => /^\/app\/quotes\/[0-9a-f-]{36}$/.test(location.pathname), { timeout: 15_000 });
+  const savedQuoteId = await page.evaluate(() => location.pathname.split('/').pop()!);
+  const savedItems = await db.select().from(schema.quotationItems).where(eq(schema.quotationItems.quotationId, savedQuoteId));
+  assert.equal(savedItems.length, 1);
+  assert.equal(savedItems[0].priceSnapshotId, catalogSnapshot.id);
+  assert.equal(savedItems[0].priceSource, 'snapshot');
+  assert.equal(Number(savedItems[0].quantity), 24);
+  const savedEvidence = await db.select().from(schema.quotationItemEvidence).where(eq(schema.quotationItemEvidence.quotationId, savedQuoteId));
+  assert.deepEqual(savedEvidence.map(record => [record.evidenceType, record.priceSnapshotId]), [['price', catalogSnapshot.id]]);
+  assert.equal(quoteClient.id, (await db.select().from(schema.quotations).where(eq(schema.quotations.id, savedQuoteId)))[0].clientId);
 
   step = 'public SmartCheck demo';
   // M-10.2/10.4/10.6: a signed-out visitor sees the problem first, a quantity (not label) fix, and a sign-up exit.

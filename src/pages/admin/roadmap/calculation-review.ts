@@ -1,9 +1,9 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-27.93",
+  version: "BIM-CALC-2026-10-27.94",
   updatedOn: "27 Ekim 2026",
   implementationBaseline: "5ddcf272a12be2f68bd889769dd6ae7764bad161",
-  approvalStatus: "Rev. 99 (kamuya açık SmartCheck demosu yeniden sıralandı; hesap yöntemi değişmedi), Rev. 98 (arsa fizibilitesi ayrı ekranda, boş formda hata yok; hesap yöntemi değişmedi), Rev. 97 (teklif tablosu görünümü ve dosya bölünmesi; hesap yöntemi değişmedi), Rev. 96 (araç ve görünüm düzeni; hesap yöntemi değişmedi) ve Rev. 95; marka.md incelemesinden çıkan Faz 0 güven düzeltmelerini ve Faz 1 Excel önce / fiyat eksikliği / dışa aktarım dilimlerini kapsar. Hesap yöntemi değişiklikleri: teklif toplamlarına teklif düzeyinde müteahhitlik kârı ve genel gider payı (release 0029; satır neti üzerinden, KDV pay dahil matrah üzerinden), kârlılık hesabında bu payın gelir sayılması, IFC maliyet sekmesinde fiyatı eksik kalemin 0 TL yerine 'fiyat bekliyor' olarak toplam dışında tutulması ve icmal dışa aktarımında satır tutarının tam lira yerine kuruşa yuvarlanması. Doğrulama: 1515 testte 1500 PASS / 0 FAIL / 15 SKIP, kapsam kapısı geçti; gerçek tarayıcı smoke'ları scripts/faz0-trust-ui-smoke.ts, faz1-excel-flow-smoke.ts ve faz1-price-gap-smoke.ts. ÇŞB birim fiyatlarına %25 yüklenici kârı ve genel giderin dahil olduğu ÇŞB analizlerinden doğrulandı. Bu kayıt bağımsız uzman onayı veya L3 değildir; Faz 9 T50–T52 dış kabulleri açıktır.",
+  approvalStatus: "Rev. 100 (elle teklif satırı firma kataloğundaki onaylı fiyat kaydına bağlanabilir; tutar hesabı değişmedi), Rev. 99 (kamuya açık SmartCheck demosu yeniden sıralandı; hesap yöntemi değişmedi), Rev. 98 (arsa fizibilitesi ayrı ekranda, boş formda hata yok; hesap yöntemi değişmedi), Rev. 97 (teklif tablosu görünümü ve dosya bölünmesi; hesap yöntemi değişmedi), Rev. 96 (araç ve görünüm düzeni; hesap yöntemi değişmedi) ve Rev. 95; marka.md incelemesinden çıkan Faz 0 güven düzeltmelerini ve Faz 1 Excel önce / fiyat eksikliği / dışa aktarım dilimlerini kapsar. Hesap yöntemi değişiklikleri: teklif toplamlarına teklif düzeyinde müteahhitlik kârı ve genel gider payı (release 0029; satır neti üzerinden, KDV pay dahil matrah üzerinden), kârlılık hesabında bu payın gelir sayılması, IFC maliyet sekmesinde fiyatı eksik kalemin 0 TL yerine 'fiyat bekliyor' olarak toplam dışında tutulması ve icmal dışa aktarımında satır tutarının tam lira yerine kuruşa yuvarlanması. Doğrulama: 1515 testte 1500 PASS / 0 FAIL / 15 SKIP, kapsam kapısı geçti; gerçek tarayıcı smoke'ları scripts/faz0-trust-ui-smoke.ts, faz1-excel-flow-smoke.ts ve faz1-price-gap-smoke.ts. ÇŞB birim fiyatlarına %25 yüklenici kârı ve genel giderin dahil olduğu ÇŞB analizlerinden doğrulandı. Bu kayıt bağımsız uzman onayı veya L3 değildir; Faz 9 T50–T52 dış kabulleri açıktır.",
 };
 
 export interface ModuleRevisionNote {
@@ -2121,6 +2121,16 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
     beforeSummary: "Demo yeniden kontrol eylemiyle açılıyor, m²→m³ bulgusunu yalnız birim etiketiyle kapatıyor ve oturumsuz ziyaretçiyi uygulama içine yönlendiriyordu.",
     afterSummary: "Demo problemle açılır; bulgu problem, kaynak satırı, bulgu, öneri ve teklife etkisi sırasıyla anlatılır; birim örneği miktarı net hacimden düzeltir. Demo verisi sentetiktir ve hiçbir hesap motoru değişmedi.",
     affectedModules: [],
+  },
+  {
+    revision: "Rev. 100",
+    version: "BIM-CALC-2026-10-27.94",
+    date: "27 Ekim 2026",
+    commit: "fb69c077f1f9d94fa66f31b2e494720e1e6b9b2b",
+    trigger: "marka.md M-12.6: elle teklif satırlarının firma fiyat kataloğundan fiyat alması ve fiyat kaydına bağlanması.",
+    beforeSummary: "Elle teklif satırı yalnız elle girilmiş fiyat veya platform rayiç havuzu bağlantısı taşıyabiliyordu; firma kataloğu fiyatı yalnız IFC icmal aktarımında satıra bağlanıyordu.",
+    afterSummary: "Elle teklif satırı onaylı firma fiyat kaydına bağlanabilir. Sunucu IFC aktarımıyla aynı uygunluk ve eşleşme kurallarını (onay, geçerlilik, ticari teklif yetkisi, para birimi, birim, KDV hariç tutar, KDV oranı, poz kodu veya açıklama) uygular ve fiyat kanıtı yazar; satır tutarı aynı calculateLineItemTotal ile hesaplanır.",
+    affectedModules: ["teklif-satir", "fiyat-eslestirme"],
   },
 ];
 

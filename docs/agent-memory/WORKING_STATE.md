@@ -57,9 +57,15 @@ history to `archive/` (latest: `archive/WORKING_STATE_until_2026-10-24.md`).
   Rev. 99 (branch `feat/faz1-demo`): public SmartCheck demo reordered to
   problem → source row → finding → fix → offer impact, m²→m³ example fixes the
   quantity, signed-out exit to `/` and `/register`. Demo data is duplicated in
-  `demoData.ts` and `SmartCheckDemoContext.tsx` (context copy is live). Next: Faz 1
-  remainder ( M-12.6 manual quote from
-  the company catalogue), then the three-persona acceptance run.
+  `demoData.ts` and `SmartCheckDemoContext.tsx` (context copy is live). PR #28
+  and #29 merged (`67484bd`, `fb69c07`).
+  Rev. 100 (branch `feat/faz1-firma-katalog`): manual quote lines can be picked
+  from the company price catalogue (`CompanyCatalogPicker`); the server binds
+  them to the approved snapshot via `resolveCatalogProvenance` (same rules as
+  Calm transfer) and writes price evidence; editing price/unit/VAT drops the
+  link client-side. Bound quotes stay non-editable in the form (existing rule).
+  Next: Faz 1 remainder (CalmIfcWorkspace / SmartCheckImportWorkspace split,
+  demo data de-duplication), then the three-persona acceptance run.
 - CI: the job runs with `NODE_ENV=test` (React development build). The T45
   bundle gate runs in its own production-build step (`REQUIRE_PRODUCTION_BUNDLE=true`).
 - Latest roadmap revision: **Rev. 90** (`BIM-CALC-2026-10-25.84`): Faz 7 `T43` R+2..R+4 coverage ratchet closed (`src/pages/t43-ui-pages-and-components.test.ts` `6/6 PASS`, `src/pages/Dashboard.tsx` `D11` React Rules-of-Hooks fix, `coverage-thresholds.json` ratcheted to `project` lines **`82.58%`** floor `82%` / branches `75.01%` floor `75%` / functions `71.41%` floor `71%` and `UI` lines `74.77%` floor `74%`, `1427/1434` tests PASS, `0` FAIL) & Faz 11 `T56` complete traceability and final evidence matrix (`docs/audits/phase-11/final-evidence-matrix.json`, `docs/audits/phase-11/PHASE_11_T56_FINAL_EVIDENCE_MATRIX_2026-10-26.md`, `src/contracts/t56-final-evidence-matrix.test.ts` `3/3 PASS` binding `56/56` To-Do items [`39` `[x]` + `13` `PARTIAL` + `4` external-only], `31/31` audit IDs, `6/6` calculation engines, and `11` production defects `D01–D11`).

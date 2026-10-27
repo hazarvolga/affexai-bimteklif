@@ -80,6 +80,11 @@ export function QuoteItemsTable({ items, currency, onUpdate, onRemove }: QuoteIt
         className="bg-transparent border-none p-0 h-auto focus-visible:ring-0 text-xs text-foreground placeholder:text-muted-foreground/60 font-medium"
         placeholder="Burada yeni bir iş kalemi oluşturun..."
       />
+      {item.priceSnapshotId && (
+        <span className="mt-0.5 block font-mono text-[10px] text-primary" data-catalog-bound={item.id}>
+          Firma kataloğu{item.sourceReference ? ` · ${item.sourceReference}` : ''}
+        </span>
+      )}
     </TableCell>
   );
 

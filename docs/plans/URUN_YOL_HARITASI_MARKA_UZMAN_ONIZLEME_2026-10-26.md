@@ -137,7 +137,7 @@ Süreler (`marka.md` §23.2) yerelde ölçülür ve kaydedilir.
 - **Kanıt:** `scripts/faz1-price-gap-smoke.ts` gerçek tarayıcıda katalog sihirbazı, otomatik eşleşme, elle eşleştirme, satır içi fiyat ve yeni teklif adımlarını sınar. Sonuç: Rev. 2 teklifte üç kalemin her biri onaylı ve KDV oranı belirtilmiş fiyat kaydına bağlı.
 - **Doğrulama:** Tam paket boş PG16 üzerinde ve üretim derlemesiyle çalıştı: 1503 testten 1488 geçti, 0 hata, 15 atlandı. Kapsam eşiği geçti (proje satır kapsamı %82,73, arayüz %74,69). Giriş paketi 107,6 KB, sınır 120 KB.
 - **PR #23 notu:** `feat/faz1-excel-akis` dalının üretim derlemesinde SmartCheck rota paketi exceljs parçasını doğrudan referanslıyor (T45-2 ihlali). Sebebi, katalog okuyucunun yalnız SmartCheck tarafından içe aktarılıp rota paketine gömülmesi. Bu dalda katalog sayfası aynı modülü paylaştığı için okuyucu ayrı parçaya ayrıldı ve ihlal kalktı. #23 tek başına birleştirilmemeli.
-- **M-12.6 kalan:** Yeni Teklif ekranındaki "Onaylı Rayiçler" platformun ortak rayiç havuzunu okur, firma kataloğunu değil. Oraya katalog bağlantısı koymak yanıltıcı olacağı için eklenmedi. Elle teklif satırlarının firma kataloğundan fiyat alması (fiyat kaydına bağlama dahil) ayrı dilimdir.
+- **M-12.6 kalan:** Yeni Teklif ekranındaki "Onaylı Rayiçler" platformun ortak rayiç havuzunu okur, firma kataloğunu değil. Elle teklif satırlarının firma kataloğundan fiyat alması Rev. 100'de ayrı "Firma kataloğundan ekle" bölümüyle kapatıldı.
 - **Kâr ve genel gider (Hazar kararı, 27 Ekim 2026: teklife yansısın):** Release 0029 teklif düzeyinde `overhead_profit_percent` ve `overhead_profit_total` ekler.
   - Yüzde her kalemin netine uygulanır. KDV, kalemin kendi oranıyla "net + pay" üzerinden hesaplanır.
   - Kalem birim fiyatları fiyat kaydına eşit kalır; fiyat kanıtı kilidi bozulmaz.
@@ -156,6 +156,15 @@ Süreler (`marka.md` §23.2) yerelde ölçülür ve kaydedilir.
   - Exceljs yalnız düğmeye basılınca yüklenir (T45: SmartCheck ve teklif detay paketleri exceljs'i referanslamaz).
 - **M-15.2 kapandı:** `dosyadan-teklif-demo` sayfası (sabit beton 2.450, donatı 24.500, kalıp 1.250 TL) kaldırıldı. Eski adres `/app/smartcheck`'e yönlenir.
 - **Kanıt:** `export-xlsx.test.ts`. Gerçek tarayıcıda `faz1-price-gap-smoke.ts` icmal ve teklif dosyalarını indirip toplamları doğrular (teklif dosyası 102.396,00 TL, PDF ile aynı). `faz1-excel-flow-smoke.ts` yönlendirmeyi doğrular.
+
+### Faz 1 durumu — elle teklifte firma kataloğu (27 Ekim 2026, dal `feat/faz1-firma-katalog`)
+
+- **#28 ve #29** `main`'e birleştirildi (`67484bd`, `fb69c07`).
+- **M-12.6 kapandı:** Yeni Teklif ekranında "Firma kataloğundan ekle" var. Platformun ortak rayiç havuzundan ("Onaylı Rayiçler") ayrı; firmanın kendi onaylı fiyatlarını listeler. Poz no veya açıklamayla aranır; süresi dolmuş, KDV durumu belirsiz veya başka para birimindeki kayıtlar listelenmez ve sayısı yazılır. Katalog boşsa Fiyat Kataloğu sayfasına bağlantı verilir.
+- **Bağlantı:** Seçilen satır "Firma kataloğu · poz no" etiketiyle görünür ve fiyat kaydına bağlı kaydedilir. Sunucu IFC aktarımıyla aynı kuralları uygular (onay, geçerlilik, ticari teklif yetkisi, para birimi, birim, KDV hariç tutar, KDV oranı); uyuşmazlıkta teklif yazılmaz ve "satırı katalogdan yeniden ekleyin" denir. Fiyat kanıtı kaydedilir, revizyonda korunur.
+- **Elle değişiklik:** Miktar veya (poz kodu varken) açıklama değişirse bağlantı kalır; fiyat, birim veya KDV değişirse bağlantı düşer, satır elle girilmiş fiyat olur ve kullanıcıya bildirilir.
+- **Bilinen kısıt:** Kaynak bağlantılı teklifler (rayiç, IFC veya katalog) formda düzenlenemez; bu mevcut kuraldır, değişiklik revizyonla yapılır.
+- **Kanıt:** `catalog-provenance.integration.test.ts` (PostgreSQL: bağlama, kanıt, revizyon, altı ret senaryosu), `company-catalog-picker-ui.test.ts`, `faz1-excel-flow-smoke.ts` (Chrome: katalogdan ekle → miktar → müşteri → kaydet → veritabanında bağlantı ve kanıt).
 
 ### Faz 1 durumu — kamuya açık SmartCheck demosu (27 Ekim 2026, dal `feat/faz1-demo`)
 

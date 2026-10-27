@@ -1,4 +1,5 @@
 import { resolveBenchmarkProvenance } from './benchmark-provenance';
+import { resolveCatalogProvenance } from './catalog-provenance';
 import { and, desc, eq, or } from 'drizzle-orm';
 import { z } from 'zod';
 import { withAppTenantTransaction } from '../../db/app-tenant';
@@ -68,7 +69,8 @@ export async function editManualQuotation(actorOrCompanyId: TenantContext | stri
       fields.industryId,
       () => tx.select({ id: industries.id, enabled: industries.enabled }).from(industries),
     );
-    const validatedItems = await resolveBenchmarkProvenance(tx, items, fields.currency);
+    const catalog = await resolveCatalogProvenance(tx, actor, await resolveBenchmarkProvenance(tx, items, fields.currency), fields.currency);
+    const validatedItems = catalog.items;
     const totals = calculateQuotationTotals(items.map(item => ({
       quantity: item.quantity, unitPrice: item.unitPrice, discountPercent: item.discountPercent, vatPercent: item.vatPercent,
     })), { overheadProfitPercent: fields.overheadProfitPercent });
@@ -92,6 +94,8 @@ export async function editManualQuotation(actorOrCompanyId: TenantContext | stri
       total: String(calculateLineItemTotal({
         quantity: item.quantity, unitPrice: item.unitPrice, discountPercent: item.discountPercent, vatPercent: item.vatPercent,
       })), quantitySource: 'manual', })));
+    const evidence = catalog.evidenceFor(id);
+    if (evidence.length) await tx.insert(quotationItemEvidence).values(evidence);
     await tx.delete(quotationFinancials).where(eq(quotationFinancials.quotationId, id));
     return saved;
   });
