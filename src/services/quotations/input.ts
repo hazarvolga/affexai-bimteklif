@@ -8,7 +8,7 @@ const date = z.string().trim().min(1).pipe(z.coerce.date());
 
 export const quotationStatusInput = z.enum(quoteStatusEnum.enumValues);
 
-// Source snapshots are server-built; only the benchmark lookup ID is accepted.
+// Source snapshots are server-built; only the benchmark lookup ID or a company catalogue snapshot ID is accepted.
 export const manualQuotationInput = z.object({
   clientId: z.string().uuid(),
   quoteNumber: text,
@@ -29,6 +29,8 @@ export const manualQuotationInput = z.object({
   overheadProfitPercent: percent.default(0),
   items: z.array(z.object({
     benchmarkStagingId: z.string().uuid().optional(),
+    /** M-12.6: approved company price-catalogue snapshot the line was picked from. */
+    priceSnapshotId: z.string().uuid().optional(),
     description: text,
     unit: text,
     quantity: number.refine(value => value > 0, "Quantity must be positive"),
@@ -38,7 +40,8 @@ export const manualQuotationInput = z.object({
     costCategory: text.default("material"),
     discountPercent: percent.default(0),
     vatPercent: percent.default(20),
-  })).min(1).max(1000),
+  }).refine(item => !(item.benchmarkStagingId && item.priceSnapshotId), "A line has one price source"))
+    .min(1).max(1000),
 });
 
 export type ManualQuotationInput = z.infer<typeof manualQuotationInput>;

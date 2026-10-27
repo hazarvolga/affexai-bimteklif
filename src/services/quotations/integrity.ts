@@ -1,4 +1,5 @@
 import { resolveBenchmarkProvenance } from './benchmark-provenance';
+import { resolveCatalogProvenance } from './catalog-provenance';
 import { and, desc, eq, or } from "drizzle-orm";
 import { withAppTenantTransaction } from "../../db/app-tenant";
 import type { TenantContext } from "../../db/tenant-context";
@@ -47,7 +48,8 @@ export async function createManualQuotation(actor: TenantContext, input: ManualQ
       fields.industryId,
       () => tx.select({ id: industries.id, enabled: industries.enabled }).from(industries),
     );
-    const validatedItems = await resolveBenchmarkProvenance(tx, items, fields.currency);
+    const catalog = await resolveCatalogProvenance(tx, actor, await resolveBenchmarkProvenance(tx, items, fields.currency), fields.currency);
+    const validatedItems = catalog.items;
     const totals = calculateQuotationTotals(items.map(item => ({
       quantity: item.quantity, unitPrice: item.unitPrice, discountPercent: item.discountPercent, vatPercent: item.vatPercent,
     })), { overheadProfitPercent: fields.overheadProfitPercent });
@@ -75,6 +77,8 @@ export async function createManualQuotation(actor: TenantContext, input: ManualQ
       })),
       quantitySource: "manual",
     })));
+    const evidence = catalog.evidenceFor(quote.id);
+    if (evidence.length) await tx.insert(quotationItemEvidence).values(evidence);
     return quote;
   });
 }

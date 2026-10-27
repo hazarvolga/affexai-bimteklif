@@ -12,17 +12,26 @@ test("manual DTO strips all authority fields without mutating the input", () => 
   const input = { ...payload(), id: "spoof", companyId: "spoof", parentId: "spoof", grandTotal: 1,
     pricingSnapshotLockedByUserId: "spoof", observedActualCost: 1,
     items: [{ ...payload().items[0], id: "spoof", companyId: "spoof", verificationStatus: "verified", quantitySource: "imported",
-      priceSnapshotId: "spoof", priceSnapshotLockedAt: "2026-10-08", evidence: { verified: true } }],
+      priceSnapshotLockedAt: "2026-10-08", priceSnapshotStatus: "locked", evidence: { verified: true } }],
   };
   const original = structuredClone(input);
   const parsed = manualQuotationInput.parse(input);
   assert.deepEqual(input, original);
   for (const key of ["id", "companyId", "parentId", "grandTotal", "pricingSnapshotLockedByUserId", "observedActualCost"]) assert.equal(key in parsed, false);
-  for (const key of ["id", "companyId", "verificationStatus", "quantitySource", "priceSnapshotId", "priceSnapshotLockedAt", "evidence"]) assert.equal(key in parsed.items[0], false);
+  for (const key of ["id", "companyId", "verificationStatus", "quantitySource", "priceSnapshotId", "priceSnapshotLockedAt", "priceSnapshotStatus", "evidence"]) assert.equal(key in parsed.items[0], false);
   assert.equal(parsed.items[0].quantity, 2);
   assert.equal(parsed.items[0].vatPercent, 20);
   assert.equal(parsed.status, "draft");
   assert.ok(parsed.date instanceof Date);
+});
+
+test("M-12.6: a catalogue snapshot ID is only a request; malformed IDs and double price sources are rejected", () => {
+  const snapshotId = "22222222-2222-4222-8222-222222222222";
+  // The server re-checks the snapshot (tenant, approval, validity, unit, price, VAT) before binding anything.
+  assert.equal(manualQuotationInput.parse({ ...payload(), items: [{ ...payload().items[0], priceSnapshotId: snapshotId }] }).items[0].priceSnapshotId, snapshotId);
+  assert.equal(manualQuotationInput.safeParse({ ...payload(), items: [{ ...payload().items[0], priceSnapshotId: "spoof" }] }).success, false);
+  assert.equal(manualQuotationInput.safeParse({ ...payload(), items: [{ ...payload().items[0], priceSnapshotId: snapshotId,
+    benchmarkStagingId: "33333333-3333-4333-8333-333333333333" }] }).success, false);
 });
 
 test("manual DTO supports optional cost and notes without losing valid zero values", () => {

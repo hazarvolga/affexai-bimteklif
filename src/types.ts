@@ -55,6 +55,8 @@ export interface Client {
 
 export interface QuoteItem {
   benchmarkStagingId?: string;
+  /** Approved company price-catalogue snapshot this line was picked from (M-12.6). */
+  priceSnapshotId?: string;
   id: string;
   description: string;
   unit: string;
@@ -64,7 +66,7 @@ export interface QuoteItem {
   wastePercent?: number;
   costCategory?: 'material' | 'labor' | 'logistics' | 'subcontractor' | 'overhead';
   quantitySource?: 'manual' | 'ai_estimate' | 'document' | 'model' | 'model_estimate' | 'verified';
-  priceSource?: 'manual' | 'ai_estimate' | 'supplier' | 'market' | 'verified';
+  priceSource?: 'manual' | 'ai_estimate' | 'supplier' | 'market' | 'verified' | 'snapshot';
   sourceReference?: string | null;
   verificationStatus?: 'unverified' | 'needs_review' | 'verified';
   discountPercent: number;

@@ -273,7 +273,7 @@ function transferError(code: string, status = 409): never {
   throw new CalmTransferError(code, status);
 }
 
-function snapshotIsEligible(
+export function snapshotIsEligible(
   snapshot: typeof priceSnapshots.$inferSelect,
   source: typeof priceSources.$inferSelect | undefined,
   at: Date,

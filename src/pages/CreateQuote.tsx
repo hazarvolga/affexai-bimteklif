@@ -1,4 +1,6 @@
 import { benchmarkQuoteItem } from '../services/pricing/benchmark-policy';
+import { applyLineEdit, catalogQuoteItem, type CatalogSnapshot } from '@/lib/price-catalog-pick';
+import { CompanyCatalogPicker } from '@/components/quote/CompanyCatalogPicker';
 /**
  * @license
  * Copyright (c) 2026 BIMMetraj ve BIMPlan Academy. Tüm hakları saklıdır. Bkz. LICENSE.
@@ -105,6 +107,11 @@ export function CreateQuote() {
   ]);
 
   const [benchmarksData, setBenchmarksData] = useState<BenchmarkData | null>(null);
+
+  const applyCatalogItem = (snapshot: CatalogSnapshot) => {
+    setItems((prev) => [...prev.filter((i) => i.description?.trim()), catalogQuoteItem(snapshot)]);
+    toast.success(`"${snapshot.description}" firma kataloğundan eklendi. Miktarı girin.`);
+  };
 
   const applyBenchmarkItem = (bm: any) => {
     const newItem: Partial<QuoteItem> = { id: crypto.randomUUID(), ...benchmarkQuoteItem(bm) };
@@ -270,7 +277,10 @@ export function CreateQuote() {
   const updateItem = (id: string, updates: Partial<QuoteItem>) => {
     setItems(items.map(item => {
       if (item.id === id) {
-        const newItem = { ...item, ...updates };
+        const newItem = applyLineEdit(item, updates);
+        if (item.priceSnapshotId && !newItem.priceSnapshotId) {
+          toast.info('Satırın fiyat kataloğu bağlantısı kaldırıldı; fiyat artık elle girilmiş sayılır.');
+        }
         newItem.total = calculateItemTotal(newItem);
         return newItem;
       }
@@ -633,6 +643,7 @@ export function CreateQuote() {
             )}
 
             {/* PRICE VALIDITY & DISCLAIMER BANNER */}
+            <CompanyCatalogPicker currency={formData.currency} onPick={applyCatalogItem} />
             {benchmarksData && <BenchmarkPanel data={benchmarksData} onApply={applyBenchmarkItem} />}
 
             <Card className="bg-card border border-border shadow-none overflow-hidden">
