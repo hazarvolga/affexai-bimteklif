@@ -185,7 +185,7 @@ export const ROADMAP_SECTIONS: DocSection[] = [
   },
   {
     id: "durum",
-    title: "Uygulama durumu (27 Ekim 2026 · Rev. 101 canlıda)",
+    title: "Uygulama durumu (27 Ekim 2026 · Rev. 104 canlıda)",
     blocks: [
       { type: "table", columns: ["Yetenek", "Durum", "Not"], rows: [
         ["RG 33331 IFC ön kontrolü (EK-1/2/3/5/6/7/9)", "Hazır (Tam Kapsam)", "EK-1 6 haneli proje kodu–dosya adı eşleşmesi, EK-2 Tablo 2.1–2.14, EK-3 Tablo 3.1–3.2 (~130 mahal), EK-5 (69 zorunlu + 67 isteğe bağlı sınıf), EK-6 (Tablo 6.1–6.68) ve EK-7 Tablo 7.1–7.9 (IfcAnnotation SURVEY dahil) sunucuda çalışır; gerçek yüklenen dosya adı (dosya_adi) ve iç içe IfcComplexProperty kümeleri de denetlenir"],
@@ -281,17 +281,17 @@ export const ROADMAP_SECTIONS: DocSection[] = [
   },
   {
     id: "revizyon-gunlugu",
-    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 101 · 13–27 Ekim 2026)",
+    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 104 · 13–27 Ekim 2026)",
     blocks: [
       {
         type: "callout",
         tone: "info",
-        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 101)",
-        text: "Bu bölüm, BIMMetraj'ın teknik evrimini Rev. 0'dan 27 Ekim 2026 Rev. 101 · BIM-CALC-2026-10-27.95 sürümüne kadar katı kronolojik sırayla kaydeder. Rev. 91–100, marka.md ürün incelemesinden çıkan uzman önizlemesi, Faz 0 güven düzeltmeleri ve Faz 1 Excel önce / fiyat eksikliği / dışa aktarım dilimleridir; Rev. 101 ile tüm 0022..0029 migration'ları, D12 worker başlangıç düzeltmesi ve D13 canlı ifc-worker consumeIfcUsage kota tamamlama düzeltmesi canlı üretime (https://bimmetraj.com) dağıtılmıştır. Rev. 90 ile T43 ≥%80 proje kapsam hedefi (%82,58) ve T56 nihai izlenebilirlik matrisi tamamlanarak dış girdi gerektirmeyen tüm teknik adımlar kapatılmıştır. Harici fixture lisansı, T45 izinli gerçek büyük müşteri dosyası/VPS post-deploy kanıtı, T50–T52 uzman/müşteri/canlı kabulü ve T55 hukuk incelemesi açık olduğundan Faz 7, Faz 9, Faz 10 ve Faz 11 dış kabuller tamamlanana dek PARTIAL kalır.",
+        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 104)",
+        text: "Bu bölüm, BIMMetraj'ın teknik evrimini Rev. 0'dan 27 Ekim 2026 Rev. 104 · BIM-CALC-2026-10-27.98 sürümüne kadar katı kronolojik sırayla kaydeder. Rev. 91–100, marka.md ürün incelemesinden çıkan uzman önizlemesi, Faz 0 güven düzeltmeleri ve Faz 1 Excel önce / fiyat eksikliği / dışa aktarım dilimleridir; Rev. 101 ile tüm 0022..0029 migration'ları, D12 worker başlangıç düzeltmesi ve D13 canlı ifc-worker consumeIfcUsage kota tamamlama düzeltmesi canlı üretime (https://bimmetraj.com) dağıtılmıştır. Rev. 102 ile 4 katmanlı müteahhit Excel adaptörü, Rev. 103 ile /admin/pricing-sources otomatik tohumlama ve TÜİK SDMX 2.1 adaptörü, Rev. 104 ile 6 aşamalı güvenlik denetimi bulgularının ve derinlemesine sertleştirme adımlarının tamamı kapatılmıştır. Rev. 90 ile T43 ≥%80 proje kapsam hedefi (%82,58) ve T56 nihai izlenebilirlik matrisi tamamlanarak dış girdi gerektirmeyen tüm teknik adımlar kapatılmıştır. Harici fixture lisansı, T45 izinli gerçek büyük müşteri dosyası/VPS post-deploy kanıtı, T50–T52 uzman/müşteri/canlı kabulü ve T55 hukuk incelemesi açık olduğundan Faz 7, Faz 9, Faz 10 ve Faz 11 dış kabuller tamamlanana dek PARTIAL kalır.",
       },
       {
         type: "p",
-        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 101):",
+        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 104):",
       },
       {
         type: "table",
@@ -917,16 +917,22 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "Türkiye'deki müteahhitlerin farklı Excel düzenlerini (antetli birleşik hücreli icmal, katlara göre çok satırlı pivot matris, TOKİ/Kamu tekrarlayan POZ NO bloklu uzun metraj cetveli ve hibrit sayfalar) tek motorla okuyan 4 katmanlı Akıllı Excel Adaptörü devreye alındı: 1) ExcelJS ignoreNodes:['mergeCells'] ve güvenli hücre okuyucu ile 46.588 birleşik hücreli / 13.626 satırlık V6 dosyasının yükleme süresi 90 saniyeden 468 ms'ye indirildi (192x hızlanma) ve MergeValue.toString null çökmesi kökten giderildi; 2) detectSheetStructure ve extractRepeatingBlockRows ile 4 gerçek ALLPLAN/TOKİ müteahhit Excel dosyasının tamamı (İcmal Tüm Objeler: 95 kalem, İcmal Katlara Göre: 123 kalem, V4 TOKİ Kaba: 19 poz bloğu, V6 TOKİ İnce: 29 özet + 29 poz bloğu) hem SmartCheck hem de Teklif (CreateQuote) içe aktarma hatlarında sıfır hatayla doğrulandı; 3) SmartCheckImportWorkspace önizleme ekranına arketip rozeti, tablo okuma modu seçicisi, satıra tıklayarak başlık seçimi ve Firma Özel Excel Şablonu kaydetme eklendi; 4) Yeni müteahhit Excel dosyaları geldikçe otomatik tarayan scripts/inspect-contractor-excels.ts (npm run excel:corpus) ve src/smartcheck/import/contractor-excel-corpus.test.ts (5/5 PASS) eklendi.",
           ],
           [
-            "Rev. 103 (Canlı Sürüm — Aktif)",
+            "Rev. 103",
             "27 Ekim 2026 (/admin/pricing-sources Otomatik Katalog Tohumlama, Yetki Kanıtı Zinciri, Canlı Crawler İyileştirmesi & TÜİK Veri Portalı SDMX 2.1 Entegrasyonu)",
-            "BIM-CALC-2026-10-27.97",
+            "BIM-CALC-2026-10-27.97 (048495f)",
             "1) /admin/pricing-sources sayfasında boş tablo görünmesine yol açan eksik başlangıç tohumlaması giderildi: GET /api/admin/pricing-sources tablo boşsa canonicalPricingSources içindeki 5 ana kaynağı (csb_yfk_2026, epys_ek6, market_concrete_marmara, market_steel_karabuk, tuik_ime) otomatik tohumlar ve POST /api/admin/pricing-sources/sync-catalog uç noktası eksik standart kaynakları tek tıkla geri yükler. 2) Fiyat Kitapları (Sekme 2) ve Kapsam Raporu (Sekme 5) sekmelerindeki ingestedRowCount / totalRowsInBook / sha256 / totalBooks alan uyuşmazlığı giderildi. 3) Kaynak doğrulama, resmi katalog mühürleme ve canlı tarama işlemlerinde authorizationStatus='authorized' ve 64 karakterlik SHA-256 authorizationEvidenceHash yazılarak onaylı fiyatların /api/pricing/benchmarks havuzuna anında yansıması sağlandı; canApproveCrawlerPrice içine row>=1 ve [licensed-pdf-v1]/[official-csb-catalog-v1]/[tuik-sdmx-v1] kanıt desteği eklendi. 4) safe-fetch.ts içinde 2001::/16 küresel IPv6 engeli kaldırıldı (yalnız 2001:db8::/32 dokümantasyon ve 2001:0::/32 Teredo bloklu), doğrulanmış HTTP yönlendirme (en fazla 3 adım) ve gzip/deflate/br sıkıştırma açma eklendi; price-parser-worker.ts içinde <th> sütun başlığından para birimi tespiti devreye alındı. 5) TÜİK Veri Portalı SDMX 2.1 Web Servisi (ISO 17369 — DF_IME, DF_YI_UFE 20 NACE Rev.2 alt sektörü, DF_TUFE) adaptörü (src/server/crawler/tuik-sdmx-adapter.ts) ve arayüz modalı eklendi.",
+          ],
+          [
+            "Rev. 104 (Canlı Sürüm — Aktif)",
+            "27 Ekim 2026 (6 Aşamalı Tam Kapsamlı Güvenlik Denetimi Bulguları ve Derinlemesine Savunma Sertleştirmesi)",
+            "BIM-CALC-2026-10-27.98",
+            "6 aşamalı 'standard' profil güvenlik denetiminde tespit edilen 5 doğrulanmış bulgu (2 HIGH, 2 MEDIUM, 1 LOW) ve 8 derinlemesine savunma sertleştirmesi uçtan uca kapatıldı: 1) [HIGH] /api/academy/allplan/admin/enrollments rotaları checkRole(['owner','admin']) yerine requireVerifiedEmail + checkSuperAdmin() + isAcademyRuntimeEnabled() kapısına bağlanarak tenant sahiplerinin ücretsiz kurs lisansı ataması engellendi. 2) [HIGH] Hakediş (ProgressPaymentService) transition('approve') adımında onaylayanın submitted_by_user_id, created_by_user_id veya progress_measurements.created_by_user_id ile aynı kişi olması 409 ile reddedildi ve correct() kopyasında orijinal created_by_user_id korundu. 3) [MEDIUM] CDE POST mutasyon rotalarına createProjectRole (owner/admin/manager) eklendi ve workspace viewer üyelerinin CDE üzerinde viewer üstü rol alması engellendi. 4) [MEDIUM] Source Intelligence ve Market Intelligence inceleme onaylarına iki-kişi (Maker-Checker) kontrolü, zorunlu onay notu ve restricted kaynak engeli eklendi. 5) [LOW] /api/company/risk-calibration içindeki pilotApplications sorgusuna provisionedCompanyId filtresi eklendi. 6) [Hardening] Kayıtta doğrulanmamış e-posta ile otomatik isSuperAdmin yükseltmesi kapatıldı, impersonate oturumları zorunlu salt-okunur (readOnly:true) yapıldı, pilot başvurularında clientAddress(req) kullanıldı, IFC/PDF ayrıştırıcılarına döngü/bellek/inflate sınırları ve alt süreç (spawn/execFile) ortam değişkeni beyaz listesi eklendi, worker konteynerinden JWT_SECRET ayrıştırıldı, GeminiProvider 128 KB girdi sınırına alındı ve DATABASE_PUBLIC_RESTRICTED_TABLE_ACL matrisinde bimmetraj_worker yetkileri daraltıldı.",
           ],
         ],
       },
       {
         type: "p",
-        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 103 · Önceki Durum → Yeni Durum):",
+        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 104 · Önceki Durum → Yeni Durum):",
       },
       {
         type: "table",
@@ -1751,11 +1757,18 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "src/smartcheck/import/normalize.ts, src/smartcheck/import/mapping-profiles.ts, src/smartcheck/import/spreadsheet-parser.ts, src/lib/quote-excel-import.ts, src/lib/quote-xlsx.ts, src/components/smartcheck/SmartCheckImportWorkspace.tsx, src/server/config/performance-budgets.ts, scripts/inspect-contractor-excels.ts, src/smartcheck/import/contractor-excel-corpus.test.ts",
           ],
           [
-            "Rev. 103 · 27 Ekim 2026 (/admin/pricing-sources Otomatik Tohumlama, Yetki Kanıtı, Canlı Crawler & TÜİK SDMX 2.1 Entegrasyonu)",
+            "Rev. 103 · 27 Ekim 2026 · 048495f (/admin/pricing-sources Otomatik Tohumlama, Yetki Kanıtı, Canlı Crawler & TÜİK SDMX 2.1 Entegrasyonu)",
             "Faz 1 T05–T09 / Faz 3 T21 — 4735 Sayılı Kanun Fiyat Farkı Esasları & TÜİK Veri Portalı SDMX 2.1 (ISO 17369)",
             "1) canonicalPricingSources içindeki 5 ana kaynak yalnız manuel CLI scriptiyle eklendiği için canlı /admin/pricing-sources sayfası boş açılıyordu. 2) getOfficialCatalogCoverageReport() yanıtındaki rowCount/documentHash/bookCount alanları ile PricingSources.tsx içindeki ingestedRowCount/sha256/totalBooks alanları uyuşmadığı için Sekme 2 ve Sekme 5'te TypeError oluşuyordu. 3) Kaynak doğrulama ve resmi katalog mühürleme adımları authorizationStatus='authorized' ve authorizationEvidenceHash alanlarını doldurmadığı için onaylı fiyatlar /api/pricing/benchmarks sorgusunda filtreleniyordu; canApproveCrawlerPrice row=1 ve PDF/resmi katalog kanıtlarını reddediyordu. 4) safe-fetch.ts tüm 2001::/16 küresel IPv6 adreslerini, yönlendirmeleri ve gzip/br yanıtlarını reddediyordu. 5) TÜİK Veri Portalı SDMX 2.1 için yapılandırılmış adaptör yoktu.",
             "1) GET /api/admin/pricing-sources boş tabloda 5 standart kaynağı otomatik tohumlar ve POST /api/admin/pricing-sources/sync-catalog eksik kaynakları tamamlar. 2) csb-pdf-parser.ts ve PricingSources.tsx şema alanları tam uyumlu hale getirildi. 3) executeCatalogImport, verify, sync ve review uç noktaları authorizationStatus='authorized', authorizationScope ve 64-hex authorizationEvidenceHash üretir; canApproveCrawlerPrice row>=1 ve [licensed-pdf-v1]/[official-csb-catalog-v1]/[tuik-sdmx-v1] öneklerini kabul eder. 4) safe-fetch.ts içinde 2001::/16 küresel IPv6 açıldı (2001:db8::/32 ve 2001:0::/32 bloklu), doğrulanmış 3 adımlı HTTP yönlendirme ve gzip/deflate/br açma eklendi; price-parser-worker.ts <th> başlığından para birimi sütunu algılar. 5) 25 TÜİK serisini (4 DF_IME + 1 DF_TUFE + 20 DF_YI_UFE NACE Rev.2) destekleyen src/server/crawler/tuik-sdmx-adapter.ts ve /admin/pricing-sources TÜİK SDMX 2.1 senkronizasyon modalı eklendi.",
             "src/server/crawler/tuik-sdmx-adapter.ts, src/server/crawler/tuik-sdmx-adapter.test.ts, src/server/crawler/csb-pdf-parser.ts, src/server/crawler/provenance.ts, src/server/crawler/safe-fetch.ts, src/server/crawler/price-parser-worker.ts, src/server/routes/pricing-file-import.ts, src/server/routes/admin.ts, src/pages/admin/PricingSources.tsx",
+          ],
+          [
+            "Rev. 104 · 27 Ekim 2026 (6 Aşamalı Tam Kapsamlı Güvenlik Denetimi Bulguları ve Derinlemesine Savunma Sertleştirmesi)",
+            "Faz 1 T09 / Faz 4 T28 / Faz 6 T35 / Faz 7 T40–T42 — OWASP ASVS v4.0.3, ISO 19650-2 CDE & İki Kişili Maker-Checker Kontratı",
+            "1) /api/academy/allplan/admin/enrollments rotaları checkRole(['owner','admin']) kullandığı için sıradan çalışma alanı sahipleri kendilerine ücretsiz kurs lisansı atayabiliyordu. 2) ProgressPaymentService transition('approve') yalnız approved_by_user_id kontrolü yapıyor, submitted_by_user_id/created_by_user_id ile aynı kişinin onaylamasını ve correct() kopyasında oluşturanın ezilmesini engellemiyordu. 3) CDE POST rotalarında çalışma alanı rol kontrolü yoktu ve viewer üyeye CDE'de yüksek rol atanabiliyordu. 4) Source/Market Intelligence onaylarında kendi yüklediği veriyi tek başına onaylama (self-approval) açıktı. 5) /api/company/risk-calibration içinde pilotApplications sorgusu şirket filtresizdi. 6) Kayıtta doğrulanmamış e-posta ile isSuperAdmin atanabiliyor, impersonate oturumlarında allowWrite açılabiliyor, alt süreçlere tüm process.env aktarılıyor ve worker konteynerine JWT_SECRET veriliyordu.",
+            "1) Academy admin kayıt rotaları requireVerifiedEmail + checkSuperAdmin() + isAcademyRuntimeEnabled() altına alındı. 2) Hakediş onayında submitted_by_user_id, created_by_user_id ve progress_measurements.created_by_user_id ayrımı zorunlu kılındı; correct() orijinal created_by_user_id değerini korur. 3) CDE POST rotalarına createProjectRole eklendi ve workspace viewer üyelerinin CDE rolü viewer ile sınırlandı. 4) Source/Market Intelligence onaylarına iki-kişi (Maker-Checker) kuralı, zorunlu onay notu ve restricted kaynak engeli eklendi. 5) risk-calibration pilotApplications sorgusu provisionedCompanyId ile filtrelendi. 6) Doğrulanmamış e-posta için isSuperAdmin kapalı tutuldu, impersonate oturumları zorunlu readOnly:true yapıldı, pilot başvurularında clientAddress(req) kullanıldı, IFC/PDF ayrıştırıcılarına döngü/RLIMIT/inflate sınırları ve alt süreç env beyaz listesi eklendi, worker konteynerinden JWT_SECRET kaldırıldı, GeminiProvider 128 KB girdi sınırına alındı ve DATABASE_PUBLIC_RESTRICTED_TABLE_ACL içinde bimmetraj_worker yetkileri daraltıldı.",
+            "src/server/routes/academy.ts, src/services/progress-payments/service.ts, src/server/routes/cde.ts, src/services/cde/service.ts, src/server/routes/source-intelligence.ts, src/server/routes/market-intelligence.ts, src/server/routes/company.ts, src/server/routes/auth.ts, src/server/middleware/auth.ts, src/server/routes/admin.ts, src/server/routes/pilot.ts, workers/ifc/ifc_extract.py, workers/ifc/epys_preflight.py, workers/ifc/vendor/ifc_ruhsat/kurallar/ortak.py, src/server/crawler/csb-pdf-parser.ts, src/services/ai/providers/geminiProvider.ts, src/services/ai/providers/providerRouter.ts, src/server/config/production.ts, compose.coolify.yaml, scripts/database-roles/contract.ts, src/server/security/security-audit-remediation.test.ts",
           ],
         ],
       },

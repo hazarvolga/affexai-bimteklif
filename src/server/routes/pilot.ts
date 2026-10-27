@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { authenticate, checkSuperAdmin } from "../middleware/auth";
 import { pilotService, ApiError } from "../../services/pilot/PilotService";
 import { pilotRepository } from "../../services/pilot/PilotRepository";
-import { consumeRateLimit } from "../auth/security";
+import { clientAddress, consumeRateLimit } from "../auth/security";
 
 
 function clean(value: unknown, maxLength: number) {
@@ -68,7 +68,7 @@ export function registerPilotRoutes(app: Express) {
         throw new ApiError(400, "Eksik veya geçersiz bilgi: Lütfen geçerli bir e-posta adresi girin.");
       }
 
-      const ip = (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() || req.socket.remoteAddress || "unknown";
+      const ip = clientAddress(req);
 
       const rate = await consumeRateLimit(`pilot-app:${ip}`, 10, 3600_000);
       if (!rate.allowed) {

@@ -127,6 +127,8 @@ services:
     environment:
       <<: *app-environment
       DATABASE_URL: postgresql://bimmetraj_worker:${BIMMETRAJ_WORKER_DB_PASSWORD:-}@postgres:5432/bimmetraj_production
+      JWT_SECRET: ${BIMMETRAJ_EMPTY_ENV:-}
+      SERVICE_HEX_64_JWT: ${BIMMETRAJ_EMPTY_ENV:-}
       NODE_OPTIONS: --max-old-space-size=768
       SMARTCHECK_WORKER_CONCURRENCY: ${SMARTCHECK_WORKER_CONCURRENCY:-2}
       SENTRY_DSN: ${SENTRY_DSN:-}
@@ -145,6 +147,8 @@ services:
     environment:
       <<: *app-environment
       DATABASE_URL: postgresql://bimmetraj_worker:${BIMMETRAJ_WORKER_DB_PASSWORD:-}@postgres:5432/bimmetraj_production
+      JWT_SECRET: ${BIMMETRAJ_EMPTY_ENV:-}
+      SERVICE_HEX_64_JWT: ${BIMMETRAJ_EMPTY_ENV:-}
       NODE_OPTIONS: --max-old-space-size=1024
       SMARTCHECK_IFC_WORKER_CONCURRENCY: ${SMARTCHECK_IFC_WORKER_CONCURRENCY:-1}
       SMARTCHECK_IFC_TIMEOUT_SEC: ${SMARTCHECK_IFC_TIMEOUT_SEC:-600}

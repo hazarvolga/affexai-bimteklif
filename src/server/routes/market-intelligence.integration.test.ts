@@ -24,9 +24,11 @@ test("supplier quote market intelligence is review-gated, outlier-aware, and ten
     db.insert(schema.companies).values({ name: `Market Intelligence B ${suffix}` }).returning(),
   ]).then(([a, b]) => [a[0], b[0]] as const);
   const [userA] = await db.insert(schema.users).values({ email: `market-a-${suffix}@example.test`, fullName: "Market Tenant A", emailVerified: new Date() }).returning();
+  const [reviewerA] = await db.insert(schema.users).values({ email: `market-reviewer-a-${suffix}@example.test`, fullName: "Market Reviewer A", emailVerified: new Date() }).returning();
   const [userB] = await db.insert(schema.users).values({ email: `market-b-${suffix}@example.test`, fullName: "Market Tenant B", emailVerified: new Date() }).returning();
-  await db.insert(schema.memberships).values([{ companyId: companyA.id, userId: userA.id, role: "owner" }, { companyId: companyB.id, userId: userB.id, role: "owner" }]);
+  await db.insert(schema.memberships).values([{ companyId: companyA.id, userId: userA.id, role: "owner" }, { companyId: companyA.id, userId: reviewerA.id, role: "admin" }, { companyId: companyB.id, userId: userB.id, role: "owner" }]);
   const tokenA = AuthService.generateToken({ userId: userA.id, companyId: companyA.id, role: "owner" });
+  const tokenReviewerA = AuthService.generateToken({ userId: reviewerA.id, companyId: companyA.id, role: "admin" });
   const tokenB = AuthService.generateToken({ userId: userB.id, companyId: companyB.id, role: "owner" });
   const [sourceDocument] = await db.insert(schema.documents).values({ companyId: companyA.id, uploadedByUserId: userA.id, originalFileName: `supplier-${suffix}.csv`, displayName: `Supplier ${suffix}`, mimeType: "text/csv", fileSizeBytes: 128, storageKey: `${companyA.id}/${suffix}/original`, checksumSha256: "c".repeat(64), status: "completed" }).returning();
   const [sourceRun] = await db.insert(schema.documentProcessingRuns).values({ companyId: companyA.id, documentId: sourceDocument.id, status: "succeeded", currentStage: "completed", idempotencyKey: `run-${suffix}`, pipelineVersion: 1, progressPercent: 100, progressMessage: "Tamamlandı", completedAt: new Date() }).returning();
@@ -59,7 +61,9 @@ test("supplier quote market intelligence is review-gated, outlier-aware, and ten
     entryId = entriesBody.entries[0].id;
     const otherTenant = await request(`/api/market-intelligence/supplier-quotes/${submissionId}`, {}, tokenB);
     assert.equal(otherTenant.status, 404);
-    const approve = await request(`/api/market-intelligence/supplier-quote-entries/${entryId}/review`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ status: "approved", notes: "Outlier manuel reviewer kararıyla kabul edildi." }) });
+    const selfApprove = await request(`/api/market-intelligence/supplier-quote-entries/${entryId}/review`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ status: "approved", notes: "Kendi kendime onay" }) }, tokenA);
+    assert.equal(selfApprove.status, 409);
+    const approve = await request(`/api/market-intelligence/supplier-quote-entries/${entryId}/review`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ status: "approved", notes: "Outlier manuel reviewer kararıyla kabul edildi." }) }, tokenReviewerA);
     assert.equal(approve.status, 200);
     const approvedEntry = await approve.json() as { reviewStatus: string; priceSnapshotId: string | null };
     assert.equal(approvedEntry.reviewStatus, "approved");
@@ -99,8 +103,10 @@ test("supplier quote market intelligence is review-gated, outlier-aware, and ten
     await db.delete(schema.documentProcessingRuns).where(eq(schema.documentProcessingRuns.companyId, companyA.id));
     await db.delete(schema.documents).where(eq(schema.documents.companyId, companyA.id));
     await db.delete(schema.memberships).where(eq(schema.memberships.userId, userA.id));
+    await db.delete(schema.memberships).where(eq(schema.memberships.userId, reviewerA.id));
     await db.delete(schema.memberships).where(eq(schema.memberships.userId, userB.id));
     await db.delete(schema.users).where(eq(schema.users.id, userA.id));
+    await db.delete(schema.users).where(eq(schema.users.id, reviewerA.id));
     await db.delete(schema.users).where(eq(schema.users.id, userB.id));
     await db.delete(schema.companies).where(eq(schema.companies.id, companyA.id));
     await db.delete(schema.companies).where(eq(schema.companies.id, companyB.id));

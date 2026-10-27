@@ -207,20 +207,32 @@ def pset_rank(pset_name: str) -> int:
 def iter_pset_single_values(prop_def: Any) -> List[Tuple[Any, str]]:
     """
     Yields (IfcPropertySingleValue, path_prefix) from an IfcPropertySet,
-    recursively unwrapping IfcComplexProperty (e.g. Allplan 'Object Layer Attributes #1').
+    recursively unwrapping IfcComplexProperty (e.g. Allplan 'Object Layer Attributes #1')
+    with cycle and depth bounds.
     """
     out: List[Tuple[Any, str]] = []
     pset_name = str(getattr(prop_def, "Name", "") or "")
+    visited_complex: set[int] = set()
+    max_depth = 8
+    max_items = 512
 
-    def _walk(props: Any, prefix: str) -> None:
+    def _walk(props: Any, prefix: str, depth: int) -> None:
+        if depth > max_depth or len(out) >= max_items:
+            return
         for prop in props or []:
+            if len(out) >= max_items:
+                return
             if prop.is_a("IfcPropertySingleValue"):
                 out.append((prop, prefix))
             elif prop.is_a("IfcComplexProperty"):
+                prop_id = prop.id() if hasattr(prop, "id") and callable(prop.id) else id(prop)
+                if prop_id in visited_complex:
+                    continue
+                visited_complex.add(prop_id)
                 c_name = str(getattr(prop, "Name", "") or "Complex")
-                _walk(getattr(prop, "HasProperties", []), f"{prefix}/{c_name}")
+                _walk(getattr(prop, "HasProperties", []), f"{prefix}/{c_name}", depth + 1)
 
-    _walk(getattr(prop_def, "HasProperties", []), pset_name)
+    _walk(getattr(prop_def, "HasProperties", []), pset_name, 0)
     return out
 
 
@@ -2520,6 +2532,12 @@ def extract_ifc(input_path: str, output_path: str, file_name: str, run_id: str =
 
 
 def main():
+    try:
+        import resource
+        resource.setrlimit(resource.RLIMIT_AS, (2 * 1024 * 1024 * 1024, 2 * 1024 * 1024 * 1024))
+        resource.setrlimit(resource.RLIMIT_CPU, (600, 600))
+    except (ImportError, OSError, ValueError):
+        pass
     parser = argparse.ArgumentParser(description="TeklifPro IfcOpenShell CLI Extractor")
     parser.add_argument("--input", required=True, help="Input IFC file path")
     parser.add_argument("--output", required=True, help="Output JSON file path")

@@ -128,8 +128,11 @@ export class CdeService {
       await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`${actor.companyId}:${projectId}:members`}, 0))`);
       const { role } = await this.requireProjectRole(actor, projectId, tx);
       if (!canManage(role)) throw new CdeServiceError(403, "CDE_PROJECT_ROLE_FORBIDDEN", "Bu işlem proje koordinatörü rolü gerektirir.");
-      const [membership] = await tx.select({ userId: memberships.userId }).from(memberships).where(and(eq(memberships.companyId, actor.companyId), eq(memberships.userId, input.userId)));
+      const [membership] = await tx.select({ userId: memberships.userId, role: memberships.role }).from(memberships).where(and(eq(memberships.companyId, actor.companyId), eq(memberships.userId, input.userId)));
       if (!membership) throw new CdeServiceError(404, "MEMBER_NOT_FOUND", "Şirket üyesi bulunamadı.");
+      if (membership.role === "viewer" && input.role !== "viewer") {
+        throw new CdeServiceError(403, "CDE_WORKSPACE_VIEWER_READ_ONLY", "Salt-okunur (viewer) şirket üyesine yazma yetkili CDE proje rolü atanamaz.");
+      }
       const [existing] = await tx.select({ role: cdeProjectMembers.projectRole }).from(cdeProjectMembers).where(and(eq(cdeProjectMembers.companyId, actor.companyId), eq(cdeProjectMembers.projectId, projectId), eq(cdeProjectMembers.userId, input.userId)));
       if (existing?.role === "coordinator" && input.role !== "coordinator") {
         const [{ coordinatorCount }] = await tx.select({ coordinatorCount: sql<number>`count(*)::int` }).from(cdeProjectMembers).where(and(eq(cdeProjectMembers.companyId, actor.companyId), eq(cdeProjectMembers.projectId, projectId), eq(cdeProjectMembers.projectRole, "coordinator")));
@@ -296,12 +299,19 @@ export class CdeService {
   }
 
   private async requireProjectRole(actor: Actor, projectId: string, executor: Executor): Promise<{ project: typeof cdeProjects.$inferSelect; role: CdeProjectRole; discipline: CdeDiscipline }> {
-    const [row] = await executor.select({ project: cdeProjects, role: cdeProjectMembers.projectRole, discipline: cdeProjectMembers.discipline }).from(cdeProjects)
+    const [row] = await executor.select({
+      project: cdeProjects,
+      role: cdeProjectMembers.projectRole,
+      discipline: cdeProjectMembers.discipline,
+      workspaceRole: memberships.role,
+    }).from(cdeProjects)
       .leftJoin(cdeProjectMembers, and(eq(cdeProjectMembers.projectId, cdeProjects.id), eq(cdeProjectMembers.companyId, cdeProjects.companyId), eq(cdeProjectMembers.userId, actor.userId)))
+      .leftJoin(memberships, and(eq(memberships.companyId, cdeProjects.companyId), eq(memberships.userId, actor.userId)))
       .where(and(eq(cdeProjects.id, projectId), eq(cdeProjects.companyId, actor.companyId)));
     if (!row) throw new CdeServiceError(404, "CDE_PROJECT_NOT_FOUND", "CDE projesi bulunamadı.");
-    if (!row.role) throw new CdeServiceError(403, "CDE_PROJECT_ROLE_FORBIDDEN", "CDE proje üyeliği gereklidir.");
-    return { project: row.project, role: row.role as CdeProjectRole, discipline: row.discipline as CdeDiscipline };
+    if (!row.role || !row.workspaceRole) throw new CdeServiceError(403, "CDE_PROJECT_ROLE_FORBIDDEN", "CDE proje üyeliği gereklidir.");
+    const effectiveRole: CdeProjectRole = row.workspaceRole === "viewer" ? "viewer" : (row.role as CdeProjectRole);
+    return { project: row.project, role: effectiveRole, discipline: row.discipline as CdeDiscipline };
   }
 }
 

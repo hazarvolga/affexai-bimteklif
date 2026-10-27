@@ -114,10 +114,20 @@ def malzeme_adi(e: Any) -> str | None:
 def kati(e: Any) -> Any | None:
     """Nesnenin içinde bulunduğu IfcBuildingStorey (IfcRelContainedInSpatialStructure), yoksa None."""
     # Yapı elemanları kata IfcRelContainedInSpatialStructure ile, mahaller IfcRelAggregates ile bağlanır.
+    visited: set[int] = set()
+    elem_id = e.id() if hasattr(e, "id") and callable(e.id) else None
+    if isinstance(elem_id, int):
+        visited.add(elem_id)
     kap = ue.get_container(e) or ue.get_aggregate(e)
+    hops = 0
     while kap is not None and not kap.is_a("IfcBuildingStorey"):
-        if kap.is_a("IfcProject"):
+        if kap.is_a("IfcProject") or hops >= 16:
             return None
+        kap_id = kap.id() if hasattr(kap, "id") and callable(kap.id) else id(kap)
+        if kap_id in visited:
+            return None
+        visited.add(kap_id)
+        hops += 1
         kap = ue.get_container(kap) or ue.get_aggregate(kap)
     return kap
 

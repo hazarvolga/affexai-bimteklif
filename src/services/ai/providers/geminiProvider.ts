@@ -24,10 +24,14 @@ export class GeminiProvider implements AIProvider {
   }
 
   async generateQuotation(input: AIQuotationInput): Promise<AIQuotationResult> {
+    if (Buffer.byteLength(input.inputText || "", "utf8") > 128 * 1024) throw new Error("AI_INPUT_TOO_LARGE");
+    const prompt = buildQuotationPrompt(input);
+    if (Buffer.byteLength(prompt, "utf8") > 128 * 1024) throw new Error("AI_INPUT_TOO_LARGE");
     const model = this.genAI.getGenerativeModel({ model: process.env.GEMINI_MODEL || "gemini-2.5-flash" }, { timeout: 30_000 });
     const result = await model.generateContent({
-      contents: [{ role: "user", parts: [{ text: buildQuotationPrompt(input) }] }],
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
       generationConfig: {
+        maxOutputTokens: 4096,
         responseMimeType: "application/json",
       }
     });
@@ -36,9 +40,6 @@ export class GeminiProvider implements AIProvider {
   }
 
   async improveQuotation(items: any[], instructions: string): Promise<any[]> {
-    const model = this.genAI.getGenerativeModel({ model: process.env.GEMINI_MODEL || "gemini-2.5-flash" }, { timeout: 30_000 });
-
-
     const prompt = `
       Aşağıdaki inşaat teklif kalemlerini, verilen talimatlara göre iyileştir veya güncelle.
       Mevcut Kalemler: ${JSON.stringify(items)}
@@ -46,10 +47,13 @@ export class GeminiProvider implements AIProvider {
 
       Sadece güncellenmiş kalemler listesini JSON dizisi olarak döndür: [{description, unit, quantity, unitPrice}]
     `;
+    if (Buffer.byteLength(prompt, "utf8") > 128 * 1024) throw new Error("AI_INPUT_TOO_LARGE");
+    const model = this.genAI.getGenerativeModel({ model: process.env.GEMINI_MODEL || "gemini-2.5-flash" }, { timeout: 30_000 });
 
     const result = await model.generateContent({
       contents: [{ role: "user", parts: [{ text: prompt }] }],
       generationConfig: {
+        maxOutputTokens: 4096,
         responseMimeType: "application/json",
       }
     });

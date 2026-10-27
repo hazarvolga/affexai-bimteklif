@@ -1,4 +1,4 @@
-import { createHash } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -244,12 +244,19 @@ export function parseCsbPdfText(text: string, maxRows = 600): ParsedPriceRow[] {
  * Pure Node.js fallback PDF text extractor for FlateDecode content streams
  * when neither `pdftotext` nor `python3 pypdf` is available.
  */
-function extractPdfTextPureNode(pdfBuffer: Buffer): string {
+export function extractPdfTextPureNode(pdfBuffer: Buffer): string {
   const chunks: string[] = [];
   const raw = pdfBuffer.toString('latin1');
+  const MAX_STREAM_INFLATE_BYTES = 16 * 1024 * 1024;
+  const MAX_CUMULATIVE_TEXT_BYTES = 32 * 1024 * 1024;
+  const MAX_PDF_STREAMS = 2000;
+  let cumulativeBytes = 0;
+  let streamCount = 0;
   const streamRegex = /stream\r?\n([\s\S]*?)\r?\nendstream/g;
   let m: RegExpExecArray | null;
   while ((m = streamRegex.exec(raw)) !== null) {
+    streamCount += 1;
+    if (streamCount > MAX_PDF_STREAMS || cumulativeBytes >= MAX_CUMULATIVE_TEXT_BYTES) break;
     const startOffset = m.index + m[0].indexOf('\n') + 1;
     const endOffset = m.index + m[0].lastIndexOf('endstream');
     const slice = pdfBuffer.subarray(startOffset, endOffset).subarray(
@@ -258,10 +265,11 @@ function extractPdfTextPureNode(pdfBuffer: Buffer): string {
     );
     let decoded = '';
     try {
-      decoded = zlib.inflateSync(slice).toString('latin1');
+      decoded = zlib.inflateSync(slice, { maxOutputLength: MAX_STREAM_INFLATE_BYTES }).toString('latin1');
     } catch {
-      decoded = slice.toString('latin1');
+      decoded = slice.subarray(0, Math.min(slice.length, MAX_STREAM_INFLATE_BYTES)).toString('latin1');
     }
+    cumulativeBytes += decoded.length;
     if (!decoded.includes('BT') && !decoded.includes('Tj') && !decoded.includes('TJ')) continue;
     const strTokens = decoded.match(/\((?:\\.|[^\\()])*\)/g);
     if (strTokens) {
@@ -282,9 +290,16 @@ function extractPdfTextPureNode(pdfBuffer: Buffer): string {
 }
 
 export function extractTextFromPdfBuffer(pdfBuffer: Buffer): string {
-  const tmpFile = path.join(os.tmpdir(), `csb-import-${process.pid}-${Date.now()}.pdf`);
+  const tmpFile = path.join(os.tmpdir(), `csb-import-${process.pid}-${randomUUID()}.pdf`);
+  const safeChildEnv: NodeJS.ProcessEnv = {
+    PATH: process.env.PATH ?? '/usr/local/bin:/usr/bin:/bin',
+    HOME: os.tmpdir(),
+    TMPDIR: os.tmpdir(),
+    LANG: process.env.LANG ?? 'C.UTF-8',
+    PYTHONIOENCODING: 'utf-8',
+  };
   try {
-    fs.writeFileSync(tmpFile, pdfBuffer);
+    fs.writeFileSync(tmpFile, pdfBuffer, { flag: 'wx', mode: 0o600 });
     // 1. Try pdftotext if installed
     try {
       const out = execFileSync('pdftotext', ['-raw', tmpFile, '-'], {
@@ -292,6 +307,7 @@ export function extractTextFromPdfBuffer(pdfBuffer: Buffer): string {
         maxBuffer: 64 * 1024 * 1024,
         timeout: 20_000,
         stdio: ['ignore', 'pipe', 'ignore'],
+        env: safeChildEnv,
       });
       if (out && out.trim().length > 20) return out;
     } catch {
@@ -314,6 +330,7 @@ export function extractTextFromPdfBuffer(pdfBuffer: Buffer): string {
             maxBuffer: 64 * 1024 * 1024,
             timeout: 30_000,
             stdio: ['ignore', 'pipe', 'ignore'],
+            env: safeChildEnv,
           }
         );
         if (out && out.trim().length > 20) return out;

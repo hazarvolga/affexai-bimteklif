@@ -21,7 +21,10 @@ export class AIProviderRouter implements AIProvider {
     const configured = this.providers.filter(provider => provider.isConfigured() && provider.generateText);
     for (const provider of configured) {
       try { return await provider.generateText!(prompt, json); }
-      catch { console.warn(`AI provider ${provider.name} failed during text generation; trying fallback.`); }
+      catch (error: any) {
+        if (error?.message === 'AI_INPUT_TOO_LARGE' || error?.code === 'AI_INPUT_TOO_LARGE') throw error;
+        console.warn(`AI provider ${provider.name} failed during text generation; trying fallback.`);
+      }
     }
     throw new Error(configured.length ? 'AI_TEXT_GENERATION_FAILED' : 'AI_PROVIDER_NOT_CONFIGURED');
   }
@@ -37,6 +40,9 @@ export class AIProviderRouter implements AIProvider {
       try {
         return await call(provider);
       } catch (error: any) {
+        if (error?.message === "AI_INPUT_TOO_LARGE" || error?.code === "AI_INPUT_TOO_LARGE") {
+          throw error;
+        }
         errors.push(`${provider.name}: ${error?.message || String(error)}`);
         console.warn(`AI provider ${provider.name} failed during ${operation}; trying fallback.`);
       }

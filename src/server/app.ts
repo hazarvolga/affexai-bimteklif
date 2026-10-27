@@ -99,7 +99,8 @@ export function createApiApp(options?: { configureRoutes?: (app: express.Express
     res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
     res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=()");
     res.setHeader("Cross-Origin-Opener-Policy", "same-origin");
-    if (req.path === "/api" || req.path.startsWith("/api/")) {
+    const normalizedPath = req.path.toLowerCase();
+    if (normalizedPath === "/api" || normalizedPath.startsWith("/api/")) {
       res.setHeader("Cache-Control", "no-store");
     }
     if (process.env.NODE_ENV === "production") {

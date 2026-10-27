@@ -131,6 +131,12 @@ def write_ids(directory: str) -> List[str]:
 
 
 def main() -> None:
+    try:
+        import resource
+        resource.setrlimit(resource.RLIMIT_AS, (2 * 1024 * 1024 * 1024, 2 * 1024 * 1024 * 1024))
+        resource.setrlimit(resource.RLIMIT_CPU, (120, 120))
+    except (ImportError, OSError, ValueError):
+        pass
     parser = argparse.ArgumentParser(description="BIMMetraj e-PYS pre-check (RG 33331)")
     parser.add_argument("--input", required=True)
     parser.add_argument("--output", required=True)

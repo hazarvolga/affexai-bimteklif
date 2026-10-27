@@ -64,7 +64,16 @@ export async function runPdfPreflight(inputPath: string, fileName: string, optio
   const outputPath = path.join(directory, "report.json");
   try {
     await new Promise<void>((resolve, reject) => {
-      const child = spawn(options.pythonBin ?? resolvePythonBin(), [options.scriptPath ?? path.resolve("workers/ifc/pdf_preflight.py"), "--input", inputPath, "--output", outputPath, "--file-name", fileName], { stdio: "ignore" });
+      const child = spawn(options.pythonBin ?? resolvePythonBin(), [options.scriptPath ?? path.resolve("workers/ifc/pdf_preflight.py"), "--input", inputPath, "--output", outputPath, "--file-name", fileName], {
+        stdio: "ignore",
+        env: {
+          PATH: process.env.PATH ?? "/usr/local/bin:/usr/bin:/bin",
+          HOME: os.tmpdir(),
+          TMPDIR: os.tmpdir(),
+          LANG: process.env.LANG ?? "C.UTF-8",
+          PYTHONIOENCODING: "utf-8",
+        },
+      });
       const timer = setTimeout(() => { child.kill("SIGKILL"); reject(new Error("PDF_PREFLIGHT_TIMEOUT")); }, timeoutMs);
       child.once("error", () => { clearTimeout(timer); reject(new Error("PDF_PREFLIGHT_FAILED")); });
       child.once("close", code => { clearTimeout(timer); code === 0 ? resolve() : reject(new Error("PDF_PREFLIGHT_FAILED")); });

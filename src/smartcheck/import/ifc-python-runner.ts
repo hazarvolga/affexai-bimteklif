@@ -435,7 +435,16 @@ export async function runPythonIfcExtractor(options: PythonIfcExtractOptions): P
     args.push("--run-id", effectiveRunId);
 
     await new Promise<void>((resolve, reject) => {
-      const child = spawn(pythonBin, args, { stdio: ["ignore", "pipe", "pipe"] });
+      const child = spawn(pythonBin, args, {
+        stdio: ["ignore", "pipe", "pipe"],
+        env: {
+          PATH: process.env.PATH ?? "/usr/local/bin:/usr/bin:/bin",
+          HOME: os.tmpdir(),
+          TMPDIR: os.tmpdir(),
+          LANG: process.env.LANG ?? "C.UTF-8",
+          PYTHONIOENCODING: "utf-8",
+        },
+      });
 
       let stdout = "";
       let stderr = "";

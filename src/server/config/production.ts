@@ -37,10 +37,15 @@ export function validateProductionEnvironment(
       try { validateControlDatabaseUrls(env.DATABASE_URL, env.CONTROL_DATABASE_URL); }
       catch (error) { errors.push(error instanceof Error ? error.message : 'CONTROL_DATABASE_URL_INVALID'); }
     }
-  } else if (env.CONTROL_DATABASE_URL) {
-    errors.push('CONTROL_DATABASE_URL must not be provided to worker processes.');
+    if (!env.JWT_SECRET || env.JWT_SECRET.length < 32 || placeholderSecret(env.JWT_SECRET)) errors.push('JWT_SECRET must be a non-placeholder secret of at least 32 characters.');
+  } else {
+    if (env.CONTROL_DATABASE_URL) {
+      errors.push('CONTROL_DATABASE_URL must not be provided to worker processes.');
+    }
+    if (env.JWT_SECRET && (env.JWT_SECRET.length < 32 || placeholderSecret(env.JWT_SECRET))) {
+      errors.push('JWT_SECRET must be a non-placeholder secret of at least 32 characters.');
+    }
   }
-  if (!env.JWT_SECRET || env.JWT_SECRET.length < 32 || placeholderSecret(env.JWT_SECRET)) errors.push('JWT_SECRET must be a non-placeholder secret of at least 32 characters.');
   if (!env.PUBLIC_APP_URL || !validHttpsUrl(env.PUBLIC_APP_URL)) errors.push('PUBLIC_APP_URL must be an absolute HTTPS URL.');
   errors.push(...validateAuthEmailEnvironment(env));
   if (env.SMARTCHECK_IMPORT_ENABLED === 'true') {

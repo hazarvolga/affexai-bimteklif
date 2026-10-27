@@ -644,22 +644,29 @@ test("T43 R+1 route coverage ratchet: admin, pricing-file-import, academy, billi
   const summaryOk = await reqJson("GET", "/api/academy/activation/summary", adminToken);
   assert.equal(summaryOk.status, 200);
 
-  // Admin grant enrollment
-  const grantEnrollment = await reqJson("POST", "/api/academy/allplan/admin/enrollments", ownerToken, {
+  // Non-super-admin owner cannot self-grant academy enrollments
+  const ownerDeniedGrant = await reqJson("POST", "/api/academy/allplan/admin/enrollments", ownerToken, {
+    userId: owner.id,
+    source: "pilot",
+  });
+  assert.equal(ownerDeniedGrant.status, 403);
+
+  // Super-admin grant enrollment
+  const grantEnrollment = await reqJson("POST", "/api/academy/allplan/admin/enrollments", adminToken, {
     userId: owner.id,
     source: "pilot",
   });
   assert.equal(grantEnrollment.status, 201);
   const enrollmentId = grantEnrollment.json.enrollment.id as string;
 
-  const listEnrollments = await reqJson("GET", "/api/academy/allplan/admin/enrollments", ownerToken);
+  const listEnrollments = await reqJson("GET", "/api/academy/allplan/admin/enrollments", adminToken);
   assert.equal(listEnrollments.status, 200);
   assert.equal(listEnrollments.json.enrollments.length, 1);
 
   const revokeEnrollment = await reqJson(
     "POST",
     `/api/academy/allplan/admin/enrollments/${enrollmentId}/status`,
-    ownerToken,
+    adminToken,
     { status: "revoked", reason: "Test iptali" },
   );
   assert.equal(revokeEnrollment.status, 200);
@@ -828,12 +835,12 @@ test("T43 R+1 route coverage ratchet: admin, pricing-file-import, academy, billi
   // Academy validation & edge branches
   assert.equal((await reqJson("GET", "/api/academy/allplan/certificates/verify/INVALID", ownerToken)).status, 400);
   assert.equal((await reqJson("GET", "/api/academy/allplan/certificates/verify/BPA-2026-000000000000", ownerToken)).status, 404);
-  assert.equal((await reqJson("POST", "/api/academy/allplan/admin/enrollments", ownerToken, { userId: "bad" })).status, 400);
-  assert.equal((await reqJson("POST", "/api/academy/allplan/admin/enrollments", ownerToken, { userId: crypto.randomUUID(), source: "pilot" })).status, 404);
-  assert.equal((await reqJson("POST", "/api/academy/allplan/admin/enrollments", ownerToken, { userId: owner.id, source: "pilot" })).status, 200);
-  assert.equal((await reqJson("POST", "/api/academy/allplan/admin/enrollments/bad/status", ownerToken, { status: "revoked", reason: "x" })).status, 400);
-  assert.equal((await reqJson("POST", `/api/academy/allplan/admin/enrollments/${enrollmentId}/status`, ownerToken, { status: "revoked", reason: "" })).status, 400);
-  assert.equal((await reqJson("POST", `/api/academy/allplan/admin/enrollments/${crypto.randomUUID()}/status`, ownerToken, { status: "revoked", reason: "x" })).status, 404);
+  assert.equal((await reqJson("POST", "/api/academy/allplan/admin/enrollments", adminToken, { userId: "bad" })).status, 400);
+  assert.equal((await reqJson("POST", "/api/academy/allplan/admin/enrollments", adminToken, { userId: crypto.randomUUID(), source: "pilot" })).status, 404);
+  assert.equal((await reqJson("POST", "/api/academy/allplan/admin/enrollments", adminToken, { userId: owner.id, source: "pilot" })).status, 200);
+  assert.equal((await reqJson("POST", "/api/academy/allplan/admin/enrollments/bad/status", adminToken, { status: "revoked", reason: "x" })).status, 400);
+  assert.equal((await reqJson("POST", `/api/academy/allplan/admin/enrollments/${enrollmentId}/status`, adminToken, { status: "revoked", reason: "" })).status, 400);
+  assert.equal((await reqJson("POST", `/api/academy/allplan/admin/enrollments/${crypto.randomUUID()}/status`, adminToken, { status: "revoked", reason: "x" })).status, 404);
   assert.equal((await reqJson("PUT", "/api/academy/allplan/onboarding", ownerToken, { lessonSlug: "no-such-lesson" })).status, 400);
   assert.equal((await reqJson("POST", "/api/academy/allplan/companion/query", ownerToken, { question: "a" })).status, 400);
   assert.equal((await reqJson("GET", "/api/academy/allplan/lessons/no-such-lesson", ownerToken)).status, 404);
