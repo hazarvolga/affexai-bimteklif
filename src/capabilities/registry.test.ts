@@ -90,10 +90,11 @@ test('Sabit/Sahte Girdi Yasağı (No Hardcoded/Fabricated Inputs Gate): hesap ve
     'ifc-rule-run.ts içinde kat bilgisi eksikse Zemin Kat varsayımı yapılamaz',
   );
 
-  const calmWorkspaceSrc = fs.readFileSync(
-    path.resolve(REPO_ROOT, 'src/components/smartcheck/CalmIfcWorkspace.tsx'),
-    'utf8',
-  );
+  // The workspace is split into panels and hooks; the guard covers all of them (KİK lives in CalmKikPanel.tsx).
+  const calmWorkspaceSrc = [
+    'CalmIfcWorkspace.tsx', 'CalmKikPanel.tsx', 'CalmEscalationPanel.tsx', 'CalmCostTools.tsx', 'CalmPriceTable.tsx', 'useTuikEscalation.ts',
+  ].map((file) => fs.readFileSync(path.resolve(REPO_ROOT, 'src/components/smartcheck', file), 'utf8')).join('\n');
+  assert.ok(calmWorkspaceSrc.includes('evaluateKikAbnormallyLowBid'), 'the KİK analysis is still in the scanned sources');
   assert.equal(
     calmWorkspaceSrc.includes('directTotal * 1.25'),
     false,

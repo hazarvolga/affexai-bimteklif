@@ -644,28 +644,18 @@ function fromMatrix(
     headerRow = structure.headerRow;
     headers = buildEffectiveHeaders(matrix, headerRow - 1, stopRow);
     const autoSuggested = suggestMapping(headers);
+    const pickValid = (explicit: string | undefined, fallback: string | undefined) =>
+      headerIndices(headers, explicit).length > 0 ? explicit : fallback;
     mapping = {
       ...autoSuggested,
       ...mappingInput,
       headerRow,
-      positionCode: headerIndices(headers, mappingInput.positionCode).length
-        ? mappingInput.positionCode
-        : autoSuggested.positionCode,
-      description: headerIndices(headers, mappingInput.description).length
-        ? mappingInput.description
-        : autoSuggested.description,
-      unit: headerIndices(headers, mappingInput.unit).length
-        ? mappingInput.unit
-        : autoSuggested.unit,
-      quantity: headerIndices(headers, mappingInput.quantity).length
-        ? mappingInput.quantity
-        : autoSuggested.quantity,
-      price: headerIndices(headers, mappingInput.price).length
-        ? mappingInput.price
-        : autoSuggested.price,
-      wastePercent: headerIndices(headers, mappingInput.wastePercent).length
-        ? mappingInput.wastePercent
-        : autoSuggested.wastePercent,
+      positionCode: pickValid(mappingInput.positionCode, autoSuggested.positionCode),
+      description: pickValid(mappingInput.description, autoSuggested.description),
+      unit: pickValid(mappingInput.unit, autoSuggested.unit),
+      quantity: pickValid(mappingInput.quantity, autoSuggested.quantity),
+      price: pickValid(mappingInput.price, autoSuggested.price),
+      wastePercent: pickValid(mappingInput.wastePercent, autoSuggested.wastePercent),
       detectedArchetype: structure.archetype,
     };
     descCols = headerIndices(headers, mapping.description);

@@ -523,7 +523,7 @@ export const CALC_MODULES: CalcModule[] = [
     title: "4734 KİK m.38 & Genel Tebliğ m.45.1.1 Aşırı Düşük Teklif (Sınır Değer) & %80 Pareto Motoru",
     area: "Teklif / Mevzuat",
     status: "mevzuat",
-    sourceFiles: ["src/lib/kik-adt.ts", "src/lib/kik-adt.test.ts", "src/components/smartcheck/CalmIfcWorkspace.tsx"],
+    sourceFiles: ["src/lib/kik-adt.ts", "src/lib/kik-adt.test.ts", "src/components/smartcheck/CalmKikPanel.tsx"],
     references: ["4734 Sayılı Kamu İhale Kanunu Madde 38", "Kamu İhale Genel Tebliği Madde 45.1.1, 45.1.1.1, 45.1.1.4 & 45.1.2 (Yapım İşleri Sınır Değer ve Sıralı İş Kalemleri)"],
     purpose: "Kaynak kimliği taşıyan idare yaklaşık maliyet cetvelinden ve YM mutabakatından %80 açıklama listesini üretir; teklif kalemleri yalnız advisory karşılaştırmadır. İhale açılış tutanağındaki YM ve geçerli teklifler girildiğinde Tebliğ m.45.1.1 sınır değerini hesaplar. Aynı modül YAMBİS için kesin ve eksik kanıta bağlı potansiyel grubu ayrı raporlar.",
     formulas: [

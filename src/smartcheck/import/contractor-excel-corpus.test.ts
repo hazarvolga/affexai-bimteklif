@@ -29,14 +29,18 @@ describe("Turkish contractor Excel multi-archetype adapter & corpus", () => {
     ws.mergeCells("F17:G17");
     ws.getCell("H17").value = 659.852;
 
-    // Row 18: Both filled
+    // Row 18: Both filled (using richText and formula cells to exercise cellText branches)
     ws.getCell("B18").value = "Beton_C25";
     ws.mergeCells("B18:C18");
-    ws.getCell("D18").value = "Beton Duvar";
+    ws.getCell("D18").value = { richText: [{ text: "Beton " }, { text: "Duvar" }] };
     ws.mergeCells("D18:E18");
     ws.getCell("F18").value = "m²";
     ws.mergeCells("F18:G18");
-    ws.getCell("H18").value = 32.952;
+    ws.getCell("H18").value = { formula: "SUM(16.476,16.476)", result: 32.952 };
+
+    // Row 19: Summary row that must be skipped
+    ws.getCell("D19").value = "Genel Toplam";
+    ws.getCell("H19").value = 692.804;
 
     const buffer = Buffer.from(await wb.xlsx.writeBuffer());
     const preview = await inspectDocument(buffer, "xlsx");
@@ -48,8 +52,15 @@ describe("Turkish contractor Excel multi-archetype adapter & corpus", () => {
     assert.equal(sheet.suggestedMapping.description, "Poz Açıklaması");
     assert.equal(sheet.suggestedMapping.unit, "Birim");
     assert.equal(sheet.suggestedMapping.quantity, "Net Metraj");
+    assert.ok(sheet.formulaCells.length >= 1);
 
-    const parsed = await parseDocument(buffer, "xlsx", {});
+    // Also test stale profile mapping fallback (e.g. headerRow=1, non-existent column names)
+    const parsed = await parseDocument(buffer, "xlsx", {
+      headerRow: 1,
+      description: "Eski Kolon",
+      unit: "Eski Birim",
+      quantity: "Eski Miktar",
+    });
     assert.equal(parsed.rows.length, 2);
     assert.equal(parsed.rows[0]?.rawPositionCode, "Astar_2mm");
     assert.equal(parsed.rows[0]?.rawDescription, "Astar_2mm");
@@ -142,7 +153,7 @@ describe("Turkish contractor Excel multi-archetype adapter & corpus", () => {
     ws.getCell("N20").value = 32.952;
     ws.getCell("Q20").value = "m²";
 
-    // Block 2 (Row 22..26)
+    // Block 2 (Row 22..26): Named block
     ws.getCell("A22").value = "POZ NO";
     ws.getCell("D22").value = "C30/37";
     ws.getCell("L22").value = "BİRİMİ";
@@ -154,25 +165,50 @@ describe("Turkish contractor Excel multi-archetype adapter & corpus", () => {
     ws.getCell("N26").value = 133.155;
     ws.getCell("Q26").value = "m³";
 
+    // Block 3 (Row 28..32): Blank POZ NO & blank İMALATIN ADI with CAD sub-group ("Kapı Sembolü") and Ara Toplam fallback
+    ws.getCell("A28").value = "POZ NO";
+    ws.getCell("L28").value = "BİRİMİ";
+    ws.getCell("P28").value = "Adet";
+    ws.getCell("A29").value = "İMALATIN ADI";
+    ws.getCell("L29").value = "METRAJ NO";
+    ws.getCell("A30").value = "Bina:";
+    ws.getCell("P30").value = 12;
+    ws.getCell("D31").value = "Kapı Sembolü";
+    ws.getCell("F31").value = 12;
+    ws.getCell("D32").value = "Ara Toplam:";
+    ws.getCell("N32").value = 12;
+
     const buffer = Buffer.from(await wb.xlsx.writeBuffer());
     const preview = await inspectDocument(buffer, "xlsx");
     const sheet = preview.sheets[0]!;
 
     assert.equal(sheet.detectedArchetype, "repeating_block_boq");
-    assert.equal(sheet.repeatingBlockCount, 2);
+    assert.equal(sheet.repeatingBlockCount, 3);
 
     const parsed = await parseDocument(buffer, "xlsx", {});
-    assert.equal(parsed.rows.length, 2);
+    assert.equal(parsed.rows.length, 3);
     assert.equal(parsed.rows[0]?.rawPositionCode, "Beton_C25");
     assert.equal(parsed.rows[0]?.rawDescription, "Beton Duvar");
     assert.equal(parsed.rows[0]?.rawUnit, "m²");
     assert.equal(parsed.rows[0]?.rawQuantity, "32.952");
     assert.equal(parsed.rows[1]?.rawPositionCode, "C30/37");
     assert.equal(parsed.rows[1]?.rawQuantity, "133.155");
+    assert.equal(parsed.rows[2]?.rawPositionCode, "BLOK-3");
+    assert.equal(parsed.rows[2]?.rawDescription, "Kapı Sembolü");
+    assert.equal(parsed.rows[2]?.rawQuantity, "12");
 
     const quoteRes = await parseQuoteXlsx(buffer, "toki-kaba.xlsx");
     assert.equal(quoteRes.errors.length, 0);
     assert.equal(quoteRes.totalImported, 2);
+
+    // Also verify CSV parseDocument path with formulas
+    const csvBuf = Buffer.from(
+      "Poz No,Açıklama,Birim,Miktar\n15.150.1005,C25/30 Beton,m3,=10+5\n",
+      "utf8",
+    );
+    const csvParsed = await parseDocument(csvBuf, "csv", {});
+    assert.equal(csvParsed.rows.length, 1);
+    assert.equal(csvParsed.rows[0]?.rawPositionCode, "15.150.1005");
   });
 
   it("Archetype D (hybrid_summary_and_blocks): supports both top summary table and bottom repeating Poz blocks without cross-contamination", async () => {

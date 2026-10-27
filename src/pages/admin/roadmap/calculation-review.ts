@@ -1,9 +1,9 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-27.98",
+  version: "BIM-CALC-2026-10-27.99",
   updatedOn: "27 Ekim 2026",
-  implementationBaseline: "048495f43cce561fd6422b8a5cfd5c2823704eee",
-  approvalStatus: "Rev. 104 (6 aşamalı güvenlik denetimi bulguları ve derinlemesine savunma sertleştirmesi: hakediş/fiyat istihbaratı/CDE maker-checker ve rol sınırları, Academy super-admin kapısı, IFC/PDF ayrıştırıcı bellek/döngü sınırları, alt süreç env izolasyonu ve DB rol ACL daraltması; hesap formülleri değişmedi), Rev. 103 (/admin/pricing-sources otomatik katalog tohumlama, yetki kanıtı zinciri, canlı crawler iyileştirmesi ve TÜİK Veri Portalı SDMX 2.1 entegrasyonu; hesap yöntemi değişmedi), Rev. 102 (4 katmanlı Akıllı Müteahhit Excel Adaptörü: düz icmal, katlara göre pivot, TOKİ tekrarlayan poz blokları, hibrit sayfa ve otomatik korpus tarayıcı; birim fiyat/tutar aritmetiği değişmedi), Rev. 101 (canlı üretim dağıtımı 0022..0029 + worker control-plane izolasyonu D12 ve canlı ifc-worker consumeIfcUsage kota tamamlama düzeltmesi D13; hesap yöntemi değişmedi), Rev. 100 (elle teklif satırı firma kataloğundaki onaylı fiyat kaydına bağlanabilir; tutar hesabı değişmedi), Rev. 99 (kamuya açık SmartCheck demosu yeniden sıralandı; hesap yöntemi değişmedi), Rev. 98 (arsa fizibilitesi ayrı ekranda, boş formda hata yok; hesap yöntemi değişmedi), Rev. 97 (teklif tablosu görünümü ve dosya bölünmesi; hesap yöntemi değişmedi), Rev. 96 (araç ve görünüm düzeni; hesap yöntemi değişmedi) ve Rev. 95; marka.md incelemesinden çıkan Faz 0 güven düzeltmelerini ve Faz 1 Excel önce / fiyat eksikliği / dışa aktarım dilimlerini kapsar. Hesap yöntemi değişiklikleri: teklif toplamlarına teklif düzeyinde müteahhitlik kârı ve genel gider payı (release 0029; satır neti üzerinden, KDV pay dahil matrah üzerinden), kârlılık hesabında bu payın gelir sayılması, IFC maliyet sekmesinde fiyatı eksik kalemin 0 TL yerine 'fiyat bekliyor' olarak toplam dışında tutulması ve icmal dışa aktarımında satır tutarının tam lira yerine kuruşa yuvarlanması. Doğrulama: 1515 testte 1500 PASS / 0 FAIL / 15 SKIP, kapsam kapısı geçti; gerçek tarayıcı smoke'ları scripts/faz0-trust-ui-smoke.ts, faz1-excel-flow-smoke.ts ve faz1-price-gap-smoke.ts. ÇŞB birim fiyatlarına %25 yüklenici kârı ve genel giderin dahil olduğu ÇŞB analizlerinden doğrulandı. Bu kayıt bağımsız uzman onayı veya L3 değildir; Faz 9 T50–T52 dış kabulleri açıktır.",
+  implementationBaseline: "d93004cbd4f3be7a3e675fa02ab244fc0c2e0425",
+  approvalStatus: "Rev. 105 (CalmIfcWorkspace 2.004 satırdan 795 satıra modüler bölünmesi PR #31 ve T43 CI kapsam ratchet güçlendirmesi; hesap formülleri değişmedi), Rev. 104 (6 aşamalı güvenlik denetimi bulguları ve derinlemesine savunma sertleştirmesi: hakediş/fiyat istihbaratı/CDE maker-checker ve rol sınırları, Academy super-admin kapısı, IFC/PDF ayrıştırıcı bellek/döngü sınırları, alt süreç env izolasyonu ve DB rol ACL daraltması; hesap formülleri değişmedi), Rev. 103 (/admin/pricing-sources otomatik katalog tohumlama, yetki kanıtı zinciri, canlı crawler iyileştirmesi ve TÜİK Veri Portalı SDMX 2.1 entegrasyonu; hesap yöntemi değişmedi), Rev. 102 (4 katmanlı Akıllı Müteahhit Excel Adaptörü: düz icmal, katlara göre pivot, TOKİ tekrarlayan poz blokları, hibrit sayfa ve otomatik korpus tarayıcı; birim fiyat/tutar aritmetiği değişmedi), Rev. 101 (canlı üretim dağıtımı 0022..0029 + worker control-plane izolasyonu D12 ve canlı ifc-worker consumeIfcUsage kota tamamlama düzeltmesi D13; hesap yöntemi değişmedi), Rev. 100 (elle teklif satırı firma kataloğundaki onaylı fiyat kaydına bağlanabilir; tutar hesabı değişmedi), Rev. 99 (kamuya açık SmartCheck demosu yeniden sıralandı; hesap yöntemi değişmedi), Rev. 98 (arsa fizibilitesi ayrı ekranda, boş formda hata yok; hesap yöntemi değişmedi), Rev. 97 (teklif tablosu görünümü ve dosya bölünmesi; hesap yöntemi değişmedi), Rev. 96 (araç ve görünüm düzeni; hesap yöntemi değişmedi) ve Rev. 95; marka.md incelemesinden çıkan Faz 0 güven düzeltmelerini ve Faz 1 Excel önce / fiyat eksikliği / dışa aktarım dilimlerini kapsar. Hesap yöntemi değişiklikleri: teklif toplamlarına teklif düzeyinde müteahhitlik kârı ve genel gider payı (release 0029; satır neti üzerinden, KDV pay dahil matrah üzerinden), kârlılık hesabında bu payın gelir sayılması, IFC maliyet sekmesinde fiyatı eksik kalemin 0 TL yerine 'fiyat bekliyor' olarak toplam dışında tutulması ve icmal dışa aktarımında satır tutarının tam lira yerine kuruşa yuvarlanması. Doğrulama: 1515 testte 1500 PASS / 0 FAIL / 15 SKIP, kapsam kapısı geçti; gerçek tarayıcı smoke'ları scripts/faz0-trust-ui-smoke.ts, faz1-excel-flow-smoke.ts ve faz1-price-gap-smoke.ts. ÇŞB birim fiyatlarına %25 yüklenici kârı ve genel giderin dahil olduğu ÇŞB analizlerinden doğrulandı. Bu kayıt bağımsız uzman onayı veya L3 değildir; Faz 9 T50–T52 dış kabulleri açıktır.",
 };
 
 export interface ModuleRevisionNote {
@@ -2241,6 +2241,35 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
         before: "ortak.py kati(e) fonksiyonu döngüsel IfcRelAggregates zincirlerinde sonsuz döngüye girebiliyordu ve epys_preflight.py alt sürecine uygulama ortam değişkenleri aktarılıyordu.",
         after: "kati(e) döngü koruması, RLIMIT_AS/RLIMIT_CPU sınırları ve minimal ortam değişkeni beyaz listesi devreye alındı.",
         basis: "RG 33331 e-PYS Ön Kontrol Worker Güvenliği",
+      },
+    },
+  },
+  {
+    revision: "Rev. 105",
+    version: "BIM-CALC-2026-10-27.99",
+    date: "27 Ekim 2026",
+    commit: "d93004cbd4f3be7a3e675fa02ab244fc0c2e0425",
+    trigger: "CalmIfcWorkspace Modüler Bölünmesi (2.004 → 795 Satır, PR #31) & T43 CI Kapsam Ratchet Güçlendirmesi",
+    beforeSummary:
+      "CalmIfcWorkspace.tsx 2.004 satırlık tek bir dosyada daire icmali adımını, KİK m.38 panelini, 4735/TÜİK eskalasyon panelini, ISO 19650 CDE panelini, kanıt kartını ve fiyatlandırma kancalarını bir arada tutuyordu; ayrıca CI ortamında harici ALLPLAN-Eklentiler korpus klasörü bulunmadığından spreadsheet-parser.ts içindeki bazı arketip/CSV dalları ve Rev. 103'te eklenen TÜİK SDMX / sync-catalog admin rotaları T43 kapsam eşiğinin kıl payı altında kalıyordu.",
+    afterSummary:
+      "CalmIfcWorkspace.tsx 795 satıra indirildi (CalmApartmentsStep.tsx, CalmCostTools.tsx, CalmEscalationPanel.tsx, CalmIcmalEvidenceCard.tsx, CalmIsoCdePanel.tsx, CalmKikPanel.tsx, CalmPriceTable.tsx, CalmStepTabs.tsx, calm-format.ts, useCalmSessionInputs.ts, useCatalogPriceResolution.ts, useTuikEscalation.ts); contractor-excel-corpus.test.ts sentetik testleriyle spreadsheet-parser.ts satır kapsamı %97,33'e çıkarıldı ve t43-route-ratchet.integration.test.ts içine sync-catalog ve TÜİK SDMX 2.1 senkronizasyon uç noktaları eklendi. Hesap formülleri değişmedi.",
+    affectedModules: ["ifc-metraj", "satir-dogrulama", "fiyat-eslestirme"],
+    moduleDetails: {
+      "ifc-metraj": {
+        before: "CalmIfcWorkspace.tsx 2.004 satırlık tek bir dosyada icmal tablosu, daire icmali adımı, kanıt kartı, fiyatlandırma kancaları ve kamu ihalesi araçlarını barındırıyordu.",
+        after: "CalmIfcWorkspace.tsx 795 satıra bölündü; daire icmali, fiyat tablosu, kanıt kartı, KİK/4735/ISO 19650 panelleri ve kancalar 12 bağımsız modüle ayrıldı; icmal ve metraj aritmetiği değişmedi.",
+        basis: "marka.md C-5 (800 satır sınırı) — PR #31",
+      },
+      "satir-dogrulama": {
+        before: "Harici ALLPLAN-Eklentiler klasörü olmayan CI ortamında spreadsheet-parser.ts içindeki formül/richText hücreleri, eski şablon profili geri dönüşü, tekrarlayan bloklarda boş poz/imalat alt grup başlıkları ve CSV parseDocument dalları sentetik testlerle kapsanmıyordu.",
+        after: "contractor-excel-corpus.test.ts sentetik testleri genişletilerek spreadsheet-parser.ts satır kapsamı %97,33 seviyesine çıkarıldı.",
+        basis: "Faz 7 T43 — coverage-thresholds.json SmartCheck/IFC alt kapsam kapısı",
+      },
+      "fiyat-eslestirme": {
+        before: "Rev. 103'te eklenen POST /api/admin/pricing-sources/sync-catalog, GET /api/admin/pricing-sources/tuik-sdmx/metadata ve POST /api/admin/pricing-sources/:id/sync-tuik-sdmx uç noktaları t43-route-ratchet.integration.test.ts içinde çağrılmıyordu.",
+        after: "t43-route-ratchet.integration.test.ts içine sync-catalog, tuik-sdmx/metadata ve sync-tuik-sdmx (baseline_2026_catalog, sdmx_csv, sdmx_json ve live_nsiws doğrulamaları) eklendi.",
+        basis: "Faz 7 T43 — coverage-thresholds.json HTTP API rotaları alt kapsam kapısı",
       },
     },
   },
