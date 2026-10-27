@@ -270,7 +270,7 @@ function computeParcel(p: ParcelInput, warnings: string[]): ParcelResult {
   );
   const planningComplianceStatus = hasLocalPlanEvidence ? arithmeticExemptionStatus : "not_evaluated";
   if (!hasLocalPlanEvidence) {
-    warnings.push(`${label}: doğrulanmış yerel plan/imar artifact kimliği (kurum, belge no, SHA-256 ve geçerli tarih) yok; resmî plan uygunluğu değerlendirilmedi (not_evaluated). Oran karşılaştırması yalnız aritmetik danışmanlıktır.`);
+    warnings.push(`${label}: onaylı yerel plan belgesi eklenmediği için imar uygunluğu değerlendirilmedi. Buradaki oranlar yalnızca ön bilgi içindir; imar durum belgenizle teyit edin.`);
   }
   if (limitedExempt > limitedPoolLimit + 0.005) {
     warnings.push(

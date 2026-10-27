@@ -56,6 +56,7 @@ const Settings = page(() => import('@/pages/Settings'), 'Settings');
 const Regulations = page(() => import('@/pages/Regulations'), 'Regulations');
 const MarketIntelligence = page(() => import('@/pages/MarketIntelligence'), 'MarketIntelligence');
 const PriceCatalog = page(() => import('@/pages/PriceCatalog'), 'PriceCatalog');
+const ParcelFeasibility = page(() => import('@/pages/ParcelFeasibility'), 'ParcelFeasibility');
 const PilotEvidence = page(() => import('@/pages/PilotEvidence'), 'PilotEvidence');
 const HowItWorks = page(() => import('@/pages/HowItWorks'), 'HowItWorks');
 // Expert preview only: signed-in routes for calculators awaiting expert sign-off (not public, sitemap or llms.txt).
@@ -166,6 +167,7 @@ function AppRoutes() {
           <Route path="clients" element={<Clients />} />
           <Route path="regulations" element={<Regulations />} />
           <Route path="fiyat-katalogu" element={<PriceCatalog />} />
+          <Route path="arsa-fizibilitesi" element={<ParcelFeasibility />} />
           <Route path="market-intelligence" element={<MarketIntelligence />} />
           <Route path="pilot-evidence" element={<PilotEvidence />} />
           <Route path="nasil-calisir" element={<HowItWorks />} />

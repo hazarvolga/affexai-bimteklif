@@ -302,7 +302,9 @@ test("T23: yerel plan kanıtı yokken yalnız aritmetik danışmanlık verilir, 
   }));
   assert.equal(r.parcels[0].arithmeticExemptionStatus, "exceeds_limit");
   assert.equal(r.parcels[0].planningComplianceStatus, "not_evaluated");
-  assert.ok(r.warnings.some((w) => /yerel plan/i.test(w) && /not_evaluated|değerlendirilmedi/i.test(w)));
+  assert.ok(r.warnings.some((w) => /yerel plan/i.test(w) && /değerlendirilmedi/i.test(w)));
+  // M-14.4: the contractor-facing text carries no internal or cryptographic jargon.
+  assert.ok(r.warnings.every((w) => !/artifact|SHA-256|not_evaluated/i.test(w)));
 });
 
 test("T23: serbest metin, geçersiz takvim tarihi veya kullanıcı beyanı resmî plan kanıtı sayılmaz", () => {

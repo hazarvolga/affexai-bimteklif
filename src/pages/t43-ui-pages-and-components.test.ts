@@ -1611,6 +1611,7 @@ import BimGlossary from '@/components/bimplan/BimGlossary';
 import BimDashboard from '@/components/bimplan/BimDashboard';
 import DocumentsView from '@/components/bimplan/DocumentsView';
 import { PreBimFeasibilityPanel } from '@/components/smartcheck/PreBimFeasibilityPanel';
+import { ParcelFeasibility } from '@/pages/ParcelFeasibility';
 import HomeView from '@/components/bimplan/HomeView';
 import LegislationView from '@/components/bimplan/LegislationView';
 import StandardsView from '@/components/bimplan/StandardsView';
@@ -2291,6 +2292,13 @@ test('T43 UI Slice 4: SmartCheck, CalmIfcWorkspace, BimIfcParser, BimGapAnalysis
     },
   );
   assert.ok(preBimHtml.length > 300);
+  // M-13.4: an untouched form shows a hint, not the validation errors of empty fields.
+  assert.match(preBimHtml, /data-testid="feasibility-untouched"/);
+  assert.doesNotMatch(preBimHtml, /Arsa alanı pozitif olmalı/);
+
+  const feasibilityPageHtml = await renderInRouter(createElement(ParcelFeasibility), '/app/arsa-fizibilitesi', '/app/arsa-fizibilitesi');
+  assert.match(feasibilityPageHtml, /Arsa Ön Fizibilitesi/);
+  assert.match(feasibilityPageHtml, /data-testid="pre-bim-feasibility"/);
 
   const homeViewHtml = await renderInRouter(createElement(HomeView, { setView: () => {} }));
   assert.ok(homeViewHtml.length > 200);
