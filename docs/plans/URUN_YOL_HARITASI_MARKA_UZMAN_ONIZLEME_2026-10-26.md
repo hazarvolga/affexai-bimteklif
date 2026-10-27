@@ -166,7 +166,7 @@ Süreler (`marka.md` §23.2) yerelde ölçülür ve kaydedilir.
 - **M-13.4 kapandı:** Boş form açılışta hata göstermez; yerine "değerleri girdiğinizde kontroller burada görünür" ipucu gelir.
   - Herhangi bir alan doldurulunca ya da dosya içe aktarılınca kontroller başlar. Form tekrar boşaltılınca susar.
   - "Dokunuldu" durumu olaydan değil girilen veriden türetilir.
-- **Ek düzeltme:** Parsel bazlı plan değerlendirmesinde ham `not_evaluated` kodu yerine Türkçe durum ("Değerlendirilmedi (doğrulanmış plan belgesi yok)") gösterilir; uyarı metnindeki kod da kaldırıldı.
+- **Ek düzeltme:** Parsel bazlı plan değerlendirmesinde ham `not_evaluated` kodu yerine Türkçe durum ("Değerlendirilmedi (doğrulanmış plan belgesi yok)") gösterilir; uyarı metnindeki kod da kaldırıldı. Plan uyarısındaki "artifact kimliği (kurum, belge no, SHA-256…)" ifadesi "onaylı yerel plan belgesi eklenmediği için imar uygunluğu değerlendirilmedi" olarak sadeleştirildi (M-14.4); test bu teknik terimlerin geri gelmesini engeller.
 - **Kanıt:** `pre-bim-feasibility-ui.test.ts`, t43 render testi. Gerçek tarayıcıda `faz1-excel-flow-smoke.ts` eski bağlantının yönlenmesini, ipucunu ve yazınca başlayan kontrolleri doğrular.
 - **Test notu:** t43'ün etkileşim yardımcısı kontrollü input'ları güncellemiyor (yazılan değer duruma yansımıyor). Bu yüzden t43'teki "HTML uzunluğu" kontrollerinin etkileşim kısmı gerçek davranışı sınamıyor; Faz 4'te davranış testleriyle değiştirilecek (C-6).
 

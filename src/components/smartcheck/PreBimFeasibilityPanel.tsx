@@ -376,7 +376,7 @@ export const PreBimFeasibilityPanel: React.FC = () => {
                 <span data-plan-status={parcel.planningComplianceStatus}>{PLAN_STATUS_LABEL[parcel.planningComplianceStatus]}</span>
               </div>
             ))}
-            <p className="mt-2 text-[10px] text-muted-foreground">Kurum, belge numarası, geçerli tarih ve SHA-256 ile doğrulanmış yerel plan belgesi yoksa sonuç yalnız aritmetik danışmanlıktır ve değerlendirilmedi kalır. Formdaki serbest metin tek başına resmî kanıt değildir.</p>
+            <p className="mt-2 text-[10px] text-muted-foreground">Belediyeden alınmış, kurumu, belge numarası ve tarihi belli onaylı bir plan belgesi eklenmedikçe sonuç yalnızca ön bilgidir. Forma yazılan açıklamalar tek başına resmî belge yerine geçmez.</p>
           </div>
 
           {result.costBreakdown && (
