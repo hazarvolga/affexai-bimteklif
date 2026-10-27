@@ -75,6 +75,8 @@ test("T45-2: Production frontend bundle enforces entry ceiling and isolates exce
   const distIndexHtmlPath = path.resolve("dist/index.html");
   const distAssetsDir = path.resolve("dist/assets");
   if (!existsSync(distIndexHtmlPath) || !existsSync(distAssetsDir)) {
+    // Local and coverage runs may lack a build; the CI budget step sets this flag so a missing build fails.
+    assert.notEqual(process.env.REQUIRE_PRODUCTION_BUNDLE, "true", "dist/ is required for the T45 bundle budget step");
     return;
   }
 

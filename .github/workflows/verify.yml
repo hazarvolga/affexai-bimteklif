@@ -156,6 +156,12 @@ jobs:
       - run: pnpm exec tsx scripts/gap-crm-billing-ui-smoke.ts
       - run: pnpm exec tsx scripts/e2e-a11y-smoke.ts
       - run: node scripts/dependency-audit-policy.mjs
+      # T45 bundle budget: the job runs with NODE_ENV=test, which ships React's development build, so
+      # rebuild in production mode and run the bundle checks that otherwise skip when dist/ is absent.
+      - name: T45 production bundle budget
+        run: |
+          NODE_ENV=production pnpm exec vite build
+          REQUIRE_PRODUCTION_BUNDLE=true pnpm exec tsx --test --test-name-pattern "T45-2" src/contracts/t45-performance-budget.test.ts
       # The image build ran out of runner disk twice (Errno 28 during pip install). Remove preinstalled
       # toolchains this project never uses before building; print the free space for the next diagnosis.
       - name: Free runner disk for image builds
