@@ -357,6 +357,7 @@ test("T44 — Worker, runtime topology, S3/partial upload rollback, crash lease 
     const testDb = drizzle(admin, { schema });
     const { reserveUpload, UploadQuotaError, checkUploadCapacity, UPLOAD_MAX_TTL_MS, UPLOAD_CLEANUP_GRACE_MS } = await import("../smartcheck/import/upload-quota");
     const { cleanupExpiredPendingUploads } = await import("../smartcheck/import/upload-cleanup");
+    const { consumeIfcUsage } = await import("../services/billing/quota");
     const { changeProcessingRun, ProcessingConflict } = await import("../smartcheck/import/service");
     const processor = await import("../smartcheck/import/processor");
     const { LocalStorageAdapter } = await import("../smartcheck/import/storage");
@@ -487,6 +488,17 @@ test("T44 — Worker, runtime topology, S3/partial upload rollback, crash lease 
       }).returning();
 
       await switchPoolRole(dbModule.pool, workerDatabaseUrl);
+      const prevNodeEnvForIfcQuota = process.env.NODE_ENV;
+      process.env.NODE_ENV = "production";
+      try {
+        await dbModule.db.transaction(async (tx) => {
+          const consumed = await consumeIfcUsage(tx, companyA.id, new Date("2026-10-27T06:00:00Z"));
+          assert.equal(consumed.period, "2026-10");
+          assert.equal(consumed.current, 1);
+        });
+      } finally {
+        process.env.NODE_ENV = prevNodeEnvForIfcQuota;
+      }
       const cleanedStats = await cleanupExpiredPendingUploads(storage);
       assert.deepEqual(cleanedStats, { scanned: 1, removed: 1, failed: 0 }, "Exactly the expired pending upload without runs must be cleaned by bimmetraj_worker");
       await assert.rejects(() => storage.get(expiredKey), "Expired pending upload object must be removed from storage");

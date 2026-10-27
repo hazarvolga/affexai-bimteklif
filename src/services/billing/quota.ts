@@ -65,17 +65,10 @@ type IfcUsageCaller = "app" | "worker";
 async function lockedIfcUsage(tx: Transaction, companyId: string, at: Date | undefined, caller: IfcUsageCaller) {
   await lockCompanyQuota(tx, companyId);
   if (caller === "worker" && process.env.NODE_ENV === "production") {
-    // bimmetraj_worker cannot read companies/subscriptions; its capability function can.
+    // bimmetraj_worker cannot read companies/subscriptions directly; use the narrow company capability function.
     const entitlement = await tx.execute<{
       company_exists: boolean;
-      subscription_status: string | null;
-      current_period_end: Date | null;
-      plan_id: string | null;
-      plan_is_active: boolean | null;
-      monthly_ifc_limit: number | null;
-      ifc_max_file_mb: number | null;
-      ifc_max_concurrent: number | null;
-    }>(sql`select * from public.bimmetraj_worker_get_entitlement(${companyId}::uuid)`);
+    }>(sql`select company_exists from public.bimmetraj_worker_get_company_context(${companyId}::uuid)`);
     if (!entitlement.rows[0]?.company_exists) throw new QuotaError(403, "COMPANY_REQUIRED", "Company is not available");
   } else {
     // The app role reads these tables in tenant context but may not row-lock them.

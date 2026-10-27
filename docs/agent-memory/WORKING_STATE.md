@@ -8,9 +8,15 @@ history to `archive/` (latest: `archive/WORKING_STATE_until_2026-10-24.md`).
 - `https://bimmetraj.com` on Coolify (app `ibjv2zbpecdcbd71lxo1vqd7`), Docker
   Compose `compose.coolify.yaml`: `app`, `worker`, `ifc-worker`, `migrate`,
   `backup`. Vercel files are legacy.
-- **Live revision: `f474e99` (Rev. 72, PR #11 merge), checked 2026-10-25:**
+- **Live revision: `389446b` + Rev. 101 (`BIM-CALC-2026-10-27.95`), deployed 2026-10-27:**
   `/api/health` returns `status: ok`, `db: connected`, `revisionSource: build`
-  and all readiness flags true. `main` and production are the same commit.
+  and all readiness flags true. Release migrations `0022..0029` are applied in
+  `bimmetraj_production`; all 5 containers (`app`, `worker`, `ifc-worker`,
+  `backup`, `postgres`) are `Up` and healthy. Worker control-plane isolation
+  (`D12`: `requireControlDatabase: false`) and live IFC worker quota completion
+  (`D13`: `lockedIfcUsage` using `bimmetraj_worker_get_company_context`) are
+  verified against 3 live IFC uploads (`ssss.ifc`, `Ifc4_SampleHouse_0_GroundFloor.ifc`,
+  `Ifc4_SampleHouse_1_Roof.ifc` → `succeeded` / `awaiting_review`).
 - The Rev. 72 deploy runs the role setup itself: `db-bootstrap` → `migrate` →
   `db-provision` (`compose.coolify.yaml`, `docs/operations/database-role-model.md`).
   The manual cutover runbook in `HANDOFF_2026-10-24_DEPLOY_CUTOVER.md` is now
