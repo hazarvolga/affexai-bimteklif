@@ -35,7 +35,17 @@ export function registerAiRoutes(app: Express, aiService: AIService, canMutate: 
   };
 
   app.get("/api/ai/industries", authenticate, (req, res) => {
+    const configured = typeof aiService.isConfigured === "function" ? aiService.isConfigured() : false;
+    res.set("X-AI-Configured", configured ? "true" : "false");
     res.json(registry.listIndustries());
+  });
+
+  app.get("/api/ai/status", authenticate, (req, res) => {
+    const configured = typeof aiService.isConfigured === "function" ? aiService.isConfigured() : false;
+    res.json({
+      configured,
+      mode: configured ? "live_ai" : "template_and_excel_only",
+    });
   });
 
   app.post("/api/ai/detect-industry", authenticate, aiRateLimit, canMutate, async (req, res) => {
@@ -68,7 +78,13 @@ export function registerAiRoutes(app: Express, aiService: AIService, canMutate: 
       });
     } catch (error) {
       console.error("AI Generation Error:", error);
-      res.status(500).json({ error: "AI Generation failed" });
+      const configured = typeof aiService.isConfigured === "function" ? aiService.isConfigured() : true;
+      res.status(500).json({
+        error: configured
+          ? "AI Generation failed"
+          : "Sunucuda aktif AI sağlayıcısı (GEMINI_API_KEY / OPENAI_API_KEY) tanımlı değil. Excel/CSV içe aktarma veya Demo Şablon ile devam edebilirsiniz.",
+        code: configured ? "AI_GENERATION_FAILED" : "AI_PROVIDER_NOT_CONFIGURED",
+      });
     }
   });
 

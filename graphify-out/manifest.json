@@ -1445,8 +1445,8 @@
     "semantic_hash": ""
   },
   "src/pages/Clients.tsx": {
-    "mtime": 1793114599.846639,
-    "ast_hash": "e071cf8f937f55b15d91e730a4b79b90",
+    "mtime": 1793116011.3064823,
+    "ast_hash": "b843d759a165817bdbe03ff7cb4b1f80",
     "semantic_hash": ""
   },
   "src/pages/CompleteAcademyContent.tsx": {
@@ -1455,8 +1455,8 @@
     "semantic_hash": ""
   },
   "src/pages/CreateQuote.tsx": {
-    "mtime": 1793114240.0653975,
-    "ast_hash": "3d4b0d85301b9e25d4cde0aa827ddc4f",
+    "mtime": 1793142757.8395145,
+    "ast_hash": "3c4fcc11e3a789d1366c676da28e2354",
     "semantic_hash": ""
   },
   "src/pages/Dashboard.tsx": {
@@ -1655,8 +1655,8 @@
     "semantic_hash": ""
   },
   "src/server/routes/ai.ts": {
-    "mtime": 1792789482.8177621,
-    "ast_hash": "98a2aff440f34128aec88a57c407eeed",
+    "mtime": 1793142582.8787203,
+    "ast_hash": "2f8cb86d8e4cdc7857b8368ae4f61966",
     "semantic_hash": ""
   },
   "src/server/routes/auth.ts": {
@@ -1670,8 +1670,8 @@
     "semantic_hash": ""
   },
   "src/server/routes/clients.ts": {
-    "mtime": 1793113683.4427009,
-    "ast_hash": "46def15b53b291083e3aaa8bf18077ee",
+    "mtime": 1793115811.7589471,
+    "ast_hash": "57721ed60950cf4f56a92d1e29c8c181",
     "semantic_hash": ""
   },
   "src/server/routes/company.ts": {
@@ -1775,8 +1775,8 @@
     "semantic_hash": ""
   },
   "src/services/ai/aiService.ts": {
-    "mtime": 1778755874.0,
-    "ast_hash": "c88e5b1edf3a72c217a27fa8e1494155",
+    "mtime": 1793142579.2008588,
+    "ast_hash": "d09d733e49b220549cd9dea3fa127b3f",
     "semantic_hash": ""
   },
   "src/services/ai/providers/geminiProvider.ts": {
@@ -3980,8 +3980,8 @@
     "semantic_hash": ""
   },
   "docs/agent-memory/WORKING_STATE.md": {
-    "mtime": 1793114400.3462045,
-    "ast_hash": "5d7b736ee49dca7229b8ce9a9cf870fd",
+    "mtime": 1793142972.1386309,
+    "ast_hash": "b543b5df38d490a30318664295656d22",
     "semantic_hash": ""
   },
   "docs/architecture/5d-bim-ihale-motoru-gap-notu.md": {
@@ -5850,8 +5850,8 @@
     "semantic_hash": ""
   },
   "src/pages/admin/roadmap/roadmap-content.ts": {
-    "mtime": 1793114356.5174258,
-    "ast_hash": "ee515ff9dbe1f3250a67666c7aa371a4",
+    "mtime": 1793142932.942294,
+    "ast_hash": "6be0af9ad94872b771f84653ef6bf54d",
     "semantic_hash": ""
   },
   "src/server/observability/error-tracking.test.ts": {
@@ -6110,8 +6110,8 @@
     "semantic_hash": ""
   },
   "src/pages/admin/roadmap/calculation-review.ts": {
-    "mtime": 1793114788.2514668,
-    "ast_hash": "af773890cd3b23c12fc00675f83b35c4",
+    "mtime": 1793142937.2846029,
+    "ast_hash": "fd11331fd20b0c34e7ee6d125e541993",
     "semantic_hash": ""
   },
   "src/smartcheck/rules/minha.test.ts": {
@@ -7125,8 +7125,8 @@
     "semantic_hash": ""
   },
   "src/components/clients/ClientQuickDrawer.tsx": {
-    "mtime": 1793113941.3125627,
-    "ast_hash": "6fc0474597009d52caddf39f4ca17ab9",
+    "mtime": 1793116009.5985332,
+    "ast_hash": "8ab64a8aec6f881912b5f61f6e491731",
     "semantic_hash": ""
   },
   "src/components/dashboard/ContractorWorkflowHub.test.ts": {
@@ -7155,8 +7155,8 @@
     "semantic_hash": ""
   },
   "src/components/quote/QuoteAiWizard.tsx": {
-    "mtime": 1793081339.9268553,
-    "ast_hash": "8c543b28dfbfc330f8445444bf0548dd",
+    "mtime": 1793142637.5671315,
+    "ast_hash": "8a89381a7127308081d5b103e7d81841",
     "semantic_hash": ""
   },
   "src/components/quote/QuoteItemsTable.tsx": {
@@ -7165,8 +7165,8 @@
     "semantic_hash": ""
   },
   "src/components/quote/QuoteSidebar.tsx": {
-    "mtime": 1793081339.9274244,
-    "ast_hash": "14f45c5619c7ff7e088732bb1de189bc",
+    "mtime": 1793142699.3165677,
+    "ast_hash": "7a0bef3fc9a7aa145ca3352889c22324",
     "semantic_hash": ""
   },
   "src/components/quote/company-catalog-picker-ui.test.ts": {
@@ -7705,8 +7705,8 @@
     "semantic_hash": ""
   },
   "src/lib/client-excel-import.test.ts": {
-    "mtime": 1793113558.5501637,
-    "ast_hash": "225a9befb85dfbe82b67695ee18b04aa",
+    "mtime": 1793115933.335866,
+    "ast_hash": "d6ea74656c464cfd51ef49716251308b",
     "semantic_hash": ""
   },
   "src/lib/client-excel-import.ts": {
@@ -7720,8 +7720,8 @@
     "semantic_hash": ""
   },
   "src/lib/client-xlsx.ts": {
-    "mtime": 1793114567.8919094,
-    "ast_hash": "73e1d6d6cd31e22b74c59efdad83836b",
+    "mtime": 1793115716.8450825,
+    "ast_hash": "38295ce9f2d244ccf0d85e1edb36cfe0",
     "semantic_hash": ""
   },
   "src/lib/download-text.ts": {
@@ -7825,8 +7825,8 @@
     "semantic_hash": ""
   },
   "src/pages/ClientDetail.tsx": {
-    "mtime": 1793114827.006752,
-    "ast_hash": "64cb0db051e158d97674edfb2d752f21",
+    "mtime": 1793115841.7435155,
+    "ast_hash": "904a36c9b08d549c6a2e131b3b196cc7",
     "semantic_hash": ""
   },
   "src/pages/ExpertPreview.tsx": {
@@ -7900,8 +7900,8 @@
     "semantic_hash": ""
   },
   "src/pages/t43-ui-pages-and-components.test.ts": {
-    "mtime": 1793115161.7393765,
-    "ast_hash": "0c9ef6c48bf86e736e7ca6226294138e",
+    "mtime": 1793142834.1628954,
+    "ast_hash": "a0369fcb0fd125db8b39565ab4fd0dd6",
     "semantic_hash": ""
   },
   "src/server/config/performance-budgets.ts": {
@@ -7940,8 +7940,8 @@
     "semantic_hash": ""
   },
   "src/server/routes/clients.test.ts": {
-    "mtime": 1793113743.4297793,
-    "ast_hash": "8aa0c67af0304f0c0f028f822b973b8f",
+    "mtime": 1793115931.5114837,
+    "ast_hash": "7e38508da4dd1f753d957d539fa8f0a8",
     "semantic_hash": ""
   },
   "src/server/routes/company.industry-settings.test.ts": {
@@ -7990,8 +7990,8 @@
     "semantic_hash": ""
   },
   "src/server/routes/t43-route-ratchet.integration.test.ts": {
-    "mtime": 1793113741.6945848,
-    "ast_hash": "14128963c402f85a65f822cd5f4f81ff",
+    "mtime": 1793142835.6788998,
+    "ast_hash": "b16c80ebb7c754767c5f9fc7341bf6c3",
     "semantic_hash": ""
   },
   "src/server/routes/test-db-reachability.test.ts": {
@@ -8250,8 +8250,8 @@
     "semantic_hash": ""
   },
   "docs/agent-memory/HANDOFF_2026-10-27_CRM_VE_KULLANICI_AKISI.md": {
-    "mtime": 1793112289.3299499,
-    "ast_hash": "751e9153cb67d4c5a9f1a11c6105c163",
+    "mtime": 1793142973.1073394,
+    "ast_hash": "cb8f70287a1908e787273fdc91f4b875",
     "semantic_hash": ""
   },
   "docs/agent-memory/NEXT_AGENT_PROMPT_2026-10-19_IFC_TUTARLILIK.md": {
@@ -8527,6 +8527,11 @@
   "fixtures/phase-5/pdfa-matrix/xmp-label-only.pdf": {
     "mtime": 1792932198.474103,
     "ast_hash": "3d897079423d7d6656fa4faf1f09951a",
+    "semantic_hash": ""
+  },
+  "src/components/quote/QuoteNextStepsBanner.tsx": {
+    "mtime": 1793142663.5150166,
+    "ast_hash": "129abe45e8a3c6bc8a4296d4fc0cb350",
     "semantic_hash": ""
   }
 }

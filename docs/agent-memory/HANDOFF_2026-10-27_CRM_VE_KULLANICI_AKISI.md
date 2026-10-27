@@ -66,14 +66,15 @@
 
 ---
 
-## 3. Not Edilen Takip Paketi (Paket B): `CreateQuote.tsx` AI Teklif Sihirbazı ve Excel-Öncelikli Akış Koruması
+## 3. Tamamlanan Takip Paketi (Paket B — `Rev. 107` / `BIM-CALC-2026-10-28.101`): `CreateQuote.tsx` AI Teklif Sihirbazı, Excel-Öncelikli Akış Koruması ve 3 Adımlı Tamamlama Rehberi
 
-Son kullanıcı testi sırasında tespit edilen ve CRM paketinin ardından ele alınacak kayıt:
+Son kullanıcı testi sırasında tespit edilen kayıtlar `Rev. 107` kapsamında uçtan uca kapatıldı:
 
 1. **Kök Neden (`src/pages/CreateQuote.tsx` satır 381–420):**
-   - `generateWithAi` fonksiyonu `/api/ai/generate-quotation` çağrısında `if (!res.ok)` kontrolü yapmıyor.
-   - Sunucuda AI API anahtarı (`GEMINI_API_KEY` / `OPENAI_API_KEY`) tanımlı olmadığında dönen `500 {"error": "AI Generation failed"}` yanıtı hata bloğuna düşmüyor; `data.lineItems` tanımsız olduğu için `setItems([])` çalışarak **kullanıcının az önce Excel'den yüklediği iş kalemlerini siliyor** ve yanlışlıkla `toast.success('AI Zekası ile kalemler ve risk analizi oluşturuldu!')` mesajı gösteriyor.
-2. **Yapılacak Düzeltme (Paket B'de):**
-   - `generateWithAi` içinde `!res.ok` veya `!Array.isArray(data?.lineItems)` durumunda hata fırlatılması ve mevcut `items` listesinin **asla ezilmemesi**.
-   - Kullanıcı sayfaya `?kaynak=excel` ile geldiğinde (veya Excel/IFC kalemleri zaten yüklendiğinde) AI Teklif Sihirbazı'nın varsayılan olarak kapalı/daraltılmış gelmesi ve eğer kalem tablosu doluysa üzerine yazmadan önce açık onay istemesi.
-   - Sunucuda AI sağlayıcısı yapılandırılmamışsa (`/api/health` veya `/api/ai/industries` üzerinden) AI Sihirbazı butonunun dürüst bir bilgilendirme rozetiyle devre dışı bırakılması.
+   - `generateWithAi` fonksiyonu `/api/ai/generate-quotation` çağrısında `if (!res.ok)` kontrolü yapmıyordu.
+   - Sunucuda AI API anahtarı (`GEMINI_API_KEY` / `OPENAI_API_KEY`) tanımlı olmadığında dönen `500` yanıtı hata bloğuna düşmüyor; `data.lineItems` tanımsız olduğu için `setItems([])` çalışarak **kullanıcının az önce Excel'den yüklediği iş kalemlerini siliyor** ve yanlışlıkla `toast.success('AI Zekası ile kalemler ve risk analizi oluşturuldu!')` mesajı gösteriyordu.
+2. **Uygulanan Çözüm (`Rev. 107`):**
+   - `generateWithAi` içinde `!res.ok || !Array.isArray(data?.lineItems) || data.lineItems.length === 0` durumunda hata mesajı gösterilerek mevcut `items` listesinin **asla ezilmemesi** sağlandı; gerçek AI yanıtı geldiğinde ise mevcut dolu satırlar korunarak yeni satırlar listeye eklenir.
+   - Kullanıcı sayfaya `?kaynak=excel` ile geldiğinde veya Excel/Demo kalemleri yüklendiğinde `QuoteAiWizard` varsayılan olarak daraltılmış (`collapsedByDefault`) açılır.
+   - `AIService.isConfigured()`, `GET /api/ai/status` ve `GET /api/ai/industries` (`X-AI-Configured` başlığı) ile sunucuda AI sağlayıcısı yapılandırılmamışsa `QuoteAiWizard` üzerinde dürüst bilgilendirme rozeti gösterilir ve buton devre dışı bırakılır.
+   - `handleLoadDemoTemplate` içindeki geçersiz `'demo-client-id'` kaldırıldı; `QuoteSidebar.tsx` içine sayfadan ayrılmadan **`+ Hızlı Müşteri Ekle`** mini-formu ve `QuoteNextStepsBanner.tsx` içine **3 Adımlı Tamamlama Rehberi (`1. Müşteri & Proje Adı → 2. Birim Fiyat & Maliyet → 3. Kaydet & PDF / Hakediş`)** eklendi.

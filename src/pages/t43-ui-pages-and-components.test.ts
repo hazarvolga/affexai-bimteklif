@@ -1906,10 +1906,11 @@ test('T43 UI Slice 2: Çalışma alanı ve ticari sayfalar (CreateQuote, Quotes,
     '/app/quotes/new',
     '/app/quotes/new',
     async (container) => {
-      clickButtonsByText(container, ['Kalem Ekle', 'Katalog', 'AI', 'Taslak', 'Kaydet']);
+      clickButtonsByText(container, ['Kalem Ekle', 'Katalog', 'Demo Şablon Yükle', 'Hızlı Müşteri Ekle', 'Taslak', 'Kaydet']);
     },
   );
   assert.ok(createQuoteHtml.length > 400);
+  assert.match(createQuoteHtml, /data-testid="quote-next-steps-banner"/);
   // M-12.4: risk and delivery assumptions live in a closed "Gelişmiş" section that states their values.
   assert.match(createQuoteHtml, /data-testid="quote-advanced"/);
   assert.match(createQuoteHtml, /Gelişmiş · süre, risk primleri, bilgi teslimi/);

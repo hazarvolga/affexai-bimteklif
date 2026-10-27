@@ -20,6 +20,10 @@ export class AIService {
     ]);
   }
 
+  isConfigured(): boolean {
+    return this.providerRouter.isConfigured();
+  }
+
   async detectIndustry(inputText: string): Promise<string> {
     return registry.detectIndustry(inputText);
   }

@@ -25,6 +25,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Currency, QuoteStatus, QuoteItem, Client } from '@/types';
 import { QuoteItemsTable } from '@/components/quote/QuoteItemsTable';
 import { QuoteAiWizard } from '@/components/quote/QuoteAiWizard';
+import { QuoteNextStepsBanner } from '@/components/quote/QuoteNextStepsBanner';
 import { BenchmarkPanel, type BenchmarkData } from '@/components/quote/BenchmarkPanel';
 import { QuoteGeneralSettings, QuoteSummaryCard } from '@/components/quote/QuoteSidebar';
 import { toast } from 'sonner';
@@ -54,6 +55,8 @@ export function CreateQuote() {
   const [selectedIndustry, setSelectedIndustry] = useState<string>('residential');
   const [industries, setIndustries] = useState<any[]>([]);
   const [aiResult, setAiResult] = useState<any>(null);
+  const [aiConfigured, setAiConfigured] = useState<boolean | null>(null);
+  const [demoLoaded, setDemoLoaded] = useState(false);
   const [ifcTransferNotice, setIfcTransferNotice] = useState<{
     importedItems: number;
     skippedItems: number;
@@ -217,7 +220,12 @@ export function CreateQuote() {
       .catch(console.error);
 
     fetchWithAuth('/api/ai/industries')
-      .then(res => res.json())
+      .then((res) => {
+        const headerVal = res.headers?.get?.('x-ai-configured');
+        if (headerVal === 'true') setAiConfigured(true);
+        else if (headerVal === 'false') setAiConfigured(false);
+        return res.json();
+      })
       .then(async (rawIndustries) => {
         const allIndustries = Array.isArray(rawIndustries) ? rawIndustries : [];
         const settingsRes = await fetchWithAuth(`/api/company/industry-settings`);
@@ -386,10 +394,20 @@ export function CreateQuote() {
           industryId: selectedIndustry,
         }),
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !Array.isArray(data?.lineItems) || data.lineItems.length === 0) {
+        if (data?.code === 'AI_PROVIDER_NOT_CONFIGURED') {
+          setAiConfigured(false);
+        }
+        toast.error(
+          data?.error ||
+            'AI servisi şu an yanıt vermedi; mevcut Excel/teklif kalemleriniz korundu.',
+        );
+        return;
+      }
       setAiResult(data);
       
-      const aiItems = Array.isArray(data?.lineItems) ? data.lineItems : [];
+      const aiItems = data.lineItems;
       const formattedItems = aiItems.map((item: any) => {
         const baseItem: Partial<QuoteItem> = {
           id: crypto.randomUUID(),
@@ -413,7 +431,10 @@ export function CreateQuote() {
         };
       });
 
-      setItems(formattedItems);
+      setItems((prev) => {
+        const populated = prev.filter((i) => i.description?.trim());
+        return populated.length > 0 ? [...populated, ...formattedItems] : formattedItems;
+      });
       toast.success('AI Zekası ile kalemler ve risk analizi oluşturuldu!');
     } catch (error) {
       toast.error('AI ile kalem oluşturulamadı.');
@@ -476,8 +497,9 @@ export function CreateQuote() {
   };
 
   const handleLoadDemoTemplate = () => {
-    setFormData({
-      clientId: clients[0]?.id || 'demo-client-id',
+    setFormData((current) => ({
+      ...current,
+      clientId: current.clientId || clients[0]?.id || '',
       projectName: 'Kadıköy Kentsel Dönüşüm & Mühendislik Projesi',
       quoteNumber: `TKF-${new Date().getFullYear()}-DEMO`,
       date: new Date().toISOString().split('T')[0],
@@ -491,7 +513,7 @@ export function CreateQuote() {
       informationDeliveryCostPercent: 2,
       overheadProfitPercent: 0,
       notes: '6306 Sayılı Kentsel Dönüşüm Kanunu kapsamında TSE standartlı 1. sınıf malzeme ve ISO 19650 esaslı BIM teslim formatında hazırlanmış tekliftir.',
-    });
+    }));
 
     const demoRows: Partial<QuoteItem>[] = [
       { id: crypto.randomUUID(), description: 'Zemin Etüdü ve Statik Rölöve Çalışması (AR/Mobil)', unit: 'adet', quantity: 1, unitPrice: 45000, costUnitPrice: 25000, wastePercent: 0, costCategory: 'labor', discountPercent: 0, vatPercent: 20 },
@@ -499,8 +521,22 @@ export function CreateQuote() {
       { id: crypto.randomUUID(), description: 'BIM BEP ve ISO 19650 Dijital İkiz Teslim Paketi', unit: 'paket', quantity: 1, unitPrice: 85000, costUnitPrice: 40000, wastePercent: 0, costCategory: 'subcontractor', discountPercent: 0, vatPercent: 20 },
     ];
     setItems(demoRows.map((row) => ({ ...row, total: calculateItemTotal(row) })));
-    toast.success("Kentsel Dönüşüm & Mühendislik Demo Şablonu Yüklendi!");
+    setDemoLoaded(true);
+    toast.success("Kentsel Dönüşüm & Mühendislik Demo Şablonu (3 örnek iş kalemi) yüklendi!");
   };
+
+  const populatedItems = items.filter((i) => i.description?.trim());
+  const selectedClientObj = clients.find((c) => c.id === formData.clientId);
+  const showNextStepsGuide = Boolean(
+    excelImportNotice || demoLoaded || ifcTransferNotice || preBimNotice,
+  );
+  const nextStepsSourceLabel = excelImportNotice
+    ? 'Excel / CSV İçe Aktarımı'
+    : demoLoaded
+      ? 'Demo Proje Şablonu'
+      : ifcTransferNotice
+        ? 'IFC Ön Metraj Aktarımı'
+        : 'Ön Teklif Fizibilitesi';
 
   if (id && (editLoading || editError || !['owner', 'admin', 'manager'].includes(role ?? ''))) return (
     <PageContainer>
@@ -561,11 +597,31 @@ export function CreateQuote() {
               aiLoading={aiLoading}
               aiResult={aiResult}
               generateWithAi={generateWithAi}
+              aiConfigured={aiConfigured}
+              collapsedByDefault={startFromExcel || Boolean(excelImportNotice) || demoLoaded}
+              existingItemCount={populatedItems.length}
             />
           )}
 
           {/* Line Items Table */}
           <SectionWrapper title="Teklif Kalemleri" description="Proje kapsamında sunacağınız iş kalemleri ve birim fiyatlar.">
+            {showNextStepsGuide && (
+              <QuoteNextStepsBanner
+                sourceLabel={nextStepsSourceLabel}
+                itemCount={populatedItems.length}
+                hasValidClient={Boolean(selectedClientObj)}
+                clientName={selectedClientObj?.name}
+                hasProjectName={Boolean(formData.projectName.trim())}
+                costInputsComplete={costInputsComplete}
+                saving={loading}
+                onSave={() => void handleSave()}
+                onFocusClientSelect={() => {
+                  const btn = document.getElementById('quick-inline-client-btn') || document.getElementById('quote-client');
+                  btn?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  btn?.focus();
+                }}
+              />
+            )}
             {ifcTransferNotice && (
               <div className="mb-4 border border-border border-l-2 border-l-primary bg-card p-4 shadow-none">
                 <div className="flex flex-col gap-2 text-xs md:flex-row md:items-center md:justify-between">
@@ -707,7 +763,12 @@ export function CreateQuote() {
 
         {/* Sidebar Controls */}
         <div className="min-w-0 lg:col-span-4 space-y-6">
-          <QuoteGeneralSettings formData={formData} setFormData={setFormData} clients={clients} />
+          <QuoteGeneralSettings
+            formData={formData}
+            setFormData={setFormData}
+            clients={clients}
+            onClientCreated={(created) => setClients((prev) => [created, ...prev])}
+          />
           <QuoteSummaryCard
             totals={totals}
             currency={formData.currency}

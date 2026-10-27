@@ -4,13 +4,16 @@
  */
 
 import { useState } from 'react';
-import { AlertCircle, Calculator, ShieldCheck, TrendingUp, Users } from 'lucide-react';
+import { AlertCircle, Calculator, Plus, ShieldCheck, TrendingUp, Users } from 'lucide-react';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Field } from '@/components/ui/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { SectionWrapper } from '@/components/layout/SectionWrapper';
+import { fetchWithAuth } from '@/lib/api';
 import { Currency, type Client } from '@/types';
 import type { CalculationResult } from '@/lib/calculations';
 
@@ -40,11 +43,47 @@ interface QuoteGeneralSettingsProps {
   formData: QuoteFormState;
   setFormData: (next: QuoteFormState) => void;
   clients: readonly Client[];
+  onClientCreated?: (client: Client) => void;
 }
 
 /** Genel taslak bilgileri: temel alanlar açık, risk ve bilgi teslimi varsayımları "Gelişmiş" içinde (M-12.4). */
-export function QuoteGeneralSettings({ formData, setFormData, clients }: QuoteGeneralSettingsProps) {
+export function QuoteGeneralSettings({ formData, setFormData, clients, onClientCreated }: QuoteGeneralSettingsProps) {
   const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [quickClientOpen, setQuickClientOpen] = useState(false);
+  const [quickClientName, setQuickClientName] = useState('');
+  const [quickClientEmail, setQuickClientEmail] = useState('');
+  const [quickClientSaving, setQuickClientSaving] = useState(false);
+
+  const handleQuickCreateClient = async () => {
+    if (!quickClientName.trim() || quickClientSaving) return;
+    setQuickClientSaving(true);
+    try {
+      const res = await fetchWithAuth('/api/clients', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: quickClientName.trim(),
+          type: 'company',
+          email: quickClientEmail.trim() || null,
+          pipelineStage: 'lead',
+        }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data?.id) {
+        throw new Error(data?.error || 'Müşteri oluşturulamadı.');
+      }
+      onClientCreated?.(data);
+      setFormData({ ...formData, clientId: data.id });
+      setQuickClientName('');
+      setQuickClientEmail('');
+      setQuickClientOpen(false);
+      toast.success(`"${data.name}" eklendi ve teklife atandı.`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Müşteri oluşturulamadı.');
+    } finally {
+      setQuickClientSaving(false);
+    }
+  };
   // Hidden values still change the cost and margin, so the closed section says what they are.
   // Company risk settings may omit a field, so every value is read defensively.
   const percentLabel = (value: unknown) => `%${(Number(value) || 0).toLocaleString('tr-TR')}`;
@@ -62,9 +101,19 @@ export function QuoteGeneralSettings({ formData, setFormData, clients }: QuoteGe
         <Card className="bg-card border border-border shadow-none">
           <CardContent className="space-y-5 pt-5">
             <div className="space-y-1.5">
-              <Label htmlFor="quote-client" className="text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
-                <Users size={12} className="text-primary" /> Müşteri İlişkilendirme
-              </Label>
+              <div className="flex items-center justify-between gap-2">
+                <Label htmlFor="quote-client" className="text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
+                  <Users size={12} className="text-primary" /> Müşteri İlişkilendirme
+                </Label>
+                <button
+                  type="button"
+                  id="quick-inline-client-btn"
+                  onClick={() => setQuickClientOpen((prev) => !prev)}
+                  className="text-[10px] font-mono font-bold text-primary hover:underline inline-flex items-center gap-1"
+                >
+                  <Plus size={11} /> Hızlı Müşteri Ekle
+                </button>
+              </div>
               <Select value={formData.clientId} onValueChange={(v) => setFormData({...formData, clientId: v})} items={Object.fromEntries(clients.map(c => [c.id, c.name]))}>
                 <SelectTrigger id="quote-client" className="bg-background border-border text-foreground focus:ring-primary h-11 text-xs font-semibold">
                   <SelectValue placeholder="Bir müşteri atayın..." />
@@ -75,6 +124,31 @@ export function QuoteGeneralSettings({ formData, setFormData, clients }: QuoteGe
                   ))}
                 </SelectContent>
               </Select>
+              {quickClientOpen && (
+                <div className="mt-2 border border-border bg-background p-3 space-y-2">
+                  <Input
+                    placeholder="Müşteri / Firma ünvanı"
+                    value={quickClientName}
+                    onChange={(e) => setQuickClientName(e.target.value)}
+                    className="h-9 text-xs bg-card border-border"
+                  />
+                  <Input
+                    type="email"
+                    placeholder="E-posta (isteğe bağlı)"
+                    value={quickClientEmail}
+                    onChange={(e) => setQuickClientEmail(e.target.value)}
+                    className="h-9 text-xs bg-card border-border"
+                  />
+                  <div className="flex justify-end gap-2">
+                    <Button type="button" variant="ghost" size="sm" onClick={() => setQuickClientOpen(false)} className="h-7 text-[10px] font-mono">
+                      Vazgeç
+                    </Button>
+                    <Button type="button" size="sm" disabled={quickClientSaving || !quickClientName.trim()} onClick={() => void handleQuickCreateClient()} className="h-7 text-[10px] font-mono">
+                      {quickClientSaving ? 'Kaydediliyor...' : 'Ekle ve Ata'}
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
             <Field
               label={<span className="flex items-center gap-1.5 font-mono text-[10px] font-bold text-muted-foreground uppercase tracking-widest"><Calculator size={12} className="text-primary" /> Proje Başlığı</span>}

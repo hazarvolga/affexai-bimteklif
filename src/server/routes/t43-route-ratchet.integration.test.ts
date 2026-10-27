@@ -519,6 +519,10 @@ test("T43 R+1 route coverage ratchet: admin, pricing-file-import, academy, billi
   assert.equal((await reqJson("POST", "/api/billing/payment-requests", ownerToken, {})).status, 400);
 
   // ── D. Company, Clients, Quotations, Profit, CRM Routes ───────────────────
+  const aiStatusRes = await reqJson("GET", "/api/ai/status", ownerToken);
+  assert.equal(aiStatusRes.status, 200);
+  assert.equal(typeof aiStatusRes.json.configured, "boolean");
+
   const companyInfo = await reqJson("GET", "/api/company", ownerToken);
   assert.equal(companyInfo.status, 200);
 
