@@ -1,9 +1,9 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-27.96",
+  version: "BIM-CALC-2026-10-27.97",
   updatedOn: "27 Ekim 2026",
-  implementationBaseline: "189ee22815144c241bb85954eadfe78821f2bc4d",
-  approvalStatus: "Rev. 102 (4 katmanlı Akıllı Müteahhit Excel Adaptörü: düz icmal, katlara göre pivot, TOKİ tekrarlayan poz blokları, hibrit sayfa ve otomatik korpus tarayıcı; birim fiyat/tutar aritmetiği değişmedi), Rev. 101 (canlı üretim dağıtımı 0022..0029 + worker control-plane izolasyonu D12 ve canlı ifc-worker consumeIfcUsage kota tamamlama düzeltmesi D13; hesap yöntemi değişmedi), Rev. 100 (elle teklif satırı firma kataloğundaki onaylı fiyat kaydına bağlanabilir; tutar hesabı değişmedi), Rev. 99 (kamuya açık SmartCheck demosu yeniden sıralandı; hesap yöntemi değişmedi), Rev. 98 (arsa fizibilitesi ayrı ekranda, boş formda hata yok; hesap yöntemi değişmedi), Rev. 97 (teklif tablosu görünümü ve dosya bölünmesi; hesap yöntemi değişmedi), Rev. 96 (araç ve görünüm düzeni; hesap yöntemi değişmedi) ve Rev. 95; marka.md incelemesinden çıkan Faz 0 güven düzeltmelerini ve Faz 1 Excel önce / fiyat eksikliği / dışa aktarım dilimlerini kapsar. Hesap yöntemi değişiklikleri: teklif toplamlarına teklif düzeyinde müteahhitlik kârı ve genel gider payı (release 0029; satır neti üzerinden, KDV pay dahil matrah üzerinden), kârlılık hesabında bu payın gelir sayılması, IFC maliyet sekmesinde fiyatı eksik kalemin 0 TL yerine 'fiyat bekliyor' olarak toplam dışında tutulması ve icmal dışa aktarımında satır tutarının tam lira yerine kuruşa yuvarlanması. Doğrulama: 1515 testte 1500 PASS / 0 FAIL / 15 SKIP, kapsam kapısı geçti; gerçek tarayıcı smoke'ları scripts/faz0-trust-ui-smoke.ts, faz1-excel-flow-smoke.ts ve faz1-price-gap-smoke.ts. ÇŞB birim fiyatlarına %25 yüklenici kârı ve genel giderin dahil olduğu ÇŞB analizlerinden doğrulandı. Bu kayıt bağımsız uzman onayı veya L3 değildir; Faz 9 T50–T52 dış kabulleri açıktır.",
+  implementationBaseline: "285dbcc08fb8cc99e6f47e009132f4bde618c3c7",
+  approvalStatus: "Rev. 103 (/admin/pricing-sources otomatik katalog tohumlama, yetki kanıtı zinciri, canlı crawler iyileştirmesi ve TÜİK Veri Portalı SDMX 2.1 entegrasyonu; hesap yöntemi değişmedi), Rev. 102 (4 katmanlı Akıllı Müteahhit Excel Adaptörü: düz icmal, katlara göre pivot, TOKİ tekrarlayan poz blokları, hibrit sayfa ve otomatik korpus tarayıcı; birim fiyat/tutar aritmetiği değişmedi), Rev. 101 (canlı üretim dağıtımı 0022..0029 + worker control-plane izolasyonu D12 ve canlı ifc-worker consumeIfcUsage kota tamamlama düzeltmesi D13; hesap yöntemi değişmedi), Rev. 100 (elle teklif satırı firma kataloğundaki onaylı fiyat kaydına bağlanabilir; tutar hesabı değişmedi), Rev. 99 (kamuya açık SmartCheck demosu yeniden sıralandı; hesap yöntemi değişmedi), Rev. 98 (arsa fizibilitesi ayrı ekranda, boş formda hata yok; hesap yöntemi değişmedi), Rev. 97 (teklif tablosu görünümü ve dosya bölünmesi; hesap yöntemi değişmedi), Rev. 96 (araç ve görünüm düzeni; hesap yöntemi değişmedi) ve Rev. 95; marka.md incelemesinden çıkan Faz 0 güven düzeltmelerini ve Faz 1 Excel önce / fiyat eksikliği / dışa aktarım dilimlerini kapsar. Hesap yöntemi değişiklikleri: teklif toplamlarına teklif düzeyinde müteahhitlik kârı ve genel gider payı (release 0029; satır neti üzerinden, KDV pay dahil matrah üzerinden), kârlılık hesabında bu payın gelir sayılması, IFC maliyet sekmesinde fiyatı eksik kalemin 0 TL yerine 'fiyat bekliyor' olarak toplam dışında tutulması ve icmal dışa aktarımında satır tutarının tam lira yerine kuruşa yuvarlanması. Doğrulama: 1515 testte 1500 PASS / 0 FAIL / 15 SKIP, kapsam kapısı geçti; gerçek tarayıcı smoke'ları scripts/faz0-trust-ui-smoke.ts, faz1-excel-flow-smoke.ts ve faz1-price-gap-smoke.ts. ÇŞB birim fiyatlarına %25 yüklenici kârı ve genel giderin dahil olduğu ÇŞB analizlerinden doğrulandı. Bu kayıt bağımsız uzman onayı veya L3 değildir; Faz 9 T50–T52 dış kabulleri açıktır.",
 };
 
 export interface ModuleRevisionNote {
@@ -2173,6 +2173,30 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
         before: "quote-excel-import.ts ve quote-xlsx.ts yalnız ilk 25 satırdaki düz başlıkları arıyor, açıklama boşken Malzeme Pozu yedeklemesi yapmıyor ve tekrarlayan poz bloklu metraj cetvellerinden kalem çıkaramıyordu.",
         after: "parseQuoteRows ve parseQuoteXlsx çok satırlı kat pivot başlıklarını, Malzeme Pozu açıklama yedeklemesini, çoklu birim devam satırlarını ve tekrarlayan POZ NO bloklarının Genel Toplamlarını sıfır hatayla teklif kalemine dönüştürür; satır tutarı aritmetiği değişmedi.",
         basis: "src/lib/quote-excel-import.ts, src/lib/quote-xlsx.ts ve src/smartcheck/import/contractor-excel-corpus.test.ts",
+      },
+    },
+  },
+  {
+    revision: "Rev. 103",
+    version: "BIM-CALC-2026-10-27.97",
+    date: "27 Ekim 2026",
+    commit: "285dbcc",
+    trigger: "/admin/pricing-sources Otomatik Katalog Tohumlama, Yetki Kanıtı Zinciri, Canlı Crawler & TÜİK Veri Portalı SDMX 2.1 Entegrasyonu",
+    beforeSummary:
+      "/admin/pricing-sources sayfası boş veritabanında standart kaynakları otomatik tohumlamıyor, getOfficialCatalogCoverageReport alan uyuşmazlığı nedeniyle Sekme 2 ve Sekme 5'te hata veriyor, doğrulanmış/mühürlenmiş kaynaklarda authorizationStatus='authorized' ve authorizationEvidenceHash eksik kaldığı için /api/pricing/benchmarks sorgusu boş dönüyor, safe-fetch.ts 2001::/16 küresel IPv6 ve sıkıştırılmış/yönlendirmeli yanıtları reddediyor ve TÜİK SDMX 2.1 veri portalı için yapılandırılmış bir adaptör bulunmuyordu.",
+    afterSummary:
+      "GET /api/admin/pricing-sources boş tabloda 5 standart kaynağı otomatik tohumlar ve POST /api/admin/pricing-sources/sync-catalog eksik kaynakları tamamlar; Sekme 2 ve Sekme 5 alan şeması eşitlendi; kaynak doğrulama, resmi katalog mühürleme ve canlı tarama adımları authorizationStatus='authorized' ve 64-hex SHA-256 kanıtı üretir; safe-fetch.ts küresel IPv6 (2001:db8::/32 ve Teredo hariç), doğrulanmış 3 adımlı yönlendirme ve gzip/deflate/br açmayı destekler; TÜİK Veri Portalı SDMX 2.1 (ISO 17369 — DF_IME, DF_YI_UFE 20 NACE Rev.2 alt sektörü, DF_TUFE) adaptörü (src/server/crawler/tuik-sdmx-adapter.ts) devreye alındı. Hesap formülleri değişmedi.",
+    affectedModules: ["fiyat-eslestirme", "eskalasyon"],
+    moduleDetails: {
+      "fiyat-eslestirme": {
+        before: "canonicalPricingSources yalnız manuel CLI komutuyla yükleniyor, mühürlenen kataloglarda authorizationStatus='authorized' ve 64-hex authorizationEvidenceHash yazılmadığı için benchmarkEligible filtresi onaylı fiyatları eliyordu; canApproveCrawlerPrice row=1 ve PDF/resmi katalog kanıtlarını reddediyordu.",
+        after: "/admin/pricing-sources açılışta 5 ana kaynağı otomatik tohumlar; executeCatalogImport, verify, sync ve review uç noktaları 64-hex SHA-256 yetki kanıtı üretir ve canApproveCrawlerPrice row>=1 ile [licensed-pdf-v1]/[official-csb-catalog-v1]/[tuik-sdmx-v1] kanıtlarını kabul eder.",
+        basis: "Faz 1 T05–T09 — src/server/routes/admin.ts, src/server/routes/pricing-file-import.ts, src/server/crawler/provenance.ts",
+      },
+      eskalasyon: {
+        before: "TÜİK İnşaat Maliyet Endeksi ve 4735 Sayılı Kanun Fiyat Farkı NACE Rev.2 alt endeksleri yalnız statik katalog veya düz CSV ile yüklenebiliyor; TÜİK Veri Portalı SDMX 2.1 (SDMX-JSON / SDMX-CSV / NSIWS REST) formatları doğrudan ayrıştırılamıyordu.",
+        after: "tuik-sdmx-adapter.ts ile 25 TÜİK serisi (4 DF_IME + 1 DF_TUFE + 20 DF_YI_UFE NACE Rev.2 alt sektörü) SDMX-JSON 1.0/2.0, SDMX-CSV ve NSIWS REST üzerinden en güncel dönem seçimi ve SHA-256 mührüyle içe aktarılır; Pn ve eskalasyon formülü değişmedi.",
+        basis: "4735 Sayılı Kanun Fiyat Farkı Esasları & TÜİK Veri Portalı SDMX 2.1 (ISO 17369)",
       },
     },
   },

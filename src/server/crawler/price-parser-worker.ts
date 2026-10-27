@@ -13,14 +13,37 @@ const items = [];
 const seen = new Set();
 const rows = /<tr[^>]*>([\s\S]*?)<\/tr>/gi;
 let row;
+let priceHeaderColumns = [];
 while ((row = rows.exec(html)) !== null && items.length < 200) {
   if (row[1].length > 32768) continue;
+  const headerMatches = [...row[1].matchAll(/<th[^>]*>([\s\S]*?)<\/th>/gi)].map(cell => text(cell[1]));
+  if (headerMatches.length >= 2) {
+    const detectedCols = headerMatches
+      .map((h, idx) => (/(?:\btl\b|₺|try|eur|usd|fiyat|birim\s*bedel|rayi[çc])/i.test(h) ? idx : -1))
+      .filter(idx => idx >= 0);
+    if (detectedCols.length > 0) {
+      priceHeaderColumns = detectedCols;
+      continue;
+    }
+  }
   const cells = [...row[1].matchAll(/<t[dh][^>]*>([\s\S]*?)<\/t[dh]>/gi)].map(cell => text(cell[1]));
   if (cells.length < 2 || cells.length > 64) continue;
-  const priceIndex = cells.findIndex(cell => parseTurkishPrice(cell) !== null);
-  if (priceIndex < 0) continue;
-  const price = parseTurkishPrice(cells[priceIndex]);
-  const name = cells.find((cell, index) => index !== priceIndex && cell.length > 2 && cell.length <= 300);
+  let priceIndex = cells.findIndex(cell => parseTurkishPrice(cell) !== null);
+  let price = priceIndex >= 0 ? parseTurkishPrice(cells[priceIndex]) : null;
+  if (price === null && priceHeaderColumns.length > 0) {
+    for (const colIdx of priceHeaderColumns) {
+      if (colIdx < cells.length && /^[\d.\s]+(?:,\d{1,4})?$/.test(cells[colIdx])) {
+        const candidate = parseTurkishPrice(cells[colIdx] + ' TL');
+        if (candidate !== null) {
+          priceIndex = colIdx;
+          price = candidate;
+          break;
+        }
+      }
+    }
+  }
+  if (priceIndex < 0 || price === null) continue;
+  const name = cells.find((cell, index) => index !== priceIndex && cell.length > 2 && cell.length <= 300 && !/^[\d.,\s]+$/.test(cell));
   if (!name || price >= 10000000) continue;
   // No inferred CSB codes, benchmark prices, pump multipliers or official verification.
   const itemCode = 'WEB.' + createHash('sha256').update(workerData.sourceUrl + '\n' + name).digest('hex').slice(0, 24);

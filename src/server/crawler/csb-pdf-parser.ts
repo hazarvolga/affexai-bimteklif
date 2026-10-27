@@ -48,6 +48,11 @@ const CATALOGS: Record<string, OfficialCsbCatalog> = officialCatalogsJson as Rec
 
 export interface OfficialCatalogCoverageItem extends Omit<OfficialCsbCatalog, 'rows'> {
   rowCount: number;
+  ingestedRowCount: number;
+  totalRowsInBook: number;
+  sha256: string;
+  periodType: 'monthly' | 'annual';
+  status: 'full' | 'partial';
   coveragePercent: number;
   isFullCoverage: boolean;
 }
@@ -57,11 +62,19 @@ export function listOfficialCsbCatalogs(): OfficialCatalogCoverageItem[] {
     const rowCount = rows.length;
     const total = meta.totalMatchedInPdf > 0 ? meta.totalMatchedInPdf : rowCount;
     const coveragePercent = total > 0 ? Math.round((rowCount / total) * 10_000) / 100 : 100;
+    const isFullCoverage = rowCount >= total && total > 0;
+    const periodType =
+      meta.validityStart.endsWith('-01-01') && meta.validityEnd.endsWith('-12-31') ? 'annual' : 'monthly';
     return {
       ...meta,
       rowCount,
+      ingestedRowCount: rowCount,
+      totalRowsInBook: total,
+      sha256: meta.documentHash,
+      periodType,
+      status: isFullCoverage ? 'full' : 'partial',
       coveragePercent,
-      isFullCoverage: rowCount >= total && total > 0,
+      isFullCoverage,
     };
   });
 }
@@ -72,10 +85,13 @@ export function getOfficialCatalogCoverageReport() {
   const totalMatchedInPdfs = books.reduce((sum, b) => sum + b.totalMatchedInPdf, 0);
   const fullCoverageBookCount = books.filter((b) => b.isFullCoverage).length;
   return {
-    generatedAt: '2026-10-17',
+    generatedAt: '2026-10-27',
     bookCount: books.length,
+    totalBooks: books.length,
     fullCoverageBookCount,
+    fullCoverageBooks: fullCoverageBookCount,
     totalRowsInBooks,
+    totalIngestedRows: totalRowsInBooks,
     totalMatchedInPdfs,
     overallCoveragePercent:
       totalMatchedInPdfs > 0 ? Math.round((totalRowsInBooks / totalMatchedInPdfs) * 10_000) / 100 : 100,
