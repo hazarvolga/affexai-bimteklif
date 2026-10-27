@@ -468,6 +468,18 @@ export function CreateQuote() {
   };
 
   const totals = calculateQuotationTotals(items, { overheadProfitPercent: formData.overheadProfitPercent });
+  const [advancedOpen, setAdvancedOpen] = useState(false);
+  // Hidden values still change the cost and margin, so the closed section says what they are.
+  // Company risk settings may omit a field, so every value is read defensively.
+  const percentLabel = (value: unknown) => `%${(Number(value) || 0).toLocaleString('tr-TR')}`;
+  const advancedSummary = [
+    `${Number(formData.projectDurationMonths) || 1} ay`,
+    `${percentLabel(formData.escalationVolatilityPercent)} aylık volatilite`,
+    `${percentLabel(formData.carbonRiskPremiumPercent)} karbon primi`,
+    !formData.informationDeliveryLevel || formData.informationDeliveryLevel === 'none'
+      ? 'bilgi teslimi yok'
+      : `${DELIVERY_LEVEL_LABELS[formData.informationDeliveryLevel]} · ${percentLabel(formData.informationDeliveryCostPercent)}`,
+  ].join(' · ');
 
   // Same calculation as the server profitability report, including risk premiums (L-4).
   const financials = calculateQuotationFinancials(items, {
@@ -1058,51 +1070,67 @@ export function CreateQuote() {
                     </div>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
-                    <Label htmlFor="quote-delivery-level" className="text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-widest">Bilgi Teslimi</Label>
-                    <Select value={formData.informationDeliveryLevel} onValueChange={(value) => setFormData({...formData, informationDeliveryLevel: value as typeof formData.informationDeliveryLevel, informationDeliveryCostPercent: value === 'as_built' ? 1 : value === 'cobie' ? 2 : value === 'digital_twin' ? 4 : 0})} items={DELIVERY_LEVEL_LABELS}>
-                      <SelectTrigger id="quote-delivery-level" className="bg-background border-border text-foreground h-11 text-xs"><SelectValue /></SelectTrigger>
-                      <SelectContent className="bg-card border-border text-foreground">
-                        {Object.entries(DELIVERY_LEVEL_LABELS).map(([value, label]) => <SelectItem key={value} value={value} className="text-xs font-medium">{label}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
+                <Field label="Kâr ve Genel Gider %" labelClassName="text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-widest" hint="Müşteri fiyatına eklenir ve KDV'ye dahil edilir. ÇŞB birim fiyatlarında %25 zaten dahildir; tekrar eklemeyin.">
+                  <Input
+                    type="number" min="0" max="100" step="0.01"
+                    aria-label="Müteahhitlik kârı ve genel gider yüzdesi"
+                    value={formData.overheadProfitPercent}
+                    onChange={(e) => setFormData({...formData, overheadProfitPercent: Math.min(100, Math.max(0, Math.round((Number(e.target.value) || 0) * 100) / 100))})}
+                    className="bg-background border-border text-foreground h-11 font-mono text-xs"
+                  />
+                </Field>
+                {/* M-12.4: first-quote basics stay visible; risk and delivery assumptions are one click away. */}
+                <details
+                  data-testid="quote-advanced"
+                  className="border border-border bg-background"
+                  open={advancedOpen}
+                  onToggle={(event) => setAdvancedOpen((event.currentTarget as HTMLDetailsElement).open)}
+                >
+                  <summary className="cursor-pointer px-3 py-2.5 text-[10px] font-mono font-bold uppercase tracking-widest text-muted-foreground">
+                    Gelişmiş · süre, risk primleri, bilgi teslimi
+                    <span className="mt-1 block normal-case tracking-normal font-normal text-muted-foreground" data-testid="quote-advanced-summary">
+                      {advancedSummary}
+                    </span>
+                  </summary>
+                  <div className="space-y-5 border-t border-border p-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="quote-delivery-level" className="text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-widest">Bilgi Teslimi</Label>
+                        <Select value={formData.informationDeliveryLevel} onValueChange={(value) => setFormData({...formData, informationDeliveryLevel: value as typeof formData.informationDeliveryLevel, informationDeliveryCostPercent: value === 'as_built' ? 1 : value === 'cobie' ? 2 : value === 'digital_twin' ? 4 : 0})} items={DELIVERY_LEVEL_LABELS}>
+                          <SelectTrigger id="quote-delivery-level" className="bg-background border-border text-foreground h-11 text-xs"><SelectValue /></SelectTrigger>
+                          <SelectContent className="bg-card border-border text-foreground">
+                            {Object.entries(DELIVERY_LEVEL_LABELS).map(([value, label]) => <SelectItem key={value} value={value} className="text-xs font-medium">{label}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <Field label="Teslim Maliyeti %" labelClassName="text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-widest" hint="Şirket kapsam varsayımıdır; ISO/COBie uygunluğu değildir.">
+                        <Input type="number" min="0" step="0.1" value={formData.informationDeliveryCostPercent} onChange={(e) => setFormData({...formData, informationDeliveryCostPercent: Math.max(0, Number(e.target.value) || 0)})} className="bg-background border-border text-foreground h-11 font-mono text-xs" />
+                      </Field>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="quote-procurement-profile" className="text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-widest">Tedarik Profili</Label>
+                        <Select value={formData.procurementProfile} onValueChange={(value) => setFormData({...formData, procurementProfile: value as typeof formData.procurementProfile, carbonRiskPremiumPercent: value === 'high_carbon_risk' ? 4 : 0})} items={PROCUREMENT_PROFILE_LABELS}>
+                          <SelectTrigger id="quote-procurement-profile" className="bg-background border-border text-foreground h-11 text-xs"><SelectValue /></SelectTrigger>
+                          <SelectContent className="bg-card border-border text-foreground">
+                            {Object.entries(PROCUREMENT_PROFILE_LABELS).map(([value, label]) => <SelectItem key={value} value={value} className="text-xs font-medium">{label}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <Field label="Karbon Risk Primi %" labelClassName="text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-widest" hint="Senaryo katsayısıdır; vergi/uyum kararı değildir.">
+                        <Input type="number" min="0" step="0.1" value={formData.carbonRiskPremiumPercent} onChange={(e) => setFormData({...formData, carbonRiskPremiumPercent: Math.max(0, Number(e.target.value) || 0)})} className="bg-background border-border text-foreground h-11 font-mono text-xs" />
+                      </Field>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <Field label="Süre (Ay)" labelClassName="text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-widest">
+                        <Input type="number" min="1" value={formData.projectDurationMonths} onChange={(e) => setFormData({...formData, projectDurationMonths: Math.max(1, Number(e.target.value) || 1)})} className="bg-background border-border text-foreground h-11 font-mono text-xs" />
+                      </Field>
+                      <Field label="Aylık Volatilite %" labelClassName="text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-widest" hint="Şirket varsayımıdır; otomatik piyasa verisi değildir.">
+                        <Input type="number" min="0" step="0.1" value={formData.escalationVolatilityPercent} onChange={(e) => setFormData({...formData, escalationVolatilityPercent: Math.max(0, Number(e.target.value) || 0)})} className="bg-background border-border text-foreground h-11 font-mono text-xs" />
+                      </Field>
+                    </div>
                   </div>
-                  <Field label="Teslim Maliyeti %" labelClassName="text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-widest" hint="Şirket kapsam varsayımıdır; ISO/COBie uygunluğu değildir.">
-                    <Input type="number" min="0" step="0.1" value={formData.informationDeliveryCostPercent} onChange={(e) => setFormData({...formData, informationDeliveryCostPercent: Math.max(0, Number(e.target.value) || 0)})} className="bg-background border-border text-foreground h-11 font-mono text-xs" />
-                  </Field>
-                  <Field label="Kâr ve Genel Gider %" labelClassName="text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-widest" hint="Müşteri fiyatına eklenir ve KDV'ye dahil edilir. ÇŞB birim fiyatlarında %25 zaten dahildir; tekrar eklemeyin.">
-                    <Input
-                      type="number" min="0" max="100" step="0.01"
-                      aria-label="Müteahhitlik kârı ve genel gider yüzdesi"
-                      value={formData.overheadProfitPercent}
-                      onChange={(e) => setFormData({...formData, overheadProfitPercent: Math.min(100, Math.max(0, Math.round((Number(e.target.value) || 0) * 100) / 100))})}
-                      className="bg-background border-border text-foreground h-11 font-mono text-xs"
-                    />
-                  </Field>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
-                    <Label htmlFor="quote-procurement-profile" className="text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-widest">Tedarik Profili</Label>
-                    <Select value={formData.procurementProfile} onValueChange={(value) => setFormData({...formData, procurementProfile: value as typeof formData.procurementProfile, carbonRiskPremiumPercent: value === 'high_carbon_risk' ? 4 : 0})} items={PROCUREMENT_PROFILE_LABELS}>
-                      <SelectTrigger id="quote-procurement-profile" className="bg-background border-border text-foreground h-11 text-xs"><SelectValue /></SelectTrigger>
-                      <SelectContent className="bg-card border-border text-foreground">
-                        {Object.entries(PROCUREMENT_PROFILE_LABELS).map(([value, label]) => <SelectItem key={value} value={value} className="text-xs font-medium">{label}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <Field label="Karbon Risk Primi %" labelClassName="text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-widest" hint="Senaryo katsayısıdır; vergi/uyum kararı değildir.">
-                    <Input type="number" min="0" step="0.1" value={formData.carbonRiskPremiumPercent} onChange={(e) => setFormData({...formData, carbonRiskPremiumPercent: Math.max(0, Number(e.target.value) || 0)})} className="bg-background border-border text-foreground h-11 font-mono text-xs" />
-                  </Field>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <Field label="Süre (Ay)" labelClassName="text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-widest">
-                    <Input type="number" min="1" value={formData.projectDurationMonths} onChange={(e) => setFormData({...formData, projectDurationMonths: Math.max(1, Number(e.target.value) || 1)})} className="bg-background border-border text-foreground h-11 font-mono text-xs" />
-                  </Field>
-                  <Field label="Aylık Volatilite %" labelClassName="text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-widest" hint="Şirket varsayımıdır; otomatik piyasa verisi değildir.">
-                    <Input type="number" min="0" step="0.1" value={formData.escalationVolatilityPercent} onChange={(e) => setFormData({...formData, escalationVolatilityPercent: Math.max(0, Number(e.target.value) || 0)})} className="bg-background border-border text-foreground h-11 font-mono text-xs" />
-                  </Field>
-                </div>
+                </details>
               </CardContent>
             </Card>
           </SectionWrapper>
