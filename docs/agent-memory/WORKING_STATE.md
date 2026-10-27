@@ -8,9 +8,13 @@ history to `archive/` (latest: `archive/WORKING_STATE_until_2026-10-24.md`).
 - `https://bimmetraj.com` on Coolify (app `ibjv2zbpecdcbd71lxo1vqd7`), Docker
   Compose `compose.coolify.yaml`: `app`, `worker`, `ifc-worker`, `migrate`,
   `backup`. Vercel files are legacy.
-- **Live revision: `389446b` + Rev. 101 (`BIM-CALC-2026-10-27.95`), deployed 2026-10-27:**
-  `/api/health` returns `status: ok`, `db: connected`, `revisionSource: build`
-  and all readiness flags true. Release migrations `0022..0029` are applied in
+- **Live revision: `2cd6fc5` (`Rev. 105`, `BIM-CALC-2026-10-27.99`), deployed 2026-10-27 (0 commits behind `main`):**
+  `/api/health` returns `status: ok`, `db: connected`, `revision: 2cd6fc57ed1822a28eaa91d4c0ee3feaab4ec56a`, `revisionSource: build`
+  and all readiness flags true (`persistentRateLimit`, `emailDeliveryConfigured`, `publicUrlConfigured`, `smartcheckStorageConfigured`).
+  GitHub Actions `Verify` CI run `40507902186` passed 100% green (`verify` + `e2e`).
+  Restore point tag: `restore-point-2026-10-27-rev105-crm-plan`.
+  Active handoff & next implementation plan: `docs/agent-memory/HANDOFF_2026-10-27_CRM_VE_KULLANICI_AKISI.md` (Paket A: `/app/clients` & `/app/crm` unified workflow, slide-over drawer, stage-tagged customer timeline notes `/app/clients/:id`, and 3-layer Smart Customer Excel/CSV adapter; Paket B: `CreateQuote.tsx` `generateWithAi` `!res.ok` guard so failed AI calls never wipe imported Excel rows).
+  Release migrations `0022..0029` are applied in
   `bimmetraj_production`; all 5 containers (`app`, `worker`, `ifc-worker`,
   `backup`, `postgres`) are `Up` and healthy. Worker control-plane isolation
   (`D12`: `requireControlDatabase: false`) and live IFC worker quota completion
