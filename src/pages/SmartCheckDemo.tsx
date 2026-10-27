@@ -4,33 +4,76 @@
  */
 
 import React, { useState } from 'react';
-import { SEVERITY_LABEL } from '@/i18n/ui-terms';
 import { ACADEMY_ENABLED } from '@/config/features';
 import { Link, useLocation } from 'react-router-dom';
-import {
-  Shield,
-  RefreshCw,
-  BookOpen,
-  ArrowLeft,
-  ExternalLink,
-  AlertTriangle,
-  BadgeCheck,
-  CheckCircle2,
-  SlidersHorizontal,
-  ChevronRight
-} from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { ArrowLeft, BookOpen, ChevronRight, FileUp } from 'lucide-react';
+import { buttonVariants } from '@/components/ui/button';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
-import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { useSmartCheckDemo } from '@/smartcheck/SmartCheckDemoContext';
-import {
-  demoAcademyContent,
-  DemoFinding
-} from '@/smartcheck/demoData';
+import { demoAcademyContent, type DemoFinding } from '@/smartcheck/demoData';
+import { DEMO_WALKTHROUGH } from '@/smartcheck/demo-walkthrough';
+import { DemoFindingDetail } from '@/components/smartcheck/DemoFindingDetail';
+import { DemoStatusBadge } from '@/components/smartcheck/DemoStatusBadge';
+
+type DemoField = 'quantityUnit' | 'reinforcementCoverMm' | 'wallPriority';
+const FIELD_BY_FINDING: Record<string, DemoField> = {
+  'finding-a': 'quantityUnit',
+  'finding-b': 'reinforcementCoverMm',
+  'finding-c': 'wallPriority',
+};
+const RECHECK_DELAY_MS = 600;
+
+const STEPS = ['Problem', 'Kaynak satırı', 'Bulgu', 'Öneri', 'Teklife etkisi'];
+
+function FindingListItem({ finding, isSelected, onSelect }: { finding: DemoFinding; isSelected: boolean; onSelect: () => void }) {
+  const walkthrough = DEMO_WALKTHROUGH[finding.id];
+  return (
+    <button
+      type="button"
+      aria-pressed={isSelected}
+      onClick={onSelect}
+      data-demo-finding={finding.id}
+      className={`w-full rounded-sm border p-3.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+        isSelected ? 'border-primary bg-muted/40' : 'border-border bg-card hover:bg-muted/20'
+      }`}
+    >
+      <span className="mb-1.5 flex items-start justify-between gap-2">
+        <span className="line-clamp-1 text-xs font-semibold text-foreground">{finding.title}</span>
+        <DemoStatusBadge status={finding.status} />
+      </span>
+      {walkthrough && (
+        <span className="block text-xs text-muted-foreground">{walkthrough.problem}</span>
+      )}
+    </button>
+  );
+}
+
+/** Closing step: how a visitor moves from the sample to their own file (M-10.3, M-10.6). */
+function TryYourOwnFile({ isStandalone }: { isStandalone: boolean }) {
+  return (
+    <section data-testid="demo-try-own-file" className="mt-8 flex flex-col gap-4 border border-border bg-card p-5 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <h2 className="text-sm font-semibold text-foreground">Kendi dosyanızla deneyin</h2>
+        <p className="mt-1 max-w-2xl text-xs text-muted-foreground">
+          Bu sayfadaki bulgular örnektir. Gerçek kullanımda bulgular sizin IFC modelinizden veya Excel metrajınızdan çıkar ve hiçbir değer siz onaylamadan değişmez.
+        </p>
+      </div>
+      <div className="flex shrink-0 flex-wrap gap-2">
+        {isStandalone ? (
+          <>
+            <Link to="/register" className={buttonVariants({ size: 'sm', className: 'gap-1.5 font-mono text-xs' })}><FileUp size={13} /> Ücretsiz hesap açın</Link>
+            <Link to="/" className={buttonVariants({ size: 'sm', variant: 'outline', className: 'font-mono text-xs' })}>Ana sayfaya dönün</Link>
+          </>
+        ) : (
+          <Link to="/app/smartcheck" className={buttonVariants({ size: 'sm', className: 'gap-1.5 font-mono text-xs' })}><FileUp size={13} /> Dosyanızı yükleyin</Link>
+        )}
+      </div>
+    </section>
+  );
+}
 
 export function SmartCheckDemo() {
   const location = useLocation();
@@ -40,266 +83,99 @@ export function SmartCheckDemo() {
   const [isRechecking, setIsRechecking] = useState(false);
 
   const selectedFinding = demoState.findings.find(f => f.id === selectedFindingId);
+  const selectedWalkthrough = selectedFinding ? DEMO_WALKTHROUGH[selectedFinding.id] : undefined;
+  const matchingLesson = selectedFinding ? demoAcademyContent.find(c => c.skillCode === selectedFinding.skillCode) : null;
+  const resolvedCount = demoState.findings.filter(f => f.status === 'resolved').length;
 
-  // Eşleşen Akademi dersini bul
-  const matchingLesson = selectedFinding
-    ? demoAcademyContent.find(c => c.skillCode === selectedFinding.skillCode)
-    : null;
-
-  // Hızlı Düzeltme Aksiyonu (Fix Card Action)
-  const handleQuickFix = (id: string, expectedVal: any) => {
-    let field: 'quantityUnit' | 'reinforcementCoverMm' | 'wallPriority' = 'quantityUnit';
-
-    if (id === 'finding-b') {
-      field = 'reinforcementCoverMm';
-    } else if (id === 'finding-c') {
-      field = 'wallPriority';
-    }
-
-    dispatch({ type: 'APPLY_DEMO_FIX', payload: { field, value: expectedVal } });
-
-    toast.success('Parametre düzeltildi. Çözümün onaylanması için yeniden kontrol (Re-check) başlatın.', {
-      description: `Yeni Değer: ${expectedVal}`,
-    });
+  const handleApplyFix = (finding: DemoFinding) => {
+    const field = FIELD_BY_FINDING[finding.id];
+    if (!field) return;
+    dispatch({ type: 'APPLY_DEMO_FIX', payload: { field, value: finding.expectedValue } });
+    toast.success('Düzeltme uygulandı.', { description: 'Sonucu görmek için kontrolü yeniden çalıştırın.' });
   };
 
-  // Yeniden Kontrol (Re-check)
   const handleRecheck = () => {
     setIsRechecking(true);
     setTimeout(() => {
       dispatch({ type: 'RUN_RECHECK' });
       setIsRechecking(false);
-
-      const freshState = JSON.parse(localStorage.getItem('teklifpro.smartcheck.demo.v1') || '{}').state || demoState;
-      const resolvedCount = freshState.findings.filter((f: any) => f.status === 'resolved').length;
-      if (resolvedCount === freshState.findings.length) {
-        toast.success('Tüm örnek bulgular düzeltildi ve yeniden kontrol edildi.', {
-          description: 'Kalite kontrol aşaması başarıyla tamamlandı.',
-        });
-      } else {
-        toast.info('Kalite kontrolü tamamlandı.', {
-          description: `Çözülen: ${resolvedCount} / 3 bulgu.`,
-        });
-      }
-    }, 1000);
+      toast.success('Kontrol yeniden çalıştırıldı.');
+    }, RECHECK_DELAY_MS);
   };
 
   const content = (
     <PageContainer>
-      {/* Breadcrumbs */}
-      <div className="flex items-center gap-2 mb-4">
-        <Link to="/app/smartcheck" className="text-muted-foreground hover:text-foreground font-mono text-xs flex items-center gap-1">
-          <ArrowLeft size={12} /> SmartCheck Genel Bakış
-        </Link>
-        <span className="text-muted-foreground font-mono text-xs">/</span>
-        <span className="text-foreground font-mono text-xs font-semibold">Aktif Denetim Raporu</span>
-      </div>
+      <Link
+        to={isStandalone ? '/' : '/app/smartcheck'}
+        data-testid="demo-back-link"
+        className="mb-4 inline-flex items-center gap-1 font-mono text-xs text-muted-foreground hover:text-foreground"
+      >
+        <ArrowLeft size={12} /> {isStandalone ? 'Ana sayfa' : 'SmartCheck'}
+      </Link>
 
       <PageHeader
-        title="SmartCheck Model & Kalite Denetimi"
-        description="Mühendislik, mevzuat ve metraj tolerans kurallarının doğruluğunu bu ekrandan izleyin."
+        title="SmartCheck örneği: teklif öncesi kontrol"
+        description="Örnek bir projede üç bulguyu adım adım inceleyin. Veriler örnektir; resmî poz, mevzuat veya proje verisi değildir."
         actions={<ThemeToggle />}
       />
 
-      {/* Recheck Action Banner */}
-      <div className="rounded-sm border border-border bg-card p-4 mb-6 flex flex-col sm:flex-row items-center justify-between gap-4 font-mono">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 bg-primary/10 rounded-xs flex items-center justify-center text-primary border border-primary/20 shrink-0">
-            <Shield size={17} />
-          </div>
-          <div>
-            <h2 className="text-xs font-bold uppercase tracking-wider text-foreground">Yeniden Kontrolü Tetikleyin</h2>
-            <p className="text-xs text-muted-foreground font-sans mt-0.5">Düzeltme aksiyonlarından sonra kural motorunu yeniden çalıştırmak için butona basın.</p>
-          </div>
-        </div>
-        <Button
-          onClick={handleRecheck}
-          disabled={isRechecking}
-          size="sm"
-          className="bg-primary hover:bg-primary/90 text-primary-foreground font-mono text-xs h-9 px-4 gap-1.5 shadow-xs shrink-0"
-        >
-          <RefreshCw size={13} className={isRechecking ? 'animate-spin' : ''} />
-          {isRechecking ? 'Kontrol Ediliyor...' : 'Yeniden Kontrol Et (Re-check)'}
-        </Button>
-      </div>
+      <section data-testid="demo-intro" className="mb-6 border border-border bg-card p-4">
+        <h2 className="text-xs font-semibold text-foreground">Bu örnekte ne var?</h2>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Bir teklif ve iki model dosyasında üç sorun bulundu. Soldan bir bulgu seçin; sağda sırasıyla şunları görürsünüz:
+        </p>
+        <ol className="mt-2 flex flex-wrap gap-x-4 gap-y-1 font-mono text-[11px] text-foreground">
+          {STEPS.map((step, index) => <li key={step}>{index + 1}. {step}</li>)}
+        </ol>
+      </section>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* Left Side: Findings List */}
-        <div className="col-span-12 lg:col-span-5 space-y-3">
-          <div className="flex items-center justify-between pb-1">
-            <h2 className="text-xs font-mono font-semibold uppercase tracking-wider text-muted-foreground">Bulgular ({demoState.findings.length})</h2>
-            <span className="text-[11px] font-mono text-primary">buildingSMART & ÇŞB Kuralları</span>
-          </div>
-
-          <div className="space-y-2.5" role="list" aria-label="SmartCheck Denetim Bulguları">
-            {demoState.findings.map(finding => {
-              const isSelected = selectedFindingId === finding.id;
-              return (
-                <div key={finding.id} role="listitem">
-                  <div
-                    role="button"
-                    tabIndex={0}
-                    aria-pressed={isSelected}
-                    onClick={() => setSelectedFindingId(finding.id)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        setSelectedFindingId(finding.id);
-                      }
-                    }}
-                    className={`p-3.5 border rounded-sm cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
-                      isSelected
-                        ? 'bg-muted/40 border-primary'
-                        : 'bg-card border-border hover:border-border/80 hover:bg-muted/20'
-                    }`}
-                  >
-                    <div className="flex justify-between items-start gap-2 mb-1.5">
-                      <span className="text-xs font-semibold text-foreground line-clamp-1">
-                        {finding.title}
-                      </span>
-                      {finding.status === 'resolved' ? (
-                        <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/30 px-1.5 py-0.5 text-[11px] font-mono">Çözüldü</Badge>
-                      ) : finding.status === 'in_progress' ? (
-                        <Badge className="bg-amber-500/10 text-amber-400 border-amber-500/30 px-1.5 py-0.5 text-[11px] font-mono">Düzeltildi</Badge>
-                      ) : (
-                        <Badge className="bg-destructive/10 text-destructive border-destructive/30 px-1.5 py-0.5 text-[11px] font-mono">Açık</Badge>
-                      )}
-                    </div>
-
-                    <div className="flex justify-between items-center text-xs font-mono text-muted-foreground">
-                      <span>
-                        Mevcut: <strong className="text-foreground">{finding.currentValue} {finding.id !== 'finding-a' && typeof finding.currentValue === 'number' && 'mm'}</strong>
-                      </span>
-                      <span>
-                        Beklenen: <strong className="text-foreground">{finding.expectedValue} {finding.id !== 'finding-a' && typeof finding.expectedValue === 'number' && 'mm'}</strong>
-                      </span>
-                    </div>
-
-                    {/* Simulated / Dictionary Badge */}
-                    <div className="mt-2.5 pt-2 border-t border-border/60 flex items-center justify-between text-[11px] font-mono">
-                      <span className="text-muted-foreground">
-                        {finding.sourceType === 'simulated_model_finding' ? 'IFC Model Verisi' : 'Sözlük Eşleşmesi'}
-                      </span>
-                      <span className="text-primary font-semibold uppercase tracking-wider">
-                        {SEVERITY_LABEL[finding.severity]}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
+        <div className="col-span-12 space-y-3 lg:col-span-5">
+          <h2 className="font-mono text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Bulgular · {resolvedCount}/{demoState.findings.length} çözüldü
+          </h2>
+          <ul className="space-y-2.5" aria-label="Örnek bulgular">
+            {demoState.findings.map(finding => (
+              <li key={finding.id}>
+                <FindingListItem finding={finding} isSelected={selectedFindingId === finding.id} onSelect={() => setSelectedFindingId(finding.id)} />
+              </li>
+            ))}
+          </ul>
         </div>
 
-        {/* Right Side: Finding Details */}
         <div className="col-span-12 lg:col-span-7">
-          {selectedFinding ? (
-            <Card className="border border-border bg-card shadow-xs rounded-sm p-5 space-y-5">
-              <div>
-                <div className="flex justify-between items-start gap-4">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <h2 className="text-sm font-bold text-foreground">{selectedFinding.title}</h2>
-                      {selectedFinding.sourceType === 'simulated_model_finding' && (
-                        <span className="stamp-badge border-primary/30 text-primary bg-primary/10 text-[10px]">
-                          Model Bulgusu
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-xs text-muted-foreground font-mono uppercase tracking-wider">
-                      KURAL: {selectedFinding.ruleId} | MODÜL: {selectedFinding.skillCode}
-                    </p>
-                  </div>
-                  {selectedFinding.status === 'resolved' ? (
-                    <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/30 px-2 py-0.5 text-xs font-mono">Çözüldü</Badge>
-                  ) : selectedFinding.status === 'in_progress' ? (
-                    <Badge className="bg-amber-500/10 text-amber-400 border-amber-500/30 px-2 py-0.5 text-xs font-mono">Düzeltildi</Badge>
-                  ) : (
-                    <Badge className="bg-destructive/10 text-destructive border-destructive/30 px-2 py-0.5 text-xs font-mono">Açık Hata</Badge>
-                  )}
-                </div>
-              </div>
-
-              {/* Data & Rule Source Metadata */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs font-mono">
-                <div className="p-3 bg-muted/20 border border-border rounded-xs">
-                  <span className="text-[11px] text-muted-foreground block uppercase">Kaynak</span>
-                  <span className="text-foreground font-semibold block mt-0.5 truncate">
-                    {selectedFinding.sourceName}
-                  </span>
-                </div>
-                <div className="p-3 bg-muted/20 border border-border rounded-xs">
-                  <span className="text-[11px] text-muted-foreground block uppercase">Yetki / Durum</span>
-                  <span className="text-foreground font-semibold block mt-0.5 truncate">
-                    {selectedFinding.authorityStatus === 'unverified_demo_data' ? 'Doğrulanmamış Demo' : 'Mühendislik Kuralı'}
-                  </span>
-                </div>
-                <div className="p-3 bg-muted/20 border border-border rounded-xs">
-                  <span className="text-[11px] text-muted-foreground block uppercase">Kural Tipi</span>
-                  <span className="text-primary font-semibold block mt-0.5 truncate">
-                    {selectedFinding.ruleType}
-                  </span>
-                </div>
-              </div>
-
-              {/* Finding Description & Impact */}
-              <div className="space-y-3 font-sans text-xs">
-                <div className="p-3.5 rounded-xs border border-border bg-muted/20">
-                  <h3 className="font-semibold text-foreground mb-1 font-mono uppercase text-xs">Mühendislik Kanıtı & Tespit:</h3>
-                  <p className="text-muted-foreground leading-relaxed">
-                    {selectedFinding.evidence}
-                  </p>
-                </div>
-              </div>
-
-              {/* Action Box: Quick Fix */}
-              {selectedFinding.status !== 'resolved' && (
-                <div className="p-4 rounded-xs border border-primary/30 bg-primary/5 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-mono font-bold text-foreground uppercase tracking-wide flex items-center gap-1.5">
-                      <SlidersHorizontal size={14} className="text-primary" />
-                      Düzeltme Aksiyonu
-                    </span>
-                    <span className="text-[11px] font-mono text-muted-foreground">İnsan Onaylı Düzeltme</span>
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    Modeldeki parametreyi standartlara uygun değere getirmek için hızlı düzeltmeyi uygulayın.
-                  </p>
-                  <Button
-                    onClick={() => handleQuickFix(selectedFinding.id, selectedFinding.expectedValue)}
-                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-mono text-xs h-9 gap-1.5 shadow-xs"
-                  >
-                    <span>Önerilen Değeri Uygula: <strong>{String(selectedFinding.expectedValue)}</strong></span>
-                  </Button>
-                </div>
-              )}
-
-              {/* Matching Academy Lesson Checkpoint */}
+          {selectedFinding && selectedWalkthrough ? (
+            <DemoFindingDetail
+              finding={selectedFinding}
+              walkthrough={selectedWalkthrough}
+              isRechecking={isRechecking}
+              onApplyFix={() => handleApplyFix(selectedFinding)}
+              onRecheck={handleRecheck}
+            >
               {ACADEMY_ENABLED && matchingLesson && (
-                <div className="p-4 rounded-xs border border-border bg-muted/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div className="flex flex-col items-start justify-between gap-3 border border-border bg-muted/20 p-4 sm:flex-row sm:items-center">
                   <div className="space-y-0.5">
-                    <span className="text-[11px] font-mono text-primary font-semibold uppercase tracking-wider flex items-center gap-1">
-                      <BookOpen size={12} />
-                      İlgili Academy Dersi ({matchingLesson.level})
+                    <span className="flex items-center gap-1 font-mono text-[11px] font-semibold uppercase tracking-wider text-primary">
+                      <BookOpen size={12} /> İlgili Akademi dersi
                     </span>
                     <p className="text-xs font-semibold text-foreground">{matchingLesson.title}</p>
-                    <p className="text-xs text-muted-foreground font-mono">{matchingLesson.domain} · {matchingLesson.estimatedMinutes} dk</p>
+                    <p className="font-mono text-xs text-muted-foreground">{matchingLesson.estimatedMinutes} dk</p>
                   </div>
-                  <Link to={`/app/academy`} className="shrink-0">
-                    <Button variant="outline" size="sm" className="text-xs font-mono h-8 gap-1">
-                      Dersi İncele <ChevronRight size={13} />
-                    </Button>
+                  <Link to="/app/academy" className={buttonVariants({ variant: 'outline', size: 'sm', className: 'h-8 shrink-0 gap-1 font-mono text-xs' })}>
+                    Dersi inceleyin <ChevronRight size={13} />
                   </Link>
                 </div>
               )}
-            </Card>
+            </DemoFindingDetail>
           ) : (
-            <Card className="border border-border bg-card p-12 text-center text-muted-foreground font-mono text-xs">
-              İncelemek için sol taraftan bir bulgu seçin.
-            </Card>
+            <div className="border border-border bg-card p-12 text-center font-mono text-xs text-muted-foreground">
+              İncelemek için soldan bir bulgu seçin.
+            </div>
           )}
         </div>
       </div>
+
+      <TryYourOwnFile isStandalone={isStandalone} />
     </PageContainer>
   );
 
@@ -311,3 +187,5 @@ export function SmartCheckDemo() {
     content
   );
 }
+
+export default SmartCheckDemo;

@@ -134,7 +134,7 @@ export const initialFindings: DemoFinding[] = [
     expectedValue: 500,
     status: 'open',
     severity: 'warning',
-    title: 'Taşıyıcı Duvar Priority Çakışması',
+    title: 'Taşıyıcı Duvar Öncelik Çakışması',
     evidence: 'Priority 500, ALLPLAN’ın evrensel standardı değildir. Bu değer yalnız simüle edilmiş demo ofis modelleme kuralıdır.\n\nModel Dosyası: Blok_A_Architecture.ndw\nKatman: Structural Concrete Wall (Priority: 300)\nÇakışan Katman: Facing Brickwork (Priority: 400)\nSonuç: Yalıtım ve tuğla katmanları taşıyıcı betonu kesiyor, kalıp geometrisi hatalı.',
     ruleType: 'demo_office_rule',
     sourceName: 'Demo Office Modeling Standard'

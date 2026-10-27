@@ -53,8 +53,12 @@ history to `archive/` (latest: `archive/WORKING_STATE_until_2026-10-24.md`).
   `feat/faz1-teklif-tablosu`): basic/detailed quote items table with row detail,
   `CreateQuote.tsx` split to 711 lines (`src/components/quote/`; merged as #27,
   `5ddcf27`). Rev. 98 (branch `feat/faz1-fizibilite`): parcel feasibility on
-  `/app/arsa-fizibilitesi`, no errors on an untouched form. Next: Faz 1
-  remainder (M-10.x demo, M-12.6 manual quote from
+  `/app/arsa-fizibilitesi`, no errors on an untouched form (PR #28).
+  Rev. 99 (branch `feat/faz1-demo`): public SmartCheck demo reordered to
+  problem → source row → finding → fix → offer impact, m²→m³ example fixes the
+  quantity, signed-out exit to `/` and `/register`. Demo data is duplicated in
+  `demoData.ts` and `SmartCheckDemoContext.tsx` (context copy is live). Next: Faz 1
+  remainder ( M-12.6 manual quote from
   the company catalogue), then the three-persona acceptance run.
 - CI: the job runs with `NODE_ENV=test` (React development build). The T45
   bundle gate runs in its own production-build step (`REQUIRE_PRODUCTION_BUNDLE=true`).

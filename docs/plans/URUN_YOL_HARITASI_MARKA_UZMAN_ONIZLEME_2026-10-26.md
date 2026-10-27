@@ -157,6 +157,15 @@ Süreler (`marka.md` §23.2) yerelde ölçülür ve kaydedilir.
 - **M-15.2 kapandı:** `dosyadan-teklif-demo` sayfası (sabit beton 2.450, donatı 24.500, kalıp 1.250 TL) kaldırıldı. Eski adres `/app/smartcheck`'e yönlenir.
 - **Kanıt:** `export-xlsx.test.ts`. Gerçek tarayıcıda `faz1-price-gap-smoke.ts` icmal ve teklif dosyalarını indirip toplamları doğrular (teklif dosyası 102.396,00 TL, PDF ile aynı). `faz1-excel-flow-smoke.ts` yönlendirmeyi doğrular.
 
+### Faz 1 durumu — kamuya açık SmartCheck demosu (27 Ekim 2026, dal `feat/faz1-demo`)
+
+- **M-10.2 kapandı:** Demo artık "Yeniden Kontrolü Tetikleyin" ile açılmıyor. Önce "Bu örnekte ne var?" açıklaması geliyor; her bulgu beş numaralı adımla anlatılıyor: problem, kaynak satırı, bulgu, öneri, teklife etkisi. Yeniden kontrol düğmesi yalnız bir düzeltme uygulandıktan sonra görünüyor.
+- **M-10.4 kapandı:** m²→m³ örneği artık yalnız birim etiketini değiştirmiyor. Teklif satırı 120,00 m² iken modeldeki net hacim 24,00 m³ (120,00 m² × 0,20 m); düzeltme miktarı bu hacimden alıyor ve teklife etkisini yazıyor (m³ fiyatı 120 ile çarpılsaydı kalem 5 kat yüksek çıkardı).
+- **M-10.3 / M-10.6 kapandı:** Sonda "Kendi dosyanızla deneyin" bölümü var. Oturumsuz ziyaretçi ana sayfaya ve kayda yönlenir; geri bağlantı artık `/app/smartcheck` girişine gitmiyor. Uygulama içinden açıldığında dosya yükleme ekranına götürür.
+- **Dil:** "Re-check", "Priority" gibi ifadeler kaldırıldı; kural kodu ve modül adı "Teknik ayrıntılar" altında.
+- **Kanıt:** `smartcheck-demo-ui.test.ts` (JSDOM) ve `faz1-excel-flow-smoke.ts` içindeki oturumsuz tarayıcı adımı.
+- **Teknik borç:** Demo verisi `demoData.ts` ve `SmartCheckDemoContext.tsx` içinde iki kopya; ekran bağlamdaki kopyayı kullanıyor. Tek kaynağa indirilmesi ayrı iştir.
+
 ### Faz 1 durumu — arsa fizibilitesi ayrı ekranda (27 Ekim 2026, dal `feat/faz1-fizibilite`)
 
 - **#27** `main`'e birleştirildi (`5ddcf27`).

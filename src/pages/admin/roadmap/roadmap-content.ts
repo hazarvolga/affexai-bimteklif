@@ -185,7 +185,7 @@ export const ROADMAP_SECTIONS: DocSection[] = [
   },
   {
     id: "durum",
-    title: "Uygulama durumu (27 Ekim 2026 · Rev. 98 geliştirme)",
+    title: "Uygulama durumu (27 Ekim 2026 · Rev. 99 geliştirme)",
     blocks: [
       { type: "table", columns: ["Yetenek", "Durum", "Not"], rows: [
         ["RG 33331 IFC ön kontrolü (EK-1/2/3/5/6/7/9)", "Hazır (Tam Kapsam)", "EK-1 6 haneli proje kodu–dosya adı eşleşmesi, EK-2 Tablo 2.1–2.14, EK-3 Tablo 3.1–3.2 (~130 mahal), EK-5 (69 zorunlu + 67 isteğe bağlı sınıf), EK-6 (Tablo 6.1–6.68) ve EK-7 Tablo 7.1–7.9 (IfcAnnotation SURVEY dahil) sunucuda çalışır; gerçek yüklenen dosya adı (dosya_adi) ve iç içe IfcComplexProperty kümeleri de denetlenir"],
@@ -281,17 +281,17 @@ export const ROADMAP_SECTIONS: DocSection[] = [
   },
   {
     id: "revizyon-gunlugu",
-    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 98 · 13–27 Ekim 2026)",
+    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 99 · 13–27 Ekim 2026)",
     blocks: [
       {
         type: "callout",
         tone: "info",
-        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 98)",
-        text: "Bu bölüm, BIMMetraj'ın teknik evrimini Rev. 0'dan 27 Ekim 2026 Rev. 98 · BIM-CALC-2026-10-27.92 sürümüne kadar katı kronolojik sırayla kaydeder. Rev. 91–98, marka.md ürün incelemesinden çıkan uzman önizlemesi, Faz 0 güven düzeltmeleri ve Faz 1 Excel önce / fiyat eksikliği / dışa aktarım dilimleridir; Rev. 91–95 27 Ekim'de main'e birleştirildi (78bf661); canlıya alınana kadar geliştirme durumundadır. Rev. 90 ile T43 ≥%80 proje kapsam hedefi (%82,58) ve T56 nihai izlenebilirlik matrisi tamamlanarak dış girdi gerektirmeyen tüm teknik adımlar kapatılmıştır. Harici fixture lisansı, T45 izinli gerçek büyük müşteri dosyası/VPS post-deploy kanıtı, T50–T52 uzman/müşteri/canlı kabulü ve T55 hukuk incelemesi açık olduğundan Faz 7, Faz 9, Faz 10 ve Faz 11 dış kabuller tamamlanana dek PARTIAL kalır.",
+        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 99)",
+        text: "Bu bölüm, BIMMetraj'ın teknik evrimini Rev. 0'dan 27 Ekim 2026 Rev. 99 · BIM-CALC-2026-10-27.93 sürümüne kadar katı kronolojik sırayla kaydeder. Rev. 91–99, marka.md ürün incelemesinden çıkan uzman önizlemesi, Faz 0 güven düzeltmeleri ve Faz 1 Excel önce / fiyat eksikliği / dışa aktarım dilimleridir; Rev. 91–95 27 Ekim'de main'e birleştirildi (78bf661); canlıya alınana kadar geliştirme durumundadır. Rev. 90 ile T43 ≥%80 proje kapsam hedefi (%82,58) ve T56 nihai izlenebilirlik matrisi tamamlanarak dış girdi gerektirmeyen tüm teknik adımlar kapatılmıştır. Harici fixture lisansı, T45 izinli gerçek büyük müşteri dosyası/VPS post-deploy kanıtı, T50–T52 uzman/müşteri/canlı kabulü ve T55 hukuk incelemesi açık olduğundan Faz 7, Faz 9, Faz 10 ve Faz 11 dış kabuller tamamlanana dek PARTIAL kalır.",
       },
       {
         type: "p",
-        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 98):",
+        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 99):",
       },
       {
         type: "table",
@@ -887,16 +887,22 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "Teklif kalemleri tablosu varsayılan olarak beş sütunlu 'Temel' görünümde açılır; kategori, maliyet fiyatı, zayiat, iskonto ve KDV satır ayrıntısındadır, maliyeti girilmemiş satır 'Maliyet eksik' yazar. 'Ayrıntılı' görünüm bütün sütunları gösterir. CreateQuote.tsx 1.195 satırdan 711 satıra bölündü (QuoteItemsTable, QuoteSidebar, BenchmarkPanel, QuoteAiWizard). Hesap yöntemleri değişmedi.",
           ],
           [
-            "Rev. 98 (Güncel geliştirme)",
+            "Rev. 98",
             "27 Ekim 2026 (Arsa Ön Fizibilitesi Ayrı Ekranda, Boş Formda Hata Yok)",
             "BIM-CALC-2026-10-27.92",
             "Arsa ön fizibilitesi IFC/Excel yükleme ekranından /app/arsa-fizibilitesi ekranına taşındı; eski bağlantı yeni ekrana yönlenir. Boş form açılışta hata göstermez, değer girilince kontroller başlar. Parsel bazlı plan değerlendirmesi ham durum kodu yerine Türkçe gösterilir; plan uyarısındaki 'artifact kimliği' ve 'SHA-256' ifadeleri sade Türkçeye çevrildi. Hesap yöntemleri değişmedi.",
+          ],
+          [
+            "Rev. 99 (Güncel geliştirme)",
+            "27 Ekim 2026 (Kamuya Açık SmartCheck Demosu: Problemden Teklife Etkiye)",
+            "BIM-CALC-2026-10-27.93",
+            "Kamuya açık demo artık 'yeniden kontrol' ile değil problemle açılır; her bulgu problem, kaynak satırı, bulgu, öneri ve teklife etkisi sırasıyla anlatılır. m²→m³ örneği miktarı modeldeki net hacimden düzeltir (120,00 m² × 0,20 m = 24,00 m³). Oturumsuz ziyaretçi ana sayfaya ve kayda yönlenir. Hesap yöntemleri değişmedi.",
           ],
         ],
       },
       {
         type: "p",
-        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 98 · Önceki Durum → Yeni Durum):",
+        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 99 · Önceki Durum → Yeni Durum):",
       },
       {
         type: "table",
@@ -1691,6 +1697,13 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "Arsa fizibilitesi paneli SmartCheck yükleme ekranının altında duruyordu; boş form açılışta 'Arsa alanı pozitif olmalı' gibi hatalar gösteriyordu; plan değerlendirmesi 'not_evaluated' ham kodunu gösteriyordu.",
             "ParcelFeasibility sayfası (/app/arsa-fizibilitesi); SmartCheck'te bağlantı ve eski hash yönlendirmesi; kontroller yalnız değer girilince veya dosya içe aktarılınca görünür; plan durumu Türkçe etiketlidir; plan uyarısı 'onaylı yerel plan belgesi eklenmediği için imar uygunluğu değerlendirilmedi' der.",
             "src/pages/ParcelFeasibility.tsx, src/pages/SmartCheck.tsx, src/components/smartcheck/PreBimFeasibilityPanel.tsx, src/lib/pre-bim-feasibility.ts, src/components/dashboard/ContractorWorkflowHub.tsx, src/App.tsx, src/components/smartcheck/pre-bim-feasibility-ui.test.ts, scripts/faz1-excel-flow-smoke.ts",
+          ],
+          [
+            "Rev. 99 · 27 Ekim 2026 (Kamuya Açık SmartCheck Demosu: Problemden Teklife Etkiye)",
+            "marka.md M-10.2, M-10.3, M-10.4, M-10.6",
+            "Demo 'Yeniden Kontrolü Tetikleyin' ile başlıyordu; m²→m³ düzeltmesi yalnız birim etiketini değiştiriyordu; geri bağlantı oturumsuz ziyaretçiyi /app/smartcheck girişine gönderiyordu; 'Priority', 'Re-check' gibi İngilizce ifadeler vardı.",
+            "Sayfa 'Bu örnekte ne var?' açıklamasıyla açılır; bulgu ayrıntısı beş numaralı adımdır; yeniden kontrol yalnız düzeltmeden sonra görünür; birim örneği miktar ve teklif etkisini anlatır; sonda 'Kendi dosyanızla deneyin' (kayıt / ana sayfa, uygulama içinde dosya yükleme) bulunur; kural kodu 'Teknik ayrıntılar' altındadır.",
+            "src/pages/SmartCheckDemo.tsx, src/components/smartcheck/DemoFindingDetail.tsx, src/components/smartcheck/DemoStatusBadge.tsx, src/smartcheck/demo-walkthrough.ts, src/pages/smartcheck-demo-ui.test.ts, scripts/faz1-excel-flow-smoke.ts",
           ],
         ],
       },
