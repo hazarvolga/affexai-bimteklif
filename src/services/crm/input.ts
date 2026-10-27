@@ -31,7 +31,7 @@ export const leadInput = z.strictObject({
 const integerQuery = (minimum: number, maximum: number, fallback: number) => z.union([
   z.undefined().transform(() => fallback),
   z.string().regex(/^(0|[1-9]\d*)$/).transform(Number).pipe(z.number().int().min(minimum).max(maximum)),
-]);
+]).optional().transform(value => value ?? fallback);
 export const leadPaginationInput = z.strictObject({
   limit: integerQuery(1, 200, 100),
   // Bound OFFSET scan work until this endpoint moves to a cursor contract.

@@ -185,7 +185,7 @@ export const ROADMAP_SECTIONS: DocSection[] = [
   },
   {
     id: "durum",
-    title: "Uygulama durumu (27 Ekim 2026 · Rev. 104 canlıda)",
+    title: "Uygulama durumu (27 Ekim 2026 · Rev. 106 canlıda)",
     blocks: [
       { type: "table", columns: ["Yetenek", "Durum", "Not"], rows: [
         ["RG 33331 IFC ön kontrolü (EK-1/2/3/5/6/7/9)", "Hazır (Tam Kapsam)", "EK-1 6 haneli proje kodu–dosya adı eşleşmesi, EK-2 Tablo 2.1–2.14, EK-3 Tablo 3.1–3.2 (~130 mahal), EK-5 (69 zorunlu + 67 isteğe bağlı sınıf), EK-6 (Tablo 6.1–6.68) ve EK-7 Tablo 7.1–7.9 (IfcAnnotation SURVEY dahil) sunucuda çalışır; gerçek yüklenen dosya adı (dosya_adi) ve iç içe IfcComplexProperty kümeleri de denetlenir"],
@@ -281,17 +281,17 @@ export const ROADMAP_SECTIONS: DocSection[] = [
   },
   {
     id: "revizyon-gunlugu",
-    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 104 · 13–27 Ekim 2026)",
+    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 106 · 13–27 Ekim 2026)",
     blocks: [
       {
         type: "callout",
         tone: "info",
-        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 104)",
-        text: "Bu bölüm, BIMMetraj'ın teknik evrimini Rev. 0'dan 27 Ekim 2026 Rev. 104 · BIM-CALC-2026-10-27.98 sürümüne kadar katı kronolojik sırayla kaydeder. Rev. 91–100, marka.md ürün incelemesinden çıkan uzman önizlemesi, Faz 0 güven düzeltmeleri ve Faz 1 Excel önce / fiyat eksikliği / dışa aktarım dilimleridir; Rev. 101 ile tüm 0022..0029 migration'ları, D12 worker başlangıç düzeltmesi ve D13 canlı ifc-worker consumeIfcUsage kota tamamlama düzeltmesi canlı üretime (https://bimmetraj.com) dağıtılmıştır. Rev. 102 ile 4 katmanlı müteahhit Excel adaptörü, Rev. 103 ile /admin/pricing-sources otomatik tohumlama ve TÜİK SDMX 2.1 adaptörü, Rev. 104 ile 6 aşamalı güvenlik denetimi bulgularının ve derinlemesine sertleştirme adımlarının tamamı kapatılmıştır. Rev. 90 ile T43 ≥%80 proje kapsam hedefi (%82,58) ve T56 nihai izlenebilirlik matrisi tamamlanarak dış girdi gerektirmeyen tüm teknik adımlar kapatılmıştır. Harici fixture lisansı, T45 izinli gerçek büyük müşteri dosyası/VPS post-deploy kanıtı, T50–T52 uzman/müşteri/canlı kabulü ve T55 hukuk incelemesi açık olduğundan Faz 7, Faz 9, Faz 10 ve Faz 11 dış kabuller tamamlanana dek PARTIAL kalır.",
+        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 106)",
+        text: "Bu bölüm, BIMMetraj'ın teknik evrimini Rev. 0'dan 27 Ekim 2026 Rev. 106 · BIM-CALC-2026-10-27.100 sürümüne kadar katı kronolojik sırayla kaydeder. Rev. 91–100, marka.md ürün incelemesinden çıkan uzman önizlemesi, Faz 0 güven düzeltmeleri ve Faz 1 Excel önce / fiyat eksikliği / dışa aktarım dilimleridir; Rev. 101 ile tüm 0022..0029 migration'ları, D12 worker başlangıç düzeltmesi ve D13 canlı ifc-worker consumeIfcUsage kota tamamlama düzeltmesi canlı üretime (https://bimmetraj.com) dağıtılmıştır. Rev. 102 ile 4 katmanlı müteahhit Excel adaptörü, Rev. 103 ile /admin/pricing-sources otomatik tohumlama ve TÜİK SDMX 2.1 adaptörü, Rev. 104 ile 6 aşamalı güvenlik denetimi bulgularının ve derinlemesine sertleştirme adımlarının tamamı kapatılmıştır. Rev. 105 ile CalmIfcWorkspace 795 satıra ayrıştırılmış, Rev. 106 ile Müşteriler (/app/clients), Müşteriler & Fırsatlar (/app/crm), 6 aşamalı müşteri zaman tüneli (/app/clients/:id) ve 3 katmanlı Akıllı Müşteri Excel/CSV Adaptörü devreye alınmıştır. Rev. 90 ile T43 ≥%80 proje kapsam hedefi (%82,58) ve T56 nihai izlenebilirlik matrisi tamamlanarak dış girdi gerektirmeyen tüm teknik adımlar kapatılmıştır. Harici fixture lisansı, T45 izinli gerçek büyük müşteri dosyası/VPS post-deploy kanıtı, T50–T52 uzman/müşteri/canlı kabulü ve T55 hukuk incelemesi açık olduğundan Faz 7, Faz 9, Faz 10 ve Faz 11 dış kabuller tamamlanana dek PARTIAL kalır.",
       },
       {
         type: "p",
-        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 104):",
+        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 106):",
       },
       {
         type: "table",
@@ -929,16 +929,22 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "6 aşamalı 'standard' profil güvenlik denetiminde tespit edilen 5 doğrulanmış bulgu (2 HIGH, 2 MEDIUM, 1 LOW) ve 8 derinlemesine savunma sertleştirmesi uçtan uca kapatıldı: 1) [HIGH] /api/academy/allplan/admin/enrollments rotaları checkRole(['owner','admin']) yerine requireVerifiedEmail + checkSuperAdmin() + isAcademyRuntimeEnabled() kapısına bağlanarak tenant sahiplerinin ücretsiz kurs lisansı ataması engellendi. 2) [HIGH] Hakediş (ProgressPaymentService) transition('approve') adımında onaylayanın submitted_by_user_id, created_by_user_id veya progress_measurements.created_by_user_id ile aynı kişi olması 409 ile reddedildi ve correct() kopyasında orijinal created_by_user_id korundu. 3) [MEDIUM] CDE POST mutasyon rotalarına createProjectRole (owner/admin/manager) eklendi ve workspace viewer üyelerinin CDE üzerinde viewer üstü rol alması engellendi. 4) [MEDIUM] Source Intelligence ve Market Intelligence inceleme onaylarına iki-kişi (Maker-Checker) kontrolü, zorunlu onay notu ve restricted kaynak engeli eklendi. 5) [LOW] /api/company/risk-calibration içindeki pilotApplications sorgusuna provisionedCompanyId filtresi eklendi. 6) [Hardening] Kayıtta doğrulanmamış e-posta ile otomatik isSuperAdmin yükseltmesi kapatıldı, impersonate oturumları zorunlu salt-okunur (readOnly:true) yapıldı, pilot başvurularında clientAddress(req) kullanıldı, IFC/PDF ayrıştırıcılarına döngü/bellek/inflate sınırları ve alt süreç (spawn/execFile) ortam değişkeni beyaz listesi eklendi, worker konteynerinden JWT_SECRET ayrıştırıldı, GeminiProvider 128 KB girdi sınırına alındı ve DATABASE_PUBLIC_RESTRICTED_TABLE_ACL matrisinde bimmetraj_worker yetkileri daraltıldı.",
           ],
           [
-            "Rev. 105 (Canlı Sürüm — Aktif)",
+            "Rev. 105",
             "27 Ekim 2026 (CalmIfcWorkspace Modüler Bölünmesi 2.004 → 795 Satır & T43 CI Kapsam Ratchet Güçlendirmesi)",
-            "BIM-CALC-2026-10-27.99",
+            "BIM-CALC-2026-10-27.99 (2cd6fc5)",
             "1) marka.md C-5 (800 satırı aşan dosyalar) kuralı kapsamında 2.004 satırlık CalmIfcWorkspace.tsx bileşeni 12 odaklanmış alt bileşen ve kancaya (CalmApartmentsStep.tsx, CalmCostTools.tsx, CalmEscalationPanel.tsx, CalmIcmalEvidenceCard.tsx, CalmIsoCdePanel.tsx, CalmKikPanel.tsx, CalmPriceTable.tsx, CalmStepTabs.tsx, calm-format.ts, useCalmSessionInputs.ts, useCatalogPriceResolution.ts, useTuikEscalation.ts) ayrıştırılarak 795 satıra indirildi (PR #31). 2) T43 CI kapsam kapısında (coverage-thresholds.json) SmartCheck/IFC alt kapsamı ve HTTP API rotaları alt kapsamı için contractor-excel-corpus.test.ts (spreadsheet-parser.ts satır kapsamı %97,33) ve t43-route-ratchet.integration.test.ts (sync-catalog ve TÜİK SDMX 2.1 senkronizasyon uç noktaları) genişletildi. Hesap formülleri değişmedi.",
+          ],
+          [
+            "Rev. 106 (Canlı Sürüm — Aktif)",
+            "27 Ekim 2026 (Müşteriler & Fırsatlar Akışı, 6 Aşamalı Müşteri Zaman Tüneli ve 3 Katmanlı Akıllı Müşteri Excel/CSV Adaptörü)",
+            "BIM-CALC-2026-10-27.100",
+            "1) Sol menüde 'Müşteriler' (/app/clients) ve 'Müşteriler & Fırsatlar' (/app/crm) iki doğrudan giriş olarak ayrıştırıldı; GET /api/crm/leads üzerindeki Zod v4 integerQuery (.optional() eksikliği) nedeniyle oluşan 400 LEAD_PAGINATION_INVALID hatası kapatılarak /app/crm sayfasının 'CRM verileri yüklenemedi' uyarısı vermesi ve kayıtlı müşterileri gizlemesi kökten giderildi. 2) /app/clients ekranına tıklanabilir 6 aşamalı filtre kartları (Potansiyel, Görüşüldü, Teklifli, Pazarlık, Kazanıldı, Kaybedildi), sağdan açılan hızlı düzenleme/not çekmecesi (ClientQuickDrawer) ve tam kapsamlı Müşteri Detay & 6 Aşamalı Görüşme Zaman Tüneli sayfası (/app/clients/:id — ClientDetail.tsx) eklendi; /app/clients üzerindeki Potansiyel müşteriler /app/crm Lead Havuzu sekmesiyle senkronize edildi. 3) Müteahhitlerin farklı sütun düzenlerindeki Excel (.xlsx) ve CSV müşteri listelerini otomatik tanıyan 3 katmanlı Akıllı Müşteri Excel/CSV Adaptörü (client-excel-import.ts, client-xlsx.ts, ClientImportModal.tsx — 30 satır antet taraması, Ad+Soyad+Firma birleştirme, @ ve +90/05xx içerik sezgiseli, veri kayıpsız ekstra sütun not aktarımı ve indirilebilir .xlsx/.csv şablon + dışa aktarım) devreye alındı.",
           ],
         ],
       },
       {
         type: "p",
-        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 105 · Önceki Durum → Yeni Durum):",
+        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 106 · Önceki Durum → Yeni Durum):",
       },
       {
         type: "table",
@@ -1782,6 +1788,13 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "1) CalmIfcWorkspace.tsx 2.004 satırlık tek bir dosyada daire icmali adımını, KİK m.38 panelini, 4735/TÜİK eskalasyon panelini, ISO 19650 CDE panelini, kanıt kartını ve fiyatlandırma kancalarını bir arada tutuyordu. 2) GitHub Actions CI ortamında harici ALLPLAN-Eklentiler korpus klasörü bulunmadığından spreadsheet-parser.ts içindeki bazı arketip/CSV dalları ve Rev. 103'te eklenen TÜİK SDMX / sync-catalog admin rotaları T43 kapsam eşiğinin kıl payı altında kalıyordu.",
             "1) CalmIfcWorkspace.tsx 795 satıra indirildi; CalmApartmentsStep.tsx, CalmCostTools.tsx, CalmEscalationPanel.tsx, CalmIcmalEvidenceCard.tsx, CalmIsoCdePanel.tsx, CalmKikPanel.tsx, CalmPriceTable.tsx, CalmStepTabs.tsx, calm-format.ts, useCalmSessionInputs.ts, useCatalogPriceResolution.ts ve useTuikEscalation.ts ayrı modüllere ayrıldı (PR #31). 2) contractor-excel-corpus.test.ts sentetik testleri (formül/richText hücreleri, eski şablon profili geri dönüşü, tekrarlayan bloklarda boş poz/imalat alt grup başlıkları ve CSV parseDocument) ile spreadsheet-parser.ts satır kapsamı %97,33 seviyesine çıkarıldı; t43-route-ratchet.integration.test.ts içine sync-catalog ve TÜİK SDMX 2.1 senkronizasyon uç noktaları eklendi.",
             "src/components/smartcheck/CalmIfcWorkspace.tsx, src/components/smartcheck/CalmApartmentsStep.tsx, src/components/smartcheck/CalmCostTools.tsx, src/components/smartcheck/CalmEscalationPanel.tsx, src/components/smartcheck/CalmIcmalEvidenceCard.tsx, src/components/smartcheck/CalmIsoCdePanel.tsx, src/components/smartcheck/CalmKikPanel.tsx, src/components/smartcheck/CalmPriceTable.tsx, src/components/smartcheck/CalmStepTabs.tsx, src/components/smartcheck/calm-format.ts, src/components/smartcheck/useCalmSessionInputs.ts, src/components/smartcheck/useCatalogPriceResolution.ts, src/components/smartcheck/useTuikEscalation.ts, src/smartcheck/import/spreadsheet-parser.ts, src/smartcheck/import/contractor-excel-corpus.test.ts, src/server/routes/t43-route-ratchet.integration.test.ts",
+          ],
+          [
+            "Rev. 106 · 27 Ekim 2026 (Müşteriler & Fırsatlar Akışı, 6 Aşamalı Müşteri Zaman Tüneli ve 3 Katmanlı Akıllı Müşteri Excel/CSV Adaptörü)",
+            "Kullanıcı Deneyimi & Müteahhit Müşteri Portföy Yönetimi (Paket A)",
+            "1) Sol menüde yalnız /app/crm rotasına giden 'Müşteriler (CRM)' bağlantısı vardı; /app/clients doğrudan erişilemiyordu. 2) GET /api/crm/leads uç noktasındaki integerQuery şemasında Zod v4 .optional() eksik olduğu için parametresiz çağrıda 400 LEAD_PAGINATION_INVALID dönüyor, Promise.all yüzünden /app/crm 'CRM verileri yüklenemedi' hatasına düşüyor ve müşteri eklense bile 'Yeni fırsat' penceresinde 'Müşteri kaydı bulunamadı' görünüyordu. 3) /app/clients üzerinde eklenen bir müşterinin bilgileri düzenlenemiyor, 6 aşamaya (Potansiyel, Görüşüldü, Teklifli, Pazarlık, Kazanıldı, Kaybedildi) özel görüşme notu alınamıyor ve Excel/CSV ile toplu müşteri içe/dışa aktarımı yapılamıyordu.",
+            "1) Sol menüye 'Müşteriler' (/app/clients) ve 'Müşteriler & Fırsatlar' (/app/crm) eklendi; integerQuery düzeltilerek /api/crm/leads 400 hatası kapatıldı ve /app/crm üzerinde hızlı müşteri oluşturma ile Potansiyel müşteri → Lead Havuzu senkronizasyonu açıldı. 2) GET/PATCH /api/clients/:id, POST /api/clients/:id/notes ve POST /api/clients/bulk-import uç noktaları, ClientQuickDrawer ve tam kapsamlı Müşteri Detay & 6 Aşamalı Görüşme Zaman Tüneli (/app/clients/:id — ClientDetail.tsx) devreye alındı. 3) 3 katmanlı Akıllı Müşteri Excel/CSV Adaptörü (30 satır antet taraması, Ad+Soyad+Firma birleştirme, @ ve +90/05xx içerik sezgiseli, veri kayıpsız ekstra sütun not aktarımı, indirilebilir .xlsx/.csv şablon ve dışa aktarım) eklendi.",
+            "src/constants/navigation.tsx, src/components/tour/user-tour-steps.ts, src/services/crm/input.ts, src/server/routes/clients.ts, src/lib/client-notes.ts, src/lib/client-excel-import.ts, src/lib/client-xlsx.ts, src/components/clients/ClientImportModal.tsx, src/components/clients/ClientQuickDrawer.tsx, src/pages/Clients.tsx, src/pages/ClientDetail.tsx, src/pages/CRM.tsx, src/pages/CreateQuote.tsx, src/App.tsx",
           ],
         ],
       },

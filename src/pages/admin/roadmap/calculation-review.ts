@@ -1,9 +1,9 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-27.99",
+  version: "BIM-CALC-2026-10-27.100",
   updatedOn: "27 Ekim 2026",
-  implementationBaseline: "d93004cbd4f3be7a3e675fa02ab244fc0c2e0425",
-  approvalStatus: "Rev. 105 (CalmIfcWorkspace 2.004 satırdan 795 satıra modüler bölünmesi PR #31 ve T43 CI kapsam ratchet güçlendirmesi; hesap formülleri değişmedi), Rev. 104 (6 aşamalı güvenlik denetimi bulguları ve derinlemesine savunma sertleştirmesi: hakediş/fiyat istihbaratı/CDE maker-checker ve rol sınırları, Academy super-admin kapısı, IFC/PDF ayrıştırıcı bellek/döngü sınırları, alt süreç env izolasyonu ve DB rol ACL daraltması; hesap formülleri değişmedi), Rev. 103 (/admin/pricing-sources otomatik katalog tohumlama, yetki kanıtı zinciri, canlı crawler iyileştirmesi ve TÜİK Veri Portalı SDMX 2.1 entegrasyonu; hesap yöntemi değişmedi), Rev. 102 (4 katmanlı Akıllı Müteahhit Excel Adaptörü: düz icmal, katlara göre pivot, TOKİ tekrarlayan poz blokları, hibrit sayfa ve otomatik korpus tarayıcı; birim fiyat/tutar aritmetiği değişmedi), Rev. 101 (canlı üretim dağıtımı 0022..0029 + worker control-plane izolasyonu D12 ve canlı ifc-worker consumeIfcUsage kota tamamlama düzeltmesi D13; hesap yöntemi değişmedi), Rev. 100 (elle teklif satırı firma kataloğundaki onaylı fiyat kaydına bağlanabilir; tutar hesabı değişmedi), Rev. 99 (kamuya açık SmartCheck demosu yeniden sıralandı; hesap yöntemi değişmedi), Rev. 98 (arsa fizibilitesi ayrı ekranda, boş formda hata yok; hesap yöntemi değişmedi), Rev. 97 (teklif tablosu görünümü ve dosya bölünmesi; hesap yöntemi değişmedi), Rev. 96 (araç ve görünüm düzeni; hesap yöntemi değişmedi) ve Rev. 95; marka.md incelemesinden çıkan Faz 0 güven düzeltmelerini ve Faz 1 Excel önce / fiyat eksikliği / dışa aktarım dilimlerini kapsar. Hesap yöntemi değişiklikleri: teklif toplamlarına teklif düzeyinde müteahhitlik kârı ve genel gider payı (release 0029; satır neti üzerinden, KDV pay dahil matrah üzerinden), kârlılık hesabında bu payın gelir sayılması, IFC maliyet sekmesinde fiyatı eksik kalemin 0 TL yerine 'fiyat bekliyor' olarak toplam dışında tutulması ve icmal dışa aktarımında satır tutarının tam lira yerine kuruşa yuvarlanması. Doğrulama: 1515 testte 1500 PASS / 0 FAIL / 15 SKIP, kapsam kapısı geçti; gerçek tarayıcı smoke'ları scripts/faz0-trust-ui-smoke.ts, faz1-excel-flow-smoke.ts ve faz1-price-gap-smoke.ts. ÇŞB birim fiyatlarına %25 yüklenici kârı ve genel giderin dahil olduğu ÇŞB analizlerinden doğrulandı. Bu kayıt bağımsız uzman onayı veya L3 değildir; Faz 9 T50–T52 dış kabulleri açıktır.",
+  implementationBaseline: "3c84fe73506fbc4b2780828b715ae94d02282f13",
+  approvalStatus: "Rev. 106 (Müşteriler /app/clients, Müşteriler & Fırsatlar /app/crm, 6 aşamalı müşteri görüşme zaman tüneli /app/clients/:id, /api/crm/leads Zod v4 integerQuery düzeltmesi ve 3 katmanlı Akıllı Müşteri Excel/CSV Adaptörü; hesap formülleri değişmedi), Rev. 105 (CalmIfcWorkspace 2.004 satırdan 795 satıra modüler bölünmesi PR #31 ve T43 CI kapsam ratchet güçlendirmesi; hesap formülleri değişmedi), Rev. 104 (6 aşamalı güvenlik denetimi bulguları ve derinlemesine savunma sertleştirmesi: hakediş/fiyat istihbaratı/CDE maker-checker ve rol sınırları, Academy super-admin kapısı, IFC/PDF ayrıştırıcı bellek/döngü sınırları, alt süreç env izolasyonu ve DB rol ACL daraltması; hesap formülleri değişmedi), Rev. 103 (/admin/pricing-sources otomatik katalog tohumlama, yetki kanıtı zinciri, canlı crawler iyileştirmesi ve TÜİK Veri Portalı SDMX 2.1 entegrasyonu; hesap yöntemi değişmedi), Rev. 102 (4 katmanlı Akıllı Müteahhit Excel Adaptörü: düz icmal, katlara göre pivot, TOKİ tekrarlayan poz blokları, hibrit sayfa ve otomatik korpus tarayıcı; birim fiyat/tutar aritmetiği değişmedi), Rev. 101 (canlı üretim dağıtımı 0022..0029 + worker control-plane izolasyonu D12 ve canlı ifc-worker consumeIfcUsage kota tamamlama düzeltmesi D13; hesap yöntemi değişmedi), Rev. 100 (elle teklif satırı firma kataloğundaki onaylı fiyat kaydına bağlanabilir; tutar hesabı değişmedi), Rev. 99 (kamuya açık SmartCheck demosu yeniden sıralandı; hesap yöntemi değişmedi), Rev. 98 (arsa fizibilitesi ayrı ekranda, boş formda hata yok; hesap yöntemi değişmedi), Rev. 97 (teklif tablosu görünümü ve dosya bölünmesi; hesap yöntemi değişmedi), Rev. 96 (araç ve görünüm düzeni; hesap yöntemi değişmedi) ve Rev. 95; marka.md incelemesinden çıkan Faz 0 güven düzeltmelerini ve Faz 1 Excel önce / fiyat eksikliği / dışa aktarım dilimlerini kapsar. Hesap yöntemi değişiklikleri: teklif toplamlarına teklif düzeyinde müteahhitlik kârı ve genel gider payı (release 0029; satır neti üzerinden, KDV pay dahil matrah üzerinden), kârlılık hesabında bu payın gelir sayılması, IFC maliyet sekmesinde fiyatı eksik kalemin 0 TL yerine 'fiyat bekliyor' olarak toplam dışında tutulması ve icmal dışa aktarımında satır tutarının tam lira yerine kuruşa yuvarlanması. Doğrulama: 1515 testte 1500 PASS / 0 FAIL / 15 SKIP, kapsam kapısı geçti; gerçek tarayıcı smoke'ları scripts/faz0-trust-ui-smoke.ts, faz1-excel-flow-smoke.ts ve faz1-price-gap-smoke.ts. ÇŞB birim fiyatlarına %25 yüklenici kârı ve genel giderin dahil olduğu ÇŞB analizlerinden doğrulandı. Bu kayıt bağımsız uzman onayı veya L3 değildir; Faz 9 T50–T52 dış kabulleri açıktır.",
 };
 
 export interface ModuleRevisionNote {
@@ -2270,6 +2270,30 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
         before: "Rev. 103'te eklenen POST /api/admin/pricing-sources/sync-catalog, GET /api/admin/pricing-sources/tuik-sdmx/metadata ve POST /api/admin/pricing-sources/:id/sync-tuik-sdmx uç noktaları t43-route-ratchet.integration.test.ts içinde çağrılmıyordu.",
         after: "t43-route-ratchet.integration.test.ts içine sync-catalog, tuik-sdmx/metadata ve sync-tuik-sdmx (baseline_2026_catalog, sdmx_csv, sdmx_json ve live_nsiws doğrulamaları) eklendi.",
         basis: "Faz 7 T43 — coverage-thresholds.json HTTP API rotaları alt kapsam kapısı",
+      },
+    },
+  },
+  {
+    revision: "Rev. 106",
+    version: "BIM-CALC-2026-10-27.100",
+    date: "27 Ekim 2026",
+    commit: "3c84fe7",
+    trigger: "Müşteriler (/app/clients) & Fırsatlar (/app/crm) Akışı, 6 Aşamalı Görüşme Zaman Tüneli (/app/clients/:id) ve 3 Katmanlı Akıllı Müşteri Excel/CSV Adaptörü",
+    beforeSummary:
+      "Sol menüde /app/clients doğrudan erişilemiyordu; GET /api/crm/leads üzerindeki Zod v4 integerQuery (.optional() eksikliği) nedeniyle parametresiz çağrıda 400 LEAD_PAGINATION_INVALID dönüyor ve /app/crm 'CRM verileri yüklenemedi' uyarısı veriyordu; ayrıca /app/clients üzerinde eklenen bir müşterinin bilgileri düzenlenemiyor, 6 aşamaya (Potansiyel, Görüşüldü, Teklifli, Pazarlık, Kazanıldı, Kaybedildi) özel görüşme notu alınamıyor ve Excel/CSV ile müşteri içe/dışa aktarımı yapılamıyordu.",
+    afterSummary:
+      "Sol menüye 'Müşteriler' (/app/clients) ve 'Müşteriler & Fırsatlar' (/app/crm) eklendi; integerQuery düzeltilerek /api/crm/leads 400 hatası kapatıldı; /app/clients üzerinde 6 aşamalı filtre kartları, hızlı düzenleme çekmecesi (ClientQuickDrawer) ve tam kapsamlı Müşteri Detay & 6 Aşamalı Görüşme Zaman Tüneli (/app/clients/:id — ClientDetail.tsx) devreye alındı; Potansiyel müşteriler /app/crm Lead Havuzu ile senkronize edildi; 3 katmanlı Akıllı Müşteri Excel/CSV Adaptörü (client-excel-import.ts, client-xlsx.ts, ClientImportModal.tsx) eklendi. Hesap formülleri değişmedi.",
+    affectedModules: ["teklif-satir", "satir-dogrulama"],
+    moduleDetails: {
+      "teklif-satir": {
+        before: "Müşteri kartından (/app/clients veya /app/clients/:id) doğrudan müşteri seçili olarak yeni teklif ekranına (/app/quotes/new?clientId=...) geçiş bağlantısı yoktu.",
+        after: "Müşteri tablosu, hızlı çekmece ve müşteri detay sayfasından tek tıkla '/app/quotes/new?clientId=...' rotasına geçiş ve CreateQuote içinde otomatik müşteri seçimi bağlandı; teklif kalem ve toplam aritmetiği değişmedi.",
+        basis: "Müteahhit müşteri-fırsat-teklif akışı bütünlüğü (Paket A)",
+      },
+      "satir-dogrulama": {
+        before: "Farklı sütun düzenlerindeki müteahhit müşteri Excel/CSV listelerini tanıyan bir adaptör yoktu ve GET /api/crm/leads parametresiz çağrıda Zod v4 integerQuery hatası veriyordu.",
+        after: "3 katmanlı Akıllı Müşteri Excel/CSV Adaptörü (30 satır antet taraması, Ad+Soyad+Firma birleştirme, @ ve +90/05xx içerik sezgiseli, veri kayıpsız ekstra sütun not aktarımı) ve integerQuery .optional() düzeltmesi eklendi.",
+        basis: "src/lib/client-excel-import.test.ts (4/4 PASS) & src/server/routes/crm.leads.test.ts (4/4 PASS)",
       },
     },
   },

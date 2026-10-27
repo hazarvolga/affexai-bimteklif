@@ -91,9 +91,17 @@ export const USER_TOUR_STEPS: readonly TourStep[] = [
     tip: "Yapısal elemanlar malzemesine göre icmale girer; icmale girmeyenlerin miktarı 'fiyatlandırılmadı' olarak gösterilir, hiçbir değer varsayılmaz.",
   },
   {
+    route: "/app/clients",
+    pageLabel: "Müşteriler",
+    badge: "MÜŞTERİ REHBERİ",
+    title: "Müşteriler ve Aşama Notları",
+    description:
+      "Müşteri ve işveren kayıtlarınızı oluşturun, Excel veya CSV listelerinizi içe ve dışa aktarın ve 6 satış aşaması için zaman tünelli görüşme notları tutun.",
+  },
+  {
     route: "/app/crm",
-    pageLabel: "Müşteriler (CRM)",
-    badge: "MÜŞTERİLER",
+    pageLabel: "Müşteriler & Fırsatlar",
+    badge: "FIRSAT PIPELINE",
     title: "Müşteriler ve Fırsatlar",
     description:
       "Müşterilerinizi ve teklif fırsatlarını aşama aşama takip edin; notlar ve aşama değişiklikleri fırsatın geçmişinde tutulur.",

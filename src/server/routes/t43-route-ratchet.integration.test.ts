@@ -566,6 +566,29 @@ test("T43 R+1 route coverage ratchet: admin, pricing-file-import, academy, billi
   assert.equal(listClientsRes.status, 200);
   assert.equal(listClientsRes.json.length, 1);
 
+  const clientDetailRes = await reqJson("GET", `/api/clients/${clientId}`, ownerToken);
+  assert.equal(clientDetailRes.status, 200);
+
+  const updateClientRes = await reqJson("PATCH", `/api/clients/${clientId}`, ownerToken, {
+    pipelineStage: "contacted",
+    stageNote: { stage: "contacted", content: "İlk keşif toplantısı yapıldı." },
+  });
+  assert.equal(updateClientRes.status, 200);
+
+  const addClientNoteRes = await reqJson("POST", `/api/clients/${clientId}/notes`, ownerToken, {
+    stage: "quotation_sent",
+    content: "Birim fiyat icmali paylaşıldı.",
+    updatePipelineStage: true,
+  });
+  assert.equal(addClientNoteRes.status, 201);
+
+  const bulkClientsRes = await reqJson("POST", "/api/clients/bulk-import", ownerToken, {
+    duplicateStrategy: "update",
+    clients: [{ name: "T43 İşveren İnşaat A.Ş.", email: `client-${suffix}@example.test`, pipelineStage: "negotiation", notes: "Revize pazarlık notu" }],
+  });
+  assert.equal(bulkClientsRes.status, 200);
+  assert.equal(bulkClientsRes.json.updatedCount, 1);
+
   const createQuoteRes = await reqJson("POST", "/api/quotations", ownerToken, {
     clientId,
     quoteNumber: `TEK-T43-${suffix}`,

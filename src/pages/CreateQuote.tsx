@@ -86,7 +86,7 @@ export function CreateQuote() {
   const [importingFile, setImportingFile] = useState(false);
 
   const [formData, setFormData] = useState({
-    clientId: '',
+    clientId: searchParams.get('clientId') || '',
     projectName: '',
     quoteNumber: `TKF-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`,
     date: new Date().toISOString().split('T')[0],

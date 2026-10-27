@@ -52,6 +52,7 @@ const Quotes = page(() => import('@/pages/Quotes'), 'Quotes');
 const CreateQuote = page(() => import('@/pages/CreateQuote'), 'CreateQuote');
 const QuoteDetail = page(() => import('@/pages/QuoteDetail'), 'QuoteDetail');
 const Clients = page(() => import('@/pages/Clients'), 'Clients');
+const ClientDetail = page(() => import('@/pages/ClientDetail'), 'ClientDetail');
 const Settings = page(() => import('@/pages/Settings'), 'Settings');
 const Regulations = page(() => import('@/pages/Regulations'), 'Regulations');
 const MarketIntelligence = page(() => import('@/pages/MarketIntelligence'), 'MarketIntelligence');
@@ -165,6 +166,7 @@ function AppRoutes() {
           <Route path="quotes/:id" element={<QuoteDetail />} />
           <Route path="progress-payments" element={<ProgressPayments />} />
           <Route path="clients" element={<Clients />} />
+          <Route path="clients/:id" element={<ClientDetail />} />
           <Route path="regulations" element={<Regulations />} />
           <Route path="fiyat-katalogu" element={<PriceCatalog />} />
           <Route path="arsa-fizibilitesi" element={<ParcelFeasibility />} />

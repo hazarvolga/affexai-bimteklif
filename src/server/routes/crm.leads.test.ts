@@ -33,11 +33,15 @@ test("lead routes retain auth/mutation gates and delegate sanitized data to the 
   const listed = response();
   await get.at(-1)!({ user: actor, query: { limit: "2", offset: "3" } }, listed, assert.fail);
   assert.deepEqual(listed.body, [{ id: "lead-a" }]);
+  const defaultListed = response();
+  await get.at(-1)!({ user: actor, query: {} }, defaultListed, assert.fail);
+  assert.deepEqual(defaultListed.body, [{ id: "lead-a" }]);
   const created = response();
   await post.at(-1)!({ user: actor, body: { name: "  Ada  ", email: "", phone: " 555 ", source: null } }, created, assert.fail);
   assert.equal(created.statusCode, 201);
   assert.deepEqual(calls, [
     ["list", actor, { limit: 2, offset: 3 }],
+    ["list", actor, { limit: 100, offset: 0 }],
     ["create", actor, { name: "Ada", email: null, phone: "555", source: null }],
   ]);
 });

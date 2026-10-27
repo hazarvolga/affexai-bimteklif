@@ -72,9 +72,16 @@ export const navigationConfig: NavItem[] = [
     group: "Ana Menü" as const,
   }] : []),
   {
-    label: "Müşteriler (CRM)",
-    path: "/app/crm",
+    label: "Müşteriler",
+    path: "/app/clients",
     icon: Users,
+    roles: ["owner", "admin", "manager", "viewer"],
+    group: "Ana Menü",
+  },
+  {
+    label: "Müşteriler & Fırsatlar",
+    path: "/app/crm",
+    icon: Briefcase,
     roles: ["owner", "admin", "manager", "viewer"],
     group: "Ana Menü",
   },

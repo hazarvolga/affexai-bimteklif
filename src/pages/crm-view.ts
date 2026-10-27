@@ -8,7 +8,7 @@ export const stages = [
 export interface Deal {
   id: string; name: string; stage: string; value: string | null;
   probability: string | null; riskLevel: string | null; aiInsights: string | null;
-  quotationId: string | null;
+  quotationId: string | null; clientId?: string | null;
 }
 export interface Activity { id: string; type: string; description: string; createdAt: string }
 export async function crmRequest<T>(path: string, options?: RequestInit): Promise<T> {

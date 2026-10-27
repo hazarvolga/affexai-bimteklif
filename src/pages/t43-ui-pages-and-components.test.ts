@@ -871,27 +871,39 @@ globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit): Promis
       },
     });
   }
-  if (path === '/api/clients') {
+  if (path === '/api/clients' || path.startsWith('/api/clients/')) {
+    const mockClient1 = {
+      id: 'client-1',
+      name: 'Anadolu Yapı Yatırım A.Ş.',
+      type: 'company',
+      contactPerson: 'Murat Kaya',
+      email: 'murat@anadoluyapi.com.tr',
+      phone: '+90 212 444 0900',
+      address: 'Levent / İstanbul',
+      pipelineStage: 'quotation_sent',
+      notes: '[[STAGE_NOTE|stage=quotation_sent|at=2026-10-27T10:00:00Z|id=n-1]] Teklif sunuldu, revize bekleniyor.',
+      estimatedValue: 3360000,
+      createdAt: '2026-05-10T10:00:00Z',
+      deals: [{ id: 'deal-1', name: 'Kadıköy Konut İhalesi', stage: 'quotation_sent', value: '3360000' }],
+      quotations: [{ id: 'quote-1', quoteNumber: 'TKF-2026-001', projectName: 'Kadıköy B Blok', grandTotal: 3360000, currency: 'TRY' }],
+    };
+    if (path === '/api/clients/bulk-import') {
+      return jsonResponse({ importedCount: 2, createdCount: 2, updatedCount: 0, skippedCount: 0, clients: [mockClient1] });
+    }
+    if (path.startsWith('/api/clients/client-1')) {
+      return jsonResponse(mockClient1);
+    }
     return jsonResponse([
-      {
-        id: 'client-1',
-        name: 'Anadolu Yapı Yatırım A.Ş.',
-        contactPerson: 'Murat Kaya',
-        email: 'murat@anadoluyapi.com.tr',
-        phone: '+90 212 444 0900',
-        address: 'Levent / İstanbul',
-        pipelineStage: 'proposal',
-        estimatedValue: 3360000,
-        createdAt: '2026-05-10T10:00:00Z',
-      },
+      mockClient1,
       {
         id: 'client-2',
         name: 'Marmara Gayrimenkul GYO',
+        type: 'company',
         contactPerson: 'Selin Demir',
         email: 'selin@marmaragyo.com.tr',
         phone: '+90 216 333 0800',
         address: 'Ataşehir / İstanbul',
-        pipelineStage: 'won',
+        pipelineStage: 'lead',
         estimatedValue: 5040000,
         createdAt: '2026-06-12T10:00:00Z',
       },
@@ -1540,6 +1552,9 @@ import { Billing } from '@/pages/Billing';
 import { Settings } from '@/pages/Settings';
 import { Dashboard } from '@/pages/Dashboard';
 import { Clients, normalizePipelineStage } from '@/pages/Clients';
+import { ClientDetail } from '@/pages/ClientDetail';
+import { ClientImportModal } from '@/components/clients/ClientImportModal';
+import { ClientQuickDrawer } from '@/components/clients/ClientQuickDrawer';
 import { CRM } from '@/pages/CRM';
 import { DealDetail } from '@/pages/DealDetail';
 import { Profitability } from '@/pages/Profitability';
@@ -1956,12 +1971,60 @@ test('T43 UI Slice 2: Çalışma alanı ve ticari sayfalar (CreateQuote, Quotes,
     '/app/clients',
     '/app/clients',
     async (container) => {
-      clickButtonsByText(container, ['Yeni Müşteri', 'Kaydet']);
+      clickButtonsByText(container, ['Potansiyel', 'Düzenle / Not', 'Excel / CSV İçe Aktar', 'Yeni Müşteri', 'Kaydet']);
     },
   );
   assert.ok(clientsHtml.length > 200);
 
-  const crmHtml = await renderInRouter(createElement(CRM), '/app/crm', '/app/crm');
+  const clientDetailHtml = await renderInRouter(
+    createElement(ClientDetail),
+    '/app/clients/:id',
+    '/app/clients/client-1',
+    async (container) => {
+      clickButtonsByText(container, ['Görüşüldü', 'Fırsat Aç', 'Notu Kaydet', 'Değişiklikleri Kaydet']);
+    },
+  );
+  assert.ok(clientDetailHtml.length > 200);
+
+  await renderInRouter(
+    createElement(ClientImportModal, { open: true, onOpenChange: () => {}, onImported: () => {} }),
+    '/app/clients',
+    '/app/clients',
+  );
+
+  await renderInRouter(
+    createElement(ClientQuickDrawer, {
+      open: true,
+      client: {
+        id: 'client-1',
+        companyId: 'comp-1',
+        name: 'Anadolu Yapı Yatırım A.Ş.',
+        type: 'company',
+        email: 'murat@anadoluyapi.com.tr',
+        phone: '+90 212 444 0900',
+        address: 'Levent / İstanbul',
+        pipelineStage: 'quotation_sent' as any,
+        notes: '[[STAGE_NOTE|stage=quotation_sent|at=2026-10-27T10:00:00Z|id=n-1]] Teklif sunuldu.',
+        createdAt: Date.now(),
+      },
+      onOpenChange: () => {},
+      onUpdated: () => {},
+    }),
+    '/app/clients',
+    '/app/clients',
+    async () => {
+      clickButtonsByText(document.body, ['Pazarlık', 'Kaydet']);
+    },
+  );
+
+  const crmHtml = await renderInRouter(
+    createElement(CRM),
+    '/app/crm',
+    '/app/crm',
+    async (container) => {
+      clickButtonsByText(container, ['Lead havuzu', 'Fırsatlar', 'Yeni fırsat']);
+    },
+  );
   assert.ok(crmHtml.length > 200);
 
   const dealDetailHtml = await renderInRouter(createElement(DealDetail), '/app/crm/:id', '/app/crm/deal-1');
