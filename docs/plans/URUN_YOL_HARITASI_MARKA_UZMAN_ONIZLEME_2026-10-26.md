@@ -157,6 +157,21 @@ Süreler (`marka.md` §23.2) yerelde ölçülür ve kaydedilir.
 - **M-15.2 kapandı:** `dosyadan-teklif-demo` sayfası (sabit beton 2.450, donatı 24.500, kalıp 1.250 TL) kaldırıldı. Eski adres `/app/smartcheck`'e yönlenir.
 - **Kanıt:** `export-xlsx.test.ts`. Gerçek tarayıcıda `faz1-price-gap-smoke.ts` icmal ve teklif dosyalarını indirip toplamları doğrular (teklif dosyası 102.396,00 TL, PDF ile aynı). `faz1-excel-flow-smoke.ts` yönlendirmeyi doğrular.
 
+### Faz 1 durumu — teklif tablosu ve CreateQuote bölünmesi (27 Ekim 2026, dal `feat/faz1-teklif-tablosu`)
+
+- **#26** `main`'e birleştirildi (`03d41a1`).
+- **M-12.5 kapandı:** Teklif kalemleri tablosu varsayılan olarak "Temel" görünümde açılır.
+  - Temel görünümde beş sütun var: İş Kalemi, Birim, Miktar, Birim Fiyat, Tutar.
+  - Kategori, maliyet fiyatı, zayiat, iskonto ve KDV satırın "Ayrıntı" bölümünde açılır.
+  - Maliyet girilmemişse düğme "Maliyet eksik" yazar. İskonto varsa tutarın altında görünür.
+  - "Ayrıntılı" görünüm bütün sütunları tek tabloda gösterir; seçim tarayıcıda hatırlanır.
+- **C-5 (CreateQuote) kapandı:** `CreateQuote.tsx` 1.195 satırdan 711 satıra indi. Ayrılan bileşenler (`src/components/quote/`):
+  - `QuoteItemsTable` (tablo),
+  - `QuoteSidebar` (genel bilgiler, Gelişmiş, özet kartı),
+  - `BenchmarkPanel` (platform rayiç havuzu),
+  - `QuoteAiWizard` (AI taslak sihirbazı).
+- **Kanıt:** `quote-items-table-ui.test.ts`, t43 render testleri. Gerçek tarayıcıda `faz1-excel-flow-smoke.ts` temel görünümü, satır ayrıntısını ve ayrıntılı görünüme geçişi doğrular. Smoke ekran görüntüsünde satır ayrıntısındaki etiket ve kutuların üst üste bindiği yakalanıp düzeltildi.
+
 ### Faz 1 durumu — proje türü araçları ve gelişmiş görünüm (27 Ekim 2026, dal `feat/faz1-proje-turu`)
 
 - **PR zinciri #21–#25** 27 Ekim'de `main`'e birleştirildi (`78bf661`). Canlıya alınmadı.
