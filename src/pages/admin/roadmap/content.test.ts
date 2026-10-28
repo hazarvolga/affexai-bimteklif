@@ -72,8 +72,8 @@ test("roadmap covers the agreed topics, ministry questions and official sources"
 
 
 test("Rev. 112 documents Phase 0 without claiming production or independent expert approval", () => {
-  assert.equal(CALC_REVIEW_META.version, "BIM-CALC-2026-10-28.110");
-  assert.equal(CALC_REVIEW_CHANGELOG.at(-1)?.revision, "Rev. 116");
+  assert.equal(CALC_REVIEW_META.version, "BIM-CALC-2026-10-28.111");
+  assert.equal(CALC_REVIEW_CHANGELOG.at(-1)?.revision, "Rev. 117");
   const revisions = CALC_REVIEW_CHANGELOG.map(item => Number(item.revision.match(/Rev\. (\d+)/)?.[1]));
   assert.ok(revisions.every((value, index) => index === 0 || value > revisions[index - 1]), "calculation revisions must be strictly increasing");
   const kik = CALC_REVIEW_CHANGELOG.find(item => item.revision === "Rev. 112")?.moduleDetails?.["kik-adt"];
@@ -85,7 +85,7 @@ test("Rev. 112 documents Phase 0 without claiming production or independent expe
   for (const [index, table] of tables.entries()) {
     if (table.type !== "table") continue;
     const numbers = table.rows.map(row => Number(row[0].match(/Rev\. (\d+)/)?.[1]));
-    assert.equal(numbers.at(-1), 116);
+    assert.equal(numbers.at(-1), 117);
     assert.ok(numbers.every((value, rowIndex) => rowIndex === 0 || (index === 0 ? value > numbers[rowIndex - 1] : value >= numbers[rowIndex - 1])), "roadmap revisions must be ordered");
   }
 });
@@ -167,4 +167,14 @@ test("Rev. 116 describes operational limits and leaves external acceptance open"
   assert.match(revision.afterSummary, /saat dilimi bilinmiyor/);
   assert.match(revision.afterSummary, /cursor mikro saniyeyi korur/);
   assert.match(revision.moduleDetails.kota.after, /kota hesaplama yöntemi/);
+});
+
+test("Rev. 117 records Phase 4 scope and acceptance limits", () => {
+  const revision = CALC_REVIEW_CHANGELOG.find(item => item.revision === "Rev. 117")!;
+  assert.ok(revision);
+  for (const module of ["teklif-satir", "ifc-teklif-aktarim", "fiyat-eslestirme"]) {
+    const detail = revision.moduleDetails?.[module];
+    assert.ok(detail?.before && detail?.after && detail?.basis, module);
+  }
+  for (const term of [/1\.000/, /offset/, /400/, /sentetik/, /canlı/, /uzman/, /arayüz/]) assert.match(revision.afterSummary, term);
 });

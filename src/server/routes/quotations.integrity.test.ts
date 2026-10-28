@@ -55,6 +55,12 @@ test("quotation integrity against isolated PostgreSQL", { timeout: 30_000 }, asy
   const itemsFor = (id: string) => db.select().from(quotationItems).where(eq(quotationItems.quotationId, id));
   const series = (id: string) => db.select().from(quotations).where(and(eq(quotations.companyId, company.id), or(eq(quotations.id, id), eq(quotations.parentId, id))));
   const evidenceFor = (id: string) => db.select().from(quotationItemEvidence).where(eq(quotationItemEvidence.quotationId, id));
+  await t.test('quotation pagination uses ID to break identical creation-time ties', async () => {
+    const ids = ["00000000-0000-4000-8000-000000000001", "00000000-0000-4000-8000-000000000002", "00000000-0000-4000-8000-000000000003"];
+    await db.insert(quotations).values(ids.map((id) => ({ id, companyId: company.id, clientId: client.id, quoteNumber: id, projectName: 'Tie', date: new Date('2026-01-01'), expiryDate: new Date('2026-12-01'), createdAt: new Date('2099-01-01'), subtotal: '0', discountTotal: '0', vatTotal: '0', grandTotal: '0' })));
+    const readPage = async (offset: number) => { const res = { statusCode: 200, body: [] as any[], status(code:number) {this.statusCode=code;return this}, json(value:any) {this.body=value;return this} }; await routes.get('get /api/quotations')!({ query: {limit:'1',offset:String(offset)}, user:{companyId:company.id,userId:actorUserId} },res); assert.equal(res.statusCode,200); return res.body[0].id; };
+    assert.deepEqual(await Promise.all([readPage(0), readPage(1), readPage(2)]), [...ids].reverse());
+  });
   await t.test('quotation creation writes an audit for its tenant member', async () => {
     const response = await create();
     assert.equal(response.statusCode, 200);

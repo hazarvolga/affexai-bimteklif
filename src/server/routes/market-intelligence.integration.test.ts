@@ -118,6 +118,20 @@ test("supplier quote market intelligence is review-gated, outlier-aware, and ten
     assert.equal(detailBody.status, "approved");
     assert.equal(detailBody.entries[0].outlierStatus, "outlier");
     assert.ok(detailBody.entries[0].priceSnapshotId);
+    for (const query of ['', '?positionCode=M-001', '?unit=adet']) {
+      const unscoped = await request(`/api/market-intelligence/price-memory${query}`);
+      assert.equal(unscoped.status, 400);
+      assert.equal((await unscoped.json() as { code: string }).code, 'PRICE_MEMORY_SCOPE_REQUIRED');
+    }
+    for (const [code, unit, amount] of [['M-002', 'adet', 10000], ['M-001', 'm2', 8000]] as const) {
+      await db.insert(schema.priceSnapshots).values({ companyId: companyA.id, priceSourceId: baselineSource.id, snapshotKey: buildPriceSnapshotKey({ sourceDocumentHash: baselineSource.sourceDocumentHash, positionCode: code, description: 'Farklı malzeme', unit, amount, currency: 'TRY', capturedAt: new Date('2026-07-20T00:00:00Z') }), positionCode: code, description: 'Farklı malzeme', unit, amount: String(amount), currency: 'TRY', region: 'Ankara', capturedAt: new Date('2026-07-20T00:00:00Z'), sourceDocumentHash: baselineSource.sourceDocumentHash, confidence: '0.9', reviewStatus: 'approved' });
+    }
+    const scoped = await request('/api/market-intelligence/price-memory?positionCode=M-001&unit=adet');
+    const scopedBody = await scoped.json() as { summary: { count: number; median: number } };
+    assert.equal(scopedBody.summary.count, 5);
+    assert.equal(scopedBody.summary.median, 101);
+    const emptyTenant = await request('/api/market-intelligence/price-memory?positionCode=M-001&unit=adet', {}, tokenB);
+    assert.equal((await emptyTenant.json() as { summary: { count: number; median: null } }).summary.count, 0);
     const memory = await request("/api/market-intelligence/price-memory?positionCode=M-001&unit=adet&region=%C4%B0stanbul");
     assert.equal(memory.status, 200);
     assert.equal((await memory.json() as { summary: { count: number; median: number } }).summary.count, 5);

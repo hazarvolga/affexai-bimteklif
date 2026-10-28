@@ -1140,8 +1140,8 @@
     "semantic_hash": ""
   },
   "src/components/smartcheck/SmartCheckImportWorkspace.tsx": {
-    "mtime": 1793200428.537709,
-    "ast_hash": "c4b241b4c480106b8baa3091e0eb130f",
+    "mtime": 1793204035.6219134,
+    "ast_hash": "bce29127631a91315609944fee5e2237",
     "semantic_hash": ""
   },
   "src/components/smartcheck/SourceIntelligencePanel.tsx": {
@@ -1455,13 +1455,13 @@
     "semantic_hash": ""
   },
   "src/pages/CreateQuote.tsx": {
-    "mtime": 1793198530.0977952,
-    "ast_hash": "9c474d260ec823b29f94bf58ca355a41",
+    "mtime": 1793203782.6119854,
+    "ast_hash": "c271f9c707d2edfcca11c2973b3d2a59",
     "semantic_hash": ""
   },
   "src/pages/Dashboard.tsx": {
-    "mtime": 1793197173.473581,
-    "ast_hash": "c325444185a2a75851680ab431e24815",
+    "mtime": 1793203406.9111576,
+    "ast_hash": "ba6355a1038737c8f163918037de1d3b",
     "semantic_hash": ""
   },
   "src/pages/DealDetail.tsx": {
@@ -1490,8 +1490,8 @@
     "semantic_hash": ""
   },
   "src/pages/MarketIntelligence.tsx": {
-    "mtime": 1793197173.475139,
-    "ast_hash": "125fcbb5b567c0fd050356bcb160c98b",
+    "mtime": 1793203883.682512,
+    "ast_hash": "50fbd0c41b3f0b0b814fa451688be2f8",
     "semantic_hash": ""
   },
   "src/pages/PasswordRecovery.tsx": {
@@ -1685,13 +1685,13 @@
     "semantic_hash": ""
   },
   "src/server/routes/market-intelligence.integration.test.ts": {
-    "mtime": 1793199784.6293163,
-    "ast_hash": "4788b2beac3b8ca535b78bb5ea6130ea",
+    "mtime": 1793203263.534147,
+    "ast_hash": "b54adb0b2874eb9813946e728cb5b970",
     "semantic_hash": ""
   },
   "src/server/routes/market-intelligence.ts": {
-    "mtime": 1793201019.3665972,
-    "ast_hash": "7ce53448db379fcf116894c64f04843d",
+    "mtime": 1793203304.1927302,
+    "ast_hash": "4406f2d8ad11f8bdc3a8dbfa946e7fa0",
     "semantic_hash": ""
   },
   "src/server/routes/pilot-evidence.integration.test.ts": {
@@ -1725,8 +1725,8 @@
     "semantic_hash": ""
   },
   "src/server/routes/quotations.ts": {
-    "mtime": 1793201019.3682494,
-    "ast_hash": "b472789b23b98dec3fe6594eb6ff4f37",
+    "mtime": 1793203625.2191157,
+    "ast_hash": "a5cf4d03e6ff2e7b6840c7324c4c5442",
     "semantic_hash": ""
   },
   "src/server/routes/regulation-impact.integration.test.ts": {
@@ -4760,8 +4760,8 @@
     "semantic_hash": ""
   },
   "src/server/routes/quotations.integrity.test.ts": {
-    "mtime": 1793201294.886861,
-    "ast_hash": "d9db0a18a93d784ce8093ae3012344d3",
+    "mtime": 1793203591.4456067,
+    "ast_hash": "8a53bee21b62c6865afd2197be49e36b",
     "semantic_hash": ""
   },
   "src/services/billing/limits.ts": {
@@ -5835,13 +5835,13 @@
     "semantic_hash": ""
   },
   "src/pages/admin/roadmap/calculation-content.ts": {
-    "mtime": 1793202969.4254057,
-    "ast_hash": "4762650417592fe347f9777af2f41aee",
+    "mtime": 1793203790.5539865,
+    "ast_hash": "bf7591e8d819f20cd53caec5247ec830",
     "semantic_hash": ""
   },
   "src/pages/admin/roadmap/content.test.ts": {
-    "mtime": 1793202969.4255233,
-    "ast_hash": "890a64dfd6c1797f8a4c7a94d316b464",
+    "mtime": 1793203807.0645008,
+    "ast_hash": "9064945c2c651f04a58dac2d3863fd61",
     "semantic_hash": ""
   },
   "src/pages/admin/roadmap/doc-types.ts": {
@@ -5850,8 +5850,8 @@
     "semantic_hash": ""
   },
   "src/pages/admin/roadmap/roadmap-content.ts": {
-    "mtime": 1793202969.4238892,
-    "ast_hash": "273436c68309c61781409f5111724d10",
+    "mtime": 1793203807.0642858,
+    "ast_hash": "25ff14f259f5a4938b38f25aa7371260",
     "semantic_hash": ""
   },
   "src/server/observability/error-tracking.test.ts": {
@@ -6110,8 +6110,8 @@
     "semantic_hash": ""
   },
   "src/pages/admin/roadmap/calculation-review.ts": {
-    "mtime": 1793202969.425058,
-    "ast_hash": "0790d77d8add0d142405da93c931b554",
+    "mtime": 1793203790.5536747,
+    "ast_hash": "4d05273bc4fd643814b7370ce864be91",
     "semantic_hash": ""
   },
   "src/smartcheck/rules/minha.test.ts": {
@@ -7900,8 +7900,8 @@
     "semantic_hash": ""
   },
   "src/pages/t43-ui-pages-and-components.test.ts": {
-    "mtime": 1793197202.4317036,
-    "ast_hash": "e72e6dcb1f4f1b311c25aeeae9543830",
+    "mtime": 1793203417.4053497,
+    "ast_hash": "f9d75b42917a3d2f30237321c2379566",
     "semantic_hash": ""
   },
   "src/server/config/performance-budgets.ts": {
@@ -8777,6 +8777,51 @@
   "src/smartcheck/import/process-heartbeat.ts": {
     "mtime": 1793202380.1815684,
     "ast_hash": "05b98b02e9f8b8af0174487a939bc5c4",
+    "semantic_hash": ""
+  },
+  "scripts/market-memory-ui-smoke.ts": {
+    "mtime": 1793203703.234643,
+    "ast_hash": "321cba1e2b12ed7340ce1e8fb0430518",
+    "semantic_hash": ""
+  },
+  "src/components/smartcheck/import-progress.test.ts": {
+    "mtime": 1793203293.7668445,
+    "ast_hash": "b6be9c94678786ab9426c74652756010",
+    "semantic_hash": ""
+  },
+  "src/components/smartcheck/import-progress.ts": {
+    "mtime": 1793203303.1402907,
+    "ast_hash": "4ca5a10f6030466b519673066355779b",
+    "semantic_hash": ""
+  },
+  "src/components/smartcheck/request-guard.test.ts": {
+    "mtime": 1793204026.65123,
+    "ast_hash": "8d500b0820efbc5e81ec9127be6fed01",
+    "semantic_hash": ""
+  },
+  "src/components/smartcheck/request-guard.ts": {
+    "mtime": 1793204035.6215963,
+    "ast_hash": "cd53520c62c8f5db86db164b46d7462b",
+    "semantic_hash": ""
+  },
+  "src/pages/dashboard-summary.test.ts": {
+    "mtime": 1793203378.3027565,
+    "ast_hash": "b6453addf98e991c73024b8d06278dcd",
+    "semantic_hash": ""
+  },
+  "src/pages/dashboard-summary.ts": {
+    "mtime": 1793203308.3221276,
+    "ast_hash": "8f040d8dadd091e21a225e87b851fd17",
+    "semantic_hash": ""
+  },
+  "src/pages/quote-demo-replacement.test.ts": {
+    "mtime": 1793203779.4360275,
+    "ast_hash": "39d53719fbf7d5a71d77a19b6662a1dc",
+    "semantic_hash": ""
+  },
+  "src/pages/quote-demo-replacement.ts": {
+    "mtime": 1793203652.5803404,
+    "ast_hash": "e24cd9f1541d4e7a38397cc30245eaf8",
     "semantic_hash": ""
   }
 }

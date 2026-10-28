@@ -67,7 +67,7 @@ export function registerQuotationRoutes(app: Express, canMutate: any) {
       const allQuotes = await withAppTenant(tenantOf(req.user), (tenantDb) => tenantDb.select()
         .from(quotations)
         .where(and(eq(quotations.isLatest, true), eq(quotations.companyId, req.user.companyId)))
-        .orderBy(desc(quotations.createdAt))
+        .orderBy(desc(quotations.createdAt), desc(quotations.id))
         .limit(limit)
         .offset(offset));
       res.json(allQuotes);

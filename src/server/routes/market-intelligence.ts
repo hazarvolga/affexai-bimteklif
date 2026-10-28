@@ -303,6 +303,7 @@ export function registerMarketIntelligenceRoutes(app: Express) {
     const positionCode = textValue(req.query.positionCode, 120) || null;
     const unit = textValue(req.query.unit, 40) || null;
     const region = textValue(req.query.region, 120) || null;
+    if (!positionCode || !unit) return res.status(400).json({ error: "Fiyat karşılaştırması için poz kodu ve birim zorunludur.", code: "PRICE_MEMORY_SCOPE_REQUIRED" });
     const conditions = [eq(priceSnapshots.companyId, req.user.companyId), eq(priceSnapshots.reviewStatus, "approved"), eq(priceSnapshots.currency, currency as "TRY" | "USD" | "EUR"), inArray(priceSources.sourceType, ["supplier_quote", "company_actual"] as string[])];
     if (positionCode) conditions.push(eq(priceSnapshots.positionCode, positionCode));
     if (unit) conditions.push(eq(priceSnapshots.unit, unit));

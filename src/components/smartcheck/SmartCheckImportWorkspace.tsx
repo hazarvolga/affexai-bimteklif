@@ -8,6 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Link, useSearchParams } from "react-router-dom";
 import { ALL_MAPPING_PROFILES, getMappingProfile, MEP_MAPPING_PROFILES, type SmartCheckMappingProfile } from "@/smartcheck/import/mapping-profiles";
 import { EpysPreflightPanel } from "./EpysPreflightPanel";
+import { createDocumentRequestGuard, readPollingStatus } from "./request-guard";
+import { emptyImportMessage, type ImportState } from "./import-progress";
 import { PdfPreflightPanel } from "./PdfPreflightPanel";
 import { CalmIfcWorkspace } from "./CalmIfcWorkspace";
 import { RevitPreUploadChecklistPanel } from "./AuthoringAdvisoryBanner";
@@ -168,6 +170,7 @@ export function SmartCheckImportWorkspace() {
   const [reportRefreshKey, setReportRefreshKey] = useState(0);
   const [documentId, setDocumentId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [importState, setImportState] = useState<ImportState>("idle");
   const [stage, setStage] = useState("Dosya bekleniyor");
   const [rows, setRows] = useState<Row[]>([]);
   const [preview, setPreview] = useState<DocumentPreview | null>(null);
@@ -216,6 +219,8 @@ export function SmartCheckImportWorkspace() {
   const [pilotMeta, setPilotMeta] = useState({ pilotId: "", customerReference: "", projectReference: "", permissionReference: "", permissionGrantedAt: new Date().toISOString().slice(0, 10), retentionUntil: "", expectedRowCount: "0" });
   const polling = useRef<number | null>(null);
   const pollInFlight = useRef(false);
+  const documentGuard = useRef(createDocumentRequestGuard());
+  const [pollError, setPollError] = useState(false);
   const isIfcFile = isIfcSmartCheckFile(file) || Boolean(openedFileName?.toLocaleLowerCase("tr-TR").endsWith(".ifc"));
   const isPdfFile = isPdfSmartCheckFile(file) || Boolean(openedFileName?.toLocaleLowerCase("tr-TR").endsWith(".pdf"));
   const reviewedRows = rows.filter((row) => row.reviewStatus === "approved" || row.reviewStatus === "accepted_exception");
@@ -226,21 +231,15 @@ export function SmartCheckImportWorkspace() {
   const matchedSuggestionCount = suggestionResults.filter((suggestion) => suggestion.bestSuggestion).length;
   const safeSuggestionCount = suggestionResults.filter((suggestion) => suggestion.decision === "safe_candidate").length;
   const selectedPriceEvidenceCount = reviewedRows.filter((row) => snapshotByRow[row.id]).length;
-  const nextAction = isPdfFile && documentId && !busy
-    ? "PDF/A-2B (ISO 19005-2), ISO 216 standart kağıt ölçüsü ve e-imza (/Sig) ön kontrol raporu aşağıda hazır."
+  const nextAction = isPdfFile && documentId && importState === "idle" && !busy
+    ? "PDF/A ön kontrol raporunu aşağıda inceleyin."
     : rows.length === 0
-      ? "Dosyayı yükleyin, örnek projelerden birini tek tıkla açın veya kuyruktan tamamlanan bir işi seçin."
-      : reviewedRows.length === 0
-        ? "Önce satırları inceleyin: bulgusuz satırları onaylayın, bulgulu IFC satırlarında düzeltme veya gerekçeli istisna girin."
-        : selectedPriceEvidenceCount === 0
-          ? "Sistem fiyat uydurmaz: fiyat kataloğunuzu ekleyin, önerileri getirin ve uygun fiyatı satıra bağlayın."
-          : "Fiyat kanıtı bağlı satırlar teklife aktarılabilir; yeni taslak oluşturabilir veya mevcut taslağı seçebilirsiniz.";
-  const workflowSteps: Array<{ label: string; value: string; hint: string; status: "done" | "active" | "waiting" }> = [
-    { label: "1 · Kanıt satırları", value: isPdfFile && documentId ? "PDF/A Raporu" : rows.length ? `${rows.length} satır` : "Bekliyor", hint: isPdfFile && documentId ? "ISO 19005-2 + ISO 216" : rows.length ? `${openFindingCount} açık bulgu` : "Upload / örnek proje", status: (isPdfFile && documentId) || rows.length ? "done" : documentId || busy ? "active" : "waiting" },
-    { label: "2 · İnsan review", value: `${reviewedRows.length}/${rows.length || 0}`, hint: pendingReviewCount ? `${pendingReviewCount} bekliyor` : "Aktarım kilidi açık", status: reviewedRows.length ? "done" : rows.length ? "active" : "waiting" },
-    { label: "3 · Fiyat kanıtı", value: `${selectedPriceEvidenceCount}/${reviewedRows.length || 0}`, hint: suggestionResults.length ? `${matchedSuggestionCount} öneri · ${safeSuggestionCount} güvenli` : `${priceSnapshots.length} kayıtlı fiyat`, status: selectedPriceEvidenceCount ? "done" : reviewedRows.length ? "active" : "waiting" },
-    { label: "4 · Teklif taslağı", value: transferredQuotationId ? "Oluştu" : reviewedRows.length ? "Hazır" : "Bekliyor", hint: transferredQuotationId ? "Taslak açılabilir" : "İnsan onayı sonrası", status: transferredQuotationId ? "done" : reviewedRows.length ? "active" : "waiting" },
-  ];
+    ? emptyImportMessage(importState)
+    : reviewedRows.length === 0
+      ? "Önce satırları inceleyin: bulgusuz satırları onaylayın, bulgulu satırlarda düzeltme veya gerekçeli istisna girin."
+      : selectedPriceEvidenceCount === 0
+        ? "Fiyat kataloğunuzu ekleyin veya uygun fiyatı satıra bağlayın."
+        : "Fiyat kanıtı bağlı satırlar teklif için incelenebilir.";
 
   const loadQueue = async () => {
     const response = await fetchWithAuth("/api/smartcheck/queue");
@@ -280,12 +279,31 @@ export function SmartCheckImportWorkspace() {
     }
   }, [documentId]);
 
-  const loadRows = async (id: string) => {
-    const response = await fetchWithAuth(`/api/smartcheck/documents/${id}/rows`);
-    if (response.ok) setRows(await response.json());
+  const loadRows = async (id: string, expectsRows = true) => {
+    const isCurrent = documentGuard.current.request(id);
+    try {
+      const response = await fetchWithAuth(`/api/smartcheck/documents/${id}/rows`);
+      if (!response.ok) throw new Error("Sonuçlar yüklenemedi");
+      const data: unknown = await response.json();
+      if (!Array.isArray(data)) throw new Error("Geçersiz sonuç");
+      if (!isCurrent()) return false;
+      setRows(data);
+      setImportState(data.length || !expectsRows ? "idle" : "empty");
+      return true;
+    } catch {
+      if (!isCurrent()) return false;
+      setRows([]);
+      setImportState("error");
+      return false;
+    }
   };
 
   const openQueueDocument = async (id: string, fileName: string | null, status: string) => {
+    const isSelected = documentGuard.current.select(id);
+    if (polling.current) window.clearInterval(polling.current);
+    polling.current = null;
+    setPollError(false);
+    setBusy(false);
     setDocumentId(id);
     setOpenedFileName(fileName);
     setPreview(null);
@@ -294,24 +312,48 @@ export function SmartCheckImportWorkspace() {
     setPriceSuggestionsByRow({});
     setTransferredQuotationId(null);
     setStage(status === "succeeded" ? "Sonuçlar açılıyor" : "İşleme durumu açılıyor");
-    await loadRows(id);
+    setImportState(status === "failed" ? "failed" : status === "succeeded" ? "processing" : "idle");
     const isPdf = Boolean(fileName?.toLocaleLowerCase("tr-TR").endsWith(".pdf"));
+    const loaded = status === "succeeded" ? await loadRows(id, !isPdf) : false;
+    if (!isSelected()) return;
     setStage(
-      status === "succeeded"
+      status === "succeeded" && loaded
         ? (isPdf ? "PDF/A-2B ve ISO 216 ön kontrol raporu hazır" : "IFC property evidence insan incelemesi bekliyor")
-        : "Satırlar yüklendi",
+        : status === "failed" ? "İşleme başarısız" : status === "succeeded" ? "Sonuçlar yüklenemedi" : "İşlem henüz tamamlanmadı",
     );
     if (fileName?.toLocaleLowerCase("tr-TR").endsWith(".ifc") || isPdf) setFile(null);
     setReportRefreshKey((current) => current + 1);
   };
 
+  const resetFailedSelection = (isCurrent: () => boolean) => {
+    if (!documentGuard.current.failSelection(isCurrent)) return false;
+    if (polling.current) window.clearInterval(polling.current);
+    polling.current = null;
+    setBusy(false);
+    setPollError(false);
+    setFile(null);
+    setOpenedFileName(null);
+    setDocumentId(null);
+    setPreview(null);
+    setRows([]);
+    setImportState("error");
+    setStage("Seçim açılamadı; dosya veya kuyruk kaydını yeniden seçin");
+    return true;
+  };
+
   const loadSampleProject = async (sampleId: "mm-mimari-tablo-9-1" | "st-statik-tablo-9-2" | "pdfa-pafta-iso216") => {
+    const selectionUnchanged = documentGuard.current.beginSampleSelection();
     setSampleBusyId(sampleId);
     try {
       const response = await fetchWithAuth(`/api/smartcheck/sample-projects/${sampleId}`, { method: "POST" });
       const body = await readJsonBody<{ error?: string; documentId?: string; fileName?: string; displayName?: string }>(response);
       if (!response.ok || !body.documentId) {
-        return toast.error(body.error ?? "Örnek proje yüklenemedi.");
+        if (resetFailedSelection(selectionUnchanged)) toast.error(body.error ?? "Örnek proje yüklenemedi. Dosyayı veya kuyruk kaydını yeniden seçin.");
+        return;
+      }
+      if (!selectionUnchanged()) {
+        await loadQueue().catch(() => undefined);
+        return;
       }
       setSampleDocumentId(body.documentId);
       await Promise.all([
@@ -321,7 +363,7 @@ export function SmartCheckImportWorkspace() {
       ]);
       toast.success(`${body.displayName ?? "Örnek proje"} kotadan düşmeden açıldı.`);
     } catch {
-      toast.error("Örnek proje yüklenirken hata oluştu.");
+      if (resetFailedSelection(selectionUnchanged)) toast.error("Örnek proje yüklenemedi. Dosyayı veya kuyruk kaydını yeniden seçin.");
     } finally {
       setSampleBusyId(null);
     }
@@ -409,23 +451,35 @@ export function SmartCheckImportWorkspace() {
   };
 
   const poll = (id: string) => {
+    const isSelected = documentGuard.current.capture(id);
     if (polling.current) window.clearInterval(polling.current);
+    setPollError(false);
     polling.current = window.setInterval(async () => {
-      if (pollInFlight.current) return;
+      if (pollInFlight.current || !isSelected()) return;
       pollInFlight.current = true;
       try {
-        const response = await fetchWithAuth(`/api/smartcheck/documents/${id}/status`);
-        if (!response.ok) return;
-        const data = await response.json();
+        const data = await readPollingStatus(() => fetchWithAuth(`/api/smartcheck/documents/${id}/status`));
+        if (!isSelected()) return;
         setStage(data.run?.progressMessage ?? data.document.status);
-        if (["succeeded", "failed"].includes(data.run?.status)) {
+        if (["succeeded", "failed"].includes(data.run?.status ?? "")) {
           window.clearInterval(polling.current!);
           polling.current = null;
           setBusy(false);
-          await loadQueue();
-          if (data.run.status === "succeeded") { await loadRows(id); setReportRefreshKey(current => current + 1); }
-          else toast.error(data.run.errorMessage ?? "İşleme başarısız.");
+          await loadQueue().catch(() => undefined);
+          if (!isSelected()) return;
+          if (data.run?.status === "succeeded") {
+            await loadRows(id, !isPdfFile);
+            if (isSelected()) setReportRefreshKey(current => current + 1);
+          } else { setImportState("failed"); toast.error(data.run?.errorMessage ?? "İşleme başarısız."); }
         }
+      } catch {
+        if (!isSelected()) return;
+        if (polling.current) window.clearInterval(polling.current);
+        polling.current = null;
+        setBusy(false);
+        setImportState("error");
+        setPollError(true);
+        setStage("İşlem durumu alınamadı");
       } finally {
         pollInFlight.current = false;
       }
@@ -445,6 +499,7 @@ export function SmartCheckImportWorkspace() {
     const ifcUpload = isIfcSmartCheckFile(file);
     const pdfUpload = isPdfSmartCheckFile(file);
     setBusy(true);
+    setImportState("processing");
     setRows([]);
     setSnapshotByRow({});
     setPreview(null);
@@ -458,6 +513,7 @@ export function SmartCheckImportWorkspace() {
         ? await fetchWithAuth(target.uploadUrl, { method: "PUT", headers: target.headers, body: file })
         : await fetch(target.uploadUrl, { method: "PUT", headers: target.headers, body: file });
       if (!uploadResponse.ok) throw new Error("Dosya yüklenemedi.");
+      documentGuard.current.select(target.documentId);
       setDocumentId(target.documentId);
       setOpenedFileName(file.name);
       setPilotCaseId(null);
@@ -476,6 +532,7 @@ export function SmartCheckImportWorkspace() {
       setBusy(false);
     } catch (error) {
       setBusy(false);
+      setImportState("failed");
       toast.error(error instanceof Error ? error.message : "SmartCheck yüklemesi başarısız.");
     }
   };
@@ -492,6 +549,7 @@ export function SmartCheckImportWorkspace() {
   const startProcessing = async () => {
     if (!documentId || !selectedSheet) return;
     setBusy(true);
+    setImportState("processing");
     try {
       const mappingPayload = { ...mapping, profileId: selectedProfileId, sheet: selectedSheet, headerRow: Number(headerRow) };
       const mappingResponse = await fetchWithAuth(`/api/smartcheck/documents/${documentId}/mapping`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(mappingPayload) });
@@ -499,18 +557,23 @@ export function SmartCheckImportWorkspace() {
       await queueProcessing(documentId);
     } catch (error) {
       setBusy(false);
+      setImportState("failed");
       toast.error(error instanceof Error ? error.message : "SmartCheck işlemi başlatılamadı.");
     }
   };
 
   const retry = async (id: string) => {
+    setRows([]);
     setBusy(true);
+    setImportState("processing");
     const response = await fetchWithAuth(`/api/smartcheck/documents/${id}/retry`, { method: "POST" });
     const body = await response.json();
     if (!response.ok) {
       setBusy(false);
+      setImportState("failed");
       return toast.error(body.error ?? "Tekrar deneme kuyruğa alınamadı.");
     }
+    documentGuard.current.select(id);
     setDocumentId(id);
     setStage("Tekrar kuyruğa alındı");
     await loadQueue();
@@ -880,6 +943,10 @@ export function SmartCheckImportWorkspace() {
   }, [busy, file?.name, isPdfFile, openedFileName, rows]);
 
   const resetToUploadScreen = () => {
+    documentGuard.current.select(null);
+    if (polling.current) window.clearInterval(polling.current);
+    polling.current = null;
+    setPollError(false);
     setFile(null);
     setOpenedFileName(null);
     setDocumentId(null);
@@ -890,6 +957,7 @@ export function SmartCheckImportWorkspace() {
     setTransferredQuotationId(null);
     setShowTechnicalInspect(false);
     setStage("Dosya bekleniyor");
+    setImportState("idle");
   };
 
   return (
@@ -941,6 +1009,8 @@ export function SmartCheckImportWorkspace() {
         </div>
       )}
 
+      {!busy && rows.length === 0 && importState !== "idle" && <p role="status" className="rounded-sm border border-border p-4 text-sm text-foreground">{emptyImportMessage(importState)}{pollError && documentId && <Button size="sm" variant="outline" className="ml-3" onClick={() => { setBusy(true); setImportState("processing"); poll(documentId); }}>Durumu tekrar kontrol et</Button>}</p>}
+
       {/* STATE 3: CLEAN PAFTA UPLOAD WORKSPACE (SHOWN WHEN NO FILE IS LOADED YET) */}
       {!calmDataset && !busy && !preview && !(documentId && isPdfFile) && (
         <div className="border border-border bg-background text-foreground">
@@ -984,12 +1054,28 @@ export function SmartCheckImportWorkspace() {
                     type="file"
                     accept=".xlsx,.csv,.ifc,.pdf,text/csv,model/ifc,application/ifc,application/pdf,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                     onChange={async (event) => {
-                      const selected = event.target.files?.[0] ?? null;
-                      if (selected && isLegacyXls(selected.name, await readFileHead(selected))) {
-                        event.target.value = "";
+                      const input = event.target;
+                      const selected = input.files?.[0] ?? null;
+                      const selectionUnchanged = documentGuard.current.beginFileSelection();
+                      let legacy: boolean;
+                      try {
+                        legacy = selected ? isLegacyXls(selected.name, await readFileHead(selected)) : false;
+                      } catch {
+                        if (resetFailedSelection(selectionUnchanged)) {
+                          input.value = "";
+                          toast.error("Dosya okunamadı; dosyayı veya kuyruk kaydını yeniden seçin.");
+                        }
+                        return;
+                      }
+                      if (!selectionUnchanged()) return;
+                      if (legacy) {
+                        resetFailedSelection(selectionUnchanged);
+                        input.value = "";
                         toast.error(LEGACY_XLS_MESSAGE, { duration: 12000 });
                         return;
                       }
+                      documentGuard.current.select(null);
+                      setPollError(false);
                       setFile(selected);
                       setOpenedFileName(null);
                       setDocumentId(null);
@@ -997,6 +1083,7 @@ export function SmartCheckImportWorkspace() {
                       setPreview(null);
                       setRows([]);
                       setStage("Dosya seçildi — Yüklemeye hazır");
+                      setImportState("idle");
                     }}
                   />
                 </label>
@@ -1135,7 +1222,7 @@ export function SmartCheckImportWorkspace() {
       )}
 
       {/* STATE 4: PDF/A PREFLIGHT REPORT OR EXCEL PREVIEW OR EXPLICIT TECHNICAL INSPECTION */}
-      {(preview || (documentId && isPdfFile && !busy) || (calmDataset && showTechnicalInspect)) && (
+      {(preview || (documentId && isPdfFile && !busy && importState !== "failed" && importState !== "error" && importState !== "processing") || (calmDataset && showTechnicalInspect)) && (
         <div className="rounded-3xl border border-border bg-background p-6 space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border pb-3">
             <div>
