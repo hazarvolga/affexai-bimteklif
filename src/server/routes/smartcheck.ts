@@ -877,7 +877,10 @@ export function registerSmartCheckRoutes(app: Express) {
         const quantity = Number(override.quantity ?? row.normalizedQuantity);
         const priceValue = override.unitPrice ?? priceSnapshot?.amount ?? row.normalizedPrice;
         if (priceValue == null || (typeof priceValue === "string" && priceValue.trim() === "")) throw new Error("INVALID_TRANSFER_VALUES");
+        if ((typeof priceValue !== "string" && typeof priceValue !== "number") || !/^(?:\d+)(?:\.\d+)?$/.test(String(priceValue).trim())) throw new Error("INVALID_TRANSFER_VALUES");
         const unitPrice = Number(priceValue);
+        const manualPrice = override.unitPrice !== undefined && override.unitPrice !== null && !priceSnapshot;
+        if (override.unitPrice != null && unitPrice === 0 && (priceSnapshot || !override.zeroPriceReason?.trim())) throw new Error("ZERO_PRICE_REASON_REQUIRED");
         const costUnitPrice = Number(override.costUnitPrice ?? priceSnapshot?.amount ?? row.normalizedPrice ?? unitPrice);
         const wastePercent = Number(override.wastePercent ?? row.normalizedWastePercent ?? 0);
         const vatPercent = Number(override.vatPercent ?? 20);
@@ -891,7 +894,7 @@ export function registerSmartCheckRoutes(app: Express) {
         return {
           companyId: req.user.companyId, quotationId: quotation.id, description: row.normalizedDescription ?? row.rawDescription ?? "Metraj kalemi",
           unit: row.normalizedUnit ?? row.rawUnit ?? "adet", quantity: String(quantity), unitPrice: String(unitPrice), costUnitPrice: String(costUnitPrice),
-          wastePercent: String(wastePercent), costCategory: "material", quantitySource: "document", priceSource: priceSnapshot ? "snapshot" : "document",
+          wastePercent: String(wastePercent), costCategory: "material", quantitySource: "document", priceSource: priceSnapshot ? "snapshot" : manualPrice ? "manual" : "document",
           sourceReference: row.normalizedPositionCode ?? row.rawPositionCode, verificationStatus: transferReviewEvidence(row, quantity, row.normalizedUnit ?? row.rawUnit ?? "adet").verificationStatus, discountPercent: "0", vatPercent: String(vatPercent), total: String(calculateLineItemTotal(item)),
           sourceDocumentId: row.documentId, sourceProcessingRunId: row.processingRunId, sourceQuantityRowId: row.id, sourceCellRange: row.sourceCellRange,
           sourceRuleVersion: null, transferIdempotencyKey: idempotencyKey,
@@ -899,37 +902,65 @@ export function registerSmartCheckRoutes(app: Express) {
         };
       });
       let insertedCount = 0;
+      const insertedItemIds = new Set<string>();
       for (let i = 0; i < inserts.length; i += 500) {
         const chunk = inserts.slice(i, i + 500);
         const res = await tx.insert(quotationItems).values(chunk).onConflictDoNothing().returning({ id: quotationItems.id });
         insertedCount += res.length;
+        for (const item of res) insertedItemIds.add(item.id);
       }
       const allItems = await tx.select().from(quotationItems).where(and(eq(quotationItems.quotationId, quotation.id), eq(quotationItems.companyId, req.user.companyId)));
       const itemBySourceRowId = new Map(allItems.filter((it) => it.sourceQuantityRowId).map((it) => [it.sourceQuantityRowId!, it]));
+      for (const proposed of inserts) {
+        const existing = itemBySourceRowId.get(proposed.sourceQuantityRowId);
+        if (!existing || insertedItemIds.has(existing.id)) continue;
+        const sameNumber = (left: string | number | null, right: string | number | null, places: number) => left !== null && right !== null && Number(left).toFixed(places) === Number(right).toFixed(places);
+        if (!sameNumber(existing.quantity, proposed.quantity, 4) || !sameNumber(existing.unitPrice, proposed.unitPrice, 2)
+          || !sameNumber(existing.costUnitPrice, proposed.costUnitPrice, 2) || !sameNumber(existing.wastePercent, proposed.wastePercent, 2)
+          || !sameNumber(existing.vatPercent, proposed.vatPercent, 2) || existing.description !== proposed.description || existing.unit !== proposed.unit
+          || existing.priceSource !== proposed.priceSource || existing.priceSnapshotId !== proposed.priceSnapshotId || existing.sourceReference !== proposed.sourceReference
+          || existing.verificationStatus !== proposed.verificationStatus) throw new Error("TRANSFER_OVERRIDE_CONFLICT");
+      }
+      const existingZeroOverrides = selected.flatMap((row) => {
+        const item = itemBySourceRowId.get(row.id);
+        const override = overrides[row.id];
+        return item && !insertedItemIds.has(item.id) && override?.unitPrice != null && Number(override.unitPrice) === 0 ? [{ item, override }] : [];
+      });
+      if (existingZeroOverrides.length) {
+        const existingEvidence = await tx.select().from(quotationItemEvidence).where(and(eq(quotationItemEvidence.companyId, req.user.companyId), eq(quotationItemEvidence.quotationId, quotation.id), eq(quotationItemEvidence.evidenceType, "price"), eq(quotationItemEvidence.status, "current"), inArray(quotationItemEvidence.quotationItemId, existingZeroOverrides.map(entry => entry.item.id))));
+        for (const { item, override } of existingZeroOverrides) {
+          const matches = existingEvidence.some(evidence => evidence.quotationItemId === item.id && evidence.capturedValueJson.source === "manual_zero_override" && evidence.capturedValueJson.zeroPriceReason === override.zeroPriceReason?.trim() && evidence.capturedValueJson.price != null && String(evidence.capturedValueJson.price).trim() !== "" && Number(evidence.capturedValueJson.price) === 0 && Number(item.unitPrice) === 0 && item.priceSource === "manual");
+          if (!matches) throw new Error("TRANSFER_OVERRIDE_CONFLICT");
+        }
+      }
       const allEvidences: any[] = [];
       for (const row of selected) {
         const item = itemBySourceRowId.get(row.id);
-        if (!item) continue;
+        if (!item || !insertedItemIds.has(item.id)) continue;
         const override = overrides[row.id] ?? {};
         const priceSnapshotId = typeof override.priceSnapshotId === "string" ? override.priceSnapshotId : null;
         const priceSnapshot = priceSnapshotId ? snapshotById.get(priceSnapshotId) : undefined;
         const evidenceValue = { quantity: item.quantity, unit: item.unit, price: item.unitPrice, priceSnapshotId: priceSnapshot?.id ?? null, review: transferReviewEvidence(row, Number(item.quantity), item.unit).review };
         allEvidences.push(
           { companyId: req.user.companyId, quotationId: quotation.id, quotationItemId: item.id, evidenceType: "quantity", evidenceKey: sha256Payload({ itemId: item.id, rowId: row.id, type: "quantity" }), sourceDocumentId: row.documentId, sourceProcessingRunId: row.processingRunId, sourceQuantityRowId: row.id, sourceCellRange: row.sourceCellRange, sourceDocumentHash: documentHashById.get(row.documentId) ?? null, capturedValueJson: evidenceValue, status: "current", createdByUserId: req.user.userId },
-          { companyId: req.user.companyId, quotationId: quotation.id, quotationItemId: item.id, evidenceType: "price", evidenceKey: sha256Payload({ itemId: item.id, rowId: row.id, type: "price", priceSnapshotId }), priceSnapshotId: priceSnapshot?.id ?? null, sourceDocumentHash: priceSnapshot?.sourceDocumentHash ?? documentHashById.get(row.documentId) ?? null, capturedValueJson: { ...evidenceValue, source: priceSnapshot ? "price_snapshot" : row.rawPrice }, status: "current", createdByUserId: req.user.userId },
+          { companyId: req.user.companyId, quotationId: quotation.id, quotationItemId: item.id, evidenceType: "price", evidenceKey: sha256Payload({ itemId: item.id, rowId: row.id, type: "price", priceSnapshotId }), priceSnapshotId: priceSnapshot?.id ?? null, sourceDocumentHash: priceSnapshot?.sourceDocumentHash ?? documentHashById.get(row.documentId) ?? null, capturedValueJson: { ...evidenceValue, source: priceSnapshot ? "price_snapshot" : override.unitPrice != null ? (Number(override.unitPrice) === 0 ? "manual_zero_override" : "manual_override") : row.rawPrice, ...(override.unitPrice != null && Number(override.unitPrice) === 0 ? { zeroPriceReason: override.zeroPriceReason?.trim() } : {}) }, status: "current", createdByUserId: req.user.userId },
         );
       }
       for (let i = 0; i < allEvidences.length; i += 500) {
-        await tx.insert(quotationItemEvidence).values(allEvidences.slice(i, i + 500)).onConflictDoNothing();
+        const insertedEvidence = await tx.insert(quotationItemEvidence).values(allEvidences.slice(i, i + 500)).onConflictDoNothing().returning();
+        for (const evidence of insertedEvidence) {
+          if (evidence.evidenceType !== "price" || evidence.capturedValueJson.source !== "manual_zero_override") continue;
+          await tx.insert(smartcheckAuditLogs).values({ companyId: req.user.companyId, userId: req.user.userId, action: "manual_zero_price_transferred", entityType: "quotation_item", entityId: evidence.quotationItemId, metadataJson: { documentId: req.params.id, quotationId: quotation.id, reason: evidence.capturedValueJson.zeroPriceReason, ...(req.user.impersonatedBy ? { impersonatedBy: req.user.impersonatedBy } : {}) } });
+        }
       }
       const totals = calculateQuotationTotals(allItems, { overheadProfitPercent: quotation.overheadProfitPercent });
-      await tx.update(quotations).set({ subtotal: String(totals.subtotal), discountTotal: String(totals.discountTotal), overheadProfitTotal: String(totals.overheadProfitTotal), vatTotal: String(totals.vatTotal), grandTotal: String(totals.grandTotal), updatedAt: new Date() }).where(and(eq(quotations.id, quotation.id), eq(quotations.companyId, req.user.companyId)));
+      if (insertedCount > 0) await tx.update(quotations).set({ subtotal: String(totals.subtotal), discountTotal: String(totals.discountTotal), overheadProfitTotal: String(totals.overheadProfitTotal), vatTotal: String(totals.vatTotal), grandTotal: String(totals.grandTotal), updatedAt: new Date() }).where(and(eq(quotations.id, quotation.id), eq(quotations.companyId, req.user.companyId)));
       return { insertedCount, items: allItems.filter((item) => rowIds.includes(item.sourceQuantityRowId ?? "")) };
     });
-    await audit(req, "rows_transferred", "quotation", quotation.id, { documentId: req.params.id, rowIds, transferredCount: transferResult.insertedCount });
+    if (transferResult.insertedCount > 0) await audit(req, "rows_transferred", "quotation", quotation.id, { documentId: req.params.id, rowIds, transferredCount: transferResult.insertedCount });
     res.json({ quotationId: quotation.id, transferredCount: transferResult.insertedCount, items: transferResult.items });
     } catch (error) {
-      if (error instanceof Error && ["TRANSFER_QUOTE_CHANGED", "TRANSFER_REVIEW_CHANGED", "INVALID_TRANSFER_VALUES", "INVALID_PRICE_SNAPSHOT", "UNIT_MISMATCH", "CURRENCY_MISMATCH", "AMOUNT_MISMATCH", "POSITION_CODE_MISMATCH", "DESCRIPTION_MISMATCH"].includes(error.message)) return res.status(409).json({ error: "Aktarım kaynağı, fiyat kanıtı veya taslak değişti; yeniden inceleyin.", code: error.message });
+      if (error instanceof Error && ["TRANSFER_QUOTE_CHANGED", "TRANSFER_REVIEW_CHANGED", "INVALID_TRANSFER_VALUES", "ZERO_PRICE_REASON_REQUIRED", "TRANSFER_OVERRIDE_CONFLICT", "INVALID_PRICE_SNAPSHOT", "UNIT_MISMATCH", "CURRENCY_MISMATCH", "AMOUNT_MISMATCH", "POSITION_CODE_MISMATCH", "DESCRIPTION_MISMATCH"].includes(error.message)) return res.status(409).json({ error: "Aktarım kaynağı, fiyat kanıtı veya taslak değişti; yeniden inceleyin.", code: error.message });
       next(error);
     }
   });
@@ -1019,7 +1050,10 @@ export function registerSmartCheckRoutes(app: Express) {
         const quantity = Number(override.quantity ?? row.normalizedQuantity);
         const priceValue = override.unitPrice ?? priceSnapshot?.amount ?? row.normalizedPrice;
         if (priceValue == null || (typeof priceValue === "string" && priceValue.trim() === "")) throw new Error("INVALID_TRANSFER_VALUES");
+        if ((typeof priceValue !== "string" && typeof priceValue !== "number") || !/^(?:\d+)(?:\.\d+)?$/.test(String(priceValue).trim())) throw new Error("INVALID_TRANSFER_VALUES");
         const unitPrice = Number(priceValue);
+        const manualPrice = override.unitPrice !== undefined && override.unitPrice !== null && !priceSnapshot;
+        if (override.unitPrice != null && unitPrice === 0 && (priceSnapshot || !override.zeroPriceReason?.trim())) throw new Error("ZERO_PRICE_REASON_REQUIRED");
         const costUnitPrice = Number(override.costUnitPrice ?? priceSnapshot?.amount ?? row.normalizedPrice ?? unitPrice);
         const wastePercent = Number(override.wastePercent ?? row.normalizedWastePercent ?? 0);
         const vatPercent = Number(override.vatPercent ?? 20);
@@ -1033,7 +1067,7 @@ export function registerSmartCheckRoutes(app: Express) {
         return {
           companyId: req.user.companyId, quotationId: quotation.id, description: row.normalizedDescription ?? row.rawDescription ?? "Metraj kalemi",
           unit: row.normalizedUnit ?? row.rawUnit ?? "adet", quantity: String(quantity), unitPrice: String(unitPrice), costUnitPrice: String(costUnitPrice),
-          wastePercent: String(wastePercent), costCategory: "material", quantitySource: "document", priceSource: priceSnapshot ? "snapshot" : "document",
+          wastePercent: String(wastePercent), costCategory: "material", quantitySource: "document", priceSource: priceSnapshot ? "snapshot" : manualPrice ? "manual" : "document",
           sourceReference: row.normalizedPositionCode ?? row.rawPositionCode, verificationStatus: transferReviewEvidence(row, quantity, row.normalizedUnit ?? row.rawUnit ?? "adet").verificationStatus, discountPercent: "0", vatPercent: String(vatPercent), total: String(calculateLineItemTotal(item)),
           sourceDocumentId: row.documentId, sourceProcessingRunId: row.processingRunId, sourceQuantityRowId: row.id, sourceCellRange: row.sourceCellRange,
           sourceRuleVersion: null, transferIdempotencyKey: idempotencyKey,
@@ -1042,31 +1076,59 @@ export function registerSmartCheckRoutes(app: Express) {
       });
 
       let insertedCount = 0;
+      const insertedItemIds = new Set<string>();
       for (let i = 0; i < inserts.length; i += 500) {
         const chunk = inserts.slice(i, i + 500);
         const res = await tx.insert(quotationItems).values(chunk).onConflictDoNothing().returning({ id: quotationItems.id });
         insertedCount += res.length;
+        for (const item of res) insertedItemIds.add(item.id);
       }
       const allItems = await tx.select().from(quotationItems).where(and(eq(quotationItems.quotationId, quotation.id), eq(quotationItems.companyId, req.user.companyId)));
       const itemBySourceRowId = new Map(allItems.filter((it) => it.sourceQuantityRowId).map((it) => [it.sourceQuantityRowId!, it]));
+      for (const proposed of inserts) {
+        const existing = itemBySourceRowId.get(proposed.sourceQuantityRowId);
+        if (!existing || insertedItemIds.has(existing.id)) continue;
+        const sameNumber = (left: string | number | null, right: string | number | null, places: number) => left !== null && right !== null && Number(left).toFixed(places) === Number(right).toFixed(places);
+        if (!sameNumber(existing.quantity, proposed.quantity, 4) || !sameNumber(existing.unitPrice, proposed.unitPrice, 2)
+          || !sameNumber(existing.costUnitPrice, proposed.costUnitPrice, 2) || !sameNumber(existing.wastePercent, proposed.wastePercent, 2)
+          || !sameNumber(existing.vatPercent, proposed.vatPercent, 2) || existing.description !== proposed.description || existing.unit !== proposed.unit
+          || existing.priceSource !== proposed.priceSource || existing.priceSnapshotId !== proposed.priceSnapshotId || existing.sourceReference !== proposed.sourceReference
+          || existing.verificationStatus !== proposed.verificationStatus) throw new Error("TRANSFER_OVERRIDE_CONFLICT");
+      }
+      const existingZeroOverrides = selected.flatMap((row) => {
+        const item = itemBySourceRowId.get(row.id);
+        const override = overrides[row.id];
+        return item && !insertedItemIds.has(item.id) && override?.unitPrice != null && Number(override.unitPrice) === 0 ? [{ item, override }] : [];
+      });
+      if (existingZeroOverrides.length) {
+        const existingEvidence = await tx.select().from(quotationItemEvidence).where(and(eq(quotationItemEvidence.companyId, req.user.companyId), eq(quotationItemEvidence.quotationId, quotation.id), eq(quotationItemEvidence.evidenceType, "price"), eq(quotationItemEvidence.status, "current"), inArray(quotationItemEvidence.quotationItemId, existingZeroOverrides.map(entry => entry.item.id))));
+        for (const { item, override } of existingZeroOverrides) {
+          const matches = existingEvidence.some(evidence => evidence.quotationItemId === item.id && evidence.capturedValueJson.source === "manual_zero_override" && evidence.capturedValueJson.zeroPriceReason === override.zeroPriceReason?.trim() && evidence.capturedValueJson.price != null && String(evidence.capturedValueJson.price).trim() !== "" && Number(evidence.capturedValueJson.price) === 0 && Number(item.unitPrice) === 0 && item.priceSource === "manual");
+          if (!matches) throw new Error("TRANSFER_OVERRIDE_CONFLICT");
+        }
+      }
       const allEvidences: any[] = [];
       for (const row of selected) {
         const item = itemBySourceRowId.get(row.id);
-        if (!item) continue;
+        if (!item || !insertedItemIds.has(item.id)) continue;
         const override = overrides[row.id] ?? {};
         const priceSnapshotId = typeof override.priceSnapshotId === "string" ? override.priceSnapshotId : null;
         const priceSnapshot = priceSnapshotId ? snapshotById.get(priceSnapshotId) : undefined;
         const evidenceValue = { quantity: item.quantity, unit: item.unit, price: item.unitPrice, priceSnapshotId: priceSnapshot?.id ?? null, review: transferReviewEvidence(row, Number(item.quantity), item.unit).review };
         allEvidences.push(
           { companyId: req.user.companyId, quotationId: quotation.id, quotationItemId: item.id, evidenceType: "quantity", evidenceKey: sha256Payload({ itemId: item.id, rowId: row.id, type: "quantity" }), sourceDocumentId: row.documentId, sourceProcessingRunId: row.processingRunId, sourceQuantityRowId: row.id, sourceCellRange: row.sourceCellRange, sourceDocumentHash: documentHashById.get(row.documentId) ?? null, capturedValueJson: evidenceValue, status: "current", createdByUserId: req.user.userId },
-          { companyId: req.user.companyId, quotationId: quotation.id, quotationItemId: item.id, evidenceType: "price", evidenceKey: sha256Payload({ itemId: item.id, rowId: row.id, type: "price", priceSnapshotId }), priceSnapshotId: priceSnapshot?.id ?? null, sourceDocumentHash: priceSnapshot?.sourceDocumentHash ?? documentHashById.get(row.documentId) ?? null, capturedValueJson: { ...evidenceValue, source: priceSnapshot ? "price_snapshot" : row.rawPrice }, status: "current", createdByUserId: req.user.userId },
+          { companyId: req.user.companyId, quotationId: quotation.id, quotationItemId: item.id, evidenceType: "price", evidenceKey: sha256Payload({ itemId: item.id, rowId: row.id, type: "price", priceSnapshotId }), priceSnapshotId: priceSnapshot?.id ?? null, sourceDocumentHash: priceSnapshot?.sourceDocumentHash ?? documentHashById.get(row.documentId) ?? null, capturedValueJson: { ...evidenceValue, source: priceSnapshot ? "price_snapshot" : override.unitPrice != null ? (Number(override.unitPrice) === 0 ? "manual_zero_override" : "manual_override") : row.rawPrice, ...(override.unitPrice != null && Number(override.unitPrice) === 0 ? { zeroPriceReason: override.zeroPriceReason?.trim() } : {}) }, status: "current", createdByUserId: req.user.userId },
         );
       }
       for (let i = 0; i < allEvidences.length; i += 500) {
-        await tx.insert(quotationItemEvidence).values(allEvidences.slice(i, i + 500)).onConflictDoNothing();
+        const insertedEvidence = await tx.insert(quotationItemEvidence).values(allEvidences.slice(i, i + 500)).onConflictDoNothing().returning();
+        for (const evidence of insertedEvidence) {
+          if (evidence.evidenceType !== "price" || evidence.capturedValueJson.source !== "manual_zero_override") continue;
+          await tx.insert(smartcheckAuditLogs).values({ companyId: req.user.companyId, userId: req.user.userId, action: "manual_zero_price_transferred", entityType: "quotation_item", entityId: evidence.quotationItemId, metadataJson: { documentId: req.params.id, quotationId: quotation.id, reason: evidence.capturedValueJson.zeroPriceReason, ...(req.user.impersonatedBy ? { impersonatedBy: req.user.impersonatedBy } : {}) } });
+        }
       }
       const totals = calculateQuotationTotals(allItems, { overheadProfitPercent: quotation.overheadProfitPercent });
-      await tx.update(quotations).set({ subtotal: String(totals.subtotal), discountTotal: String(totals.discountTotal), overheadProfitTotal: String(totals.overheadProfitTotal), vatTotal: String(totals.vatTotal), grandTotal: String(totals.grandTotal), updatedAt: new Date() }).where(and(eq(quotations.id, quotation.id), eq(quotations.companyId, req.user.companyId)));
+      if (insertedCount > 0) await tx.update(quotations).set({ subtotal: String(totals.subtotal), discountTotal: String(totals.discountTotal), overheadProfitTotal: String(totals.overheadProfitTotal), vatTotal: String(totals.vatTotal), grandTotal: String(totals.grandTotal), updatedAt: new Date() }).where(and(eq(quotations.id, quotation.id), eq(quotations.companyId, req.user.companyId)));
       return { quotation, client, insertedCount, items: allItems.filter((item) => rowIds.includes(item.sourceQuantityRowId ?? "")) };
     });
 
@@ -1079,7 +1141,7 @@ export function registerSmartCheckRoutes(app: Express) {
       if (error instanceof QuotaError) return res.status(error.status).json({ error: error.message, code: error.code, ...error.details });
       if (error instanceof Error && error.message === "TRANSFER_REVIEW_CHANGED") return res.status(409).json({ error: "İnceleme kararı değişti; yeniden yükleyin.", code: error.message });
       if (error instanceof Error && error.message === "SMARTCHECK_CLIENT_NOT_FOUND") return res.status(404).json({ error: "Seçili müşteri bulunamadı." });
-      if (error instanceof Error && ["INVALID_TRANSFER_VALUES", "INVALID_PRICE_SNAPSHOT", "UNIT_MISMATCH", "CURRENCY_MISMATCH", "AMOUNT_MISMATCH", "POSITION_CODE_MISMATCH", "DESCRIPTION_MISMATCH"].includes(error.message)) return res.status(409).json({ error: "Aktarım miktar/fiyat kanıtı değerleri geçersiz veya uyumsuz.", code: error.message });
+      if (error instanceof Error && ["INVALID_TRANSFER_VALUES", "ZERO_PRICE_REASON_REQUIRED", "TRANSFER_OVERRIDE_CONFLICT", "INVALID_PRICE_SNAPSHOT", "UNIT_MISMATCH", "CURRENCY_MISMATCH", "AMOUNT_MISMATCH", "POSITION_CODE_MISMATCH", "DESCRIPTION_MISMATCH"].includes(error.message)) return res.status(409).json({ error: "Aktarım miktar/fiyat kanıtı değerleri geçersiz veya uyumsuz.", code: error.message });
       console.error("SmartCheck new quotation transfer failed", error);
       return res.status(500).json({ error: "Yeni taslak teklif oluşturulamadı.", code: "SMARTCHECK_NEW_QUOTATION_TRANSFER_FAILED" });
     }

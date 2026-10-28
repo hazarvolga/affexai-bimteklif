@@ -61,10 +61,14 @@ test("quotation integrity against isolated PostgreSQL", { timeout: 30_000 }, asy
     await db.insert(quotationItemEvidence).values([
       { companyId: company.id, quotationId: quote.id, quotationItemId: item.id, evidenceType: 'source', evidenceKey: crypto.randomUUID(), createdByUserId: user.id, capturedValueJson: { kind: 'ai_estimate', original: { description: 'Öneri', unit: 'm2', quantity: 1, unitPrice: 3, secret: 'must-not-leak' }, changedFields: ['quantity'], secret: 'must-not-leak' } },
       { companyId: company.id, quotationId: quote.id, quotationItemId: item.id, evidenceType: 'rule', evidenceKey: crypto.randomUUID(), createdByUserId: user.id, capturedValueJson: { kind: 'ai_estimate', secret: 'must-not-leak' } },
+      { companyId: company.id, quotationId: quote.id, quotationItemId: item.id, evidenceType: 'quantity', evidenceKey: crypto.randomUUID(), createdByUserId: user.id, sourceCellRange: 'IFC#12', capturedValueJson: { quantity: 5, unit: 'm2', review: { status: 'approved', notes: 'must-not-leak' } } },
+      { companyId: company.id, quotationId: quote.id, quotationItemId: item.id, evidenceType: 'price', evidenceKey: crypto.randomUUID(), createdByUserId: user.id, capturedValueJson: { amount: '123', currency: 'TRY', unit: 'm2', secret: 'must-not-leak' } },
+      { companyId: company.id, quotationId: quote.id, quotationItemId: item.id, evidenceType: 'price', status: 'stale', evidenceKey: crypto.randomUUID(), createdByUserId: user.id, capturedValueJson: { amount: '999' } },
     ]);
     const detail = await call('get /api/quotations/:id', {}, quote.id);
     assert.equal(detail.statusCode, 200);
     assert.deepEqual(detail.body.items[0].aiEvidence, { original: { description: 'Öneri', unit: 'm2', quantity: 1, unitPrice: 3 }, changedFields: ['quantity'] });
+    assert.deepEqual(detail.body.items[0].sourceEvidence, { quantity: [{ quantity: '5', unit: 'm2', sourceCellRange: 'IFC#12', reviewStatus: 'approved' }], price: [{ amount: '123', currency: 'TRY', unit: 'm2', zeroPriceReason: null }] });
     assert.ok(!JSON.stringify(detail.body).includes('must-not-leak'));
     assert.equal((await call('get /api/quotations/:id', {}, quote.id, other.id)).statusCode, 404);
   });
@@ -100,6 +104,21 @@ test("quotation integrity against isolated PostgreSQL", { timeout: 30_000 }, asy
     }
     return { root, items, evidence: await evidenceFor(root.id) };
   };
+
+  await t.test('PDF route returns 409 when a legacy zero has no price evidence', async () => {
+    const { root, items } = await evidenceFixture();
+    await db.update(quotationItems).set({ unitPrice: '0', priceSource: 'document' }).where(eq(quotationItems.id, items[0].id));
+    const { EventEmitter } = await import('node:events');
+    const req = Object.assign(new EventEmitter(), { params: { id: root.id }, query: {}, user: { companyId: company.id, userId: actorUserId } });
+    const res = Object.assign(new EventEmitter(), { statusCode: 200, body: undefined as any, destroyed: false,
+      status(code: number) { this.statusCode = code; return this; },
+      json(value: unknown) { this.body = value; return this; },
+      set() { return this; },
+    });
+    await routes.get('get /api/quotations/:id/pdf')!(req, res);
+    assert.equal(res.statusCode, 409);
+    assert.deepEqual(res.body, { error: 'Fiyat kaynağı belirsiz; satırı yeniden doğrulayın.', code: 'PDF_PRICE_SOURCE_UNCERTAIN' });
+  });
 
   await t.test("revision clones all evidence fields/statuses with fresh IDs and correct item mapping", async () => {
     const { root, items, evidence } = await evidenceFixture();

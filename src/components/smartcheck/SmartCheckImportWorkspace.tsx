@@ -198,6 +198,7 @@ export function SmartCheckImportWorkspace() {
   const [mapping, setMapping] = useState<ColumnMapping>(MEP_MAPPING_PROFILES[0].mapping);
   const [priceSnapshots, setPriceSnapshots] = useState<PriceSnapshotOption[]>([]);
   const [snapshotByRow, setSnapshotByRow] = useState<Record<string, string>>({});
+  const [zeroPriceByRow, setZeroPriceByRow] = useState<Record<string, string>>({});
   const [manualSnapshotDraft, setManualSnapshotDraft] = useState({ rowId: "", amount: "", currency: "TRY", sourceName: "", validUntil: "" });
   const [catalogImportDraft, setCatalogImportDraft] = useState({ sourceName: "", region: "", validUntil: "", fileName: "" });
   const [catalogOwnershipConfirmed, setCatalogOwnershipConfirmed] = useState(false);
@@ -568,7 +569,7 @@ export function SmartCheckImportWorkspace() {
 
   const transferOverrides = (reviewed: Row[]) => Object.fromEntries(reviewed.map((row) => [row.id, {
     ...(commercial.costUnitPrice ? { costUnitPrice: Number(commercial.costUnitPrice) } : {}),
-    ...(snapshotByRow[row.id] ? { priceSnapshotId: snapshotByRow[row.id] } : {}),
+    ...(Object.hasOwn(zeroPriceByRow, row.id) ? { unitPrice: 0, zeroPriceReason: zeroPriceByRow[row.id].trim() } : snapshotByRow[row.id] ? { priceSnapshotId: snapshotByRow[row.id] } : {}),
     wastePercent: Number(commercial.wastePercent), vatPercent: Number(commercial.vatPercent),
   }]));
 
@@ -734,12 +735,14 @@ export function SmartCheckImportWorkspace() {
   const transfer = async () => {
     if (!documentId || !quotationId) return;
     const reviewed = rows.filter((row) => row.reviewStatus === "approved" || row.reviewStatus === "accepted_exception");
+    if (reviewed.some(row => Object.hasOwn(zeroPriceByRow, row.id) && !zeroPriceByRow[row.id].trim())) return toast.error("Bedelsiz seçilen her satır için gerekçe girin.");
     const response = await fetchWithAuth(`/api/smartcheck/documents/${documentId}/transfer-to-quotation`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ quotationId, rowIds: reviewed.map((row) => row.id), overrides: transferOverrides(reviewed) }) });
     const body = await readJsonBody<{ error?: string; quotationId?: string; transferredCount?: number }>(response);
     if (!response.ok) return toast.error(body.error ?? "Aktarım başarısız.");
     if (!body.quotationId) return toast.error("Aktarım tamamlandı ancak teklif kimliği alınamadı.");
     setTransferredQuotationId(body.quotationId);
-    toast.success(`${body.transferredCount} onaylı satır teklife aktarıldı.`);
+    if (body.transferredCount === 0) toast.info("Satırlar daha önce aynı değerlerle aktarılmış; yeni değişiklik yapılmadı.");
+    else toast.success(`${body.transferredCount} onaylı satır teklife aktarıldı.`);
   };
 
   const transferCalmToQuotation = async (items: CalmTransferUiItem[], { overheadProfitPercent }: { overheadProfitPercent: number }) => {
@@ -811,6 +814,7 @@ export function SmartCheckImportWorkspace() {
   const createQuotationAndTransfer = async () => {
     if (!documentId || !newQuotationDraft.clientName.trim()) return;
     const reviewed = rows.filter((row) => row.reviewStatus === "approved" || row.reviewStatus === "accepted_exception");
+    if (reviewed.some(row => Object.hasOwn(zeroPriceByRow, row.id) && !zeroPriceByRow[row.id].trim())) return toast.error("Bedelsiz seçilen her satır için gerekçe girin.");
     const response = await fetchWithAuth(`/api/smartcheck/documents/${documentId}/transfer-to-new-quotation`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -1388,6 +1392,13 @@ export function SmartCheckImportWorkspace() {
               <Input aria-label="Yeni teklif müşteri referansı" placeholder="Yeni teklif müşteri/ref adı" value={newQuotationDraft.clientName} onChange={(event) => setNewQuotationDraft((value) => ({ ...value, clientName: event.target.value }))} className="border-border bg-background" />
               <Input aria-label="Yeni teklif proje adı" placeholder={`Proje adı · ${file?.name ?? "SmartCheck aktarımı"}`} value={newQuotationDraft.projectName} onChange={(event) => setNewQuotationDraft((value) => ({ ...value, projectName: event.target.value }))} className="border-border bg-background" />
               <Button disabled={!newQuotationDraft.clientName.trim()} onClick={createQuotationAndTransfer} className="bg-emerald-600 text-white hover:bg-emerald-700">Yeni taslak oluştur ve aktar</Button>
+            </div>
+            <div className="space-y-2">
+              <p className="text-xs text-muted-foreground">Bedelsiz aktarılacak satırları yalnız bilinçli olarak seçin; her seçim için gerekçe zorunludur.</p>
+              {reviewedRows.map(row => <div key={row.id} className="rounded-md border border-border p-2">
+                <label className="flex items-center gap-2 text-xs"><input type="checkbox" checked={Object.hasOwn(zeroPriceByRow, row.id)} onChange={event => setZeroPriceByRow(previous => { if (event.target.checked) return { ...previous, [row.id]: "" }; const { [row.id]: removed, ...rest } = previous; return rest; })} />{row.rawDescription || row.sourceCellRange} · bedelsiz (0)</label>
+                {Object.hasOwn(zeroPriceByRow, row.id) && <Input aria-label={`Bedelsiz fiyat gerekçesi ${row.sourceCellRange}`} placeholder="Bedelsiz olma gerekçesi" maxLength={2000} value={zeroPriceByRow[row.id]} onChange={event => setZeroPriceByRow(previous => ({ ...previous, [row.id]: event.target.value }))} className="mt-2" />}
+              </div>)}
             </div>
           </div>}
         </div>

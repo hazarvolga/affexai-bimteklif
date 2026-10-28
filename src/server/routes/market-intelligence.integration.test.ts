@@ -53,6 +53,11 @@ test("supplier quote market intelligence is review-gated, outlier-aware, and ten
     const create = await request("/api/market-intelligence/supplier-quotes", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ supplierName: "Tedarikçi A", quoteNumber: `SUP-${suffix}`, sourceDocumentIdentifier: `SUP-${suffix}`, sourceDocumentPayload: { supplier: "Tedarikçi A", version: "1" }, region: "İstanbul", deliveryTerms: "DAP", vatStatus: "excluded", freightStatus: "included" }) });
     assert.equal(create.status, 201);
     submissionId = (await create.json() as { id: string }).id;
+    for (const invalidPrice of [null, '', '  ', false, true]) {
+      const invalid = await request(`/api/market-intelligence/supplier-quotes/${submissionId}/entries`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ entries: [{ description: 'Fiyat bekliyor', unit: 'adet', unitPrice: invalidPrice }] }) });
+      assert.equal(invalid.status, 400, `invalid price: ${String(invalidPrice)}`);
+    }
+    assert.equal((await db.select().from(schema.supplierQuoteEntries).where(eq(schema.supplierQuoteEntries.submissionId, submissionId))).length, 0);
     const entries = await request(`/api/market-intelligence/supplier-quotes/${submissionId}/entries`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ entries: [{ positionCode: "M-001", description: "Pompa", unit: "adet", quantity: 1, unitPrice: 180, region: "İstanbul", sourceRowKey: "row-1" }] }) });
     assert.equal(entries.status, 201);
     const entriesBody = await entries.json() as { insertedCount: number; evaluations: Array<{ outlierStatus: string; baselineCount: number }> ; entries: Array<{ id: string; reviewStatus: string; priceSnapshotId: string | null }> };
@@ -85,6 +90,17 @@ test("supplier quote market intelligence is review-gated, outlier-aware, and ten
     const linkedBody = await linkedCreate.json() as { id: string; sourceDocumentHash: string };
     assert.equal(linkedBody.sourceDocumentHash, sourceDocument.checksumSha256);
     const linkedSubmissionId = linkedBody.id;
+    await db.update(schema.normalizedQuantityRows).set({ normalizedPrice: null }).where(eq(schema.normalizedQuantityRows.id, sourceRow.id));
+    const missingPrice = await request(`/api/market-intelligence/supplier-quotes/${linkedSubmissionId}/import-smartcheck-rows`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ rowIds: [sourceRow.id] }) });
+    assert.equal(missingPrice.status, 409);
+    assert.equal((await missingPrice.json() as { code: string }).code, 'SMARTCHECK_ROW_VALUES_MISSING');
+    assert.equal((await db.select().from(schema.supplierQuoteEntries).where(eq(schema.supplierQuoteEntries.submissionId, linkedSubmissionId))).length, 0);
+    await db.update(schema.normalizedQuantityRows).set({ normalizedPrice: '0' }).where(eq(schema.normalizedQuantityRows.id, sourceRow.id));
+    const zeroPrice = await request(`/api/market-intelligence/supplier-quotes/${linkedSubmissionId}/import-smartcheck-rows`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ rowIds: [sourceRow.id] }) });
+    assert.equal(zeroPrice.status, 201);
+    assert.equal(Number((await zeroPrice.json() as { entries: Array<{ unitPrice: string }> }).entries[0].unitPrice), 0);
+    await db.delete(schema.supplierQuoteEntries).where(eq(schema.supplierQuoteEntries.submissionId, linkedSubmissionId));
+    await db.update(schema.normalizedQuantityRows).set({ normalizedPrice: '185' }).where(eq(schema.normalizedQuantityRows.id, sourceRow.id));
     const blockedImport = await request(`/api/market-intelligence/supplier-quotes/${linkedSubmissionId}/import-smartcheck-rows`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ rowIds: [pendingSourceRow.id] }) });
     assert.equal(blockedImport.status, 409);
     const importRows = await request(`/api/market-intelligence/supplier-quotes/${linkedSubmissionId}/import-smartcheck-rows`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ rowIds: [sourceRow.id] }) });

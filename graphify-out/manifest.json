@@ -1140,8 +1140,8 @@
     "semantic_hash": ""
   },
   "src/components/smartcheck/SmartCheckImportWorkspace.tsx": {
-    "mtime": 1793198701.9414005,
-    "ast_hash": "1d24d942b64da5bb4bbad4dc04babe29",
+    "mtime": 1793200428.537709,
+    "ast_hash": "c4b241b4c480106b8baa3091e0eb130f",
     "semantic_hash": ""
   },
   "src/components/smartcheck/SourceIntelligencePanel.tsx": {
@@ -1275,8 +1275,8 @@
     "semantic_hash": ""
   },
   "src/contracts/smartcheck.ts": {
-    "mtime": 1793198690.9533105,
-    "ast_hash": "87ad8f5961374d5460b1a7855e45410b",
+    "mtime": 1793200063.4767132,
+    "ast_hash": "44573444a67c7f26319f6829e3e6af26",
     "semantic_hash": ""
   },
   "src/data/lessonsContent.ts": {
@@ -1535,8 +1535,8 @@
     "semantic_hash": ""
   },
   "src/pages/QuoteDetail.tsx": {
-    "mtime": 1793198773.7387679,
-    "ast_hash": "ba02a28c37e2f2beb4710c273c3e045e",
+    "mtime": 1793199792.0994718,
+    "ast_hash": "61c6f9beb2425857f3e6855720f4c5c7",
     "semantic_hash": ""
   },
   "src/pages/Quotes.tsx": {
@@ -1685,13 +1685,13 @@
     "semantic_hash": ""
   },
   "src/server/routes/market-intelligence.integration.test.ts": {
-    "mtime": 1793198423.4217846,
-    "ast_hash": "b41f2e69804aa023d027b89b9d18c1e4",
+    "mtime": 1793199784.6293163,
+    "ast_hash": "4788b2beac3b8ca535b78bb5ea6130ea",
     "semantic_hash": ""
   },
   "src/server/routes/market-intelligence.ts": {
-    "mtime": 1793198394.288651,
-    "ast_hash": "3a044f65ac99a3506982cd29e6822c76",
+    "mtime": 1793199766.0437698,
+    "ast_hash": "3dc5c5a30b5715f9a02c290faa0e2a43",
     "semantic_hash": ""
   },
   "src/server/routes/pilot-evidence.integration.test.ts": {
@@ -1725,8 +1725,8 @@
     "semantic_hash": ""
   },
   "src/server/routes/quotations.ts": {
-    "mtime": 1793198755.5338733,
-    "ast_hash": "b6e3986c493a746e62a36289668e9361",
+    "mtime": 1793199916.743998,
+    "ast_hash": "e71939f93325a68399e5064953d20427",
     "semantic_hash": ""
   },
   "src/server/routes/regulation-impact.integration.test.ts": {
@@ -1745,13 +1745,13 @@
     "semantic_hash": ""
   },
   "src/server/routes/smartcheck.integration.test.ts": {
-    "mtime": 1793199230.5771153,
-    "ast_hash": "59d420ba802ccc90a562105f0d458354",
+    "mtime": 1793200517.9622753,
+    "ast_hash": "d54d43fa8678561cbe7426242c79c3e8",
     "semantic_hash": ""
   },
   "src/server/routes/smartcheck.ts": {
-    "mtime": 1793199246.503529,
-    "ast_hash": "1ed294f64ff42571b86bb554e0b0ac6c",
+    "mtime": 1793200533.2765694,
+    "ast_hash": "2045f7de3c97fd9c2be61faaedadf187",
     "semantic_hash": ""
   },
   "src/server/routes/source-intelligence.integration.test.ts": {
@@ -1820,8 +1820,8 @@
     "semantic_hash": ""
   },
   "src/services/pdf/generate.ts": {
-    "mtime": 1793197173.5210712,
-    "ast_hash": "e2b8e9141f5b7f54bb26abe1fc50aaab",
+    "mtime": 1793200102.9818885,
+    "ast_hash": "a7668a94cc48ae79a37d86e9bbdf70d8",
     "semantic_hash": ""
   },
   "src/services/pdf/templates.ts": {
@@ -4760,8 +4760,8 @@
     "semantic_hash": ""
   },
   "src/server/routes/quotations.integrity.test.ts": {
-    "mtime": 1793198749.6554892,
-    "ast_hash": "32311afe26c8f2084ff199afa2758758",
+    "mtime": 1793200255.0710795,
+    "ast_hash": "10b4117d156208b27ccb88e5c12e8d51",
     "semantic_hash": ""
   },
   "src/services/billing/limits.ts": {
@@ -5835,13 +5835,13 @@
     "semantic_hash": ""
   },
   "src/pages/admin/roadmap/calculation-content.ts": {
-    "mtime": 1793198929.1912763,
-    "ast_hash": "dabd484aebd2515e3958806de6dd9a69",
+    "mtime": 1793200216.339263,
+    "ast_hash": "ada7b1098a2138683ef059549fe9303e",
     "semantic_hash": ""
   },
   "src/pages/admin/roadmap/content.test.ts": {
-    "mtime": 1793198935.379527,
-    "ast_hash": "4495f945a7c3c9683e46ad4ddf054513",
+    "mtime": 1793200646.9542336,
+    "ast_hash": "18560a4985ac2b0b3aff727baaeacff3",
     "semantic_hash": ""
   },
   "src/pages/admin/roadmap/doc-types.ts": {
@@ -5850,8 +5850,8 @@
     "semantic_hash": ""
   },
   "src/pages/admin/roadmap/roadmap-content.ts": {
-    "mtime": 1793198947.0369701,
-    "ast_hash": "a8ccc35a6321d6eed491513932a64c01",
+    "mtime": 1793200646.9540904,
+    "ast_hash": "19b33316f6914a169fa3185f2c0ff865",
     "semantic_hash": ""
   },
   "src/server/observability/error-tracking.test.ts": {
@@ -6110,8 +6110,8 @@
     "semantic_hash": ""
   },
   "src/pages/admin/roadmap/calculation-review.ts": {
-    "mtime": 1793198929.190988,
-    "ast_hash": "5d4c74bbf34638ad2a601fbf78a07853",
+    "mtime": 1793200646.9530306,
+    "ast_hash": "bc50b60c70bee2e2b4b2cbc51d3329ff",
     "semantic_hash": ""
   },
   "src/smartcheck/rules/minha.test.ts": {
@@ -8632,6 +8632,51 @@
   "src/pages/BimIfcParserPage.test.ts": {
     "mtime": 1793199237.425322,
     "ast_hash": "b36c8cb46fcdc7f3c0b9d655f372965d",
+    "semantic_hash": ""
+  },
+  "src/components/quote/QuoteSourceEvidence.test.ts": {
+    "mtime": 1793199921.138831,
+    "ast_hash": "652281d3751cda59d9a52a2ccfd72c15",
+    "semantic_hash": ""
+  },
+  "src/components/quote/QuoteSourceEvidence.tsx": {
+    "mtime": 1793200255.0707111,
+    "ast_hash": "2356b6bf34e87110033d23db25345d2b",
+    "semantic_hash": ""
+  },
+  "src/server/routes/quotation-pdf-error.test.ts": {
+    "mtime": 1793199887.6519291,
+    "ast_hash": "8900d85b7ff06a83f65f7016611ad820",
+    "semantic_hash": ""
+  },
+  "src/server/routes/quotation-pdf-error.ts": {
+    "mtime": 1793199887.620228,
+    "ast_hash": "b85e0150424c76d52a00d979c801ce1d",
+    "semantic_hash": ""
+  },
+  "src/server/routes/quotation-source-evidence.test.ts": {
+    "mtime": 1793200245.2261312,
+    "ast_hash": "ca5ac7fca80453ccec288515cd66fcea",
+    "semantic_hash": ""
+  },
+  "src/server/routes/quotation-source-evidence.ts": {
+    "mtime": 1793200255.0703716,
+    "ast_hash": "5407b23d1fe4a6b90993cd11eb9758ea",
+    "semantic_hash": ""
+  },
+  "src/services/pdf/price-guard.integration.test.ts": {
+    "mtime": 1793199941.9791555,
+    "ast_hash": "676429315f8b924c04ae19589c3f8c75",
+    "semantic_hash": ""
+  },
+  "src/services/pdf/price-guard.test.ts": {
+    "mtime": 1793200087.590155,
+    "ast_hash": "6d6396f7dbf3614be2ba6f0ff9546931",
+    "semantic_hash": ""
+  },
+  "src/services/pdf/price-guard.ts": {
+    "mtime": 1793200095.5438044,
+    "ast_hash": "765c01e7a82294ec91e02fe74cf5775c",
     "semantic_hash": ""
   }
 }

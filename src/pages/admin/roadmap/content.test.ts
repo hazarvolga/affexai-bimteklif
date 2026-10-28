@@ -72,8 +72,8 @@ test("roadmap covers the agreed topics, ministry questions and official sources"
 
 
 test("Rev. 112 documents Phase 0 without claiming production or independent expert approval", () => {
-  assert.equal(CALC_REVIEW_META.version, "BIM-CALC-2026-10-28.107");
-  assert.equal(CALC_REVIEW_CHANGELOG.at(-1)?.revision, "Rev. 113");
+  assert.equal(CALC_REVIEW_META.version, "BIM-CALC-2026-10-28.108");
+  assert.equal(CALC_REVIEW_CHANGELOG.at(-1)?.revision, "Rev. 114");
   const revisions = CALC_REVIEW_CHANGELOG.map(item => Number(item.revision.match(/Rev\. (\d+)/)?.[1]));
   assert.ok(revisions.every((value, index) => index === 0 || value > revisions[index - 1]), "calculation revisions must be strictly increasing");
   const kik = CALC_REVIEW_CHANGELOG.find(item => item.revision === "Rev. 112")?.moduleDetails?.["kik-adt"];
@@ -85,7 +85,7 @@ test("Rev. 112 documents Phase 0 without claiming production or independent expe
   for (const [index, table] of tables.entries()) {
     if (table.type !== "table") continue;
     const numbers = table.rows.map(row => Number(row[0].match(/Rev\. (\d+)/)?.[1]));
-    assert.equal(numbers.at(-1), 113);
+    assert.equal(numbers.at(-1), 114);
     assert.ok(numbers.every((value, rowIndex) => rowIndex === 0 || (index === 0 ? value > numbers[rowIndex - 1] : value >= numbers[rowIndex - 1])), "roadmap revisions must be ordered");
   }
 });
@@ -101,6 +101,21 @@ test("Rev. 113 records source, review, transfer and AI scope with explicit outst
   assert.match(CALC_REVIEW_META.approvalStatus, /bağımsız mühendis onayını göstermez/);
   const status = ROADMAP_SECTIONS.find(section => section.id === "adimlar")!;
   assert.match(JSON.stringify(status), /tarihsel IFC kayıtlarında belirsiz veya eksik kaynak yolu/);
+});
+
+test("Rev. 114 explains missing price, historical PDF ambiguity and evidence limitations", () => {
+  const revision = CALC_REVIEW_CHANGELOG.find(item => item.revision === "Rev. 114")!;
+  for (const module of ["teklif-satir", "ifc-teklif-aktarim", "fiyat-eslestirme", "aykiri-fiyat"]) {
+    const detail = revision.moduleDetails?.[module];
+    assert.ok(detail?.before && detail?.after && detail?.basis, module);
+  }
+  assert.match(revision.afterSummary, /PDF 409/);
+  assert.match(revision.afterSummary, /iki SmartCheck aktarımında yeni bilinçli sıfır, gerekçe ve aktör bağlı kanıtla kaydedilir/);
+  assert.match(revision.afterSummary, /üretim veya uzman kabulü değildir/);
+  assert.match(revision.moduleDetails!["ifc-teklif-aktarim"].after, /no-op 200/);
+  assert.match(revision.moduleDetails!["ifc-teklif-aktarim"].after, /PDF kota sürüm anahtarını değiştirmez/);
+  assert.match(revision.moduleDetails!["ifc-teklif-aktarim"].after, /tekrar aktarım audit kaydı yazmaz/);
+  assert.match(revision.moduleDetails!["teklif-satir"].after, /manuel.*kaynak kanıtlı sıfır/i);
 });
 
 

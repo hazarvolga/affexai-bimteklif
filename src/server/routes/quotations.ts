@@ -3,12 +3,14 @@ import { and, desc, eq } from "drizzle-orm";
 import { db } from "../../db";
 import { quotationItems, quotationItemEvidence, quotations, smartcheckAuditLogs } from "../../db/schema";
 import { publicAiEvidence } from './quotation-ai-evidence';
+import { publicQuotationSourceEvidence } from './quotation-source-evidence';
 import { manualQuotationInput, quotationStatusInput } from "../../services/quotations/input";
 import { createManualQuotation, createQuotationRevision, QuotationIntegrityError } from "../../services/quotations/integrity";
 import { auditQuotationItems } from "../../lib/quotation-audit";
 import { generateQuotationPdf } from "../../services/pdf/generate";
 import { tenantOf, withAppTenant } from "../../db/app-tenant";
 import { PdfRenderError } from "../../services/pdf/renderer";
+import { quotationPdfErrorResponse } from './quotation-pdf-error';
 import { authenticate } from "../middleware/auth";
 import { usageTracker } from "../middleware/usage";
 import { QuotaError } from "../../services/billing/quota";
@@ -105,13 +107,19 @@ export function registerQuotationRoutes(app: Express, canMutate: any) {
           .from(quotationItems)
           .where(and(eq(quotationItems.quotationId, id), eq(quotationItems.companyId, req.user.companyId)));
 
-        const evidence = await tenantDb.select({ itemId: quotationItemEvidence.quotationItemId, payload: quotationItemEvidence.capturedValueJson })
+        const evidence = await tenantDb.select({ itemId: quotationItemEvidence.quotationItemId, evidenceType: quotationItemEvidence.evidenceType, sourceCellRange: quotationItemEvidence.sourceCellRange, capturedValueJson: quotationItemEvidence.capturedValueJson })
           .from(quotationItemEvidence)
-          .where(and(eq(quotationItemEvidence.companyId, req.user.companyId), eq(quotationItemEvidence.quotationId, id), eq(quotationItemEvidence.evidenceType, 'source'), eq(quotationItemEvidence.status, 'current')));
+          .where(and(eq(quotationItemEvidence.companyId, req.user.companyId), eq(quotationItemEvidence.quotationId, id), eq(quotationItemEvidence.status, 'current')));
         const aiByItem = new Map(evidence.flatMap(record => {
-          const ai = publicAiEvidence(record.payload);
+          const ai = record.evidenceType === 'source' ? publicAiEvidence(record.capturedValueJson) : null;
           return ai ? [[record.itemId, ai] as const] : [];
         }));
+        const evidenceByItem = new Map<string, typeof evidence>();
+        for (const entry of evidence) {
+          const entries = evidenceByItem.get(entry.itemId) ?? [];
+          entries.push(entry);
+          evidenceByItem.set(entry.itemId, entries);
+        }
 
         const revisions = await tenantDb.select()
           .from(quotations)
@@ -123,7 +131,7 @@ export function registerQuotationRoutes(app: Express, canMutate: any) {
           )
           .orderBy(desc(quotations.revisionVersion));
 
-        return { ...quote, items: items.map(item => ({ ...item, aiEvidence: aiByItem.get(item.id) ?? null })), revisions };
+        return { ...quote, items: items.map(item => ({ ...item, aiEvidence: aiByItem.get(item.id) ?? null, sourceEvidence: publicQuotationSourceEvidence(evidenceByItem.get(item.id) ?? []) })), revisions };
       });
 
       if (!detail) return res.status(404).json({ error: "Quote not found" });
@@ -223,6 +231,8 @@ export function registerQuotationRoutes(app: Express, canMutate: any) {
       res.send(pdfBuffer);
     } catch (error) {
       if (controller.signal.aborted || res.destroyed) return;
+      const priceError = quotationPdfErrorResponse(error);
+      if (priceError) return res.status(priceError.status).json(priceError.body);
       if (error instanceof PdfRenderError) return res.status(error.status).set('Retry-After', '5').json({ error: 'PDF hizmeti meşgul; lütfen tekrar deneyin.', code: error.code });
       console.error("PDF Generation Error:", error);
       res.status(500).json({ error: "Failed to generate PDF" });

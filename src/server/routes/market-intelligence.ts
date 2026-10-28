@@ -33,6 +33,7 @@ function textValue(value: unknown, maxLength: number) {
 }
 
 function numberValue(value: unknown) {
+  if (typeof value !== "number" && (typeof value !== "string" || !value.trim())) return null;
   const number = typeof value === "number" ? value : Number(value);
   return Number.isFinite(number) ? number : null;
 }

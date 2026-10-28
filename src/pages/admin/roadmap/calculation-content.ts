@@ -60,7 +60,7 @@ export const CALC_MODULES: CalcModule[] = [
     ],
     rules: { columns: ["Doğrulama", "Kural"], rows: [
       ["Miktar", "> 0 olmalı"],
-      ["Birim fiyat", "≥ 0 olmalı (0 TL satır 'fiyat eksik' uyarısı alır)"],
+      ["Birim fiyat", "≥ 0 olmalı; açık sıfır ve eksik fiyat ayrı durumlardır. Eski belge kaynaklı sıfırın kaynağı kanıtlanamıyorsa PDF üretimi doğrulama isteğiyle durur"],
       ["İskonto ve KDV oranı", "0–100 arasında"],
       ["Toplamlar", "Kuruş cinsinden satır toplamlarından türetilir; PDF'teki satırların toplamı her zaman ara toplama eşittir"],
       ["Kâr ve genel gider %", "0–100 arasında, en fazla iki ondalık; aralık dışı değer reddedilir (kırpılmaz). Kalem birim fiyatları fiyat kaydına eşit kalır; pay teklifte, PDF'te ve Excel çıktısında ayrı satırdır"],
@@ -214,7 +214,7 @@ export const CALC_MODULES: CalcModule[] = [
     formulas: ["miktar = kanonik Calm satırının sunucuda yeniden kurulan net quantity değeri; boyutlar karıştırılmaz", "satır tutarı = sabit noktalı miktar × yetkili snapshot birim fiyatı", "ardıl revizyon = kilitlenen güncel teklif + seçilen yeni satırlar; önceki revizyon değişmez"],
     rules: { columns: ["Kapı", "Davranış"], rows: [["Kaynak", "En yeni başarılı processing run, kaynak SHA-256 ve element/aggregate lineage zorunlu"], ["Fiyat", "Vendor/lisans/kullanım yetkisi fail-closed; tedarikçi beyanı tek başına yetki değildir"], ["Tekrar", "Actor+tenant idempotency ve teklif serisi çapında semantik kaynak tekrar kontrolü"], ["Eşzamanlılık", "Güncel teklif FOR UPDATE kilitlenir; sibling revision ve target mutation DB kapılarıyla engellenir"]] },
     example: { inputs: [["Mevcut teklif", "Rev. 3"], ["Seçili kanonik satır", "IfcCovering net 42,5 m²; yetkili snapshot"]], steps: ["Sunucu Calm projeksiyonunu yeniden kurar", "Kaynak/fiyat/yetki ve tekrar kapıları çalışır", "Rev. 4 ardıl teklif ve lineage kaydı transaction içinde oluşur"], result: "Rev. 3 korunur; Rev. 4 kalıcıdır ve aynı semantik kaynak yeniden eklenmez" },
-    assumptions: ["Bu dilim mevcut bir güncel teklif gerektirir; boş teklif oluşturmaz.", "Görüntüleme geometrisi veya kanıtsız tahmin miktar kaynağı değildir.", "Bağımsız mühendis fiyat/metraj kabulü uygulama testinden ayrıdır.", "İki SmartCheck satır aktarımı eksik fiyatı reddeder ve açık sıfırdan ayırır; bu diğer fiyat/PDF akışlarına genellenemez.", "Bilinen eski geometry yolları engellenir; eski tüm belirsiz boyut/kaynak eşleşmeleri otomatik düzeltilmiş değildir."],
+    assumptions: ["Bu dilim mevcut bir güncel teklif gerektirir; boş teklif oluşturmaz.", "Görüntüleme geometrisi veya kanıtsız tahmin miktar kaynağı değildir.", "Bağımsız mühendis fiyat/metraj kabulü uygulama testinden ayrıdır.", "İki SmartCheck satır aktarımı eksik fiyatı reddeder; bilinçli 0 override için gerekçe ve aktör bağlı fiyat kanıtı gerekir. PDF bu kanıtı değerlendirir; geçmiş belirsiz kayıtların teyidi ve diğer fiyat akışları ayrıca incelenmelidir.", "Bilinen eski geometry yolları engellenir; eski tüm belirsiz boyut/kaynak eşleşmeleri otomatik düzeltilmiş değildir."],
     questions: ["Pilot kabulünde ardıl teklif satırlarının şirket poz gruplaması ve onay hiyerarşisi yeterli mi?"],
   },
   {

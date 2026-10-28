@@ -185,8 +185,9 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
   },
   {
     id: "durum",
-    title: "Uygulama durumu (28 Ekim 2026 · Rev. 113 geliştirme kaydı)",
+    title: "Uygulama durumu (28 Ekim 2026 · Rev. 114 geliştirme kaydı)",
     blocks: [
+      { type: "callout", tone: "info", title: "Rev. 114 · Fiyat ve kanıt görünürlüğü", text: "Tedarikçi girdilerinde boş değer ile sıfır ayrımı, teklif satırı kaynak kanıtı görünümü ve geçmişte kaynağı belirsiz sıfır için PDF 409 koruması geliştirildi. Eski sıfır override kökeni belirsizse kullanıcı doğrulaması gerektirir; canlı ve uzman kabulü ayrıca doğrulanır." },
       { type: "callout", tone: "info", title: "Rev. 113 · Faz 1 kaynak ve karar güvenliği", text: "IFC kaynak türü ve eski geometrik yollar, review kilidi/audit, iki SmartCheck aktarımında eksik fiyat, CDE gerekçesi, belge checksum ve AI öneri kanıtı güncellendi. Eski kaynağı belirsiz kayıtların tümü onarılmış değildir; uzman kabulü ve üretim dağıtımı ayrıca doğrulanmalıdır." },
       { type: "callout", tone: "info", title: "Rev. 112 · Faz 0 geliştirme kaydı", text: "Yönetici kuyruk, rapor ve kota sözleşmeleri; yayınlı plan fiyatları, banka checksum ve KİK ön proje istisnası için değişiklik kaydıdır. Commit ve dağıtım durumu Git ve canlı sistemden ayrıca doğrulanır; bu kayıt bağımsız uzman onayı değildir." },
       { type: "table", columns: ["Yetenek", "Durum", "Not"], rows: [
@@ -245,6 +246,7 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
     id: "adimlar",
     title: "Sıradaki geliştirmeler ve kabul ölçütleri",
     blocks: [
+      { type: "p", text: "Rev. 114 sonrası: tarihsel sıfır override kaynağının belirsizliği için kullanıcı doğrulaması, yeni gerekçeli sıfır aktarımının canlı ve kullanıcı kabulü, diğer fiyat yüzeyleri ve üretim/uzman doğrulamaları açık kalır." },
       { type: "p", text: "Rev. 113 sonrası: tarihsel IFC kayıtlarında belirsiz veya eksik kaynak yolu ve karma boyut kanıtının yeniden işlenmesi, diğer fiyat/PDF akışlarında null–sıfır ayrımı, AI kanıtının zorunluluğu ve gerçek sağlayıcı kabulü, bağımsız mühendis incelemesi ve üretim doğrulaması açık kalır." },
       { type: "p", text: "Rev. 112 sonrası: IFC kaynak türü ve review bulgusu, eksik fiyat, kimlik/tenant izolasyonu, yönetici operasyon görünürlüğü, restore ve bağımsız mühendis kabulü açık kalır. Bu geliştirmeler ve canlı kabul tamamlanmış sayılmaz." },
       { type: "p", text: "Aşağıdaki tablo teknik borç ve geliştirme adımlarının güncel durumunu gösterir. Kod ve otomatik testleri tamamlanan maddeler işaretlenmiş olup, saha/uzman kabulü gerektiren maddeler açık tutulmuştur." },
@@ -285,17 +287,17 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
   },
   {
     id: "revizyon-gunlugu",
-    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 113 · 13–28 Ekim 2026)",
+    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 114 · 13–28 Ekim 2026)",
     blocks: [
       {
         type: "callout",
         tone: "info",
-        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 113)",
-        text: "Bu bölüm, BIMMetraj'ın teknik evrimini Rev. 0'dan 28 Ekim 2026 Rev. 113 · BIM-CALC-2026-10-28.107 geliştirme kaydına kadar kronolojik sırayla listeler; Git geçmişi ve canlı sürüm ayrı doğrulanır, bağımsız uzman onayı bu kayıtla verilmez. Rev. 91–100, marka.md ürün incelemesinden çıkan uzman önizlemesi, Faz 0 güven düzeltmeleri ve Faz 1 Excel önce / fiyat eksikliği / dışa aktarım dilimleridir; Rev. 101 ile tüm 0022..0029 migration'ları, D12 worker başlangıç düzeltmesi ve D13 canlı ifc-worker consumeIfcUsage kota tamamlama düzeltmesi canlı üretime (https://bimmetraj.com) dağıtılmıştır. Rev. 102 ile 4 katmanlı müteahhit Excel adaptörü, Rev. 103 ile /admin/pricing-sources otomatik tohumlama ve TÜİK SDMX 2.1 adaptörü, Rev. 104 ile 6 aşamalı güvenlik denetimi bulgularının ve derinlemesine sertleştirme adımlarının tamamı kapatılmıştır. Rev. 105 ile CalmIfcWorkspace 795 satıra ayrıştırılmış, Rev. 106 ile Müşteriler (/app/clients), Müşteriler & Fırsatlar (/app/crm), 6 aşamalı müşteri zaman tüneli (/app/clients/:id) ve 3 katmanlı Akıllı Müşteri Excel/CSV Adaptörü devreye alınmıştır. Rev. 90 ile T43 ≥%80 proje kapsam hedefi (%82,58) ve T56 nihai izlenebilirlik matrisi tamamlanarak dış girdi gerektirmeyen tüm teknik adımlar kapatılmıştır. Harici fixture lisansı, T45 izinli gerçek büyük müşteri dosyası/VPS post-deploy kanıtı, T50–T52 uzman/müşteri/canlı kabulü ve T55 hukuk incelemesi açık olduğundan Faz 7, Faz 9, Faz 10 ve Faz 11 dış kabuller tamamlanana dek PARTIAL kalır.",
+        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 114)",
+        text: "Bu bölüm, BIMMetraj'ın teknik evrimini Rev. 0'dan 28 Ekim 2026 Rev. 114 · BIM-CALC-2026-10-28.108 geliştirme kaydına kadar kronolojik sırayla listeler; Git geçmişi ve canlı sürüm ayrı doğrulanır, bağımsız uzman onayı bu kayıtla verilmez. Rev. 91–100, marka.md ürün incelemesinden çıkan uzman önizlemesi, Faz 0 güven düzeltmeleri ve Faz 1 Excel önce / fiyat eksikliği / dışa aktarım dilimleridir; Rev. 101 ile tüm 0022..0029 migration'ları, D12 worker başlangıç düzeltmesi ve D13 canlı ifc-worker consumeIfcUsage kota tamamlama düzeltmesi canlı üretime (https://bimmetraj.com) dağıtılmıştır. Rev. 102 ile 4 katmanlı müteahhit Excel adaptörü, Rev. 103 ile /admin/pricing-sources otomatik tohumlama ve TÜİK SDMX 2.1 adaptörü, Rev. 104 ile 6 aşamalı güvenlik denetimi bulgularının ve derinlemesine sertleştirme adımlarının tamamı kapatılmıştır. Rev. 105 ile CalmIfcWorkspace 795 satıra ayrıştırılmış, Rev. 106 ile Müşteriler (/app/clients), Müşteriler & Fırsatlar (/app/crm), 6 aşamalı müşteri zaman tüneli (/app/clients/:id) ve 3 katmanlı Akıllı Müşteri Excel/CSV Adaptörü devreye alınmıştır. Rev. 90 ile T43 ≥%80 proje kapsam hedefi (%82,58) ve T56 nihai izlenebilirlik matrisi tamamlanarak dış girdi gerektirmeyen tüm teknik adımlar kapatılmıştır. Harici fixture lisansı, T45 izinli gerçek büyük müşteri dosyası/VPS post-deploy kanıtı, T50–T52 uzman/müşteri/canlı kabulü ve T55 hukuk incelemesi açık olduğundan Faz 7, Faz 9, Faz 10 ve Faz 11 dış kabuller tamamlanana dek PARTIAL kalır.",
       },
       {
         type: "p",
-        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 113):",
+        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 114):",
       },
       {
         type: "table",
@@ -986,11 +988,17 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
             "BIM-CALC-2026-10-28.107 · temel 3b0dd13; Rev. 113 için Git geçmişine bakın",
             "IFC kaynak ayrımı, review/audit, iki SmartCheck aktarımında eksik fiyat, CDE gerekçesi, kaynak belge checksum ve AI öneri izi güncellendi. Tarihsel belirsiz kaynaklar, diğer fiyat/PDF akışları, uzman ve üretim kabulü açıktır.",
           ],
+          [
+            "Rev. 114",
+            "28 Ekim 2026 · Fiyat ve kaynak kanıtı görünürlüğü",
+            "BIM-CALC-2026-10-28.108 · temel b610878; Rev. 114 için Git geçmişine bakın",
+            "Tedarikçi sayısal null/sıfır ayrımı, teklifte kaynak kanıtı ve geçmiş belirsiz sıfır için PDF koruması işlendi. İki SmartCheck aktarımındaki yeni gerekçeli sıfır, aktör bağlı kanıt ve PDF kapısı izole dört senaryoda sınandı; eski kayıt teyidi ve canlı/uzman kabulü açık kalır.",
+          ],
         ],
       },
       {
         type: "p",
-        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 113 · Önceki Durum → Yeni Durum):",
+        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 114 · Önceki Durum → Yeni Durum):",
       },
       {
         type: "table",
@@ -1890,6 +1898,13 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
             "Geometri özellik gibi sınıflanabiliyor, review bulgusu kaybolabiliyor, iki aktarımda eksik fiyat sıfıra dönüşebiliyor; CDE nedeni, belge hash ilişkisi ve AI önerisi ile kullanıcı farkı tutarlı kaydedilmeyebiliyordu.",
             "Geometri ve bilinen eski geometrik yollar kaynaklı kanıttan ayrılır; review sürüm/tenant kilidi ve audit ile yürür; iki SmartCheck aktarımı eksik fiyatı açık sıfırdan ayırır. CDE kullanıcı gerekçesi ve yüklenen belge checksum eşleşmesi korunur; imzalı AI önerisinin ilk/son değer farkı gösterilir. Diğer fiyat/PDF yüzeyleri ve belirsiz eski kayıtlar, uzman ve üretim kabulü açık kalır.",
             "workers/ifc/ifc_extract.py, src/ifc/{evidence-policy,smartcheck-evidence,calm-icmal,parser/contract}.ts, src/server/routes/{smartcheck,market-intelligence,quotations,ai}.ts, src/services/{cde/service,quotations/calm-transfer,quotations/integrity,ai/quotation-provenance}.ts",
+          ],
+          [
+            "Rev. 114 · 28 Ekim 2026 (Fiyat ve kaynak kanıtı görünürlüğü)",
+            "Teklif kaynak evidence DTO; tenant kapsamı; belge fiyatı snapshot ve PDF fail-closed",
+            "Boş tedarikçi sayı girdisi sıfıra dönüşebiliyor, teklif detayında kaynak tutar ve inceleme izi görülemiyor, geçmişte eksikten dönmüş sıfır PDF'te kesin fiyat olarak çıkabiliyordu.",
+            "Sayısal null/boş ile açık sıfır ayrılır; teklif detayında kayıtlı miktar/fiyat ve inceleme izi sunulur. Belge kaynaklı sıfır, kaynak satırı ve aktarım anı kanıtıyla doğrulanamıyorsa PDF 409 döner; manuel ve kanıtlı sıfır korunur. Eski açık override belirsizliği kullanıcı teyidi gerektirir; iki SmartCheck aktarımındaki yeni bilinçli sıfır gerekçeli, aktöre bağlı kanıtla kaydedilir ve PDF kapısı bunu kontrol eder. Birebir tekrar no-op 200 döndürür; farklı miktar, fiyat, maliyet, KDV, fire, birim, açıklama, snapshot, kaynak, doğrulama veya gerekçe ve eksik eski kanıt 409 ile reddedilir. No-op teklif updatedAt ve PDF kota anahtarını değiştirmez, tekrar aktarım audit kaydı yazmaz. İzole testler canlı ve uzman kabulü değildir.",
+            "src/server/routes/market-intelligence.ts, src/server/routes/quotations.ts, src/server/routes/quotation-source-evidence.ts, src/components/quote/QuoteSourceEvidence.tsx, src/services/pdf/{generate,price-guard}.ts",
           ],
         ],
       },

@@ -60,6 +60,7 @@ export const smartcheckBulkReviewRequestSchema = z.object({
 const transferOverrideSchema = z.object({
   quantity: z.unknown().optional(),
   unitPrice: z.unknown().optional(),
+  zeroPriceReason: z.string().trim().max(2000).optional(),
   costUnitPrice: z.unknown().optional(),
   wastePercent: z.unknown().optional(),
   vatPercent: z.unknown().optional(),
