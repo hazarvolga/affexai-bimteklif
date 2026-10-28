@@ -14,6 +14,7 @@ import { createInitialPaymentOrder } from "../../services/billing/bank-transfer"
 import { formatBillingCycleLabel, normalizeBillingCycle } from "../../services/billing/billing-periods";
 import { selectTrialPlan } from "../../services/billing/trial-plan";
 import { authenticate } from "../middleware/auth";
+import { isUserExpertReviewer } from "../admin/expert-reviewers";
 import { ACADEMY_MARKETING_VERSION, ACADEMY_PRIVACY_VERSION, ACADEMY_TERMS_VERSION, isPlatformSuperAdminEmail, parseRegistrationInput, parseSelectedPlanId, publicRegisteredUser } from "../auth/registration";
 import { clientAddress, consumeRateLimit, createActionToken, hashActionToken } from "../auth/security";
 import { ADMIN_COOKIE, bodyToken, clearSessionCookies, isSameOriginMutation, parseCookies, restoreAdminSession, setSessionCookies } from "../auth/session-cookie";
@@ -362,8 +363,15 @@ export function registerAuthRoutes(app: Express) {
         : await getControlDatabase().db.query.academyLearnerProfiles.findFirst({
             where: eq(academyLearnerProfiles.userId, user.id),
           });
+      const isExpertReviewer = await isUserExpertReviewer(user.id, user.isSuperAdmin);
       setSessionCookies(res, token, { isSuperAdmin: user.isSuperAdmin });
-      res.json({ token: bodyToken(req, token), user: publicRegisteredUser(user), company, role: membership?.role, accountType: learner ? 'academy_learner' : 'workspace' });
+      res.json({
+        token: bodyToken(req, token),
+        user: { ...publicRegisteredUser(user), isExpertReviewer },
+        company,
+        role: membership?.role,
+        accountType: learner ? 'academy_learner' : 'workspace',
+      });
     } catch (error) {
       res.status(500).json({ error: "Login failed" });
     }
@@ -390,9 +398,11 @@ export function registerAuthRoutes(app: Express) {
         : await getControlDatabase().db.query.academyLearnerProfiles.findFirst({
             where: eq(academyLearnerProfiles.userId, req.user.userId),
           });
+      const isExpertReviewer = await isUserExpertReviewer(user.id, user.isSuperAdmin);
       res.json({
         user: {
           ...publicRegisteredUser(user),
+          isExpertReviewer,
           ...(req.user.impersonatedBy ? { impersonatedBy: req.user.impersonatedBy, readOnly: req.user.readOnly } : {})
         },
         company,

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { subscriptionStatusEnum } from '../../db/schema';
+import { subscriptionStatusEnum, userRoleEnum } from '../../db/schema';
 
 const nonnegativeInteger = z.number().int().min(0).max(2147483647);
 const planFields = z.object({
@@ -57,4 +57,10 @@ export const updateCompanyAdminInput = z.object({
   isSmartcheckEnabled: z.boolean().optional(),
   adminNotes: z.string().max(4000).nullable().optional(),
 }).strict().refine(value => Object.keys(value).length > 0);
+
+export const updateTenantMemberAdminInput = z.object({
+  role: z.enum(userRoleEnum.enumValues).optional(),
+  isExpertReviewer: z.boolean().optional(),
+}).strict().refine(value => value.role !== undefined || value.isExpertReviewer !== undefined);
+
 

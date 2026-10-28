@@ -24,6 +24,7 @@ import {
   updateCompanyAdminInput,
   updatePlanInput,
   updateSubscriptionInput,
+  updateTenantMemberAdminInput,
 } from "../admin/input";
 import {
   AdminChangeError,
@@ -31,7 +32,9 @@ import {
   updateCompanyAdmin,
   updatePlan,
   updateSubscription,
+  updateTenantMemberAdmin,
 } from "../admin/changes";
+import { getExpertReviewerStatusMap } from "../admin/expert-reviewers";
 import { readAdminTenants } from "../admin/stats";
 import { AuthService } from "../../services/auth/authService";
 import { consumeRateLimit } from "../auth/security";
@@ -182,17 +185,24 @@ export function registerAdminRoutes(app: Express) {
       }
 
       // Users and memberships
-      const members = await getControlDatabase().db
+      const rawMembers = await getControlDatabase().db
         .select({
           userId: users.id,
           email: users.email,
           fullName: users.fullName,
+          isSuperAdmin: users.isSuperAdmin,
           role: memberships.role,
           createdAt: memberships.createdAt,
         })
         .from(memberships)
         .innerJoin(users, eq(users.id, memberships.userId))
         .where(eq(memberships.companyId, companyId));
+
+      const expertMap = await getExpertReviewerStatusMap(rawMembers.map((m) => m.userId));
+      const members = rawMembers.map(({ isSuperAdmin, ...member }) => ({
+        ...member,
+        isExpertReviewer: Boolean(isSuperAdmin || expertMap.get(member.userId)),
+      }));
 
       // Subscription & Plan
       const [subscription] = await getControlDatabase().db
@@ -281,6 +291,30 @@ export function registerAdminRoutes(app: Express) {
         return res.status(error.status).json({ error: error.message });
       }
       return res.status(500).json({ error: "Firma güncellenemedi" });
+    }
+  });
+
+  // 4b. Update Tenant Member Role & UZMAN Expert Reviewer Authority (/api/admin/tenants/:companyId/members/:userId)
+  router.patch("/tenants/:companyId/members/:userId", async (req, res) => {
+    try {
+      const companyId = req.params.companyId;
+      const userId = req.params.userId;
+      if (!z.string().uuid().safeParse(companyId).success || !z.string().uuid().safeParse(userId).success) {
+        return res.status(400).json({ error: "Geçersiz firma veya kullanıcı ID formatı" });
+      }
+
+      const memberInput = updateTenantMemberAdminInput.safeParse(req.body);
+      if (!memberInput.success) {
+        return res.status(400).json({ error: "Güncellenecek geçerli bir rol veya uzman yetkisi alanı bulunamadı" });
+      }
+
+      const member = await updateTenantMemberAdmin(req.user.userId, companyId, userId, memberInput.data);
+      return res.json({ success: true, member });
+    } catch (error) {
+      if (error instanceof AdminChangeError) {
+        return res.status(error.status).json({ error: error.message });
+      }
+      return res.status(500).json({ error: "Kullanıcı rolü veya uzman yetkisi güncellenemedi" });
     }
   });
 

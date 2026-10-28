@@ -42,6 +42,12 @@ try {
     email: 'uzman@example.test', fullName: 'Uzman Mühendis', emailVerified: new Date(), passwordHash: await AuthService.hashPassword(password),
   }).returning();
   await db.insert(schema.memberships).values({ userId: owner.id, companyId: company.id, role: 'owner' });
+  await db.insert(schema.adminAuditLogs).values({
+    adminId: owner.id,
+    targetCompanyId: company.id,
+    action: 'member.expert_granted',
+    details: { targetUserId: owner.id, companyId: company.id, isExpertReviewer: true },
+  });
   const [plan] = await db.insert(schema.plans).values({ name: 'Önizleme', monthlyQuoteLimit: 20, monthlyPrice: 0, monthlyPdfLimit: 20 }).returning();
   await db.insert(schema.subscriptions).values({ companyId: company.id, planId: plan.id, currentPeriodStart: new Date('2020-01-01') });
 

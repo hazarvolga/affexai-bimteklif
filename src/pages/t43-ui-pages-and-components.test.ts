@@ -1841,7 +1841,7 @@ test('T43 UI Slice 1: Admin yönetim sayfaları (PricingSources, PlanEditor, Pla
     '/admin/tenants/:companyId',
     '/admin/tenants/comp-1',
     async (container) => {
-      clickButtonsByText(container, ['Kaydet', 'Güncelle', 'Oturum', 'Onayla']);
+      clickButtonsByText(container, ['Kaydet', 'Güncelle', 'Oturum', 'Onayla', 'UZMAN Ata']);
     },
   );
   assert.ok(tenantDetailHtml.length > 300);

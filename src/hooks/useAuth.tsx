@@ -9,6 +9,7 @@ interface User {
   fullName: string;
   emailVerified: string | null;
   isSuperAdmin?: boolean;
+  isExpertReviewer?: boolean;
   impersonatedBy?: string;
   readOnly?: boolean;
 }

@@ -198,3 +198,12 @@ test("route turns a closed channel or failed e-mail into 503 and passes other er
   await routes(async () => { throw unexpected; }, allow).at(-1)!(request({ engineId: "general", verdict: "unsure" }), response(), (error: unknown) => { forwarded = error; });
   assert.equal(forwarded, unexpected);
 });
+
+test("route rejects standard non-UZMAN users with 403 EXPERT_REVIEWER_REQUIRED", async () => {
+  const handler = routes(async () => assert.fail("not called"), allow).at(-1)!;
+  const res = response();
+  await handler({ user: { ...actor, emailVerified: new Date(), isExpertReviewer: false }, body: { engineId: "kik_adt", verdict: "correct" } }, res, assert.fail);
+  assert.equal(res.statusCode, 403);
+  assert.equal((res.body as { code: string }).code, "EXPERT_REVIEWER_REQUIRED");
+});
+

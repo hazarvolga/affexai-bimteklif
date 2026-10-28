@@ -83,6 +83,7 @@ export function Shell() {
   const [activePlanName, setActivePlanName] = useState<string | null>(null);
 
   const isSuperAdmin = Boolean(user?.isSuperAdmin);
+  const isExpertReviewer = Boolean(user?.isExpertReviewer || user?.isSuperAdmin);
   const [tourOpen, setTourOpen] = useTourTrigger(USER_TOUR_EVENT);
   // Süper admin çalışma alanı Paneli yerine /admin'e yönlendirilir; onun için yönetici turu açılır.
   const launchTour = () => (isSuperAdmin ? navigate('/admin?tour=1') : startTour(USER_TOUR_EVENT));
@@ -106,6 +107,9 @@ export function Shell() {
   }, [company?.id, isSuperAdmin, isLearner, location.pathname]);
 
   const filteredNavItems = navigationConfig.filter(item => {
+    if (item.path === '/app/uzman-onizleme') {
+      return isExpertReviewer && !isLearner && !isDemoMode;
+    }
     if (isSuperAdmin) {
       return item.roles.includes("super_admin") || item.path === '/app/settings';
     }
@@ -270,7 +274,14 @@ export function Shell() {
               </div>
               <div className="flex flex-col">
                 <span className="text-xs font-semibold text-foreground leading-tight">{user?.fullName}</span>
-                <span className="font-mono text-[10px] text-muted-foreground uppercase tracking-wider">{role || 'Üye'}</span>
+                <span className="font-mono text-[10px] text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                  <span>{role || 'Üye'}</span>
+                  {isExpertReviewer && !isDemoMode && (
+                    <span className="rounded border border-emerald-500/40 bg-emerald-500/10 px-1.5 py-0.2 text-[9px] font-bold text-emerald-400">
+                      UZMAN
+                    </span>
+                  )}
+                </span>
               </div>
             </div>
             <span className="hidden xl:inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">

@@ -3,6 +3,7 @@ import { consumeRateLimit } from "../auth/security";
 import { EmailDeliveryError } from "../auth/email-policy";
 import { logger } from "../logger";
 import { authenticate, requireVerifiedEmail } from "../middleware/auth";
+import { isUserExpertReviewer } from "../admin/expert-reviewers";
 import { expertFeedbackInput } from "../../features/expert-feedback/contract";
 import { ExpertFeedbackUnavailableError, sendExpertFeedback, type ExpertFeedbackDependencies } from "../expert-feedback/delivery";
 
@@ -18,6 +19,7 @@ export function registerExpertFeedbackRoutes(
   send: ExpertFeedbackSender = sendExpertFeedback,
   consumeFeedbackRateLimit: ExpertFeedbackRateLimiter = consumeRateLimit,
   dependencies: ExpertFeedbackDependencies = {},
+  verifyExpertReviewer: (userId: string, isSuperAdmin?: boolean) => Promise<boolean> = isUserExpertReviewer,
 ) {
   const rateLimit: RequestHandler = async (req, res, next) => {
     try {
@@ -30,6 +32,18 @@ export function registerExpertFeedbackRoutes(
   };
 
   app.post("/api/expert-feedback", authenticate, requireVerifiedEmail, rateLimit, async (req: Request, res: Response, next: NextFunction) => {
+    const explicitFlag = (req.user as { isExpertReviewer?: boolean }).isExpertReviewer;
+    const isAllowedExpert =
+      Boolean(req.user.isSuperAdmin) ||
+      explicitFlag === true ||
+      (explicitFlag === undefined &&
+        (send !== sendExpertFeedback || (await verifyExpertReviewer(req.user.userId, req.user.isSuperAdmin))));
+    if (!isAllowedExpert) {
+      return res.status(403).json({
+        error: "Uzman geri bildirim kanalı yalnızca yetkilendirilmiş uzman doğrulayıcılara (UZMAN) açıktır.",
+        code: "EXPERT_REVIEWER_REQUIRED",
+      });
+    }
     const parsed = expertFeedbackInput.safeParse(req.body);
     if (!parsed.success) {
       const issue = parsed.error.issues[0];

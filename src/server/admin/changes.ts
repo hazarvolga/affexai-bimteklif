@@ -2,8 +2,9 @@ import { and, eq } from 'drizzle-orm';
 import { lockCompanyQuota, lockCompanyQuotas } from '../../services/billing/company-quota-lock';
 import type { z } from 'zod';
 import { getControlDatabase } from '../../db/control-plane';
-import { adminAuditLogs, companies, plans, subscriptions } from '../../db/schema';
-import type { createPlanInput, updateCompanyAdminInput, updatePlanInput, updateSubscriptionInput } from './input';
+import { adminAuditLogs, companies, memberships, plans, subscriptions } from '../../db/schema';
+import { EXPERT_GRANTED_ACTION, EXPERT_REVOKED_ACTION, isUserExpertReviewer } from './expert-reviewers';
+import type { createPlanInput, updateCompanyAdminInput, updatePlanInput, updateSubscriptionInput, updateTenantMemberAdminInput } from './input';
 
 export class AdminChangeError extends Error {
   constructor(readonly status: number, message: string) { super(message); }
@@ -157,3 +158,82 @@ export async function updateCompanyAdmin(adminId: string, companyId: string, inp
     return after;
   });
 }
+
+export async function updateTenantMemberAdmin(
+  adminId: string,
+  companyId: string,
+  userId: string,
+  input: z.infer<typeof updateTenantMemberAdminInput>,
+) {
+  return getControlDatabase().db.transaction(async tx => {
+    const [membership] = await tx
+      .select()
+      .from(memberships)
+      .where(and(eq(memberships.companyId, companyId), eq(memberships.userId, userId)))
+      .for('update');
+
+    if (!membership) {
+      throw new AdminChangeError(404, 'Firma kullanıcısı bulunamadı');
+    }
+
+    let nextRole = membership.role;
+    if (input.role !== undefined && input.role !== membership.role) {
+      if (membership.role === 'owner' && input.role !== 'owner') {
+        const owners = await tx
+          .select({ id: memberships.id })
+          .from(memberships)
+          .where(and(eq(memberships.companyId, companyId), eq(memberships.role, 'owner')));
+        if (owners.length <= 1) {
+          throw new AdminChangeError(
+            400,
+            'Firmanın tek sahibi (OWNER) başka bir role düşürülemez. Uzman yetkisi vermek için yanındaki UZMAN anahtarını kullanın.',
+          );
+        }
+      }
+
+      await tx
+        .update(memberships)
+        .set({ role: input.role })
+        .where(eq(memberships.id, membership.id));
+
+      nextRole = input.role;
+      await tx.insert(adminAuditLogs).values({
+        adminId,
+        targetCompanyId: companyId,
+        action: 'member.role_updated',
+        details: {
+          targetUserId: userId,
+          companyId,
+          beforeRole: membership.role,
+          afterRole: input.role,
+        },
+      });
+    }
+
+    if (input.isExpertReviewer !== undefined) {
+      await tx.insert(adminAuditLogs).values({
+        adminId,
+        targetCompanyId: companyId,
+        action: input.isExpertReviewer ? EXPERT_GRANTED_ACTION : EXPERT_REVOKED_ACTION,
+        details: {
+          targetUserId: userId,
+          companyId,
+          isExpertReviewer: input.isExpertReviewer,
+        },
+      });
+    }
+
+    const isExpertReviewer =
+      input.isExpertReviewer !== undefined
+        ? input.isExpertReviewer
+        : await isUserExpertReviewer(userId);
+
+    return {
+      userId,
+      companyId,
+      role: nextRole,
+      isExpertReviewer,
+    };
+  });
+}
+

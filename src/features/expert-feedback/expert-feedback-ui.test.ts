@@ -72,7 +72,7 @@ type FetchCall = { url: string; init: RequestInit };
 
 function authValue(overrides: Record<string, unknown> = {}) {
   return {
-    user: { id: "u1", email: "uzman@example.test", fullName: "Uzman", emailVerified: "2026-10-01T00:00:00Z" },
+    user: { id: "u1", email: "uzman@example.test", fullName: "Uzman", emailVerified: "2026-10-01T00:00:00Z", isExpertReviewer: true },
     company: null, role: "owner", accountType: "workspace", learnerProfile: null, loading: false, isDemoMode: false,
     login: () => undefined, logout: () => undefined, exitImpersonation: () => undefined,
     ...overrides,
@@ -109,8 +109,11 @@ async function submit(container: HTMLElement) {
   await act(async () => { container.querySelector("form")!.dispatchEvent(new dom.window.Event("submit", { bubbles: true, cancelable: true })); });
 }
 
-test("feedback stays hidden for anonymous visitors, outside AuthProvider and in demo mode", async () => {
-  for (const auth of [undefined, authValue({ user: null }), authValue({ isDemoMode: true })]) {
+test("feedback stays hidden for anonymous visitors, outside AuthProvider, in demo mode, and for standard non-UZMAN users", async () => {
+  const regularUserAuth = authValue({
+    user: { id: "u2", email: "user@example.test", fullName: "Standart Kullanıcı", emailVerified: "2026-10-01T00:00:00Z", isExpertReviewer: false },
+  });
+  for (const auth of [undefined, authValue({ user: null }), authValue({ isDemoMode: true }), regularUserAuth]) {
     const view = await mount(auth);
     assert.equal(view.container.querySelector("[data-testid='expert-feedback']"), null);
     await view.unmount();
@@ -160,9 +163,13 @@ test("a development-mode receipt is not presented as delivered", async () => {
   await view.unmount();
 });
 
-test("general feedback button is not offered without a real session", async () => {
+test("general feedback button and ExpertPreview are only offered to UZMAN or Super Admin sessions", async () => {
   const { GeneralFeedbackButton } = await import("./GeneralFeedbackButton");
-  for (const [auth, visible] of [[undefined, false], [authValue({ user: null }), false], [authValue({ isDemoMode: true }), false], [authValue(), true]] as const) {
+  const { ExpertPreview } = await import("@/pages/ExpertPreview");
+  const regularUserAuth = authValue({
+    user: { id: "u2", email: "user@example.test", fullName: "Standart Kullanıcı", emailVerified: "2026-10-01T00:00:00Z", isExpertReviewer: false },
+  });
+  for (const [auth, visible] of [[undefined, false], [authValue({ user: null }), false], [authValue({ isDemoMode: true }), false], [regularUserAuth, false], [authValue(), true]] as const) {
     const container = document.createElement("div");
     document.body.replaceChildren(container);
     const root = createRoot(container);
@@ -170,6 +177,18 @@ test("general feedback button is not offered without a real session", async () =
       root.render(React.createElement(MemoryRouter, null, React.createElement(AuthContext.Provider, { value: auth as never }, React.createElement(GeneralFeedbackButton))));
     });
     assert.equal(container.querySelector("button") !== null, visible);
+    await act(() => root.unmount());
+  }
+
+  // ExpertPreview restricted for regular user, open for UZMAN user
+  for (const [auth, restricted] of [[regularUserAuth, true], [authValue(), false]] as const) {
+    const container = document.createElement("div");
+    document.body.replaceChildren(container);
+    const root = createRoot(container);
+    await act(async () => {
+      root.render(React.createElement(MemoryRouter, null, React.createElement(AuthContext.Provider, { value: auth as never }, React.createElement(ExpertPreview))));
+    });
+    assert.equal(container.querySelector("[data-testid='expert-preview-restricted']") !== null, restricted);
     await act(() => root.unmount());
   }
 });

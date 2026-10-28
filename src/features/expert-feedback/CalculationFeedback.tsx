@@ -44,7 +44,7 @@ async function readError(response: Response): Promise<string> {
 
 /**
  * Uzman önizlemesi geri bildirimi: hesap sonucunun uzmanın kendi hesabıyla tutup tutmadığını sorar.
- * Yalnızca oturum açmış kullanıcıya görünür; girdi/sonuç değerleri açık onay olmadan gönderilmez.
+ * Yalnızca Super Admin tarafından UZMAN yetkisi verilmiş kullanıcılara (veya Super Admin'e) görünür; girdi/sonuç değerleri açık onay olmadan gönderilmez.
  */
 export function CalculationFeedback({
   engineId,
@@ -64,7 +64,7 @@ export function CalculationFeedback({
   const [shareSnapshot, setShareSnapshot] = useState(false);
   const [state, setState] = useState<SubmitState>({ phase: "idle" });
 
-  if (!auth?.user || auth.isDemoMode) return null;
+  if (!auth?.user || auth.isDemoMode || (!auth.user.isExpertReviewer && !auth.user.isSuperAdmin)) return null;
 
   const noteRequired = verdict === "incorrect";
   const canShare = inputs != null || result != null;

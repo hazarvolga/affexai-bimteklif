@@ -14,8 +14,8 @@ const GENERAL_VERDICT_LABELS = {
 export function GeneralFeedbackButton() {
   const auth = useOptionalAuth();
   const [open, setOpen] = useState(false);
-  // The form itself renders nothing without a real session, so an empty panel must not be offered.
-  if (!auth?.user || auth.isDemoMode) return null;
+  // The form itself renders nothing without a real UZMAN / Super Admin session, so an empty panel must not be offered.
+  if (!auth?.user || auth.isDemoMode || (!auth.user.isExpertReviewer && !auth.user.isSuperAdmin)) return null;
   return (
     <>
       <button

@@ -70,6 +70,7 @@ interface TenantDetailData {
     fullName: string;
     email: string;
     role: string;
+    isExpertReviewer?: boolean;
     createdAt: string;
   }>;
   usageHistory: Array<{
@@ -298,6 +299,57 @@ export function TenantDetail() {
       toast.error(err.message || 'Güncelleme başarısız');
     } finally {
       setSavingSubscription(false);
+    }
+  };
+
+  const [updatingMemberId, setUpdatingMemberId] = useState<string | null>(null);
+
+  const handleUpdateMember = async (
+    userId: string,
+    patch: { role?: string; isExpertReviewer?: boolean },
+  ) => {
+    if (!companyId) return;
+    try {
+      setUpdatingMemberId(userId);
+      const res = await fetchWithAuth(`/api/admin/tenants/${companyId}/members/${userId}`, {
+        method: 'PATCH',
+        body: JSON.stringify(patch),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(body.error || 'Kullanıcı yetkisi güncellenemedi');
+      }
+      setData((prev) =>
+        prev
+          ? {
+              ...prev,
+              members: prev.members.map((m) =>
+                m.userId === userId
+                  ? {
+                      ...m,
+                      ...(patch.role !== undefined ? { role: patch.role } : {}),
+                      ...(patch.isExpertReviewer !== undefined
+                        ? { isExpertReviewer: patch.isExpertReviewer }
+                        : {}),
+                    }
+                  : m,
+              ),
+            }
+          : prev,
+      );
+      if (patch.isExpertReviewer !== undefined) {
+        toast.success(
+          patch.isExpertReviewer
+            ? 'Kullanıcıya UZMAN önizleme yetkisi tanımlandı'
+            : 'Kullanıcının UZMAN önizleme yetkisi kaldırıldı',
+        );
+      } else if (patch.role !== undefined) {
+        toast.success(`Kullanıcının şirket rolü ${patch.role.toUpperCase()} olarak güncellendi`);
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Kullanıcı yetkisi güncellenemedi');
+    } finally {
+      setUpdatingMemberId(null);
     }
   };
 
@@ -587,35 +639,97 @@ export function TenantDetail() {
 
           {/* 3. Firma Kullanıcıları Tablosu */}
           <div className="rounded-xl border border-border bg-card p-5">
-            <h3 className="text-sm font-bold uppercase tracking-wider text-foreground mb-3 flex items-center gap-2">
-              <Users size={16} className="text-indigo-400" />
-              Firma Kullanıcıları ({data.members.length})
-            </h3>
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+              <h3 className="text-sm font-bold uppercase tracking-wider text-foreground flex items-center gap-2">
+                <Users size={16} className="text-indigo-400" />
+                Firma Kullanıcıları ({data.members.length})
+              </h3>
+              <span className="text-[11px] text-muted-foreground">
+                Uzman Önizlemesi (/app/uzman-onizleme) yalnızca <strong>UZMAN</strong> yetkisi verilen kullanıcılara görünür.
+              </span>
+            </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
                 <thead className="border-b border-border text-muted-foreground">
                   <tr>
                     <th className="pb-2.5 font-medium">Kullanıcı</th>
                     <th className="pb-2.5 font-medium">E-Posta</th>
-                    <th className="pb-2.5 font-medium">Rol</th>
+                    <th className="pb-2.5 font-medium">Şirket Rolü</th>
+                    <th className="pb-2.5 font-medium">Uzman Önizleme Yetkisi</th>
                     <th className="pb-2.5 font-medium">Kayıt Tarihi</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border text-foreground dark:text-muted-foreground">
-                  {data.members.map((u) => (
-                    <tr key={u.userId}>
-                      <td className="py-2.5 font-medium text-foreground">{u.fullName}</td>
-                      <td className="py-2.5 text-muted-foreground">{u.email}</td>
-                      <td className="py-2.5">
-                        <span className="rounded border border-border bg-surface-elevated px-2 py-0.5 text-[10px] font-bold text-foreground dark:text-muted-foreground uppercase">
-                          {u.role}
-                        </span>
-                      </td>
-                      <td className="py-2.5 text-muted-foreground">
-                        {new Date(u.createdAt).toLocaleDateString('tr-TR')}
-                      </td>
-                    </tr>
-                  ))}
+                  {data.members.map((u) => {
+                    const ownerCount = data.members.filter((m) => m.role === 'owner').length;
+                    const isSoleOwner = u.role === 'owner' && ownerCount <= 1;
+                    const isBusy = updatingMemberId === u.userId;
+                    const isExpert = Boolean(u.isExpertReviewer);
+
+                    return (
+                      <tr key={u.userId}>
+                        <td className="py-2.5 font-medium text-foreground">
+                          <div className="flex items-center gap-1.5">
+                            <span>{u.fullName}</span>
+                            {isExpert && (
+                              <span className="rounded border border-emerald-500/40 bg-emerald-500/10 px-1.5 py-0.5 font-mono text-[9px] font-bold uppercase text-emerald-400">
+                                UZMAN
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="py-2.5 text-muted-foreground">{u.email}</td>
+                        <td className="py-2.5">
+                          <div className="flex items-center gap-1.5">
+                            <span className="rounded border border-border bg-surface-elevated px-2 py-0.5 text-[10px] font-bold text-foreground dark:text-muted-foreground uppercase">
+                              {u.role}
+                            </span>
+                            <select
+                              aria-label={`${u.email} şirket rolü`}
+                              data-testid={`member-role-select-${u.userId}`}
+                              value={u.role}
+                              disabled={isBusy || isSoleOwner}
+                              title={
+                                isSoleOwner
+                                  ? 'Firmanın tek sahibi (OWNER) başka bir role düşürülemez; uzmanlık için yanındaki UZMAN butonunu kullanın.'
+                                  : 'Kullanıcının şirket içi rolünü değiştirin'
+                              }
+                              onChange={(e) =>
+                                handleUpdateMember(u.userId, { role: e.target.value })
+                              }
+                              className="rounded border border-border bg-background px-1.5 py-0.5 text-[10px] font-semibold uppercase text-foreground focus:border-indigo-500 focus:outline-none disabled:opacity-50"
+                            >
+                              <option value="owner">OWNER</option>
+                              <option value="admin">ADMIN</option>
+                              <option value="manager">MANAGER</option>
+                              <option value="viewer">VIEWER</option>
+                            </select>
+                          </div>
+                        </td>
+                        <td className="py-2.5">
+                          <button
+                            type="button"
+                            disabled={isBusy}
+                            data-testid={`toggle-expert-${u.userId}`}
+                            onClick={() =>
+                              handleUpdateMember(u.userId, { isExpertReviewer: !isExpert })
+                            }
+                            className={`inline-flex items-center gap-1.5 rounded border px-2.5 py-1 text-[10px] font-bold uppercase transition-colors disabled:opacity-50 ${
+                              isExpert
+                                ? 'border-emerald-500/40 bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25'
+                                : 'border-border bg-surface-elevated text-muted-foreground hover:border-indigo-500/50 hover:text-foreground'
+                            }`}
+                          >
+                            <UserCheck size={12} />
+                            {isExpert ? 'UZMAN Açık · Kaldır' : 'UZMAN Ata'}
+                          </button>
+                        </td>
+                        <td className="py-2.5 text-muted-foreground">
+                          {new Date(u.createdAt).toLocaleDateString('tr-TR')}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

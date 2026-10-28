@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useOptionalAuth } from "@/hooks/useAuth";
 
 interface PreviewTask {
   audience: string;
@@ -49,6 +50,28 @@ export const EXPERT_PREVIEW_TASKS: readonly PreviewTask[] = [
 ];
 
 export function ExpertPreview() {
+  const auth = useOptionalAuth();
+  if (auth?.user && !auth.user.isExpertReviewer && !auth.user.isSuperAdmin) {
+    return (
+      <div className="mx-auto max-w-3xl space-y-4 border border-border bg-card p-6 text-sm" data-testid="expert-preview-restricted">
+        <span className="section-index">YETKİ GEREKLİ · UZMAN ÖNİZLEMESİ</span>
+        <h1 className="font-display-serif text-2xl text-foreground">Bu alan yalnızca yetkilendirilmiş uzman doğrulayıcılara açıktır</h1>
+        <p className="text-muted-foreground">
+          Saha doğrulama ve uzman önizleme görevleri yalnızca platform yöneticisi (Super Admin) tarafından <strong>UZMAN</strong> yetkisi
+          tanımlanan kullanıcılara gösterilir. Standart hesaplama araçlarına doğrudan Hesaplayıcılar dizininden erişebilirsiniz.
+        </p>
+        <div className="flex flex-wrap items-center gap-3 pt-2">
+          <Link to="/hesaplayicilar" className="rounded bg-primary px-3.5 py-2 text-xs font-semibold text-primary-foreground">
+            Hesaplayıcılara Git
+          </Link>
+          <Link to="/app" className="rounded border border-border bg-background px-3.5 py-2 text-xs font-semibold text-foreground hover:bg-muted">
+            Panele Dön
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="mx-auto max-w-5xl space-y-6">
       <header>
