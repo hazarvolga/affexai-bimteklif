@@ -185,8 +185,9 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
   },
   {
     id: "durum",
-    title: "Uygulama durumu (29 Ekim 2026 · Rev. 120 geliştirme kaydı)",
+    title: "Uygulama durumu (29 Ekim 2026 · Rev. 121 geliştirme kaydı)",
     blocks: [
+      { type: "callout", tone: "info", title: "Rev. 121 · Süper yönetici TOTP", text: "Doğrulanmış süper yönetici hesabı isteğe bağlı olarak TOTP kurabilir; kurtarma kodları etkinleştirmeden önce gösterilir. 0034, ayrı MFA_ENCRYPTION_KEY ve merkezi epoch/parola sürümü ile eski ve temsil oturumları denetlenir. MFA yalnız etkinleştirilmiş süper yöneticiler için uygulanır; kimlik avına dayanıklı değildir. Yerel doğrulama ve canlı/CI kabulü ayrıdır; hesap formülleri değişmedi." },
       { type: "callout", tone: "info", title: "Rev. 120 · Sunucu taraflı oturum iptali", text: "Çıkışta doğrulanmış çerez ve Bearer oturumlarının SHA-256 özeti ve bitiş zamanı saklanır; sonraki kimlik kontrollerinde iptal sorgulanır. Yeni oturumlarda benzersiz jti kullanılır; veritabanı hatasında erişim ve çıkış güvenli biçimde reddedilir. Yerel geliştirme kaydıdır; canlı yayın ve dış güvenlik kabulü ayrı doğrulanır. Hesap formülleri değişmedi." },
       { type: "callout", tone: "info", title: "Rev. 119 · Firma hızlı düzenleme önizlemesi", text: "Firma hızlı düzenlemede plan, abonelik durumu ve bonus kota önce/sonra gösterilir; iptal kayıt yapmaz. Önizleme yüklenmiş verilere dayanır, sunucu eşzamanlılık kilidi yoktur. Canlı dağıtım ayrıca doğrulanır; hesap formülleri değişmedi." },
       { type: "callout", tone: "warn", title: "Rev. 118 · IFC geometri ve kurtarma sınırı", text: "Birden çok IFC bağlamında iterator geometrisi güvenle ölçeklenemiyorsa kullanılmaz. Açık QTO korunur; karma modelde yüksek miktar bulgusu tüm SmartCheck satırlarının aktarımını durdurur. Ayrı eğri yolu korunur; IfcCovering doğrudan QTO uzunluğu desteklenmez. İzole T44 ve sentetik nesne denemesi canlı, müşteri veya uzman kabulü değildir." },
@@ -252,6 +253,7 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
     id: "adimlar",
     title: "Sıradaki geliştirmeler ve kabul ölçütleri",
     blocks: [
+      { type: "p", text: "Rev. 121 sonrası: MFA kaydı kullanıcı tarafından etkinleştirilmelidir; tüm yöneticilerde zorunlu değildir. TOTP kimlik avına dayanıklı değildir. MFA_ENCRYPTION_KEY kaybı veya eski imaja dönüş yönetici erişimini bozabilir ya da MFA korumasını kaldırabilir; güvenli anahtar yedeği ve MFA farkında geri dönüş planı gerekir. Canlı yayın, GitHub CI ve bağımsız dış güvenlik kabulü henüz doğrulanmadı." },
       { type: "p", text: "Rev. 120 sonrası: MFA, tüm cihazlardan çıkış, bağımsız dış güvenlik incelemesi ve canlı doğrulama açıktır. 0033 öncesi imaja dönüş iptal kayıtlarını okumayacağından iptal edilmiş jetonları yeniden geçerli kılabilir; revocation destekleyen geri dönüş veya kontrollü anahtar ve oturum geçersizleştirme planı gerekir. Temizlik yalnız ayrıcalıklı işlevle, süresi yedi gün önce dolmuş en çok 500 kayıt için uygulanır; saat farkı toleransı daha büyük sapmaları garanti etmez." },
       { type: "p", text: "Rev. 119 sonrası: firma hızlı düzenleme önizlemesi yüklenmiş anlık görüntüye dayanır; başka bir yönetici değişiklik yaparsa veriyi yenileyip tekrar incelemek gerekir. Sunucu tarafı eşzamanlılık kilidi ve canlı kabul ayrıca doğrulanmalıdır." },
       { type: "callout", tone: "warn", title: "Faz 5 açık kabul adımları", text: "İzinli gerçek IFC/Excel ve bağımsız uzman referansları, canlı yedek ile tutarlı DB ve nesne geri yükleme tatbikatı ayrı yürütülmelidir. İzole T44 ve üç sentetik nesne kopyası canlı RTO/RPO veya müşteri kabulü değildir." },
@@ -299,17 +301,17 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
   },
   {
     id: "revizyon-gunlugu",
-    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 120 · 13–29 Ekim 2026)",
+    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 121 · 13–29 Ekim 2026)",
     blocks: [
       {
         type: "callout",
         tone: "info",
-        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 120)",
-        text: "Bu bölüm, BIMMetraj'ın teknik evrimini Rev. 0'dan 29 Ekim 2026 Rev. 120 · BIM-CALC-2026-10-29.2 geliştirme kaydına kadar kronolojik sırayla listeler; Git geçmişi ve canlı sürüm ayrı doğrulanır, bağımsız uzman onayı bu kayıtla verilmez. Rev. 91–100, marka.md ürün incelemesinden çıkan uzman önizlemesi, Faz 0 güven düzeltmeleri ve Faz 1 Excel önce / fiyat eksikliği / dışa aktarım dilimleridir; Rev. 101 ile tüm 0022..0029 migration'ları, D12 worker başlangıç düzeltmesi ve D13 canlı ifc-worker consumeIfcUsage kota tamamlama düzeltmesi canlı üretime (https://bimmetraj.com) dağıtılmıştır. Rev. 102 ile 4 katmanlı müteahhit Excel adaptörü, Rev. 103 ile /admin/pricing-sources otomatik tohumlama ve TÜİK SDMX 2.1 adaptörü, Rev. 104 ile 6 aşamalı güvenlik denetimi bulgularının ve derinlemesine sertleştirme adımlarının tamamı kapatılmıştır. Rev. 105 ile CalmIfcWorkspace 795 satıra ayrıştırılmış, Rev. 106 ile Müşteriler (/app/clients), Müşteriler & Fırsatlar (/app/crm), 6 aşamalı müşteri zaman tüneli (/app/clients/:id) ve 3 katmanlı Akıllı Müşteri Excel/CSV Adaptörü devreye alınmıştır. Rev. 90 ile T43 ≥%80 proje kapsam hedefi (%82,58) ve T56 nihai izlenebilirlik matrisi tamamlanarak dış girdi gerektirmeyen tüm teknik adımlar kapatılmıştır. Harici fixture lisansı, T45 izinli gerçek büyük müşteri dosyası/VPS post-deploy kanıtı, T50–T52 uzman/müşteri/canlı kabulü ve T55 hukuk incelemesi açık olduğundan Faz 7, Faz 9, Faz 10 ve Faz 11 dış kabuller tamamlanana dek PARTIAL kalır.",
+        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 121)",
+        text: "Bu bölüm, BIMMetraj'ın teknik evrimini Rev. 0'dan 29 Ekim 2026 Rev. 121 · BIM-CALC-2026-10-29.3 geliştirme kaydına kadar kronolojik sırayla listeler; Git geçmişi ve canlı sürüm ayrı doğrulanır, bağımsız uzman onayı bu kayıtla verilmez. Rev. 91–100, marka.md ürün incelemesinden çıkan uzman önizlemesi, Faz 0 güven düzeltmeleri ve Faz 1 Excel önce / fiyat eksikliği / dışa aktarım dilimleridir; Rev. 101 ile tüm 0022..0029 migration'ları, D12 worker başlangıç düzeltmesi ve D13 canlı ifc-worker consumeIfcUsage kota tamamlama düzeltmesi canlı üretime (https://bimmetraj.com) dağıtılmıştır. Rev. 102 ile 4 katmanlı müteahhit Excel adaptörü, Rev. 103 ile /admin/pricing-sources otomatik tohumlama ve TÜİK SDMX 2.1 adaptörü, Rev. 104 ile 6 aşamalı güvenlik denetimi bulgularının ve derinlemesine sertleştirme adımlarının tamamı kapatılmıştır. Rev. 105 ile CalmIfcWorkspace 795 satıra ayrıştırılmış, Rev. 106 ile Müşteriler (/app/clients), Müşteriler & Fırsatlar (/app/crm), 6 aşamalı müşteri zaman tüneli (/app/clients/:id) ve 3 katmanlı Akıllı Müşteri Excel/CSV Adaptörü devreye alınmıştır. Rev. 90 ile T43 ≥%80 proje kapsam hedefi (%82,58) ve T56 nihai izlenebilirlik matrisi tamamlanarak dış girdi gerektirmeyen tüm teknik adımlar kapatılmıştır. Harici fixture lisansı, T45 izinli gerçek büyük müşteri dosyası/VPS post-deploy kanıtı, T50–T52 uzman/müşteri/canlı kabulü ve T55 hukuk incelemesi açık olduğundan Faz 7, Faz 9, Faz 10 ve Faz 11 dış kabuller tamamlanana dek PARTIAL kalır.",
       },
       {
         type: "p",
-        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 120):",
+        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 121):",
       },
       {
         type: "table",
@@ -1042,11 +1044,17 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
             "BIM-CALC-2026-10-29.2 · temel fdb369b; canlı dağıtım ayrıca doğrulanır",
             "Doğrulanmış oturum jetonunun SHA-256 özeti ve geçerlilik süresiyle iptali, yeni jetonlarda jti, 0033 migration ve sınırlı temizlik. MFA, tüm cihazlardan çıkış, geri dönüş güvenliği ve canlı kabul açıktır; hesap formülleri değişmedi.",
           ],
+          [
+            "Rev. 121",
+            "29 Ekim 2026 · Süper yönetici MFA",
+            "BIM-CALC-2026-10-29.3 · temel 42ec1cc; CI ve canlı dağıtım ayrıca doğrulanır",
+            "Etkinleştiren süper yöneticiler için TOTP, önceden gösterilen kurtarma kodları, ayrı şifreleme anahtarı ve merkezi epoch/parola sürümü. TOTP kimlik avına dayanıklı değildir; güvenli anahtar yönetimi, eski imaja dönüş, CI ve canlı kabul açıktır.",
+          ],
         ],
       },
       {
         type: "p",
-        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 120 · Önceki Durum → Yeni Durum):",
+        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 121 · Önceki Durum → Yeni Durum):",
       },
       {
         type: "table",
@@ -1995,6 +2003,13 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
             "Çıkış çerezleri temizliyor ancak normal JWT sunucuda iptal edilmiyordu; aynı saniyede üretilen benzer oturumlar aynı jeton olabiliyordu.",
             "Çıkışta doğrulanmış Bearer ve iki oturum çerezinin özeti ve bitişi aynı işlemde kaydedilir; yeni jetonlara benzersiz jti eklenir. İsteklerde iptal kontrolü ve veritabanı hatasında fail-closed davranış, başarısız çıkışta kullanıcı bildirimi sağlanır; temsil oturumu çıkışı yönetici oturumunu korur. Temizlik kontrol rolüyle, süresinden yedi gün sonra en çok 500 kayıtta yapılır. Eski imaja dönüş iptal jetonlarını yeniden geçerli kılabilir; revocation bilen geri dönüş veya anahtar/oturum geçersizleştirme gerekir. MFA, tüm cihazlardan çıkış, dış güvenlik kabulü ve canlı dağıtım açıktır; hesap formülleri değişmedi.",
             "drizzle-release/0033_revoked_sessions.sql; src/server/auth/session-revocation.ts; src/server/middleware/auth.ts; src/server/routes/auth.ts; src/services/auth/authService.ts; src/hooks/logout-session.ts",
+          ],
+          [
+            "Rev. 121 · 29 Ekim 2026 (Süper yönetici MFA)",
+            "TOTP, 0034, ayrı MFA_ENCRYPTION_KEY, merkezi MFA epoch ve parola sürümü",
+            "Süper yönetici girişi ve mevcut oturumları için ikinci faktör bulunmuyordu.",
+            "Doğrulanmış süper yönetici hesabı parola ile kurulumu başlatır; kurtarma kodları etkinleştirmeden önce gösterilir ve TOTP doğrulamasıyla etkinleştirilir. Ayrı MFA_ENCRYPTION_KEY TOTP sırrını şifreler; merkezi epoch ve parola sürümü eski ve temsil oturumlarını kapsar. MFA yalnız etkinleştirilmiş yöneticilerde uygulanır; TOTP kimlik avına dayanıklı değildir. Anahtar kaybı ve MFA öncesi imaja dönüş erişim/güvenlik riski taşır. Gerçek izole PostgreSQL testleri vardır; GitHub CI, canlı yayın ve bağımsız dış güvenlik kabulü henüz doğrulanmadı. Hesap formülleri değişmedi.",
+            "drizzle-release/0034_admin_mfa.sql; src/server/auth/mfa-{routes,crypto,readiness}.ts; src/server/middleware/auth.ts; src/pages/admin/AdminSecurity.tsx; src/pages/Login.tsx; src/server/auth/mfa-http.pgtest.ts",
           ],
         ],
       },

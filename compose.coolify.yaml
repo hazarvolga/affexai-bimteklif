@@ -30,6 +30,7 @@ x-no-backup-environment: &no-backup-environment
   BIMMETRAJ_BACKUP_DB_PASSWORD: ${BIMMETRAJ_EMPTY_ENV:-}
   SERVICE_PASSWORD_64_POSTGRES: ${BIMMETRAJ_EMPTY_ENV:-}
   RELEASE_WORKERS_DRAINED: ${BIMMETRAJ_EMPTY_ENV:-}
+  MFA_ENCRYPTION_KEY: ${BIMMETRAJ_EMPTY_ENV:-}
 
 x-app-environment: &app-environment
   <<: *no-backup-environment
@@ -86,6 +87,7 @@ services:
         SOURCE_COMMIT: ${SOURCE_COMMIT:-}
     environment:
       <<: *app-environment
+      MFA_ENCRYPTION_KEY: ${MFA_ENCRYPTION_KEY:-}
       DATABASE_URL: postgresql://bimmetraj_app:${BIMMETRAJ_APP_DB_PASSWORD:-}@postgres:5432/bimmetraj_production
       CONTROL_DATABASE_URL: postgresql://bimmetraj_control:${BIMMETRAJ_CONTROL_DB_PASSWORD:-}@postgres:5432/bimmetraj_production
       AUTH_EMAIL_DELIVERY_MODE: ${AUTH_EMAIL_DELIVERY_MODE:-disabled}

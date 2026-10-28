@@ -36,7 +36,7 @@ test('revocation table denies runtime delete and cleanup removes only expired ha
   const userId = randomUUID();
   try {
     const state = await admin.query<{ count: number }>("SELECT count(*)::int AS count FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public' AND c.relkind='r'");
-    assert.equal(state.rows[0].count, 87, 'complete migration chain produces 87 public tables');
+    assert.equal(state.rows[0].count, 89, 'complete migration chain produces 89 public tables');
     assert.equal((await admin.query("SELECT 1 FROM teklifpro_release.migrations WHERE tag='0033_revoked_sessions'")).rowCount, 1);
     await admin.query('INSERT INTO users(id,email,full_name) VALUES ($1,$2,$3)', [userId, `${userId}@example.test`, 'Test']);
     await assert.rejects(control.query("INSERT INTO public.revoked_sessions(token_hash,user_id,expires_at) VALUES ($1,$2,now())", ['a'.repeat(64), userId]), /permission denied/);
@@ -105,7 +105,7 @@ test('HTTP logout revokes both cookie sessions and bearer while leaving unrelate
   }
 });
 
-test('0033 independent snapshot materializes the pinned release catalog', { timeout: 60_000 }, async () => {
+test('0033 and 0034 independent snapshots materialize the pinned release catalogs', { timeout: 60_000 }, async () => {
   const raw = process.env.SESSION_REVOCATION_TEST_URL;
   assert.ok(raw && process.env.CI_DISPOSABLE_DATABASE === 'true');
   const sourceUrl = new URL(raw);
@@ -129,15 +129,17 @@ test('0033 independent snapshot materializes the pinned release catalog', { time
       const { catalog } = await import('../../../scripts/release-migrations/catalog');
       const { loadMigrations } = await import('../../../scripts/release-migrations/runner');
       const { pinnedSignature } = await import('../../../scripts/release-migrations/stage-signatures');
-      const migration = (await loadMigrations()).find(entry => entry.tag === '0033_revoked_sessions');
-      assert.ok(migration);
-      const snapshot = JSON.parse(await readFile('drizzle-release/meta/0033_snapshot.json', 'utf8'));
-      await snapshotClient.query('BEGIN');
-      for (const statement of injectDataTransitions(migration.tag, await drizzleApi.generateMigration(drizzleApi.generateDrizzleJson({}), snapshot))) await snapshotClient.query(statement);
-      const snapshotCatalog = await catalog(snapshotClient);
-      assert.equal(snapshotCatalog.signature, pinnedSignature(migration));
-      assert.equal(snapshotCatalog.objects.relations.filter((relation: any) => relation.relkind === 'r').length, 87, 'independent snapshot produces 87 public tables');
-      await snapshotClient.query('ROLLBACK');
+      for (const [tag, file, count] of [['0033_revoked_sessions','0033',87], ['0034_admin_mfa','0034',89]] as const) {
+        const migration = (await loadMigrations()).find(entry => entry.tag === tag);
+        assert.ok(migration);
+        const snapshot = JSON.parse(await readFile(`drizzle-release/meta/${file}_snapshot.json`, 'utf8'));
+        await snapshotClient.query('BEGIN');
+        for (const statement of injectDataTransitions(migration.tag, await drizzleApi.generateMigration(drizzleApi.generateDrizzleJson({}), snapshot))) await snapshotClient.query(statement);
+        const snapshotCatalog = await catalog(snapshotClient);
+        assert.equal(snapshotCatalog.signature, pinnedSignature(migration));
+        assert.equal(snapshotCatalog.objects.relations.filter((relation: any) => relation.relkind === 'r').length, count);
+        await snapshotClient.query('ROLLBACK');
+      }
     } finally { await snapshotClient.end(); }
   } finally {
     if (created) await admin.query('DROP DATABASE teklifpro_migration_restore_test');

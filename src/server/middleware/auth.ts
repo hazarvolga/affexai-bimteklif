@@ -21,12 +21,14 @@ declare global {
         impersonatedBy?: string;
         readOnly?: boolean;
         impersonationTokenHash?: string;
+        mfaEpoch?: string;
+        mfaCredentialVersion?: string;
       };
     }
   }
 }
 
-type AuthUser = Pick<typeof users.$inferSelect, "email" | "emailVerified" | "passwordChangedAt" | "isSuperAdmin">;
+type AuthUser = Pick<typeof users.$inferSelect, "email" | "emailVerified" | "passwordChangedAt" | "isSuperAdmin"> & { mfaEpoch?: string | null; passwordHash?: string | null };
 type AuthMembership = Pick<typeof memberships.$inferSelect, "role">;
 type AuthDependencies = {
   findUser(userId: string): Promise<AuthUser | undefined>;
@@ -43,6 +45,8 @@ const sessionClaims = z.object({
   exp: z.number().int().positive(),
   impersonatedBy: z.string().uuid().optional(),
   readOnly: z.boolean().optional(),
+  mfaEpoch: z.string().uuid().optional(),
+  mfaCredentialVersion: z.string().regex(/^[a-f0-9]{64}$/).optional(),
 });
 
 export const authDependencies: AuthDependencies = {
@@ -60,6 +64,8 @@ export const authDependencies: AuthDependencies = {
       emailVerified: users.emailVerified,
       passwordChangedAt: users.passwordChangedAt,
       isSuperAdmin: users.isSuperAdmin,
+      mfaEpoch: users.mfaEpoch,
+      passwordHash: users.passwordHash,
     }).from(users).where(eq(users.id, userId));
     return user;
   },
@@ -94,12 +100,13 @@ export const createAuthenticate = (dependencies: AuthDependencies = authDependen
     if (!dependencies.isSessionRevoked || await dependencies.isSessionRevoked(hashActionToken(token))) return res.status(401).json({ error: "Session expired" });
     const user = await dependencies.findUser(userId);
     if (!user) return res.status(401).json({ error: "Invalid token" });
+    if (user.isSuperAdmin && user.emailVerified && user.mfaEpoch && (parsed.data.mfaEpoch !== user.mfaEpoch || !user.passwordHash || parsed.data.mfaCredentialVersion !== hashActionToken(user.passwordHash))) return res.status(401).json({ error: "MFA session required", code: "MFA_REQUIRED" });
     if (user.passwordChangedAt && iat < Math.floor(user.passwordChangedAt.getTime() / 1000)) return res.status(401).json({ error: "Session expired" });
     const impersonationTokenHash = impersonatedBy ? hashActionToken(token) : undefined;
     if (impersonatedBy) {
       const admin = await dependencies.findUser(impersonatedBy);
       const revoked = !dependencies.isImpersonationRevoked || await dependencies.isImpersonationRevoked(impersonationTokenHash!);
-      if (!admin?.isSuperAdmin || !admin.emailVerified || (admin.passwordChangedAt && iat < Math.floor(admin.passwordChangedAt.getTime() / 1000)) || revoked) {
+      if (!admin?.isSuperAdmin || !admin.emailVerified || (admin.mfaEpoch && (parsed.data.mfaEpoch !== admin.mfaEpoch || !admin.passwordHash || parsed.data.mfaCredentialVersion !== hashActionToken(admin.passwordHash))) || (admin.passwordChangedAt && iat < Math.floor(admin.passwordChangedAt.getTime() / 1000)) || revoked) {
         return res.status(401).json({ error: "Impersonation session expired" });
       }
     }
@@ -117,6 +124,8 @@ export const createAuthenticate = (dependencies: AuthDependencies = authDependen
       impersonatedBy,
       readOnly: impersonatedBy ? readOnly !== false : Boolean(readOnly),
       impersonationTokenHash,
+      mfaEpoch: parsed.data.mfaEpoch,
+      mfaCredentialVersion: parsed.data.mfaCredentialVersion,
     };
 
     const isReadMethod = !req.method || ["GET", "HEAD", "OPTIONS"].includes(req.method);

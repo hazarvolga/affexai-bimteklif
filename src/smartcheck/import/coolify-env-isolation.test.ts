@@ -7,19 +7,20 @@ import test from 'node:test';
 
 test('Coolify shared env_file cannot expose backup credentials to other services', () => {
   const directory = mkdtempSync(path.join(tmpdir(), 'bimmetraj-compose-env-'));
-  const services = ['app', 'worker', 'ifc-worker', 'migrate', 'postgres', 'backup', 'db-bootstrap', 'db-provision'];
+  const services = ['app', 'worker', 'ifc-worker', 'migrate', 'postgres', 'backup', 'role-admin', 'db-bootstrap', 'db-provision'];
   // One-shot deploy steps that create roles and converge grants; they alone receive role passwords.
-  const databaseAdminSteps = new Set(['db-bootstrap', 'db-provision']);
+  const databaseAdminSteps = new Set(['role-admin', 'db-bootstrap', 'db-provision']);
   const backupKeys = ['BACKUP_S3_BUCKET', 'BACKUP_S3_ENDPOINT', 'BACKUP_S3_ACCESS_KEY_ID', 'BACKUP_S3_SECRET_ACCESS_KEY'];
   const appSecrets = ['SMARTCHECK_S3_ACCESS_KEY_ID', 'SMARTCHECK_S3_SECRET_ACCESS_KEY', 'JWT_SECRET', 'SERVICE_HEX_64_JWT', 'OPENAI_API_KEY', 'GEMINI_API_KEY'];
   const databaseSecrets = ['BIMMETRAJ_APP_DB_PASSWORD', 'BIMMETRAJ_CONTROL_DB_PASSWORD', 'BIMMETRAJ_WORKER_DB_PASSWORD', 'BIMMETRAJ_MIGRATOR_DB_PASSWORD', 'BIMMETRAJ_BACKUP_DB_PASSWORD', 'SERVICE_PASSWORD_64_POSTGRES'];
   const fixtures = Object.fromEntries([...backupKeys, ...appSecrets, ...databaseSecrets].map(key => [key, `fixture-${key}`]));
+  fixtures.MFA_ENCRYPTION_KEY = 'fixture-mfa-key-not-a-real-secret';
   fixtures.RELEASE_WORKERS_DRAINED = 'true';
   try {
     const envFile = path.join(directory, 'runtime.env');
     writeFileSync(envFile, Object.entries(fixtures).map(([key, value]) => `${key}=${value}`).join('\n'));
     const commandOptions = { encoding: 'utf8' as const, timeout: 15_000, env: { ...process.env, ...fixtures, BIMMETRAJ_EMPTY_ENV: '' } };
-    const raw = JSON.parse(execFileSync('docker', ['compose', '--env-file', envFile, '-f', path.resolve('compose.coolify.yaml'), 'config', '--no-interpolate', '--no-env-resolution', '--format', 'json'], commandOptions));
+    const raw = JSON.parse(execFileSync('docker', ['compose', '--profile', 'operator', '--env-file', envFile, '-f', path.resolve('compose.coolify.yaml'), 'config', '--no-interpolate', '--no-env-resolution', '--format', 'json'], commandOptions));
     // Installed Coolify applicationParser (parsers.php:1958): literal empty
     // values are replaced by same-key nonempty database env values. References
     // remain intact until Compose interpolation; all services receive .env.
@@ -32,7 +33,7 @@ test('Coolify shared env_file cannot expose backup credentials to other services
     }));
     const generated = path.join(directory, 'generated.json');
     writeFileSync(generated, JSON.stringify({ ...raw, services: transformedServices }));
-    const output = execFileSync('docker', ['compose', '--env-file', envFile, '-f', generated, 'config', '--format', 'json'], commandOptions);
+    const output = execFileSync('docker', ['compose', '--profile', 'operator', '--env-file', envFile, '-f', generated, 'config', '--format', 'json'], commandOptions);
     const rendered = JSON.parse(output).services as Record<string, { environment: Record<string, string> }>;
     for (const service of services) {
       for (const key of backupKeys) {
@@ -41,6 +42,7 @@ test('Coolify shared env_file cannot expose backup credentials to other services
     }
     for (const key of appSecrets) assert.equal(rendered.backup.environment[key], '', `backup must not receive ${key}`);
     for (const service of services) {
+      assert.equal(rendered[service].environment.MFA_ENCRYPTION_KEY, service === 'app' ? fixtures.MFA_ENCRYPTION_KEY : '', `${service}: MFA key scope`);
       for (const key of databaseSecrets) {
         const expected = databaseAdminSteps.has(service) && key !== 'SERVICE_PASSWORD_64_POSTGRES' ? fixtures[key] : '';
         assert.equal(rendered[service].environment[key], expected, `${service}: raw ${key} scope`);

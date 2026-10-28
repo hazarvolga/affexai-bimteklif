@@ -49,6 +49,7 @@ services:
       target: worker
     env_file: [./.env.worker]
     environment:
+      MFA_ENCRYPTION_KEY: ''
       NODE_ENV: production
       DATABASE_URL: postgresql://bimmetraj_worker:${BIMMETRAJ_WORKER_DB_PASSWORD:?BIMMETRAJ_WORKER_DB_PASSWORD is required}@postgres:5432/bimmetraj_production
       PG_POOL_MAX: '4'
@@ -67,6 +68,7 @@ services:
       target: ifc-worker
     env_file: [./.env.worker]
     environment:
+      MFA_ENCRYPTION_KEY: ''
       NODE_ENV: production
       DATABASE_URL: postgresql://bimmetraj_worker:${BIMMETRAJ_WORKER_DB_PASSWORD:?BIMMETRAJ_WORKER_DB_PASSWORD is required}@postgres:5432/bimmetraj_production
       PG_POOL_MAX: '4'
@@ -90,6 +92,7 @@ services:
       target: migrate
     env_file: [./.env.migrator]
     environment:
+      MFA_ENCRYPTION_KEY: ''
       NODE_ENV: production
       PG_POOL_MAX: '4'
       RELEASE_DATABASE_URL: postgresql://bimmetraj_migrator:${BIMMETRAJ_MIGRATOR_DB_PASSWORD:?BIMMETRAJ_MIGRATOR_DB_PASSWORD is required}@postgres:5432/bimmetraj_production
@@ -185,6 +188,7 @@ services:
     tmpfs:
       - /tmp:size=67108864,mode=1777
     environment:
+      MFA_ENCRYPTION_KEY: ''
       PGHOST: postgres
       PGPORT: '5432'
       PGDATABASE: bimmetraj_production
@@ -204,6 +208,7 @@ services:
     restart: unless-stopped
     env_file: [./.env.postgres]
     environment:
+      MFA_ENCRYPTION_KEY: ''
       POSTGRES_DB: bimmetraj_production
       POSTGRES_USER: bimmetraj
       POSTGRES_PASSWORD: ${SERVICE_PASSWORD_64_POSTGRES:?SERVICE_PASSWORD_64_POSTGRES is required}

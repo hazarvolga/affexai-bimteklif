@@ -51,7 +51,8 @@ try {
   try {
     await migrator.query('SET ROLE bimmetraj_owner');
     assert.deepEqual(await applyMigrations(migrator, migrations, 33, { requireWorkersDrained: true }), ['0033_revoked_sessions']);
+    assert.deepEqual(await applyMigrations(migrator, migrations, 34, { requireWorkersDrained: true }), ['0034_admin_mfa']);
   } finally { await migrator.end(); }
   await provisionDatabaseRoles(admin, credentials, target, decodeURIComponent(url.password));
-  process.stdout.write('0032 → 0033 migrator/owner upgrade and role provisioning verified\n');
+  process.stdout.write('0032 → 0033 → 0034 migrator/owner upgrade and role provisioning verified\n');
 } finally { await admin.end(); }

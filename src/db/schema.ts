@@ -237,8 +237,29 @@ export const users = pgTable("users", {
   verificationToken: text("verification_token"),
   passwordChangedAt: timestamp("password_changed_at", { withTimezone: true }),
   isSuperAdmin: boolean("is_super_admin").default(false).notNull(),
+  mfaEpoch: uuid("mfa_epoch"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+export const adminMfaAccounts = pgTable("admin_mfa_accounts", {
+  userId: uuid("user_id").primaryKey().references(() => users.id, { onDelete: "cascade" }),
+  secretCiphertext: text("secret_ciphertext"),
+  pendingCiphertext: text("pending_ciphertext"),
+  pendingExpiresAt: timestamp("pending_expires_at", { withTimezone: true }),
+  pendingRecoveryHashes: jsonb("pending_recovery_hashes").$type<string[]>(),
+  pendingPasswordFingerprint: text("pending_password_fingerprint"),
+  lastCounter: integer("last_counter").default(-1).notNull(),
+  recoveryHashes: jsonb("recovery_hashes").$type<string[]>().default([]).notNull(),
+});
+
+export const adminMfaChallenges = pgTable("admin_mfa_challenges", {
+  challengeHash: text("challenge_hash").primaryKey(),
+  userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  passwordFingerprint: text("password_fingerprint").notNull(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  consumedAt: timestamp("consumed_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({ expiresAtIdx: index("admin_mfa_challenges_expires_at_idx").on(table.expiresAt) }));
 
 export const authActionTokens = pgTable("auth_action_tokens", {
   id: uuid("id").primaryKey().defaultRandom(),

@@ -1225,6 +1225,15 @@ $function$`,
       ? injectDataTransitions('0027_smartcheck_pipeline_rls', schemaStatements)
       : [...schemaStatements];
   }
+  if (tag === '0034_admin_mfa') {
+    const fullSnapshot = schemaStatements.some(statement => statement.startsWith('CREATE TABLE "cde_transition_events"'));
+    const cumulative = fullSnapshot ? injectDataTransitions('0033_revoked_sessions', schemaStatements) : [...schemaStatements];
+    return [...cumulative, ...['admin_mfa_accounts', 'admin_mfa_challenges'].flatMap(table => [
+      `ALTER TABLE public.${table} OWNER TO bimmetraj_owner;`,
+      `REVOKE ALL ON TABLE public.${table} FROM PUBLIC, bimmetraj_app, bimmetraj_control, bimmetraj_worker;`,
+      `GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.${table} TO bimmetraj_control;`,
+    ])];
+  }
   if (tag === '0033_revoked_sessions') {
     // Empty-to-snapshot reconstruction must include cumulative non-Drizzle DDL.
     // The incremental 0032→0033 migration must not replay existing objects.

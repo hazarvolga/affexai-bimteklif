@@ -12,6 +12,8 @@ export function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [challenge, setChallenge] = useState<string | null>(null);
+  const [code, setCode] = useState('');
   const { login } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -22,20 +24,34 @@ export function Login() {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await fetch('/api/auth/login', {
+      const res = await fetch(challenge ? '/api/auth/mfa/verify' : '/api/auth/login', {
         method: 'POST',
+        cache: 'no-store',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify(challenge ? { challenge, code: code.trim() } : { email, password }),
       });
-      if (res.ok) {
-        const data = await res.json();
-        login(data.token, data.user, data.company, data.role, data.accountType);
-        const finalPath = data.user.isSuperAdmin ? '/admin' : (ACADEMY_ENABLED && data.accountType === 'academy_learner' && nextPath === '/app' ? '/app/academy/allplan' : nextPath);
-        navigate(finalPath);
-      } else {
-        const body = await res.json().catch(() => ({}));
-        toast.error(body.error ?? 'E-posta veya şifre hatalı.');
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        toast.error(typeof data.error === 'string' ? data.error : (challenge ? 'Doğrulama başarısız. Tekrar deneyin.' : 'E-posta veya şifre hatalı.'));
+        return;
       }
+      if (data.mfaRequired === true) {
+        if (typeof data.challenge !== 'string' || !data.challenge) {
+          toast.error('Doğrulama başlatılamadı. Tekrar deneyin.');
+          return;
+        }
+        setChallenge(data.challenge);
+        setPassword('');
+        setCode('');
+        return;
+      }
+      if (!data.user || typeof data.user.isSuperAdmin !== 'boolean') {
+        toast.error('Oturum bilgileri alınamadı. Tekrar deneyin.');
+        return;
+      }
+      login(data.token, data.user, data.company, data.role, data.accountType);
+      const finalPath = data.user.isSuperAdmin ? '/admin' : (ACADEMY_ENABLED && data.accountType === 'academy_learner' && nextPath === '/app' ? '/app/academy/allplan' : nextPath);
+      navigate(finalPath);
     } catch {
       toast.error('Sunucuya ulaşılamadı. Bağlantınızı kontrol edip tekrar deneyin.');
     } finally {
@@ -78,6 +94,7 @@ export function Login() {
         <Card className="border border-border bg-card">
           <CardContent className="pt-6 space-y-4">
             <form onSubmit={handleSubmit} className="space-y-4">
+              {!challenge ? <>
               <div className="space-y-1.5">
                 <label htmlFor="login-email" className="font-mono text-[10px] uppercase tracking-wider text-foreground">E-posta Adresi</label>
                 <div className="relative group">
@@ -97,7 +114,7 @@ export function Login() {
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
                   <label htmlFor="login-password" className="font-mono text-[10px] uppercase tracking-wider text-foreground">Şifre</label>
-                  <Link to="/forgot-password" tabIndex={-1} className="font-mono text-[10px] text-muted-foreground hover:text-primary transition-colors">
+                  <Link to="/forgot-password" className="font-mono text-[10px] text-muted-foreground hover:text-primary transition-colors">
                     Şifrenizi mi unuttunuz?
                   </Link>
                 </div>
@@ -115,12 +132,18 @@ export function Login() {
                 </div>
               </div>
 
+              </> : <div className="space-y-3">
+                <p className="text-sm text-muted-foreground">Doğrulayıcı uygulamanızdaki kodu veya tek kullanımlık kurtarma kodunu girin.</p>
+                <label htmlFor="login-mfa-code" className="block text-sm font-medium text-foreground">Doğrulama veya kurtarma kodu</label>
+                <input id="login-mfa-code" value={code} onChange={event => setCode(event.target.value)} autoComplete="one-time-code" autoFocus required maxLength={40} className="w-full bg-background border border-border h-11 px-3 text-sm text-foreground focus-visible:ring-1 focus-visible:ring-primary focus:outline-none" />
+                <button type="button" disabled={loading} onClick={() => { setChallenge(null); setCode(''); }} className="text-sm text-primary underline underline-offset-2">Girişe dön</button>
+              </div>}
               <button
                 type="submit"
                 disabled={loading}
                 className="pafta-button w-full !justify-center mt-2"
               >
-                {loading ? <Loader2 className="animate-spin" size={16} /> : <><span>Oturum Aç</span> <ArrowRight size={15} /></>}
+                {loading ? <Loader2 className="animate-spin" size={16} /> : <><span>{challenge ? 'Doğrula ve Giriş Yap' : 'Oturum Aç'}</span> <ArrowRight size={15} /></>}
               </button>
             </form>
 

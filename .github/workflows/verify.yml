@@ -23,6 +23,26 @@ jobs:
         options: >-
           --health-cmd "pg_isready -U postgres -d teklifpro_bootstrap_test"
           --health-interval 5s --health-timeout 5s --health-retries 10
+      postgres-mfa:
+        image: postgres:16
+        env:
+          POSTGRES_DB: teklifpro_bootstrap_test
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 127.0.0.1:5433:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d teklifpro_bootstrap_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+      postgres-session:
+        image: postgres:16
+        env:
+          POSTGRES_DB: teklifpro_upgrade_test
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 127.0.0.1:5434:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d teklifpro_upgrade_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
     env:
       DATABASE_URL: postgresql://postgres@127.0.0.1:5432/teklifpro_bootstrap_test
       RELEASE_DATABASE_URL: postgresql://postgres@127.0.0.1:5432/teklifpro_bootstrap_test
@@ -131,13 +151,23 @@ jobs:
         env:
           NODE_ENV: test
           CI_DISPOSABLE_DATABASE: 'true'
-          RELEASE_DATABASE_URL: postgresql://postgres@127.0.0.1:5432/teklifpro_upgrade_test
-          SESSION_REVOCATION_TEST_URL: postgresql://postgres:ci-local-only@127.0.0.1:5432/teklifpro_upgrade_test
+          RELEASE_DATABASE_URL: postgresql://postgres@127.0.0.1:5434/teklifpro_upgrade_test
+          SESSION_REVOCATION_TEST_URL: postgresql://postgres:ci-local-only@127.0.0.1:5434/teklifpro_upgrade_test
           RELEASE_WORKERS_DRAINED: 'true'
         run: |
-          pnpm exec tsx -e 'import pg from "pg"; (async()=>{ const c=new pg.Client({connectionString:"postgresql://postgres@127.0.0.1:5432/teklifpro_bootstrap_test"}); await c.connect(); await c.query("CREATE DATABASE teklifpro_upgrade_test"); await c.end(); })().catch(e=>{console.error(e);process.exitCode=1})'
+          pnpm exec tsx scripts/ci/disposable-database-roles.ts bootstrap
           pnpm exec tsx scripts/ci/session-revocation-upgrade.ts
           pnpm exec tsx --test src/server/auth/session-revocation.pgtest.ts
+      - name: Super administrator MFA provisioned role and HTTP contract
+        env:
+          NODE_ENV: test
+          CI_DISPOSABLE_DATABASE: 'true'
+          MFA_TEST_URL: postgresql://postgres:ci-local-only@127.0.0.1:5433/teklifpro_bootstrap_test
+          RELEASE_WORKERS_DRAINED: 'true'
+        run: |
+          CI_DISPOSABLE_DATABASE=true RELEASE_DATABASE_URL=postgresql://postgres@127.0.0.1:5433/teklifpro_bootstrap_test pnpm exec tsx scripts/ci/disposable-database-roles.ts bootstrap
+          RELEASE_DATABASE_URL=postgresql://postgres@127.0.0.1:5433/teklifpro_bootstrap_test pnpm exec tsx scripts/release-migrations/cli.ts apply
+          pnpm exec tsx --test src/server/auth/mfa-http.pgtest.ts
       - run: pnpm exec tsc --noEmit -p scripts/release-migrations/tsconfig.json
       - run: pnpm exec tsx --test scripts/release-migrations/artifacts.test.ts scripts/release-migrations/safety.test.ts scripts/release-migrations/runner-role.test.ts scripts/release-migrations/worker-drain-gate.test.ts scripts/release-migrations/backup-docker.test.ts scripts/database-roles/runtime-compose-contract.test.ts
       - run: python3 -m unittest deploy.backup.test_backup
@@ -152,6 +182,8 @@ jobs:
       - name: Full test suite with coverage report and ratchet gate
         env:
           REQUIRE_TEST_DATABASE: 'true'
+          CI_DISPOSABLE_DATABASE: 'true'
+          MFA_TEST_URL: postgresql://postgres:ci-local-only@127.0.0.1:5433/teklifpro_bootstrap_test
         run: pnpm run test:coverage
       - name: Upload coverage report
         if: always()
@@ -171,6 +203,7 @@ jobs:
       - run: pnpm exec tsx scripts/gap-crm-billing-ui-smoke.ts
       - run: pnpm exec tsx scripts/e2e-a11y-smoke.ts
       - run: pnpm exec tsx scripts/logout-ui-smoke.ts
+      - run: pnpm exec tsx scripts/mfa-ui-smoke.ts
       - run: node scripts/dependency-audit-policy.mjs
       # T45 bundle budget: the job runs with NODE_ENV=test, which ships React's development build, so
       # rebuild in production mode and run the bundle checks that otherwise skip when dist/ is absent.

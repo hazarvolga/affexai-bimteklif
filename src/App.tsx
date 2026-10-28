@@ -47,6 +47,7 @@ const AdminReports = page(() => import('@/pages/admin/AdminReports'), 'AdminRepo
 const DeveloperRoadmap = page(() => import('@/pages/admin/DeveloperRoadmap'), 'DeveloperRoadmap');
 const CalculationMethods = page(() => import('@/pages/admin/CalculationMethods'), 'CalculationMethods');
 const ExpertReview = page(() => import('@/pages/admin/ExpertReview'), 'ExpertReview');
+const AdminSecurity = page(() => import('@/pages/admin/AdminSecurity'), 'AdminSecurity');
 const AdminLogs = page(() => import('@/pages/admin/AdminLogs'), 'AdminLogs');
 const Quotes = page(() => import('@/pages/Quotes'), 'Quotes');
 const CreateQuote = page(() => import('@/pages/CreateQuote'), 'CreateQuote');
@@ -156,6 +157,7 @@ function AppRoutes() {
           <Route path="roadmap/calculations" element={<CalculationMethods />} />
           <Route path="roadmap/expert-review" element={<ExpertReview />} />
           <Route path="logs" element={<AdminLogs />} />
+          <Route path="security" element={<AdminSecurity />} />
         </Route>
 
         {/* TENANT (MÜŞTERİ) ROTASI */}

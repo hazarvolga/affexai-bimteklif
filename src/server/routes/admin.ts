@@ -572,6 +572,8 @@ export function registerAdminRoutes(app: Express) {
         userId: targetUserId,
         companyId: targetCompanyId,
         impersonatedBy: req.user.userId,
+        mfaEpoch: req.user.mfaEpoch,
+        mfaCredentialVersion: req.user.mfaCredentialVersion,
         readOnly: true,
       });
 

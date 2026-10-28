@@ -168,6 +168,8 @@ export const DATABASE_AUTHORITY_AUDIT_COMPANY_TABLES = Object.freeze([
   "usage_records",
 ] as const);
 export const DATABASE_PUBLIC_RESTRICTED_TABLE_ACL = Object.freeze({
+  admin_mfa_accounts: Object.freeze({ bimmetraj_app: Object.freeze([]), bimmetraj_control: Object.freeze(["DELETE", "INSERT", "SELECT", "UPDATE"]), bimmetraj_worker: Object.freeze([]) }),
+  admin_mfa_challenges: Object.freeze({ bimmetraj_app: Object.freeze([]), bimmetraj_control: Object.freeze(["DELETE", "INSERT", "SELECT", "UPDATE"]), bimmetraj_worker: Object.freeze([]) }),
   revoked_sessions: Object.freeze({ bimmetraj_app: Object.freeze([]), bimmetraj_control: Object.freeze(["SELECT"]), bimmetraj_worker: Object.freeze([]) }),
   worker_process_heartbeats: Object.freeze({ bimmetraj_app: Object.freeze([]), bimmetraj_control: Object.freeze([]), bimmetraj_worker: Object.freeze([]) }),
   companies: Object.freeze({ bimmetraj_app: Object.freeze(["SELECT"]), bimmetraj_control: Object.freeze(["DELETE", "INSERT", "SELECT", "UPDATE"]), bimmetraj_worker: Object.freeze([]) }),

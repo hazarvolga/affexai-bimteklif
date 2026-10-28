@@ -239,6 +239,13 @@
       "sha256": "318014b529f34a3dcce2d44e3a8832cc5689c89e2b34fa06b133d796aec4997c",
       "snapshotSha256": "ca69b0867f0878c4b78b433448f41b1a7e699ce48d0f9e79905438d2f15a010b",
       "statements": 13
+    },
+    {
+      "idx": 34,
+      "tag": "0034_admin_mfa",
+      "sha256": "ed2c3e01ce6defd6ee31f9bf9be1afcb0cd84c1ae512c6de1b64289e312c9929",
+      "snapshotSha256": "96a73322eb297376d9d32403e70f5d9d3a88eb7165100d1d155ff9dd9468a8d3",
+      "statements": 12
     }
   ]
 }

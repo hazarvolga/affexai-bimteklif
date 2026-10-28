@@ -61,7 +61,7 @@ test('release migration lifecycle on three owned disposable databases', { timeou
       baselineSignature = state.signature;
       report.baselineSignature = baselineSignature;
     });
-    await check('additive migration reaches 87 tables and matches current Drizzle schema', async () => {
+    await check('additive migration reaches 89 tables and matches current Drizzle schema', async () => {
       assert.deepEqual(await applyMigrations(fresh, migrations, 8), migrations.slice(1, 9).map(m => m.tag));
       const fixture = {
         company: '33333333-3333-4333-8333-333333333333', user: '44444444-4444-4444-8444-444444444444',
@@ -88,7 +88,7 @@ test('release migration lifecycle on three owned disposable databases', { timeou
         { id: fixture.newerEvidence, status: 'superseded' },
       ]);
       const state = await catalog(fresh);
-      assert.equal(state.objects.relations.filter((r: any) => r.relkind === 'r').length, 87);
+      assert.equal(state.objects.relations.filter((r: any) => r.relkind === 'r').length, 89);
       // Independently materialize the current structured Drizzle schema, not a dump
       // of the baseline-derived database, then compare complete logical catalogs.
       await restore.query('begin');

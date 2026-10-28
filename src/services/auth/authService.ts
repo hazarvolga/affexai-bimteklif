@@ -20,7 +20,7 @@ export class AuthService {
     return await bcrypt.compare(password, hash);
   }
 
-  static generateToken(payload: { userId: string; companyId: string | null; role: string | null }): string {
+  static generateToken(payload: { userId: string; companyId: string | null; role: string | null; mfaEpoch?: string; mfaCredentialVersion?: string }): string {
     return jwt.sign(payload, jwtSecret(), { expiresIn: "7d", algorithm: "HS256", jwtid: randomUUID() });
   }
 
@@ -28,6 +28,8 @@ export class AuthService {
     userId: string;
     companyId: string;
     impersonatedBy: string;
+    mfaEpoch?: string;
+    mfaCredentialVersion?: string;
     readOnly?: boolean;
   }): string {
     return jwt.sign({ ...payload, readOnly: payload.readOnly ?? true }, jwtSecret(), { expiresIn: "15m", algorithm: "HS256", jwtid: randomUUID() });
