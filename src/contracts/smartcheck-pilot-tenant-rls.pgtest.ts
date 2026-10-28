@@ -101,6 +101,28 @@ test("SmartCheck pilot evidence enforces exact RLS, append-only history, atomic 
     const worker = new pg.Pool({ connectionString: urlFor(control, databaseName, "bimmetraj_worker", credentials.bimmetraj_worker), max: 1 });
     const backup = new pg.Pool({ connectionString: urlFor(control, databaseName, "bimmetraj_backup", credentials.bimmetraj_backup), max: 1 });
     pools.push(app, worker, backup);
+    await admin.query("insert into smartcheck_audit_logs(company_id,user_id,action,entity_type,entity_id,metadata_json) values($1,$2,'test','document',$3,'{}'),($4,$5,'test','document',$6,'{}')", [ids.companyA, ids.makerA, ids.documentA, ids.companyB, ids.userB, ids.documentB]);
+    const auditRows = async (companyId: string, userId: string) => withTenantTransaction(app, { companyId, userId }, async client => (await client.query<{ company_id: string }>("select distinct company_id::text company_id from smartcheck_audit_logs where action='test' order by 1")).rows.map(row => row.company_id));
+    assert.deepEqual((await app.query("select id from smartcheck_audit_logs where action='test'")).rows, [], 'no app context must see no tenant audit rows');
+    assert.deepEqual(await Promise.all([auditRows(ids.companyA, ids.makerA), auditRows(ids.companyB, ids.userB)]), [[ids.companyA], [ids.companyB]]);
+    await denied(() => withTenantTransaction(app, { companyId: ids.companyA, userId: ids.makerA }, client => client.query("insert into smartcheck_audit_logs(company_id,user_id,action,entity_type,entity_id,metadata_json) values($1,$2,'test','document',$3,'{}')", [ids.companyB, ids.userB, ids.documentB])));
+    await withTenantTransaction(app, { companyId: ids.companyA, userId: ids.makerA }, async client => {
+      assert.equal((await client.query("update smartcheck_audit_logs set action='forged' where entity_id=$1", [ids.documentA])).rowCount, 0);
+      assert.equal((await client.query("delete from smartcheck_audit_logs where entity_id=$1", [ids.documentB])).rowCount, 0);
+      await client.query("insert into smartcheck_audit_logs(company_id,user_id,action,entity_type,entity_id,metadata_json) values($1,$2,'app-created','document',$3,'{}')", [ids.companyA, ids.makerA, ids.documentA]);
+    });
+    assert.deepEqual((await worker.query("select id from smartcheck_audit_logs where action='test'")).rows, [], 'worker audit access is not required by current worker paths');
+    await denied(() => worker.query("insert into smartcheck_audit_logs(company_id,user_id,action,entity_type,entity_id,metadata_json) values($1,$2,'test','document',$3,'{}')", [ids.companyA, ids.makerA, ids.documentA]));
+    for (const companyId of [ids.companyA, ids.companyB]) {
+      const workerClient = await worker.connect();
+      try {
+        await workerClient.query('begin');
+        await workerClient.query("select set_config('bimmetraj.company_id',$1,true)", [companyId]);
+        assert.deepEqual((await workerClient.query("select id from smartcheck_audit_logs where action='test'")).rows, []);
+        await denied(() => workerClient.query("insert into smartcheck_audit_logs(company_id,user_id,action,entity_type,entity_id,metadata_json) values($1,$2,'test','document',$3,'{}')", [ids.companyA, ids.makerA, ids.documentA]));
+      } finally { await workerClient.query('rollback'); workerClient.release(); }
+    }
+    assert.equal((await backup.query("select id from smartcheck_audit_logs where action='test'")).rowCount, 2, 'backup retains read access');
     assert.deepEqual((await app.query("select id from smartcheck_pilot_cases")).rows, []);
     const readCases = (companyId: string, userId: string) => withTenantTransaction(app, { companyId, userId }, async (client) => (await client.query<{ company_id: string }>("select distinct company_id::text company_id from smartcheck_pilot_cases order by 1")).rows.map((row) => row.company_id));
     assert.deepEqual(await Promise.all([readCases(ids.companyA, ids.makerA), readCases(ids.companyB, ids.userB)]), [[ids.companyA], [ids.companyB]]);

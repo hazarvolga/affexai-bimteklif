@@ -1,3 +1,4 @@
+import { attachProcessHeartbeat } from "./process-heartbeat";
 import { assertProductionEnvironment, validateSmartcheckStorageEnvironment } from "../../server/config/production";
 import { run } from "graphile-worker";
 import { processSmartCheckDocument } from "./processor";
@@ -26,7 +27,7 @@ export async function startIfcWorker() {
 
   const concurrency = Number(process.env.SMARTCHECK_IFC_WORKER_CONCURRENCY || "1");
   if (!Number.isInteger(concurrency) || concurrency < 1 || concurrency > 2) throw new Error("INVALID_WORKER_CONCURRENCY");
-  return run(withDisabledGraphileCron({
+  const runner = await run(withDisabledGraphileCron({
     connectionString,
     schema: graphileWorkerSchema(),
     concurrency,
@@ -34,6 +35,8 @@ export async function startIfcWorker() {
     pollInterval: 1000,
     taskList: ifcWorkerTaskList,
   }));
+  attachProcessHeartbeat(connectionString, "ifc-worker", runner.promise);
+  return runner;
 }
 
 const isDirectRun = Boolean(

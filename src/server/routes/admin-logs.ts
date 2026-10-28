@@ -1,7 +1,7 @@
 import type { Express, RequestHandler } from 'express';
 import { sql } from 'drizzle-orm';
 import { z } from 'zod';
-import { db } from '../../db';
+import { getControlDatabase } from '../../db/control-plane';
 import { authenticate, checkSuperAdmin } from '../middleware/auth';
 
 const positionSchema = z.object({
@@ -44,17 +44,40 @@ export function safeAuditDetails(value: unknown) {
   return { before: safeSnapshot(details.before), after: safeSnapshot(details.after) };
 }
 
-interface AuditRow { id: string; adminId: string; targetCompanyId: string | null; action: string; createdAt: string; details: unknown }
-export interface AuditItem extends Omit<AuditRow, 'details'> { details: ReturnType<typeof safeAuditDetails> }
+/** Unknown event names are retained only when they look like bounded machine codes. */
+export function safeAuditAction(value: unknown): string {
+  return typeof value === 'string' && /^[a-z][a-z0-9_]*(?:[._-][a-z0-9_]+)*$/.test(value) && value.length <= 80 && !/(?:secret|password|token|cookie|bearer|iban|api_key|sk_live|sk_test)/i.test(value) ? value : 'other';
+}
+
+export function safeAuditTarget(value: unknown, action?: string): { type: string; id: string } | null {
+  const object = value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {};
+  if (action === 'plan.created' || action === 'plan.updated') {
+    const plan = safeSnapshot(object.after);
+    if (typeof plan?.id === 'string') return { type: 'plan', id: plan.id };
+  }
+  for (const [key, type] of [['newRunId', 'run'], ['runId', 'run'], ['requestId', 'payment'], ['stagingId', 'staging'], ['sourceId', 'source'], ['targetUserId', 'user'], ['documentId', 'document']] as const) {
+    const id = z.string().uuid().safeParse(object[key]);
+    if (id.success) return { type, id: id.data };
+  }
+  return null;
+}
+
+function safeDisplayName(value: unknown): string | null {
+  return typeof value === 'string' && value.trim() && value.length <= 160 && !/[\u0000-\u001f\u007f]/.test(value) ? value.trim() : null;
+}
+
+interface AuditRow { id: string; adminId: string; targetCompanyId: string | null; action: string; createdAt: string; details: unknown; actorName?: string | null; companyName?: string | null }
+export interface AuditItem extends Omit<AuditRow, 'details'> { details: ReturnType<typeof safeAuditDetails>; target: ReturnType<typeof safeAuditTarget> }
 export interface AuditPage { items: AuditItem[]; nextCursor: string | null }
 
 async function readAuditRows({ limit, cursor }: AuditQuery): Promise<AuditRow[]> {
   // Preserve PostgreSQL microseconds in the keyset; JS Date would lose precision.
-  const where = cursor ? sql`where (created_at,id) < (${cursor.at}::timestamp,${cursor.id}::uuid)` : sql``;
-  const result = await db.execute<any>(sql`
-    select id, admin_id as "adminId", target_company_id as "targetCompanyId", action, details,
-      to_char(created_at,'YYYY-MM-DD"T"HH24:MI:SS.US') as "createdAt"
-    from admin_audit_logs ${where} order by created_at desc,id desc limit ${limit + 1}`);
+  const where = cursor ? sql`where (a.created_at,a.id) < (${cursor.at}::timestamp,${cursor.id}::uuid)` : sql``;
+  const result = await getControlDatabase().db.execute<any>(sql`
+    select a.id, a.admin_id as "adminId", a.target_company_id as "targetCompanyId", a.action, a.details,
+      u.full_name as "actorName", c.name as "companyName", to_char(a.created_at,'YYYY-MM-DD"T"HH24:MI:SS.US') as "createdAt"
+    from admin_audit_logs a left join users u on u.id = a.admin_id left join companies c on c.id = a.target_company_id
+    ${where} order by a.created_at desc,a.id desc limit ${limit + 1}`);
   return result.rows;
 }
 
@@ -69,8 +92,8 @@ export function registerAdminLogRoutes(app: Express, dependencies: { authenticat
       const visible = rows.slice(0, query.limit);
       const last = visible.at(-1);
       const items = visible.map((row): AuditItem => ({
-        id: row.id, adminId: row.adminId, targetCompanyId: row.targetCompanyId, createdAt: `${row.createdAt}Z`,
-        action: ['plan.created', 'plan.updated', 'subscription.updated', 'company.updated', 'impersonation.started', 'impersonation.ended', 'processing_stale_recovered', 'processing_retried'].includes(row.action) ? row.action : 'other',
+        id: row.id, adminId: row.adminId, targetCompanyId: row.targetCompanyId, createdAt: row.createdAt,
+        action: safeAuditAction(row.action), actorName: safeDisplayName(row.actorName), companyName: safeDisplayName(row.companyName), target: safeAuditTarget(row.details, row.action),
         details: safeAuditDetails(row.details),
       }));
       const nextCursor = rows.length > query.limit && last

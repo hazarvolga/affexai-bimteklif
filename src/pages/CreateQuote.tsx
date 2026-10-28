@@ -39,6 +39,8 @@ import { calculateQuotationFinancials } from '@/lib/financial-calculations';
 import { parsePreBimQuoteDraft, PRE_BIM_DRAFT_STORAGE_KEY } from '@/lib/pre-bim-quote-draft';
 import { parseQuoteCsv, buildQuoteCsvTemplate } from '@/lib/quote-excel-import';
 import { isLegacyXls, LEGACY_XLS_MESSAGE, readFileHead } from '@/lib/spreadsheet-format';
+import { maySaveQuote, replaceWithDemo } from './quote-demo-replacement';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 
 export function CreateQuote() {
   const navigate = useNavigate();
@@ -57,6 +59,7 @@ export function CreateQuote() {
   const [aiResult, setAiResult] = useState<any>(null);
   const [aiConfigured, setAiConfigured] = useState<boolean | null>(null);
   const [demoLoaded, setDemoLoaded] = useState(false);
+  const [demoConfirmOpen, setDemoConfirmOpen] = useState(false);
   const [ifcTransferNotice, setIfcTransferNotice] = useState<{
     importedItems: number;
     skippedItems: number;
@@ -87,6 +90,7 @@ export function CreateQuote() {
     excelImportRef.current?.querySelector<HTMLButtonElement>('button')?.focus();
   }, [startFromExcel]);
   const [importingFile, setImportingFile] = useState(false);
+  const importingFileRef = useRef(false);
 
   const [formData, setFormData] = useState({
     clientId: searchParams.get('clientId') || '',
@@ -307,14 +311,14 @@ export function CreateQuote() {
   };
 
   const handleQuoteFileImport = async (file: File | null) => {
-    if (!file) return;
-    if (isLegacyXls(file.name, await readFileHead(file))) {
-      toast.error(LEGACY_XLS_MESSAGE, { duration: 12000 });
-      if (fileInputRef.current) fileInputRef.current.value = '';
-      return;
-    }
+    if (!file || importingFileRef.current) return;
+    importingFileRef.current = true;
     setImportingFile(true);
     try {
+      if (isLegacyXls(file.name, await readFileHead(file))) {
+        toast.error(LEGACY_XLS_MESSAGE, { duration: 12000 });
+        return;
+      }
       const isXlsx = file.name.toLowerCase().endsWith('.xlsx');
       let result;
       if (isXlsx) {
@@ -352,6 +356,7 @@ export function CreateQuote() {
       console.error('Quote file import error:', err);
       toast.error('Dosya içe aktarılırken bir hata oluştu.');
     } finally {
+      importingFileRef.current = false;
       setImportingFile(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
@@ -411,6 +416,7 @@ export function CreateQuote() {
       const formattedItems = aiItems.map((item: any) => {
         const baseItem: Partial<QuoteItem> = {
           id: crypto.randomUUID(),
+          aiEvidenceToken: item.aiEvidenceToken,
           description: item.description,
           unit: item.unit || 'm2',
           quantity: Number(item.quantity) || 0,
@@ -458,8 +464,8 @@ export function CreateQuote() {
 
   const handleSave = async (status: QuoteStatus = QuoteStatus.DRAFT) => {
     if (id && (!editVersion || editLoading || editError)) return;
-    if (!formData.clientId || !formData.projectName) {
-      toast.error('Lütfen zorunlu alanları doldurun.');
+    if (!maySaveQuote({ demoLoaded, clientId: formData.clientId, projectName: formData.projectName })) {
+      toast.error(demoLoaded ? 'Demo şablonu kaydedilemez. Gerçek teklif için teklif listesine dönüp yeni teklif başlatın.' : 'Lütfen zorunlu alanları doldurun.');
       return;
     }
 
@@ -497,9 +503,7 @@ export function CreateQuote() {
   };
 
   const handleLoadDemoTemplate = () => {
-    setFormData((current) => ({
-      ...current,
-      clientId: current.clientId || clients[0]?.id || '',
+    const demoForm = {
       projectName: 'Kadıköy Kentsel Dönüşüm & Mühendislik Projesi',
       quoteNumber: `TKF-${new Date().getFullYear()}-DEMO`,
       date: new Date().toISOString().split('T')[0],
@@ -507,21 +511,33 @@ export function CreateQuote() {
       currency: Currency.TRY,
       projectDurationMonths: 6,
       escalationVolatilityPercent: 2,
-      procurementProfile: 'low_carbon',
+      procurementProfile: 'low_carbon' as const,
       carbonRiskPremiumPercent: 3,
-      informationDeliveryLevel: 'cobie',
+      informationDeliveryLevel: 'cobie' as const,
       informationDeliveryCostPercent: 2,
       overheadProfitPercent: 0,
       notes: '6306 Sayılı Kentsel Dönüşüm Kanunu kapsamında TSE standartlı 1. sınıf malzeme ve ISO 19650 esaslı BIM teslim formatında hazırlanmış tekliftir.',
-    }));
+    };
 
     const demoRows: Partial<QuoteItem>[] = [
       { id: crypto.randomUUID(), description: 'Zemin Etüdü ve Statik Rölöve Çalışması (AR/Mobil)', unit: 'adet', quantity: 1, unitPrice: 45000, costUnitPrice: 25000, wastePercent: 0, costCategory: 'labor', discountPercent: 0, vatPercent: 20 },
       { id: crypto.randomUUID(), description: 'C35/45 Hazır Beton Dökümü ve Donatı Bağlantısı', unit: 'm3', quantity: 450, unitPrice: 3800, costUnitPrice: 2900, wastePercent: 3, costCategory: 'material', discountPercent: 5, vatPercent: 20 },
       { id: crypto.randomUUID(), description: 'BIM BEP ve ISO 19650 Dijital İkiz Teslim Paketi', unit: 'paket', quantity: 1, unitPrice: 85000, costUnitPrice: 40000, wastePercent: 0, costCategory: 'subcontractor', discountPercent: 0, vatPercent: 20 },
     ];
-    setItems(demoRows.map((row) => ({ ...row, total: calculateItemTotal(row) })));
+    const replacement = replaceWithDemo(
+      { formData, items, ifcTransferNotice, preBimNotice, excelImportNotice, aiResult, description },
+      demoForm,
+      demoRows.map((row) => ({ ...row, total: calculateItemTotal(row) })),
+    );
+    setFormData(replacement.formData);
+    setItems(replacement.items);
+    setIfcTransferNotice(replacement.ifcTransferNotice);
+    setPreBimNotice(replacement.preBimNotice);
+    setExcelImportNotice(replacement.excelImportNotice);
+    setAiResult(replacement.aiResult);
+    setDescription(replacement.description);
     setDemoLoaded(true);
+    setDemoConfirmOpen(false);
     toast.success("Kentsel Dönüşüm & Mühendislik Demo Şablonu (3 örnek iş kalemi) yüklendi!");
   };
 
@@ -555,8 +571,9 @@ export function CreateQuote() {
           label: "Tekliflere Dön",
           onClick: () => navigate('/app/quotes')
         }}
+        className="min-w-0 md:flex-col md:items-stretch xl:flex-row xl:items-end"
         actions={
-          <div className="flex flex-wrap gap-2.5">
+          <div className="grid w-full grid-cols-1 gap-2 sm:grid-cols-2 xl:flex xl:flex-wrap" data-testid="quote-toolbar">
             {!id && <>
             <Button
               type="button"
@@ -577,7 +594,8 @@ export function CreateQuote() {
             </Button>
             <Button 
               variant="outline" 
-              onClick={handleLoadDemoTemplate}
+              disabled={aiLoading || importingFile}
+              onClick={() => setDemoConfirmOpen(true)}
               className="border-border bg-card hover:bg-muted text-foreground font-mono text-xs uppercase tracking-wider h-10 px-4 gap-2 shadow-none"
             >
               <Sparkles size={14} className="text-muted-foreground" /> Demo Şablon Yükle
@@ -592,6 +610,19 @@ export function CreateQuote() {
           </div>
         }
       />
+      <Dialog open={demoConfirmOpen} onOpenChange={setDemoConfirmOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Demo şablonu yüklensin mi?</DialogTitle>
+            <DialogDescription>Mevcut müşteri seçimi, proje bilgileri ve tüm kalemler örnek verilerle değiştirilecek. Excel, IFC, ön fizibilite ve AI kaynak bilgileri temizlenecek. Bu işlem geri alınamaz. Demo taslağı kaydedilemez; gerçek teklif hazırlamak için yeni teklif açın.</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setDemoConfirmOpen(false)}>İptal</Button>
+            <Button type="button" disabled={importingFile || aiLoading} onClick={handleLoadDemoTemplate}>Demo şablonunu yükle</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      {demoLoaded && <p role="status" className="mb-4 border border-amber-500/40 bg-amber-500/10 p-3 text-sm">Demo örnek verileri kullanılıyor ve bu taslak kaydedilemez. Gerçek teklif hazırlamak için Tekliflere Dön bağlantısıyla listeye dönüp yeni teklif başlatın; bu ekrandaki veriler korunmaz.</p>}
       {saveError && <div role="alert" className="mb-4 text-xs font-mono text-destructive">{saveError} {id && <Button variant="outline" size="sm" onClick={() => window.location.reload()}>Yeniden yükle</Button>}</div>}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">

@@ -144,3 +144,13 @@ test('signed privilege claims cannot override DB super-admin and email verificat
   requireVerifiedEmail({ user: { emailVerified: null } }, result.res, () => { allowed++; });
   assert.equal(allowed, 2);
 });
+
+test('super admin gate requires a verified timestamp, including null and undefined', () => {
+  for (const emailVerified of [null, undefined, false]) {
+    let status = 200, allowed = false;
+    const res: any = { status(code: number) { status = code; return this; }, json() { return this; } };
+    checkSuperAdmin()({ user: { isSuperAdmin: true, emailVerified } }, res, () => { allowed = true; });
+    assert.equal(allowed, false);
+    assert.equal(status, 403);
+  }
+});

@@ -44,6 +44,7 @@ import { CalmTransferError, transferCalmRowsToNewQuotation, transferCalmRowsToQu
 import { IFC_VIEWER_MAX_EVIDENCE_BYTES, IFC_VIEWER_MAX_FILE_BYTES, IFC_VIEWER_MAX_IDENTITIES, canonicalElementKey, parseViewerContext } from "../../ifc/viewer/model";
 import type { IfcSourceIdentity } from "../../ifc/types";
 import { createVerifiedIfcStream } from "../../ifc/viewer/verified-stream";
+import { isIfcGeometryQuantity } from "../../ifc/evidence-policy";
 import { acquireViewerContent, acquireViewerContext, createViewerAdmissionMiddleware, createViewerRateLimit } from "../../ifc/viewer/access-control";
 
 const canReview = checkRole(["owner", "admin", "manager"]);
@@ -85,12 +86,19 @@ const viewerContentRateLimit = createViewerRateLimit("content");
 const viewerContextAdmission = createViewerAdmissionMiddleware(acquireViewerContext);
 const viewerContentAdmission = createViewerAdmissionMiddleware(acquireViewerContent);
 
+function hasUnverifiedIfcQuantity(row: { quantitySource: string; formulaJson: Record<string, string> | null }): boolean {
+  if (!row.quantitySource.startsWith("ifc")) return false;
+  const path = row.formulaJson?.quantitySourcePath?.trim();
+  if (!path || !["ifc_qto", "ifc_property"].includes(row.quantitySource)) return true;
+  return isIfcGeometryQuantity({ quantitySource: row.quantitySource === "ifc_qto" ? "qto" : "property", quantitySourcePath: path });
+}
+
 async function audit(req: Request, action: string, entityType: string, entityId?: string, metadataJson: Record<string, unknown> = {}) {
   const mergedMetadata = {
     ...metadataJson,
     ...(req.user?.impersonatedBy ? { impersonatedBy: req.user.impersonatedBy } : {}),
   };
-  await db.insert(smartcheckAuditLogs).values({ companyId: req.user.companyId, userId: req.user.userId, action, entityType, entityId, metadataJson: mergedMetadata });
+  await withAppTenant(tenantOf(req.user), tx => tx.insert(smartcheckAuditLogs).values({ companyId: req.user.companyId, userId: req.user.userId, action, entityType, entityId, metadataJson: mergedMetadata }).then(() => undefined));
 }
 
 async function auditBestEffort(req: Request, action: string, entityType: string, entityId?: string, metadataJson: Record<string, unknown> = {}) {
@@ -115,6 +123,8 @@ const CALM_TRANSFER_MESSAGES: Record<string, string> = {
   CALM_TRANSFER_PRICE_SELECTION_INVALID: "İstek sunucunun ürettiği canonical Calm satırlarıyla eşleşmiyor.",
   CALM_TRANSFER_PRICE_SNAPSHOT_INVALID: "Yalnız yetkili, onaylı, güncel ve kalemle uyumlu fiyat snapshot kullanılabilir.",
   CALM_TRANSFER_IFC_EVIDENCE_REQUIRED: "Tamamlanmış IFC kanıt artefaktı bulunamadı.",
+  CALM_TRANSFER_IFC_GEOMETRY_BLOCKED: "Geometriden türetilen IFC miktarı kanıtlı metraj olarak aktarılamaz.",
+  CALM_TRANSFER_IFC_SOURCE_UNVERIFIED: "IFC miktarının kaynak yolu doğrulanamadı; satırı yeniden inceleyin.",
   CALM_TRANSFER_RUN_NOT_SUCCEEDED: "Dokümanın başarılı ve güncel işleme koşusu bulunamadı.",
   CALM_TRANSFER_IDEMPOTENCY_CONFLICT: "Bu aktarım anahtarı farklı bir istek için daha önce kullanılmış.",
   CALM_TRANSFER_SOURCE_ROWS_ALREADY_TRANSFERRED: "Bu kaynak satırlar teklif serisine daha önce aktarılmış.",
@@ -744,97 +754,71 @@ export function registerSmartCheckRoutes(app: Express) {
   });
 
   app.patch("/api/smartcheck/rows/:id/review", ...protectedStack, async (req, res) => {
-    const parsedRequest = smartcheckRowReviewRequestSchema.safeParse(req.body);
-    if (!parsedRequest.success) return res.status(400).json({ error: "Review kararı approved, accepted_exception veya rejected olmalıdır." });
-    const { status } = parsedRequest.data;
-    const [current] = await withAppTenant(
-      tenantOf(req.user),
-      (tenantDb) => tenantDb.select().from(normalizedQuantityRows).where(and(eq(normalizedQuantityRows.id, req.params.id), eq(normalizedQuantityRows.companyId, req.user.companyId))),
-      { readOnly: true },
-    );
-    if (!current) return res.status(404).json({ error: "Satır bulunamadı." });
-    const notes = parsedRequest.data.notes ?? null;
+    const parsed = smartcheckRowReviewRequestSchema.safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ error: "Review kararı approved, accepted_exception veya rejected olmalıdır." });
+    const { status, correction: patch = {} } = parsed.data;
+    const notes = parsed.data.notes ?? null;
     if ((status === "rejected" || status === "accepted_exception") && !notes) return res.status(400).json({ error: `${status === "rejected" ? "Red" : "İstisna"} gerekçesi zorunludur.` });
-    const patch = parsedRequest.data.correction ?? {};
-    const allowedCorrection = ["positionCode", "description", "unit", "quantity", "price", "wastePercent"] as const;
-    if (Object.keys(patch).some((key) => !allowedCorrection.includes(key as typeof allowedCorrection[number]))) return res.status(400).json({ error: "Geçersiz düzeltme alanı." });
-    const corrected: ParsedQuantityRow = {
-      sheetName: current.sheetName, sourceRowNumber: current.sourceRowNumber, sourceCellRange: current.sourceCellRange,
-      rawDescription: String(patch.description ?? current.rawDescription ?? ""), rawPositionCode: String(patch.positionCode ?? current.rawPositionCode ?? ""),
-      rawUnit: String(patch.unit ?? current.rawUnit ?? ""), rawQuantity: String(patch.quantity ?? current.rawQuantity ?? ""),
-      rawPrice: String(patch.price ?? current.rawPrice ?? ""), rawWastePercent: String(patch.wastePercent ?? current.rawWastePercent ?? ""), formulaJson: current.formulaJson,
-    };
-    const targetPositionCode = corrected.rawPositionCode.trim();
-    const { isDuplicate, company } = await withAppTenant(tenantOf(req.user), async (tenantDb) => {
-      let isDuplicate = false;
-      if (targetPositionCode) {
-        const [dup] = await tenantDb.select({ count: sql<number>`count(*)::int` })
-          .from(normalizedQuantityRows)
-          .where(and(
-            eq(normalizedQuantityRows.documentId, current.documentId),
-            eq(normalizedQuantityRows.companyId, req.user.companyId),
-            eq(normalizedQuantityRows.rawPositionCode, targetPositionCode),
-            ne(normalizedQuantityRows.id, current.id)
-          ));
-        isDuplicate = (dup?.count ?? 0) > 0;
-      }
-      const [company] = await tenantDb.select({ maxWaste: companies.smartcheckMaxWastePercent }).from(companies).where(eq(companies.id, req.user.companyId));
-      return { isDuplicate, company };
-    }, { readOnly: true });
-    const [validated] = validateRows([corrected], Number(company?.maxWaste ?? 20));
-    if (!validated) return res.status(500).json({ error: "Satır yeniden doğrulanamadı." });
-    if (isDuplicate && !validated.findings.some((f) => f.code === "DUPLICATE_POSITION_CODE")) {
-      validated.findings.push({ code: "DUPLICATE_POSITION_CODE", severity: "medium", message: "Poz kodu dosyada tekrarlanıyor.", ruleVersion: "pilot-integrity-v1", suggestion: "Mükerrerliğin kapsam farkından kaynaklandığını doğrulayın." });
-    }
-    if (status === "approved" && validated.findings.length > 0) return res.status(409).json({ error: "Açık bulgular çözülmeden satır onaylanamaz.", findings: validated.findings });
-    const [updated] = await withAppTenant(
-      tenantOf(req.user),
-      (tenantDb) => tenantDb.update(normalizedQuantityRows).set({
+    const allowed = ["positionCode", "description", "unit", "quantity", "price", "wastePercent"];
+    if (Object.keys(patch).some(key => !allowed.includes(key))) return res.status(400).json({ error: "Geçersiz düzeltme alanı." });
+    const result = await withAppTenant(tenantOf(req.user), async (tx) => {
+      const [initial] = await tx.select({ documentId: normalizedQuantityRows.documentId }).from(normalizedQuantityRows).where(and(eq(normalizedQuantityRows.id, req.params.id), eq(normalizedQuantityRows.companyId, req.user.companyId)));
+      if (!initial) return { status: 404, body: { error: "Satır bulunamadı." } };
+      await tx.select({ id: documents.id }).from(documents).where(and(eq(documents.id, initial.documentId), eq(documents.companyId, req.user.companyId))).for("update");
+      const [current] = await tx.select().from(normalizedQuantityRows).where(and(eq(normalizedQuantityRows.id, req.params.id), eq(normalizedQuantityRows.companyId, req.user.companyId))).for("update");
+      if (!current) return { status: 404, body: { error: "Satır bulunamadı." } };
+      if ((!parsed.data.expectedUpdatedAt && current.reviewStatus !== "pending_review") || (parsed.data.expectedUpdatedAt && new Date(parsed.data.expectedUpdatedAt).getTime() !== current.updatedAt.getTime())) return { status: 409, body: { error: "Satır değişti; güncel bilgileri yükleyip yeniden inceleyin.", code: "REVIEW_VERSION_CONFLICT" } };
+      if (status === "approved" && hasUnverifiedIfcQuantity(current)) return { status: 409, body: { error: "IFC miktar kaynağı doğrulanamadı.", code: "IFC_QUANTITY_SOURCE_UNVERIFIED" } };
+      const corrected: ParsedQuantityRow = {
+        sheetName: current.sheetName, sourceRowNumber: current.sourceRowNumber, sourceCellRange: current.sourceCellRange,
+        rawDescription: String(patch.description ?? current.rawDescription ?? ""), rawPositionCode: String(patch.positionCode ?? current.rawPositionCode ?? ""),
+        rawUnit: String(patch.unit ?? current.rawUnit ?? ""), rawQuantity: String(patch.quantity ?? current.rawQuantity ?? ""),
+        rawPrice: String(patch.price ?? current.rawPrice ?? ""), rawWastePercent: String(patch.wastePercent ?? current.rawWastePercent ?? ""), formulaJson: current.formulaJson,
+      };
+      const target = corrected.rawPositionCode.trim();
+      const [dup] = target ? await tx.select({ count: sql<number>`count(*)::int` }).from(normalizedQuantityRows).where(and(eq(normalizedQuantityRows.documentId, current.documentId), eq(normalizedQuantityRows.companyId, req.user.companyId), eq(normalizedQuantityRows.rawPositionCode, target), ne(normalizedQuantityRows.id, current.id))) : [];
+      const [company] = await tx.select({ maxWaste: companies.smartcheckMaxWastePercent }).from(companies).where(eq(companies.id, req.user.companyId));
+      const [validated] = validateRows([corrected], Number(company?.maxWaste ?? 20));
+      if (!validated) return { status: 500, body: { error: "Satır yeniden doğrulanamadı." } };
+      if ((dup?.count ?? 0) > 0 && !validated.findings.some(f => f.code === "DUPLICATE_POSITION_CODE")) validated.findings.push({ code: "DUPLICATE_POSITION_CODE", severity: "medium", message: "Poz kodu dosyada tekrarlanıyor.", ruleVersion: "pilot-integrity-v1", suggestion: "Mükerrerliğin kapsam farkından kaynaklandığını doğrulayın." });
+      const recomputed = new Set(["MISSING_POSITION_CODE:pilot-integrity-v1", "DUPLICATE_POSITION_CODE:pilot-integrity-v1", "UNKNOWN_UNIT:pilot-unit-v1", "INVALID_QUANTITY:pilot-quantity-v1", "MISSING_PRICE_SOURCE:pilot-cost-v1", "WASTE_LIMIT_EXCEEDED:pilot-waste-v1"]);
+      if (!Array.isArray(current.findingsJson)) return { status: 409, body: { error: "Satır bulguları okunamadı; kayıt yeniden işlenmelidir.", code: "REVIEW_FINDINGS_INVALID" } };
+      const sourceFindings = current.findingsJson.filter((f: any) => !f || typeof f !== "object" || !recomputed.has(`${f.code}:${f.ruleVersion}`));
+      const findings = [...sourceFindings, ...validated.findings.filter(f => !sourceFindings.some((source: any) => source?.code === f.code && source?.ruleVersion === f.ruleVersion))];
+      if (status === "approved" && findings.length) return { status: 409, body: { error: "Açık bulgular çözülmeden satır onaylanamaz.", findings } };
+      const [updated] = await tx.update(normalizedQuantityRows).set({
         rawDescription: corrected.rawDescription, rawPositionCode: corrected.rawPositionCode, rawUnit: corrected.rawUnit, rawQuantity: corrected.rawQuantity, rawPrice: corrected.rawPrice, rawWastePercent: corrected.rawWastePercent,
-        normalizedDescription: validated.normalized.description, normalizedPositionCode: validated.normalized.positionCode, normalizedUnit: validated.normalized.unit, normalizedQuantity: validated.normalized.quantity?.toString(), normalizedPrice: validated.normalized.price?.toString(), normalizedWastePercent: validated.normalized.wastePercent.toString(), findingsJson: validated.findings,
-        reviewStatus: status, reviewerUserId: req.user.userId, reviewedAt: new Date(), reviewerNotes: notes, updatedAt: new Date(),
-      }).where(and(eq(normalizedQuantityRows.id, current.id), eq(normalizedQuantityRows.companyId, req.user.companyId))).returning(),
-    );
-    await audit(req, `row_${status}`, "normalized_quantity_row", current.id, { documentId: current.documentId, correction: patch, findingCodes: validated.findings.map((finding) => finding.code) });
-    res.json(updated);
+        normalizedDescription: validated.normalized.description, normalizedPositionCode: validated.normalized.positionCode, normalizedUnit: validated.normalized.unit, normalizedQuantity: validated.normalized.quantity?.toString(), normalizedPrice: validated.normalized.price?.toString(), normalizedWastePercent: validated.normalized.wastePercent.toString(), findingsJson: findings,
+        reviewStatus: status, reviewerUserId: req.user.userId, reviewedAt: new Date(), reviewerNotes: notes, updatedAt: new Date(Math.max(Date.now(), current.updatedAt.getTime() + 1)),
+      }).where(and(eq(normalizedQuantityRows.id, current.id), eq(normalizedQuantityRows.companyId, req.user.companyId))).returning();
+      await tx.insert(smartcheckAuditLogs).values({ companyId: req.user.companyId, userId: req.user.userId, action: `row_${status}`, entityType: "normalized_quantity_row", entityId: current.id, metadataJson: { documentId: current.documentId, correction: patch, findingCodes: findings.map((f: any) => f?.code), previousReviewStatus: current.reviewStatus, previousReviewReason: current.reviewerNotes, reviewReason: notes, ...(req.user.impersonatedBy ? { impersonatedBy: req.user.impersonatedBy } : {}) } });
+      return { status: 200, body: updated };
+    });
+    return res.status(result.status).json(result.body);
   });
 
   app.patch("/api/smartcheck/documents/:id/bulk-review", ...protectedStack, async (req, res) => {
-    const parsedRequest = smartcheckBulkReviewRequestSchema.safeParse(req.body);
-    if (!parsedRequest.success) return res.status(400).json({ error: "Toplu review için status=approved ve en az bir rowId zorunludur." });
-    const { rowIds, notes } = parsedRequest.data;
+    const parsed = smartcheckBulkReviewRequestSchema.safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ error: "Toplu review için status=approved ve en az bir rowId zorunludur." });
+    const { rowIds, notes } = parsed.data;
     const uniqueRowIds = [...new Set(rowIds)];
     if (uniqueRowIds.length !== rowIds.length) return res.status(400).json({ error: "Tekrarlı satır seçimi yapılamaz." });
-    const { document, rows } = await withAppTenant(tenantOf(req.user), async (tenantDb) => {
-      const [document] = await tenantDb.select({ id: documents.id }).from(documents).where(and(eq(documents.id, req.params.id), eq(documents.companyId, req.user.companyId)));
-      if (!document) return { document: undefined, rows: [] };
-      const rows = await tenantDb.select().from(normalizedQuantityRows).where(and(eq(normalizedQuantityRows.documentId, document.id), eq(normalizedQuantityRows.companyId, req.user.companyId), inArray(normalizedQuantityRows.id, uniqueRowIds)));
-      return { document, rows };
-    }, { readOnly: true });
-    if (!document) return res.status(404).json({ error: "Doküman bulunamadı." });
-    if (rows.length !== uniqueRowIds.length) return res.status(404).json({ error: "Bir veya daha fazla satır bu şirkete/dokümana ait değil." });
-    if (rows.some((row) => row.reviewStatus !== "pending_review")) return res.status(409).json({ error: "Yalnız inceleme bekleyen satırlar toplu onaylanabilir.", code: "BULK_REVIEW_STATUS_NOT_PENDING" });
-    const blockedRows = rows.filter((row) => Array.isArray(row.findingsJson) && row.findingsJson.length > 0);
-    if (blockedRows.length) {
-      return res.status(409).json({
-        error: "Açık bulgusu olan satırlar toplu onaylanamaz; düzeltme veya gerekçeli istisna gerekir.",
-        code: "BULK_REVIEW_FINDINGS_PRESENT",
-        blockedRowIds: blockedRows.map((row) => row.id),
-      });
-    }
-    const now = new Date();
-    const updated = await withAppTenant(
-      tenantOf(req.user),
-      (tenantDb) => tenantDb.update(normalizedQuantityRows).set({
-        reviewStatus: "approved",
-        reviewerUserId: req.user.userId,
-        reviewedAt: now,
-        reviewerNotes: notes ?? "Bulgusuz satırlar toplu onaylandı.",
-        updatedAt: now,
-      }).where(and(eq(normalizedQuantityRows.documentId, document.id), eq(normalizedQuantityRows.companyId, req.user.companyId), inArray(normalizedQuantityRows.id, uniqueRowIds))).returning(),
-    );
-    await audit(req, "rows_bulk_approved", "document", document.id, { rowIds: uniqueRowIds, approvedCount: updated.length });
-    res.json({ approvedCount: updated.length, rows: updated });
+    const result = await withAppTenant(tenantOf(req.user), async (tx) => {
+      const [document] = await tx.select({ id: documents.id }).from(documents).where(and(eq(documents.id, req.params.id), eq(documents.companyId, req.user.companyId))).for("update");
+      if (!document) return { status: 404, body: { error: "Doküman bulunamadı." } };
+      const rows = await tx.select().from(normalizedQuantityRows).where(and(eq(normalizedQuantityRows.documentId, document.id), eq(normalizedQuantityRows.companyId, req.user.companyId), inArray(normalizedQuantityRows.id, uniqueRowIds))).orderBy(normalizedQuantityRows.id).for("update");
+      if (rows.length !== uniqueRowIds.length) return { status: 404, body: { error: "Bir veya daha fazla satır bu şirkete/dokümana ait değil." } };
+      if (rows.some(row => row.reviewStatus !== "pending_review")) return { status: 409, body: { error: "Yalnız inceleme bekleyen satırlar toplu onaylanabilir.", code: "BULK_REVIEW_STATUS_NOT_PENDING" } };
+      if (rows.some(hasUnverifiedIfcQuantity)) return { status: 409, body: { error: "IFC miktar kaynağı doğrulanamadı.", code: "IFC_QUANTITY_SOURCE_UNVERIFIED" } };
+      const blocked = rows.filter(row => !Array.isArray(row.findingsJson) || row.findingsJson.length > 0);
+      if (blocked.length) return { status: 409, body: { error: "Açık bulgusu olan satırlar toplu onaylanamaz; düzeltme veya gerekçeli istisna gerekir.", code: "BULK_REVIEW_FINDINGS_PRESENT", blockedRowIds: blocked.map(row => row.id) } };
+      const now = new Date();
+      const reviewReason = notes ?? "Bulgusuz satırlar toplu onaylandı.";
+      const updated = await tx.update(normalizedQuantityRows).set({ reviewStatus: "approved", reviewerUserId: req.user.userId, reviewedAt: now, reviewerNotes: reviewReason, updatedAt: sql`greatest(${now}, ${normalizedQuantityRows.updatedAt} + interval '1 millisecond')` }).where(and(eq(normalizedQuantityRows.documentId, document.id), eq(normalizedQuantityRows.companyId, req.user.companyId), inArray(normalizedQuantityRows.id, uniqueRowIds))).returning();
+      await tx.insert(smartcheckAuditLogs).values({ companyId: req.user.companyId, userId: req.user.userId, action: "rows_bulk_approved", entityType: "document", entityId: document.id, metadataJson: { rowIds: uniqueRowIds, approvedCount: updated.length, reviewReason, ...(req.user.impersonatedBy ? { impersonatedBy: req.user.impersonatedBy } : {}) } });
+      return { status: 200, body: { approvedCount: updated.length, rows: updated } };
+    });
+    return res.status(result.status).json(result.body);
   });
 
   app.post("/api/smartcheck/documents/:id/transfer-to-quotation", ...protectedStack, async (req, res, next) => {
@@ -851,7 +835,7 @@ export function registerSmartCheckRoutes(app: Express) {
     if (!quotation) return res.status(404).json({ error: "Aktarım için taslak teklif bulunamadı." });
     const selected = documentRows.filter((row) => rowIds.includes(row.id));
     if (selected.length !== new Set(rowIds).size) return res.status(404).json({ error: "Bir veya daha fazla satır bu şirkete/dokümana ait değil." });
-    if (selected.some((row) => row.reviewStatus !== "approved" && row.reviewStatus !== "accepted_exception")) return res.status(409).json({ error: "Yalnız onaylı veya gerekçeli istisna satırlar teklife aktarılabilir." });
+    if (selected.some((row) => row.reviewStatus !== "approved" && (row.reviewStatus !== "accepted_exception" || !row.reviewerNotes?.trim()))) return res.status(409).json({ error: "Yalnız onaylı veya gerekçeli istisna satırlar teklife aktarılabilir." });
     const overrides = parsedRequest.data.overrides ?? {};
     const requestedSnapshotIds = selected.map((row) => typeof overrides[row.id]?.priceSnapshotId === "string" ? String(overrides[row.id].priceSnapshotId) : null).filter((id): id is string => Boolean(id));
     const { snapshots, pricingSources, pricingSourceIds, sourceDocuments } = await withAppTenant(tenantOf(req.user), async (tenantDb) => {
@@ -884,13 +868,19 @@ export function registerSmartCheckRoutes(app: Express) {
       if (lockedSnapshots.length !== new Set(requestedSnapshotIds).size || lockedSources.length !== lockedSourceIds.length || invalidLockedSnapshot) throw new Error("INVALID_PRICE_SNAPSHOT");
       const snapshotById = new Map(lockedSnapshots.map((snapshot) => [snapshot.id, snapshot]));
       const selected = await tx.select().from(normalizedQuantityRows).where(and(eq(normalizedQuantityRows.documentId, req.params.id), eq(normalizedQuantityRows.companyId, req.user.companyId), inArray(normalizedQuantityRows.id, rowIds))).for("share");
-      if (selected.length !== new Set(rowIds).size || selected.some(row => !["approved", "accepted_exception"].includes(row.reviewStatus))) throw new Error("TRANSFER_REVIEW_CHANGED");
+      if (selected.length !== new Set(rowIds).size || selected.some(row => (row.reviewStatus !== "approved" && (row.reviewStatus !== "accepted_exception" || !row.reviewerNotes?.trim())))) throw new Error("TRANSFER_REVIEW_CHANGED");
+      if (selected.some(hasUnverifiedIfcQuantity)) throw new Error("INVALID_TRANSFER_VALUES");
       const inserts = selected.map((row) => {
         const override = overrides[row.id] ?? {};
         const priceSnapshotId = typeof override.priceSnapshotId === "string" ? override.priceSnapshotId : null;
         const priceSnapshot = priceSnapshotId ? snapshotById.get(priceSnapshotId) : undefined;
         const quantity = Number(override.quantity ?? row.normalizedQuantity);
-        const unitPrice = Number(override.unitPrice ?? priceSnapshot?.amount ?? row.normalizedPrice);
+        const priceValue = override.unitPrice ?? priceSnapshot?.amount ?? row.normalizedPrice;
+        if (priceValue == null || (typeof priceValue === "string" && priceValue.trim() === "")) throw new Error("INVALID_TRANSFER_VALUES");
+        if ((typeof priceValue !== "string" && typeof priceValue !== "number") || !/^(?:\d+)(?:\.\d+)?$/.test(String(priceValue).trim())) throw new Error("INVALID_TRANSFER_VALUES");
+        const unitPrice = Number(priceValue);
+        const manualPrice = override.unitPrice !== undefined && override.unitPrice !== null && !priceSnapshot;
+        if (override.unitPrice != null && unitPrice === 0 && (priceSnapshot || !override.zeroPriceReason?.trim())) throw new Error("ZERO_PRICE_REASON_REQUIRED");
         const costUnitPrice = Number(override.costUnitPrice ?? priceSnapshot?.amount ?? row.normalizedPrice ?? unitPrice);
         const wastePercent = Number(override.wastePercent ?? row.normalizedWastePercent ?? 0);
         const vatPercent = Number(override.vatPercent ?? 20);
@@ -904,7 +894,7 @@ export function registerSmartCheckRoutes(app: Express) {
         return {
           companyId: req.user.companyId, quotationId: quotation.id, description: row.normalizedDescription ?? row.rawDescription ?? "Metraj kalemi",
           unit: row.normalizedUnit ?? row.rawUnit ?? "adet", quantity: String(quantity), unitPrice: String(unitPrice), costUnitPrice: String(costUnitPrice),
-          wastePercent: String(wastePercent), costCategory: "material", quantitySource: "document", priceSource: priceSnapshot ? "snapshot" : "document",
+          wastePercent: String(wastePercent), costCategory: "material", quantitySource: "document", priceSource: priceSnapshot ? "snapshot" : manualPrice ? "manual" : "document",
           sourceReference: row.normalizedPositionCode ?? row.rawPositionCode, verificationStatus: transferReviewEvidence(row, quantity, row.normalizedUnit ?? row.rawUnit ?? "adet").verificationStatus, discountPercent: "0", vatPercent: String(vatPercent), total: String(calculateLineItemTotal(item)),
           sourceDocumentId: row.documentId, sourceProcessingRunId: row.processingRunId, sourceQuantityRowId: row.id, sourceCellRange: row.sourceCellRange,
           sourceRuleVersion: null, transferIdempotencyKey: idempotencyKey,
@@ -912,37 +902,65 @@ export function registerSmartCheckRoutes(app: Express) {
         };
       });
       let insertedCount = 0;
+      const insertedItemIds = new Set<string>();
       for (let i = 0; i < inserts.length; i += 500) {
         const chunk = inserts.slice(i, i + 500);
         const res = await tx.insert(quotationItems).values(chunk).onConflictDoNothing().returning({ id: quotationItems.id });
         insertedCount += res.length;
+        for (const item of res) insertedItemIds.add(item.id);
       }
       const allItems = await tx.select().from(quotationItems).where(and(eq(quotationItems.quotationId, quotation.id), eq(quotationItems.companyId, req.user.companyId)));
       const itemBySourceRowId = new Map(allItems.filter((it) => it.sourceQuantityRowId).map((it) => [it.sourceQuantityRowId!, it]));
+      for (const proposed of inserts) {
+        const existing = itemBySourceRowId.get(proposed.sourceQuantityRowId);
+        if (!existing || insertedItemIds.has(existing.id)) continue;
+        const sameNumber = (left: string | number | null, right: string | number | null, places: number) => left !== null && right !== null && Number(left).toFixed(places) === Number(right).toFixed(places);
+        if (!sameNumber(existing.quantity, proposed.quantity, 4) || !sameNumber(existing.unitPrice, proposed.unitPrice, 2)
+          || !sameNumber(existing.costUnitPrice, proposed.costUnitPrice, 2) || !sameNumber(existing.wastePercent, proposed.wastePercent, 2)
+          || !sameNumber(existing.vatPercent, proposed.vatPercent, 2) || existing.description !== proposed.description || existing.unit !== proposed.unit
+          || existing.priceSource !== proposed.priceSource || existing.priceSnapshotId !== proposed.priceSnapshotId || existing.sourceReference !== proposed.sourceReference
+          || existing.verificationStatus !== proposed.verificationStatus) throw new Error("TRANSFER_OVERRIDE_CONFLICT");
+      }
+      const existingZeroOverrides = selected.flatMap((row) => {
+        const item = itemBySourceRowId.get(row.id);
+        const override = overrides[row.id];
+        return item && !insertedItemIds.has(item.id) && override?.unitPrice != null && Number(override.unitPrice) === 0 ? [{ item, override }] : [];
+      });
+      if (existingZeroOverrides.length) {
+        const existingEvidence = await tx.select().from(quotationItemEvidence).where(and(eq(quotationItemEvidence.companyId, req.user.companyId), eq(quotationItemEvidence.quotationId, quotation.id), eq(quotationItemEvidence.evidenceType, "price"), eq(quotationItemEvidence.status, "current"), inArray(quotationItemEvidence.quotationItemId, existingZeroOverrides.map(entry => entry.item.id))));
+        for (const { item, override } of existingZeroOverrides) {
+          const matches = existingEvidence.some(evidence => evidence.quotationItemId === item.id && evidence.capturedValueJson.source === "manual_zero_override" && evidence.capturedValueJson.zeroPriceReason === override.zeroPriceReason?.trim() && evidence.capturedValueJson.price != null && String(evidence.capturedValueJson.price).trim() !== "" && Number(evidence.capturedValueJson.price) === 0 && Number(item.unitPrice) === 0 && item.priceSource === "manual");
+          if (!matches) throw new Error("TRANSFER_OVERRIDE_CONFLICT");
+        }
+      }
       const allEvidences: any[] = [];
       for (const row of selected) {
         const item = itemBySourceRowId.get(row.id);
-        if (!item) continue;
+        if (!item || !insertedItemIds.has(item.id)) continue;
         const override = overrides[row.id] ?? {};
         const priceSnapshotId = typeof override.priceSnapshotId === "string" ? override.priceSnapshotId : null;
         const priceSnapshot = priceSnapshotId ? snapshotById.get(priceSnapshotId) : undefined;
         const evidenceValue = { quantity: item.quantity, unit: item.unit, price: item.unitPrice, priceSnapshotId: priceSnapshot?.id ?? null, review: transferReviewEvidence(row, Number(item.quantity), item.unit).review };
         allEvidences.push(
           { companyId: req.user.companyId, quotationId: quotation.id, quotationItemId: item.id, evidenceType: "quantity", evidenceKey: sha256Payload({ itemId: item.id, rowId: row.id, type: "quantity" }), sourceDocumentId: row.documentId, sourceProcessingRunId: row.processingRunId, sourceQuantityRowId: row.id, sourceCellRange: row.sourceCellRange, sourceDocumentHash: documentHashById.get(row.documentId) ?? null, capturedValueJson: evidenceValue, status: "current", createdByUserId: req.user.userId },
-          { companyId: req.user.companyId, quotationId: quotation.id, quotationItemId: item.id, evidenceType: "price", evidenceKey: sha256Payload({ itemId: item.id, rowId: row.id, type: "price", priceSnapshotId }), priceSnapshotId: priceSnapshot?.id ?? null, sourceDocumentHash: priceSnapshot?.sourceDocumentHash ?? documentHashById.get(row.documentId) ?? null, capturedValueJson: { ...evidenceValue, source: priceSnapshot ? "price_snapshot" : row.rawPrice }, status: "current", createdByUserId: req.user.userId },
+          { companyId: req.user.companyId, quotationId: quotation.id, quotationItemId: item.id, evidenceType: "price", evidenceKey: sha256Payload({ itemId: item.id, rowId: row.id, type: "price", priceSnapshotId }), priceSnapshotId: priceSnapshot?.id ?? null, sourceDocumentHash: priceSnapshot?.sourceDocumentHash ?? documentHashById.get(row.documentId) ?? null, capturedValueJson: { ...evidenceValue, source: priceSnapshot ? "price_snapshot" : override.unitPrice != null ? (Number(override.unitPrice) === 0 ? "manual_zero_override" : "manual_override") : row.rawPrice, ...(override.unitPrice != null && Number(override.unitPrice) === 0 ? { zeroPriceReason: override.zeroPriceReason?.trim() } : {}) }, status: "current", createdByUserId: req.user.userId },
         );
       }
       for (let i = 0; i < allEvidences.length; i += 500) {
-        await tx.insert(quotationItemEvidence).values(allEvidences.slice(i, i + 500)).onConflictDoNothing();
+        const insertedEvidence = await tx.insert(quotationItemEvidence).values(allEvidences.slice(i, i + 500)).onConflictDoNothing().returning();
+        for (const evidence of insertedEvidence) {
+          if (evidence.evidenceType !== "price" || evidence.capturedValueJson.source !== "manual_zero_override") continue;
+          await tx.insert(smartcheckAuditLogs).values({ companyId: req.user.companyId, userId: req.user.userId, action: "manual_zero_price_transferred", entityType: "quotation_item", entityId: evidence.quotationItemId, metadataJson: { documentId: req.params.id, quotationId: quotation.id, reason: evidence.capturedValueJson.zeroPriceReason, ...(req.user.impersonatedBy ? { impersonatedBy: req.user.impersonatedBy } : {}) } });
+        }
       }
       const totals = calculateQuotationTotals(allItems, { overheadProfitPercent: quotation.overheadProfitPercent });
-      await tx.update(quotations).set({ subtotal: String(totals.subtotal), discountTotal: String(totals.discountTotal), overheadProfitTotal: String(totals.overheadProfitTotal), vatTotal: String(totals.vatTotal), grandTotal: String(totals.grandTotal), updatedAt: new Date() }).where(and(eq(quotations.id, quotation.id), eq(quotations.companyId, req.user.companyId)));
+      if (insertedCount > 0) await tx.update(quotations).set({ subtotal: String(totals.subtotal), discountTotal: String(totals.discountTotal), overheadProfitTotal: String(totals.overheadProfitTotal), vatTotal: String(totals.vatTotal), grandTotal: String(totals.grandTotal), updatedAt: new Date() }).where(and(eq(quotations.id, quotation.id), eq(quotations.companyId, req.user.companyId)));
       return { insertedCount, items: allItems.filter((item) => rowIds.includes(item.sourceQuantityRowId ?? "")) };
     });
-    await audit(req, "rows_transferred", "quotation", quotation.id, { documentId: req.params.id, rowIds, transferredCount: transferResult.insertedCount });
+    if (transferResult.insertedCount > 0) await audit(req, "rows_transferred", "quotation", quotation.id, { documentId: req.params.id, rowIds, transferredCount: transferResult.insertedCount });
     res.json({ quotationId: quotation.id, transferredCount: transferResult.insertedCount, items: transferResult.items });
     } catch (error) {
-      if (error instanceof Error && ["TRANSFER_QUOTE_CHANGED", "TRANSFER_REVIEW_CHANGED", "INVALID_TRANSFER_VALUES", "INVALID_PRICE_SNAPSHOT", "UNIT_MISMATCH", "CURRENCY_MISMATCH", "AMOUNT_MISMATCH", "POSITION_CODE_MISMATCH", "DESCRIPTION_MISMATCH"].includes(error.message)) return res.status(409).json({ error: "Aktarım kaynağı, fiyat kanıtı veya taslak değişti; yeniden inceleyin.", code: error.message });
+      if (error instanceof Error && ["TRANSFER_QUOTE_CHANGED", "TRANSFER_REVIEW_CHANGED", "INVALID_TRANSFER_VALUES", "ZERO_PRICE_REASON_REQUIRED", "TRANSFER_OVERRIDE_CONFLICT", "INVALID_PRICE_SNAPSHOT", "UNIT_MISMATCH", "CURRENCY_MISMATCH", "AMOUNT_MISMATCH", "POSITION_CODE_MISMATCH", "DESCRIPTION_MISMATCH"].includes(error.message)) return res.status(409).json({ error: "Aktarım kaynağı, fiyat kanıtı veya taslak değişti; yeniden inceleyin.", code: error.message });
       next(error);
     }
   });
@@ -961,7 +979,7 @@ export function registerSmartCheckRoutes(app: Express) {
       );
       const selected = documentRows.filter((row) => rowIds.includes(row.id));
       if (selected.length !== new Set(rowIds).size) return res.status(404).json({ error: "Bir veya daha fazla satır bu şirkete/dokümana ait değil." });
-      if (selected.some((row) => row.reviewStatus !== "approved" && row.reviewStatus !== "accepted_exception")) return res.status(409).json({ error: "Yalnız onaylı veya gerekçeli istisna satırlar teklife aktarılabilir." });
+      if (selected.some((row) => row.reviewStatus !== "approved" && (row.reviewStatus !== "accepted_exception" || !row.reviewerNotes?.trim()))) return res.status(409).json({ error: "Yalnız onaylı veya gerekçeli istisna satırlar teklife aktarılabilir." });
 
       const requestedSnapshotIds = selected.map((row) => typeof overrides[row.id]?.priceSnapshotId === "string" ? String(overrides[row.id].priceSnapshotId) : null).filter((id): id is string => Boolean(id));
       const { snapshots, pricingSources, pricingSourceIds, sourceDocuments } = await withAppTenant(tenantOf(req.user), async (tenantDb) => {
@@ -993,7 +1011,8 @@ export function registerSmartCheckRoutes(app: Express) {
       if (lockedSnapshots.length !== new Set(requestedSnapshotIds).size || lockedSources.length !== lockedSourceIds.length || invalidLockedSnapshot) throw new Error("INVALID_PRICE_SNAPSHOT");
       const snapshotById = new Map(lockedSnapshots.map((snapshot) => [snapshot.id, snapshot]));
       const selected = await tx.select().from(normalizedQuantityRows).where(and(eq(normalizedQuantityRows.documentId, req.params.id), eq(normalizedQuantityRows.companyId, req.user.companyId), inArray(normalizedQuantityRows.id, rowIds))).for("share");
-      if (selected.length !== new Set(rowIds).size || selected.some(row => !["approved", "accepted_exception"].includes(row.reviewStatus))) throw new Error("TRANSFER_REVIEW_CHANGED");
+      if (selected.length !== new Set(rowIds).size || selected.some(row => (row.reviewStatus !== "approved" && (row.reviewStatus !== "accepted_exception" || !row.reviewerNotes?.trim())))) throw new Error("TRANSFER_REVIEW_CHANGED");
+      if (selected.some(hasUnverifiedIfcQuantity)) throw new Error("INVALID_TRANSFER_VALUES");
       const client = parsedRequest.data.clientId
         ? (await tx.select().from(clients).where(and(eq(clients.id, parsedRequest.data.clientId), eq(clients.companyId, req.user.companyId)))).at(0)
         : (await tx.insert(clients).values({
@@ -1029,7 +1048,12 @@ export function registerSmartCheckRoutes(app: Express) {
         const priceSnapshotId = typeof override.priceSnapshotId === "string" ? override.priceSnapshotId : null;
         const priceSnapshot = priceSnapshotId ? snapshotById.get(priceSnapshotId) : undefined;
         const quantity = Number(override.quantity ?? row.normalizedQuantity);
-        const unitPrice = Number(override.unitPrice ?? priceSnapshot?.amount ?? row.normalizedPrice);
+        const priceValue = override.unitPrice ?? priceSnapshot?.amount ?? row.normalizedPrice;
+        if (priceValue == null || (typeof priceValue === "string" && priceValue.trim() === "")) throw new Error("INVALID_TRANSFER_VALUES");
+        if ((typeof priceValue !== "string" && typeof priceValue !== "number") || !/^(?:\d+)(?:\.\d+)?$/.test(String(priceValue).trim())) throw new Error("INVALID_TRANSFER_VALUES");
+        const unitPrice = Number(priceValue);
+        const manualPrice = override.unitPrice !== undefined && override.unitPrice !== null && !priceSnapshot;
+        if (override.unitPrice != null && unitPrice === 0 && (priceSnapshot || !override.zeroPriceReason?.trim())) throw new Error("ZERO_PRICE_REASON_REQUIRED");
         const costUnitPrice = Number(override.costUnitPrice ?? priceSnapshot?.amount ?? row.normalizedPrice ?? unitPrice);
         const wastePercent = Number(override.wastePercent ?? row.normalizedWastePercent ?? 0);
         const vatPercent = Number(override.vatPercent ?? 20);
@@ -1043,7 +1067,7 @@ export function registerSmartCheckRoutes(app: Express) {
         return {
           companyId: req.user.companyId, quotationId: quotation.id, description: row.normalizedDescription ?? row.rawDescription ?? "Metraj kalemi",
           unit: row.normalizedUnit ?? row.rawUnit ?? "adet", quantity: String(quantity), unitPrice: String(unitPrice), costUnitPrice: String(costUnitPrice),
-          wastePercent: String(wastePercent), costCategory: "material", quantitySource: "document", priceSource: priceSnapshot ? "snapshot" : "document",
+          wastePercent: String(wastePercent), costCategory: "material", quantitySource: "document", priceSource: priceSnapshot ? "snapshot" : manualPrice ? "manual" : "document",
           sourceReference: row.normalizedPositionCode ?? row.rawPositionCode, verificationStatus: transferReviewEvidence(row, quantity, row.normalizedUnit ?? row.rawUnit ?? "adet").verificationStatus, discountPercent: "0", vatPercent: String(vatPercent), total: String(calculateLineItemTotal(item)),
           sourceDocumentId: row.documentId, sourceProcessingRunId: row.processingRunId, sourceQuantityRowId: row.id, sourceCellRange: row.sourceCellRange,
           sourceRuleVersion: null, transferIdempotencyKey: idempotencyKey,
@@ -1052,31 +1076,59 @@ export function registerSmartCheckRoutes(app: Express) {
       });
 
       let insertedCount = 0;
+      const insertedItemIds = new Set<string>();
       for (let i = 0; i < inserts.length; i += 500) {
         const chunk = inserts.slice(i, i + 500);
         const res = await tx.insert(quotationItems).values(chunk).onConflictDoNothing().returning({ id: quotationItems.id });
         insertedCount += res.length;
+        for (const item of res) insertedItemIds.add(item.id);
       }
       const allItems = await tx.select().from(quotationItems).where(and(eq(quotationItems.quotationId, quotation.id), eq(quotationItems.companyId, req.user.companyId)));
       const itemBySourceRowId = new Map(allItems.filter((it) => it.sourceQuantityRowId).map((it) => [it.sourceQuantityRowId!, it]));
+      for (const proposed of inserts) {
+        const existing = itemBySourceRowId.get(proposed.sourceQuantityRowId);
+        if (!existing || insertedItemIds.has(existing.id)) continue;
+        const sameNumber = (left: string | number | null, right: string | number | null, places: number) => left !== null && right !== null && Number(left).toFixed(places) === Number(right).toFixed(places);
+        if (!sameNumber(existing.quantity, proposed.quantity, 4) || !sameNumber(existing.unitPrice, proposed.unitPrice, 2)
+          || !sameNumber(existing.costUnitPrice, proposed.costUnitPrice, 2) || !sameNumber(existing.wastePercent, proposed.wastePercent, 2)
+          || !sameNumber(existing.vatPercent, proposed.vatPercent, 2) || existing.description !== proposed.description || existing.unit !== proposed.unit
+          || existing.priceSource !== proposed.priceSource || existing.priceSnapshotId !== proposed.priceSnapshotId || existing.sourceReference !== proposed.sourceReference
+          || existing.verificationStatus !== proposed.verificationStatus) throw new Error("TRANSFER_OVERRIDE_CONFLICT");
+      }
+      const existingZeroOverrides = selected.flatMap((row) => {
+        const item = itemBySourceRowId.get(row.id);
+        const override = overrides[row.id];
+        return item && !insertedItemIds.has(item.id) && override?.unitPrice != null && Number(override.unitPrice) === 0 ? [{ item, override }] : [];
+      });
+      if (existingZeroOverrides.length) {
+        const existingEvidence = await tx.select().from(quotationItemEvidence).where(and(eq(quotationItemEvidence.companyId, req.user.companyId), eq(quotationItemEvidence.quotationId, quotation.id), eq(quotationItemEvidence.evidenceType, "price"), eq(quotationItemEvidence.status, "current"), inArray(quotationItemEvidence.quotationItemId, existingZeroOverrides.map(entry => entry.item.id))));
+        for (const { item, override } of existingZeroOverrides) {
+          const matches = existingEvidence.some(evidence => evidence.quotationItemId === item.id && evidence.capturedValueJson.source === "manual_zero_override" && evidence.capturedValueJson.zeroPriceReason === override.zeroPriceReason?.trim() && evidence.capturedValueJson.price != null && String(evidence.capturedValueJson.price).trim() !== "" && Number(evidence.capturedValueJson.price) === 0 && Number(item.unitPrice) === 0 && item.priceSource === "manual");
+          if (!matches) throw new Error("TRANSFER_OVERRIDE_CONFLICT");
+        }
+      }
       const allEvidences: any[] = [];
       for (const row of selected) {
         const item = itemBySourceRowId.get(row.id);
-        if (!item) continue;
+        if (!item || !insertedItemIds.has(item.id)) continue;
         const override = overrides[row.id] ?? {};
         const priceSnapshotId = typeof override.priceSnapshotId === "string" ? override.priceSnapshotId : null;
         const priceSnapshot = priceSnapshotId ? snapshotById.get(priceSnapshotId) : undefined;
         const evidenceValue = { quantity: item.quantity, unit: item.unit, price: item.unitPrice, priceSnapshotId: priceSnapshot?.id ?? null, review: transferReviewEvidence(row, Number(item.quantity), item.unit).review };
         allEvidences.push(
           { companyId: req.user.companyId, quotationId: quotation.id, quotationItemId: item.id, evidenceType: "quantity", evidenceKey: sha256Payload({ itemId: item.id, rowId: row.id, type: "quantity" }), sourceDocumentId: row.documentId, sourceProcessingRunId: row.processingRunId, sourceQuantityRowId: row.id, sourceCellRange: row.sourceCellRange, sourceDocumentHash: documentHashById.get(row.documentId) ?? null, capturedValueJson: evidenceValue, status: "current", createdByUserId: req.user.userId },
-          { companyId: req.user.companyId, quotationId: quotation.id, quotationItemId: item.id, evidenceType: "price", evidenceKey: sha256Payload({ itemId: item.id, rowId: row.id, type: "price", priceSnapshotId }), priceSnapshotId: priceSnapshot?.id ?? null, sourceDocumentHash: priceSnapshot?.sourceDocumentHash ?? documentHashById.get(row.documentId) ?? null, capturedValueJson: { ...evidenceValue, source: priceSnapshot ? "price_snapshot" : row.rawPrice }, status: "current", createdByUserId: req.user.userId },
+          { companyId: req.user.companyId, quotationId: quotation.id, quotationItemId: item.id, evidenceType: "price", evidenceKey: sha256Payload({ itemId: item.id, rowId: row.id, type: "price", priceSnapshotId }), priceSnapshotId: priceSnapshot?.id ?? null, sourceDocumentHash: priceSnapshot?.sourceDocumentHash ?? documentHashById.get(row.documentId) ?? null, capturedValueJson: { ...evidenceValue, source: priceSnapshot ? "price_snapshot" : override.unitPrice != null ? (Number(override.unitPrice) === 0 ? "manual_zero_override" : "manual_override") : row.rawPrice, ...(override.unitPrice != null && Number(override.unitPrice) === 0 ? { zeroPriceReason: override.zeroPriceReason?.trim() } : {}) }, status: "current", createdByUserId: req.user.userId },
         );
       }
       for (let i = 0; i < allEvidences.length; i += 500) {
-        await tx.insert(quotationItemEvidence).values(allEvidences.slice(i, i + 500)).onConflictDoNothing();
+        const insertedEvidence = await tx.insert(quotationItemEvidence).values(allEvidences.slice(i, i + 500)).onConflictDoNothing().returning();
+        for (const evidence of insertedEvidence) {
+          if (evidence.evidenceType !== "price" || evidence.capturedValueJson.source !== "manual_zero_override") continue;
+          await tx.insert(smartcheckAuditLogs).values({ companyId: req.user.companyId, userId: req.user.userId, action: "manual_zero_price_transferred", entityType: "quotation_item", entityId: evidence.quotationItemId, metadataJson: { documentId: req.params.id, quotationId: quotation.id, reason: evidence.capturedValueJson.zeroPriceReason, ...(req.user.impersonatedBy ? { impersonatedBy: req.user.impersonatedBy } : {}) } });
+        }
       }
       const totals = calculateQuotationTotals(allItems, { overheadProfitPercent: quotation.overheadProfitPercent });
-      await tx.update(quotations).set({ subtotal: String(totals.subtotal), discountTotal: String(totals.discountTotal), overheadProfitTotal: String(totals.overheadProfitTotal), vatTotal: String(totals.vatTotal), grandTotal: String(totals.grandTotal), updatedAt: new Date() }).where(and(eq(quotations.id, quotation.id), eq(quotations.companyId, req.user.companyId)));
+      if (insertedCount > 0) await tx.update(quotations).set({ subtotal: String(totals.subtotal), discountTotal: String(totals.discountTotal), overheadProfitTotal: String(totals.overheadProfitTotal), vatTotal: String(totals.vatTotal), grandTotal: String(totals.grandTotal), updatedAt: new Date() }).where(and(eq(quotations.id, quotation.id), eq(quotations.companyId, req.user.companyId)));
       return { quotation, client, insertedCount, items: allItems.filter((item) => rowIds.includes(item.sourceQuantityRowId ?? "")) };
     });
 
@@ -1089,7 +1141,7 @@ export function registerSmartCheckRoutes(app: Express) {
       if (error instanceof QuotaError) return res.status(error.status).json({ error: error.message, code: error.code, ...error.details });
       if (error instanceof Error && error.message === "TRANSFER_REVIEW_CHANGED") return res.status(409).json({ error: "İnceleme kararı değişti; yeniden yükleyin.", code: error.message });
       if (error instanceof Error && error.message === "SMARTCHECK_CLIENT_NOT_FOUND") return res.status(404).json({ error: "Seçili müşteri bulunamadı." });
-      if (error instanceof Error && ["INVALID_TRANSFER_VALUES", "INVALID_PRICE_SNAPSHOT", "UNIT_MISMATCH", "CURRENCY_MISMATCH", "AMOUNT_MISMATCH", "POSITION_CODE_MISMATCH", "DESCRIPTION_MISMATCH"].includes(error.message)) return res.status(409).json({ error: "Aktarım miktar/fiyat kanıtı değerleri geçersiz veya uyumsuz.", code: error.message });
+      if (error instanceof Error && ["INVALID_TRANSFER_VALUES", "ZERO_PRICE_REASON_REQUIRED", "TRANSFER_OVERRIDE_CONFLICT", "INVALID_PRICE_SNAPSHOT", "UNIT_MISMATCH", "CURRENCY_MISMATCH", "AMOUNT_MISMATCH", "POSITION_CODE_MISMATCH", "DESCRIPTION_MISMATCH"].includes(error.message)) return res.status(409).json({ error: "Aktarım miktar/fiyat kanıtı değerleri geçersiz veya uyumsuz.", code: error.message });
       console.error("SmartCheck new quotation transfer failed", error);
       return res.status(500).json({ error: "Yeni taslak teklif oluşturulamadı.", code: "SMARTCHECK_NEW_QUOTATION_TRANSFER_FAILED" });
     }

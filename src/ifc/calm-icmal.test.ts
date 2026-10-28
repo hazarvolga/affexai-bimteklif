@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   buildCalmIfcDatasetFromElements,
+  buildCalmIfcDatasetFromArtifact,
   parseSmartCheckRowToPseudoElement,
 } from "./calm-icmal";
 import { buildCalibrated202645Dataset } from "./calibrated-2026-45-fixture";
@@ -163,6 +164,30 @@ test("parseSmartCheckRowToPseudoElement accurately converts sample project rows 
   const flat = ds.groups.flatMap((g) => g.items);
   assert.equal(flat.length, 2);
   assert.equal(ds.apartments.length, 0);
+});
+
+test("pseudo IFC rows do not relabel unknown or legacy geometric sources as properties", () => {
+  const base = { rawDescription: "IfcSlab · Beton_C30", rawUnit: "m3", rawQuantity: "2" };
+  const legacy = parseSmartCheckRowToPseudoElement({ ...base, quantitySource: "ifc_property", formulaJson: { quantitySourcePath: "#1/#2:IfcShapeRepresentation/GeometryVolume" } }, 0);
+  const unknown = parseSmartCheckRowToPseudoElement({ ...base, quantitySource: "other" }, 1);
+  assert.equal(legacy.quantitySource, "geometry");
+  assert.match(legacy.quantitySourcePath ?? "", /GeometryVolume/);
+  assert.equal(unknown.quantitySource, "estimate");
+});
+
+test("legacy IFC artifact keeps missing or geometric source paths out of the visible totals", () => {
+  const base = { rawDescription: "IfcSlab · Beton_C30", rawUnit: "m3", rawQuantity: "2", rawPositionCode: "15.150.1006" };
+  const artifact = {
+    document: { fileName: "legacy.ifc" }, summary: {}, rows: [
+      { ...base, quantitySource: "ifc_property", formulaJson: { quantitySourcePath: "#1/AllplanAttributes/Hacim" } },
+      { ...base, quantitySource: "ifc_property", formulaJson: { quantitySourcePath: "   " } },
+      { ...base, quantitySource: "ifc_qto", formulaJson: {} },
+      { ...base, quantitySource: "ifc_property", formulaJson: { quantitySourcePath: "#1/#2:IfcShapeRepresentation/GeometryVolume" } },
+    ],
+  } as unknown as Parameters<typeof buildCalmIfcDatasetFromArtifact>[0];
+  const dataset = buildCalmIfcDatasetFromArtifact(artifact);
+  assert.equal(dataset.elements.length, 1);
+  assert.match(dataset.projectSubtitle, /3 .*icmal dışında/);
 });
 
 test("SmartCheck source row ids survive pseudo elements and Calm aggregation", () => {

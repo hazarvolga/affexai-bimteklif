@@ -8,7 +8,7 @@ export const ROADMAP_META = {
   status: "Çalışma belgesi — resmî görüş değildir. Resmî yönetmelik metinleri (#1.pdf, #2.pdf), ekler (EK-1..EK-9; Tablo 7.1–7.9 ve Tablo 9.1/9.2 dahil), ÇŞB 2026 birim fiyat/rayiç katalogları ve 33 gerçek/uluslararası IFC saha doğrulama seti makine-okunur olarak mühürlenmiştir.",
 };
 
-export const ROADMAP_SECTIONS: DocSection[] = [
+export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
   {
     id: "ozet",
     title: "Yönetici özeti",
@@ -185,8 +185,16 @@ export const ROADMAP_SECTIONS: DocSection[] = [
   },
   {
     id: "durum",
-    title: "Uygulama durumu (27 Ekim 2026 · Rev. 106 canlıda)",
+    title: "Uygulama durumu (29 Ekim 2026 · Rev. 119 geliştirme kaydı)",
     blocks: [
+      { type: "callout", tone: "info", title: "Rev. 119 · Firma hızlı düzenleme önizlemesi", text: "Firma hızlı düzenlemede plan, abonelik durumu ve bonus kota önce/sonra gösterilir; iptal kayıt yapmaz. Önizleme yüklenmiş verilere dayanır, sunucu eşzamanlılık kilidi yoktur. Canlı dağıtım ayrıca doğrulanır; hesap formülleri değişmedi." },
+      { type: "callout", tone: "warn", title: "Rev. 118 · IFC geometri ve kurtarma sınırı", text: "Birden çok IFC bağlamında iterator geometrisi güvenle ölçeklenemiyorsa kullanılmaz. Açık QTO korunur; karma modelde yüksek miktar bulgusu tüm SmartCheck satırlarının aktarımını durdurur. Ayrı eğri yolu korunur; IfcCovering doğrudan QTO uzunluğu desteklenmez. İzole T44 ve sentetik nesne denemesi canlı, müşteri veya uzman kabulü değildir." },
+      { type: "callout", tone: "info", title: "Rev. 117 · Firma iş akışları", text: "Panel en çok 1.000 teklifi/10 sayfa okur; offset eşzamanlı snapshot değildir. SmartCheck boş ve hata durumları ile geç yanıt koruması, örnek teklif için arayüz kayıt engeli ve poz/birim kapsamlı fiyat hafızası geliştirildi. Eksik poz veya birim ile API 400 döner; harici istemciler güncellenmelidir. Sentetik testler canlı dağıtım veya bağımsız uzman kabulü değildir." },
+      { type: "callout", tone: "info", title: "Rev. 116 · Operasyon ve yönetici görünürlüğü", text: "0032 worker süreç heartbeat'i, bekleyen en eski iş, liste fiyatı ile onaylanmış havale ayrımı ve sınırlı yönetici audit olay sözlüğü geliştirildi. Yedek/geri yükleme kanıtı doğrulanmadı; canlı dağıtım, OCI kimliği ve bağımsız kabul ayrıca doğrulanmalıdır." },
+      { type: "callout", tone: "info", title: "Rev. 115 · Erişim ve firma izolasyonu", text: "Yönetici e-posta doğrulaması, askıda ödeme kurtarma ve başlangıç planı kilidi ile 0030/0031 firma RLS politikaları geliştirildi. Kısıtlı roller izole PostgreSQL'de sınanır; canlı admin ve plan cutover, üretim dağıtımı ve bağımsız kabul ayrıca doğrulanmalıdır." },
+      { type: "callout", tone: "info", title: "Rev. 114 · Fiyat ve kanıt görünürlüğü", text: "Tedarikçi girdilerinde boş değer ile sıfır ayrımı, teklif satırı kaynak kanıtı görünümü ve geçmişte kaynağı belirsiz sıfır için PDF 409 koruması geliştirildi. Eski sıfır override kökeni belirsizse kullanıcı doğrulaması gerektirir; canlı ve uzman kabulü ayrıca doğrulanır." },
+      { type: "callout", tone: "info", title: "Rev. 113 · Faz 1 kaynak ve karar güvenliği", text: "IFC kaynak türü ve eski geometrik yollar, review kilidi/audit, iki SmartCheck aktarımında eksik fiyat, CDE gerekçesi, belge checksum ve AI öneri kanıtı güncellendi. Eski kaynağı belirsiz kayıtların tümü onarılmış değildir; uzman kabulü ve üretim dağıtımı ayrıca doğrulanmalıdır." },
+      { type: "callout", tone: "info", title: "Rev. 112 · Faz 0 geliştirme kaydı", text: "Yönetici kuyruk, rapor ve kota sözleşmeleri; yayınlı plan fiyatları, banka checksum ve KİK ön proje istisnası için değişiklik kaydıdır. Commit ve dağıtım durumu Git ve canlı sistemden ayrıca doğrulanır; bu kayıt bağımsız uzman onayı değildir." },
       { type: "table", columns: ["Yetenek", "Durum", "Not"], rows: [
         ["RG 33331 IFC ön kontrolü (EK-1/2/3/5/6/7/9)", "Hazır (Tam Kapsam)", "EK-1 6 haneli proje kodu–dosya adı eşleşmesi, EK-2 Tablo 2.1–2.14, EK-3 Tablo 3.1–3.2 (~130 mahal), EK-5 (69 zorunlu + 67 isteğe bağlı sınıf), EK-6 (Tablo 6.1–6.68) ve EK-7 Tablo 7.1–7.9 (IfcAnnotation SURVEY dahil) sunucuda çalışır; gerçek yüklenen dosya adı (dosya_adi) ve iç içe IfcComplexProperty kümeleri de denetlenir"],
         ["EK-9 Tablo 9.1 (21 satır) & Tablo 9.2 (16 satır) kararları", "Hazır", "Mimari disiplin (MM) için Tablo 9.1 (21 satır), diğer disiplinler (ST, MK, EE vb.) için Tablo 9.2 (16 satır) otomatik seçilir; standart dışı dosya adlarında bile ST/STR/MK/MEP/EL/MM ipuçlarından doğru disiplin formu seçilir"],
@@ -233,7 +241,7 @@ export const ROADMAP_SECTIONS: DocSection[] = [
     blocks: [
       { type: "list", items: [
         "Köprü TREpys_PozOzellikSeti.PozNo ve aynı IFC dosyasıdır: eleman üzerindeki resmî ÇŞB poz numarası SmartCheck kanıt satırlarına (normalizedPositionCode) doğrudan taşınır.",
-        "Ön kontrol bulguları hiçbir zaman otomatik fiyat kalemine dönüşmez; aktarım yalnızca kaynağı kanıtlı QTO/Pset veya deterministik C++ 3B geometri miktarlarıyla ve 'inceleme gerekli' durumunda yapılır, birim fiyat onaylı katalog eşleşmesiyle tamamlanır.",
+        "Ön kontrol bulguları hiçbir zaman otomatik fiyat kalemine dönüşmez; aktarım yalnızca kaynak yolu kanıtlı ve incelenmiş QTO/Pset miktarlarıyla yapılır; geometri miktarları kanıt satırına alınmaz. Dosya kalite kapısı kapanırsa diğer satırlar da aktarılamaz; birim fiyat onaylı katalog eşleşmesiyle tamamlanır.",
         "Ruhsat modelini mimar, teklifi yüklenici hazırlar; paketler ayrı, ortak hikâye 'aynı model ruhsattan ihaleye' olmalıdır.",
         "ALLPLAN'ın mahal kaplamalarından otonom ürettiği IfcCovering elemanları (Qto_CoveringBaseQuantities.NetArea/GrossArea, Object Layer Attributes IfcComplexProperty veya 3B/2B geometri), çoklu katmanlarına (Şap, Parke, Seramik, Kaba Sıva, Saten Alçı, Boya) ve süpürgelik tülüne (mtül) ayrıştırılarak 3 adımlı Kağıt İcmal arayüzüne aktarılır.",
       ] },
@@ -243,6 +251,14 @@ export const ROADMAP_SECTIONS: DocSection[] = [
     id: "adimlar",
     title: "Sıradaki geliştirmeler ve kabul ölçütleri",
     blocks: [
+      { type: "p", text: "Rev. 119 sonrası: firma hızlı düzenleme önizlemesi yüklenmiş anlık görüntüye dayanır; başka bir yönetici değişiklik yaparsa veriyi yenileyip tekrar incelemek gerekir. Sunucu tarafı eşzamanlılık kilidi ve canlı kabul ayrıca doğrulanmalıdır." },
+      { type: "callout", tone: "warn", title: "Faz 5 açık kabul adımları", text: "İzinli gerçek IFC/Excel ve bağımsız uzman referansları, canlı yedek ile tutarlı DB ve nesne geri yükleme tatbikatı ayrı yürütülmelidir. İzole T44 ve üç sentetik nesne kopyası canlı RTO/RPO veya müşteri kabulü değildir." },
+      { type: "p", text: "Rev. 117 sonrası: panel çok para birimli sayıları ve ayrı tutarları en çok 1.000 teklif üzerinden gösterir; sayfa tavanı ve offset sayfaları arasında değişim riski açıktır, ileride dar alanlı sunucu aggregate ile iyileştirme gerekir. SmartCheck sıfır satır, işlem ve sorgu hatalarını ayırır; eski belge yanıtları yeni seçimi ezmez. Demo kaydı yalnız arayüzde engellenir. Fiyat hafızası API'si poz ve birim ister; uyumsuz harici istemcilere 400 döner. Sentetik tarayıcı testleri canlı veya uzman kabulü değildir." },
+      { type: "p", text: "Rev. 116 sonrası: worker ortak rolü süreç kimliğini kanıtlamaz; 90 saniyede 32'den fazla aktif süreç veya hızlı yeniden başlama geçici sinyal reddine yol açabilir. Plan, aktiflik ve abonelik değişiklikleri için önce/sonra önizleme ve maskeli banka farkı gösterilir; aynı adlı planlar kimlikleriyle ayrılır. Anlık görüntü eskimiş olabilir uyarısı vardır; sunucu eşzamanlılık kilidi yoktur. Audit eski zamanlarının saat dilimi bilinmiyor olarak gösterilir ve cursor mikro saniyeyi kayıpsız korur. Banka mutabakatı ve doğrulanmış yedek/geri yükleme kanıtı yoktur; canlı test ve bağımsız kabul açıktır." },
+      { type: "p", text: "Rev. 115 sonrası: MFA ve oturum iptali tasarımı, tüm endpointlerde IDOR matrisi ve veri saklama/silme yaşam döngüsü açıktır. Bazı audit işlemleri iş verisiyle atomik değildir. Dağıtım öncesi canlı super admin e-posta doğrulaması ve aktif trial/ücretsiz plan cutover kontrolü gerekir; Academy kaydı da plan yoksa 503 alır. İzole kısıtlı rol testleri canlı kabul değildir." },
+      { type: "p", text: "Rev. 114 sonrası: tarihsel sıfır override kaynağının belirsizliği için kullanıcı doğrulaması, yeni gerekçeli sıfır aktarımının canlı ve kullanıcı kabulü, diğer fiyat yüzeyleri ve üretim/uzman doğrulamaları açık kalır." },
+      { type: "p", text: "Rev. 113 sonrası: tarihsel IFC kayıtlarında belirsiz veya eksik kaynak yolu ve karma boyut kanıtının yeniden işlenmesi, diğer fiyat/PDF akışlarında null–sıfır ayrımı, AI kanıtının zorunluluğu ve gerçek sağlayıcı kabulü, bağımsız mühendis incelemesi ve üretim doğrulaması açık kalır." },
+      { type: "p", text: "Rev. 112 sonrası: IFC kaynak türü ve review bulgusu, eksik fiyat, kimlik/tenant izolasyonu, yönetici operasyon görünürlüğü, restore ve bağımsız mühendis kabulü açık kalır. Bu geliştirmeler ve canlı kabul tamamlanmış sayılmaz." },
       { type: "p", text: "Aşağıdaki tablo teknik borç ve geliştirme adımlarının güncel durumunu gösterir. Kod ve otomatik testleri tamamlanan maddeler işaretlenmiş olup, saha/uzman kabulü gerektiren maddeler açık tutulmuştur." },
       { type: "table", columns: ["Sıra / İş", "Durum", "Uygulama ve tamamlanma ölçütü"], rows: [
         ["1 — Runtime DB rolü (P1-1 / T40)", "Kısmi / yerel cutover hazırlığı kanıtlı (24 Ekim 2026 · Rev. 51)", "Rev. 47 owner/migrator/app/worker/backup sözleşmesini kurdu. Rev. 51 yerel compose bağlantılarını app, worker/ifc-worker, migrator ve backup credentiallarına ayırdı; migrationın doğrulanmış migrator oturumundan SET LOCAL ROLE owner ile çalışmasını, migration öncesi zorunlu worker-drain kapısını ve parola doğrulamalı PG16 üzerinde A→B→A credential rollback'ini kanıtladı. Production secret cutover, canary, restore/parity ve deploy yapılmadan T40 kapanmaz."],
@@ -281,17 +297,17 @@ export const ROADMAP_SECTIONS: DocSection[] = [
   },
   {
     id: "revizyon-gunlugu",
-    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 106 · 13–27 Ekim 2026)",
+    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 119 · 13–29 Ekim 2026)",
     blocks: [
       {
         type: "callout",
         tone: "info",
-        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 106)",
-        text: "Bu bölüm, BIMMetraj'ın teknik evrimini Rev. 0'dan 27 Ekim 2026 Rev. 106 · BIM-CALC-2026-10-27.100 sürümüne kadar katı kronolojik sırayla kaydeder. Rev. 91–100, marka.md ürün incelemesinden çıkan uzman önizlemesi, Faz 0 güven düzeltmeleri ve Faz 1 Excel önce / fiyat eksikliği / dışa aktarım dilimleridir; Rev. 101 ile tüm 0022..0029 migration'ları, D12 worker başlangıç düzeltmesi ve D13 canlı ifc-worker consumeIfcUsage kota tamamlama düzeltmesi canlı üretime (https://bimmetraj.com) dağıtılmıştır. Rev. 102 ile 4 katmanlı müteahhit Excel adaptörü, Rev. 103 ile /admin/pricing-sources otomatik tohumlama ve TÜİK SDMX 2.1 adaptörü, Rev. 104 ile 6 aşamalı güvenlik denetimi bulgularının ve derinlemesine sertleştirme adımlarının tamamı kapatılmıştır. Rev. 105 ile CalmIfcWorkspace 795 satıra ayrıştırılmış, Rev. 106 ile Müşteriler (/app/clients), Müşteriler & Fırsatlar (/app/crm), 6 aşamalı müşteri zaman tüneli (/app/clients/:id) ve 3 katmanlı Akıllı Müşteri Excel/CSV Adaptörü devreye alınmıştır. Rev. 90 ile T43 ≥%80 proje kapsam hedefi (%82,58) ve T56 nihai izlenebilirlik matrisi tamamlanarak dış girdi gerektirmeyen tüm teknik adımlar kapatılmıştır. Harici fixture lisansı, T45 izinli gerçek büyük müşteri dosyası/VPS post-deploy kanıtı, T50–T52 uzman/müşteri/canlı kabulü ve T55 hukuk incelemesi açık olduğundan Faz 7, Faz 9, Faz 10 ve Faz 11 dış kabuller tamamlanana dek PARTIAL kalır.",
+        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 119)",
+        text: "Bu bölüm, BIMMetraj'ın teknik evrimini Rev. 0'dan 29 Ekim 2026 Rev. 119 · BIM-CALC-2026-10-29.1 geliştirme kaydına kadar kronolojik sırayla listeler; Git geçmişi ve canlı sürüm ayrı doğrulanır, bağımsız uzman onayı bu kayıtla verilmez. Rev. 91–100, marka.md ürün incelemesinden çıkan uzman önizlemesi, Faz 0 güven düzeltmeleri ve Faz 1 Excel önce / fiyat eksikliği / dışa aktarım dilimleridir; Rev. 101 ile tüm 0022..0029 migration'ları, D12 worker başlangıç düzeltmesi ve D13 canlı ifc-worker consumeIfcUsage kota tamamlama düzeltmesi canlı üretime (https://bimmetraj.com) dağıtılmıştır. Rev. 102 ile 4 katmanlı müteahhit Excel adaptörü, Rev. 103 ile /admin/pricing-sources otomatik tohumlama ve TÜİK SDMX 2.1 adaptörü, Rev. 104 ile 6 aşamalı güvenlik denetimi bulgularının ve derinlemesine sertleştirme adımlarının tamamı kapatılmıştır. Rev. 105 ile CalmIfcWorkspace 795 satıra ayrıştırılmış, Rev. 106 ile Müşteriler (/app/clients), Müşteriler & Fırsatlar (/app/crm), 6 aşamalı müşteri zaman tüneli (/app/clients/:id) ve 3 katmanlı Akıllı Müşteri Excel/CSV Adaptörü devreye alınmıştır. Rev. 90 ile T43 ≥%80 proje kapsam hedefi (%82,58) ve T56 nihai izlenebilirlik matrisi tamamlanarak dış girdi gerektirmeyen tüm teknik adımlar kapatılmıştır. Harici fixture lisansı, T45 izinli gerçek büyük müşteri dosyası/VPS post-deploy kanıtı, T50–T52 uzman/müşteri/canlı kabulü ve T55 hukuk incelemesi açık olduğundan Faz 7, Faz 9, Faz 10 ve Faz 11 dış kabuller tamamlanana dek PARTIAL kalır.",
       },
       {
         type: "p",
-        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 106):",
+        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 119):",
       },
       {
         type: "table",
@@ -965,16 +981,64 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "1) SmartCheck 'Kaynak IFC · 3B İnceleme' (IfcReviewViewer.tsx / src/ifc/viewer/engine.ts) bileşeninin tarayıcı içinde öz-barındırılan web-ifc.wasm (WebAssembly.instantiate) modülünü derlerken Content-Security-Policy (script-src) tarafından engellenmesi ('CompileError: WebAssembly.instantiate() violates Content Security Policy') giderildi. 2) src/server/security/web-hardening.ts içindeki script-src direktifine W3C CSP Level 3 standardındaki dar kapsamlı 'wasm-unsafe-eval' anahtarı eklendi; böylece JavaScript eval() / new Function() ('unsafe-eval') tamamen kapalı tutulmaya devam edilirken tarayıcı içi 3B WebGL IFC geometri görüntüleyicisinin çalışması sağlandı.",
           ],
           [
-            "Rev. 111 (Canlı Sürüm — Aktif)",
+            "Rev. 111 (Önceki canlı sürüm)",
             "28 Ekim 2026 (Kaynak IFC 3B İnceleme — Retina Tuval Taşması Düzeltmesi, Pan/Zoom/Kamera Açıları, Kat Kesiti Sürgüsü & Tel Kafes Kontrolleri)",
             "BIM-CALC-2026-10-28.105",
             "1) Retina (devicePixelRatio=2) ekranlarda renderer.setSize(width, height, false) nedeniyle WebGL <canvas> elemanının kapsayıcı yüksekliğini ikiye katlayarak altındaki İmalat Cetveli ve Hesap Kanıtı kartlarının üstüne taşması ve bina modelini sağ alt köşede yarım göstermesi giderildi (renderer.setSize(width, height, true) + overflow-hidden + en-boy oranına duyarlı computeFitCameraDistance merkezlemesi). 2) Kullanıcıya 3B uzayda tam kontrol sağlayan araç çubuğu eklendi: Döndür (Orbit) / Kaydır (Pan) fare modu anahtarı (sağ tık ve Shift+sol tık her zaman kaydırır), Yakınlaştır (+), Uzaklaştır (-), Modele Sığdır, Seçime Odakla, hazır kamera bakış açıları (İzometrik, Üst/Plan, Ön, Sağ, Sol), çatı ve üst katları sıyırarak iç mahalleri/kaplamaları incelemeye yarayan Kat Kesiti (Z-Clipping Plane) sürgüsü, Tel Kafes (X-Ray) görünümü ve Standart / Geniş (680px) / Tam Ekran / Daralt panel boyut kontrolleri devreye alındı.",
+          ],
+          [
+            "Rev. 112",
+            "28 Ekim 2026 · Faz 0 güven ve ticari doğruluk",
+            "BIM-CALC-2026-10-28.106 · temel f653d58; Rev. 112 değişiklikleri için Git geçmişine bakın",
+            "Kuyruk/rapor/kota alan uyuşmazlıkları ve yayınlı fiyat yüzeyleri düzeltildi; banka checksum fail-closed; KİK ön proje N=0,90–0,99 kullanıcı beyanıyla şartlıdır. Bağımsız uzman onayı ve canlı kabul bu kayıtla gösterilmez.",
+          ],
+          [
+            "Rev. 113",
+            "28 Ekim 2026 · Faz 1 kaynak ve karar güvenliği",
+            "BIM-CALC-2026-10-28.107 · temel 3b0dd13; Rev. 113 için Git geçmişine bakın",
+            "IFC kaynak ayrımı, review/audit, iki SmartCheck aktarımında eksik fiyat, CDE gerekçesi, kaynak belge checksum ve AI öneri izi güncellendi. Tarihsel belirsiz kaynaklar, diğer fiyat/PDF akışları, uzman ve üretim kabulü açıktır.",
+          ],
+          [
+            "Rev. 114",
+            "28 Ekim 2026 · Fiyat ve kaynak kanıtı görünürlüğü",
+            "BIM-CALC-2026-10-28.108 · temel b610878; Rev. 114 için Git geçmişine bakın",
+            "Tedarikçi sayısal null/sıfır ayrımı, teklifte kaynak kanıtı ve geçmiş belirsiz sıfır için PDF koruması işlendi. İki SmartCheck aktarımındaki yeni gerekçeli sıfır, aktör bağlı kanıt ve PDF kapısı izole dört senaryoda sınandı; eski kayıt teyidi ve canlı/uzman kabulü açık kalır.",
+          ],
+          [
+            "Rev. 115",
+            "28 Ekim 2026 · Faz 2 erişim ve firma izolasyonu",
+            "BIM-CALC-2026-10-28.109 · temel ff674a0; Git ve canlı durum ayrıca doğrulanır",
+            "Doğrulanmış admin erişimi, askıda ödeme kurtarma ve kayıt plan kilidi; 0030 audit ve 0031 teklife bağlı finans RLS. İzole rol testleri canlı kabul değildir; MFA, oturum iptali ve diğer açıklar sürer.",
+          ],
+          [
+            "Rev. 116",
+            "28 Ekim 2026 · Faz 3 operasyon görünürlüğü",
+            "BIM-CALC-2026-10-28.110 · temel a006c07; Git ve canlı durum ayrıca doğrulanır",
+            "DB saatli worker heartbeat, en eski kuyruk işi, liste fiyatı ve sınırlı onaylı havale ayrımı, audit sözlüğü ve doğrulanmamış yedek/restore uyarısı. Banka mutabakatı, OCI kimliği ve canlı kabul açık; yönetici değişiklikleri önce/sonra ve maskeli banka farkıyla önizlenir; audit eski saat dilimi bilinmiyor, cursor kayıpsızdır.",
+          ],
+          [
+            "Rev. 117",
+            "28 Ekim 2026 · Faz 4 firma iş akışları",
+            "BIM-CALC-2026-10-28.111 · temel c421d99; Git ve canlı durum ayrıca doğrulanır",
+            "Çok para birimli firma paneli, SmartCheck boş/hata/yarış koruması, demo için arayüz kayıt engeli ve poz/birim kapsamlı fiyat hafızası. Panel en çok 1.000 teklif okur; offset snapshot değildir. API kapsamı eksikse 400 breaking değişikliğidir; sentetik testler canlı veya uzman kabulü değildir.",
+          ],
+          [
+            "Rev. 118",
+            "28 Ekim 2026 · Faz 5 IFC ve izole kurtarma",
+            "BIM-CALC-2026-10-28.112 · temel 840c32e; canlı dağıtım ayrıca doğrulanır",
+            "Çoklu IfcContext iterator geometri koruması; QTO korunur, karma modelde yüksek bulgu tüm SmartCheck satırlarını engeller. Ayrı eğri yolu korunur; IfcCovering doğrudan QTO uzunluğu desteklenmez. İzole T44 ve sentetik nesne denemesi canlı veya uzman kabulü değildir.",
+          ],
+          [
+            "Rev. 119",
+            "29 Ekim 2026 · Firma hızlı düzenleme önizlemesi",
+            "BIM-CALC-2026-10-29.1 · temel 22743d8; canlı dağıtım ayrıca doğrulanır",
+            "Firma planı, abonelik durumu ve bonus kotası kayıttan önce karşılaştırılır; iptal kayıt yapmaz. Yüklenmiş snapshot eskimiş olabilir, sunucu eşzamanlılık kilidi yoktur. Hesap formülleri değişmedi.",
           ],
         ],
       },
       {
         type: "p",
-        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 111 · Önceki Durum → Yeni Durum):",
+        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 119 · Önceki Durum → Yeni Durum):",
       },
       {
         type: "table",
@@ -1861,12 +1925,86 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "1) renderer.setSize(width, height, true), canvas CSS boyutu (100%x100%) ve overflow-hidden ile Retina tuval taşması tamamen giderildi; computeFitCameraDistance ile model her ekran oranında tam merkeze sığdırıldı. 2) IfcReviewViewer.tsx ve engine.ts içine Döndür/Kaydır (Orbit/Pan) modu, sağ tık / Shift+sol tık Pan, Yakınlaş/Uzaklaş/Modele Sığdır/Seçime Odakla, İzometrik/Üst (Plan)/Ön/Sağ/Sol kamera açıları, Z-ekseni Kat Kesiti sürgüsü (Three.js Plane clipping), Tel Kafes görünümü ve Standart/Geniş/Tam Ekran/Daralt kontrolleri eklendi.",
             "src/ifc/viewer/model.ts, src/ifc/viewer/model.test.ts, src/ifc/viewer/engine.ts, src/components/smartcheck/viewer/IfcReviewViewer.tsx",
           ],
+          [
+            "Rev. 112 · 28 Ekim 2026 (Faz 0 güven ve ticari doğruluk)",
+            "Kamu İhale Genel Tebliği m.45.1.1.2; IBAN mod-97; yayınlı plan ve API/UI sözleşmesi",
+            "Yönetici kuyruk ve rapor alanları API ile ayrışıyor, kota sınırsız görünebiliyor, fiyat yüzeyleri yayın durumuyla uyumsuz olabiliyor ve N=0,90–0,99 istisnası reddediliyordu.",
+            "Kuyruk/rapor/kota gösterimi API verisine bağlandı; yayınlı fiyat yüzeyleri ve banka checksum koruması uygulandı; ön proje istisnası yetkili bakanlık, Resmî Gazete ve ihale dayanakları için kullanıcı beyanıyla şartlıdır. Bağımsız uzman onayı ve canlı doğrulama bekler.",
+            "src/pages/admin/AdminQueue.tsx, AdminReports.tsx, TenantDetail.tsx, src/pages/Settings.tsx, src/services/billing/bank-transfer.ts, src/server/security/, src/lib/kik-adt.ts, src/lib/calculators/kik-form.ts",
+          ],
+          [
+            "Rev. 113 · 28 Ekim 2026 (Faz 1 kaynak ve karar güvenliği)",
+            "IFC QTO/özellik/geometri izlenebilirliği; transaction/audit; SHA-256; kullanıcıya bağlı süreli HMAC kanıtı",
+            "Geometri özellik gibi sınıflanabiliyor, review bulgusu kaybolabiliyor, iki aktarımda eksik fiyat sıfıra dönüşebiliyor; CDE nedeni, belge hash ilişkisi ve AI önerisi ile kullanıcı farkı tutarlı kaydedilmeyebiliyordu.",
+            "Geometri ve bilinen eski geometrik yollar kaynaklı kanıttan ayrılır; review sürüm/tenant kilidi ve audit ile yürür; iki SmartCheck aktarımı eksik fiyatı açık sıfırdan ayırır. CDE kullanıcı gerekçesi ve yüklenen belge checksum eşleşmesi korunur; imzalı AI önerisinin ilk/son değer farkı gösterilir. Diğer fiyat/PDF yüzeyleri ve belirsiz eski kayıtlar, uzman ve üretim kabulü açık kalır.",
+            "workers/ifc/ifc_extract.py, src/ifc/{evidence-policy,smartcheck-evidence,calm-icmal,parser/contract}.ts, src/server/routes/{smartcheck,market-intelligence,quotations,ai}.ts, src/services/{cde/service,quotations/calm-transfer,quotations/integrity,ai/quotation-provenance}.ts",
+          ],
+          [
+            "Rev. 114 · 28 Ekim 2026 (Fiyat ve kaynak kanıtı görünürlüğü)",
+            "Teklif kaynak evidence DTO; tenant kapsamı; belge fiyatı snapshot ve PDF fail-closed",
+            "Boş tedarikçi sayı girdisi sıfıra dönüşebiliyor, teklif detayında kaynak tutar ve inceleme izi görülemiyor, geçmişte eksikten dönmüş sıfır PDF'te kesin fiyat olarak çıkabiliyordu.",
+            "Sayısal null/boş ile açık sıfır ayrılır; teklif detayında kayıtlı miktar/fiyat ve inceleme izi sunulur. Belge kaynaklı sıfır, kaynak satırı ve aktarım anı kanıtıyla doğrulanamıyorsa PDF 409 döner; manuel ve kanıtlı sıfır korunur. Eski açık override belirsizliği kullanıcı teyidi gerektirir; iki SmartCheck aktarımındaki yeni bilinçli sıfır gerekçeli, aktöre bağlı kanıtla kaydedilir ve PDF kapısı bunu kontrol eder. Birebir tekrar no-op 200 döndürür; farklı miktar, fiyat, maliyet, KDV, fire, birim, açıklama, snapshot, kaynak, doğrulama veya gerekçe ve eksik eski kanıt 409 ile reddedilir. No-op teklif updatedAt ve PDF kota anahtarını değiştirmez, tekrar aktarım audit kaydı yazmaz. İzole testler canlı ve uzman kabulü değildir.",
+            "src/server/routes/market-intelligence.ts, src/server/routes/quotations.ts, src/server/routes/quotation-source-evidence.ts, src/components/quote/QuoteSourceEvidence.tsx, src/services/pdf/{generate,price-guard}.ts",
+          ],
+          [
+            "Rev. 115 · 28 Ekim 2026 (Faz 2 erişim ve firma izolasyonu)",
+            "PostgreSQL FORCE RLS, kısıtlı runtime rolleri; e-posta doğrulaması, tenant ve rol sınırı",
+            "Doğrulanmamış super admin etkili yetki gibi gösterilebiliyor, askıdaki firmanın ödeme kurtarması bloke oluyor, plansız kayıt açılabiliyor; SmartCheck audit ve teklife bağlı finans tablolarının RLS sınırı eksik kalıyordu.",
+            "Etkili admin ve impersonation e-posta doğrulaması ister; askıda owner/admin yalnız iki ödeme POST'una erişir; kayıt planı yoksa workspace/Academy 503 alır ve seçili plan transaction boyunca kilitlenir. 0030 audit ve 0031 finans RLS izole PostgreSQL kısıtlı rollerle sınanır. MFA, oturum iptali, tüm endpoint IDOR, veri yaşam döngüsü ve bazı audit atomikliği açık; canlı admin/plan doğrulaması ve dağıtım bekler.",
+            "src/server/{middleware/auth,routes/auth,routes/auth-phase2.integration.test}.ts, src/services/billing/trial-plan.ts, drizzle-release/0030_smartcheck_audit_tenant_rls.sql, drizzle-release/0031_finance_quotation_tenant_rls.sql, src/contracts/{smartcheck-pilot-tenant-rls,finance-quotation-rls}.pgtest.ts",
+          ],
+          [
+            "Rev. 116 · 28 Ekim 2026 (Faz 3 operasyon görünürlüğü)",
+            "PostgreSQL DB saati, kısıtlı rol ve RLS; denetim olay sözlüğü; liste fiyatı ve ödeme beyanı ayrımı",
+            "Kuyruk sayıları süreç canlılığını göstermiyor; en eski bekleyen iş ve worker build beyanı görünmüyor, liste fiyatı MRR olarak yorumlanabiliyor; bazı bilinen audit olayları other olarak görünüyordu.",
+            "0032 ile worker ve IFC worker 30 saniyede DB saatli heartbeat yazar; 90 saniye TTL, tür başına 32 aktif kayıt ve 10 saniyelik tekrar sınırlaması vardır; eski kayıt yeniden başlamada değiştirilebilir. Ortak DB rolü kimlik ispatı değildir ve 90 saniyede 32'yi aşan hızlı yeniden başlamalar yeni sinyali geçici engelleyebilir. En eski bekleyen iş gösterilir; güncel liste fiyatı toplamı ile en çok 5000 olaydan yinelenmeyen, tüm zamanlar onaylı havale beyanı ayrılır; banka mutabakatı değildir. Bilinen güvenli audit olayları etiketlenir, yedek/restore doğrulanmadı gösterilir. Plan ve abonelik önce/sonra önizlemesi, maskeli banka farkı ve kayıpsız audit cursor geliştirildi; snapshot eskimesi uyarılır, sunucu eşzamanlılık kilidi yoktur. Audit eski saat dilimi bilinmiyor. OCI, canlı dağıtım ve bağımsız kabul doğrulanmadı.",
+            "drizzle-release/0032_worker_process_heartbeat.sql; src/smartcheck/import/{worker,ifc-worker,process-heartbeat}.ts; src/server/routes/{admin,admin-dashboard-metrics,admin-logs}.ts; src/pages/admin/{AdminDashboard,AdminQueue,AdminLogs,WorkerSignals}.tsx",
+          ],
+          [
+            "Rev. 117 · 28 Ekim 2026 (Faz 4 firma iş akışları)",
+            "Yetkili firma teklifleri; offset sayfalama, döviz ayrımı; SmartCheck durum ve istek sırası; poz + birim fiyat kapsamı",
+            "Panel ilk 100 teklif ve bazı adetleri varsayılan kurla sınırlıyor; SmartCheck boş ve hatalı durumları karıştırıyor, gecikmiş yanıt yeni seçimi ezebiliyor; demo satırlar kayıtla karışabiliyor ve fiyat hafızası kapsamı belirsiz kalabiliyordu.",
+            "Panel en çok 1.000 teklif için 10 sayfa okur; eş timestamp ID ile sıralanır, çift kayıt veya sayfa hatası reddedilir, offset eşzamanlı snapshot garantisi sunmaz. Durum adetleri tüm para birimlerini kapsar; tutarlar ayrı gösterilir. SmartCheck boş, hata ve işleniyor ayrımı, son istek koruması ve yeniden durum sorgusu sağlar. Demo kaydı yalnız arayüzde engellenir; sunucu güvenlik sınırı değildir. Fiyat hafızası için poz ve birim eksikse API 400 PRICE_MEMORY_SCOPE_REQUIRED döner; harici istemciler güncellenmelidir. Sentetik browser ve izole testler canlı veya bağımsız uzman kabulü değildir; formüller değişmedi.",
+            "src/pages/{Dashboard,dashboard-summary,CreateQuote,quote-demo-replacement,MarketIntelligence}.tsx/ts; src/components/smartcheck/{SmartCheckImportWorkspace,request-guard,import-progress}.tsx/ts; src/server/routes/{quotations,market-intelligence}.ts",
+          ],
+          [
+            "Rev. 118 · 28 Ekim 2026 (Faz 5 IFC ve izole kurtarma)",
+            "IfcContext birim güvenliği, açık fixture kaynak ve checksum, izole PG16 ve sentetik nesne kontrolü",
+            "Çoklu bağlamlı açık IFC örneğinde iterator geometrisi aşırı ölçekli miktar ve geçen kalite kapısı üretebiliyordu; production restore kanıtı yoktu.",
+            "Çoklu IfcContext altında iterator geometrisi dışlanır; desteklenen açık QTO/özellik ve ayrı eğri yolu korunur; IfcCovering doğrudan QTO uzunluğu desteklenmez. Eksik miktar yüksek bulgusu karma modelde tüm SmartCheck satırlarının aktarımını durdurur. İzole PG16 T44 1/1 kendi özgün nesne dizinini kullandı; bağımsız nesne restore değildir. Üç sentetik nesnenin kaynak→yedek→hedef checksum/bozulma denemesi uygulama depolaması veya tutarlı DB+object snapshot kanıtı değildir. Canlı yedek/RTO/RPO, gerçek müşteri golden ve bağımsız uzman kabulü açık.",
+            "workers/ifc/{ifc_extract,test_ifc_extract}.py; src/ifc/server-path.e2e.test.ts; docs/audits/phase-5/OPEN_IFC_COMPARISON_2026-10-28.md",
+          ],
+          [
+            "Rev. 119 · 29 Ekim 2026 (Firma hızlı düzenleme önizlemesi)",
+            "Yönetici arayüzü değişiklik görünürlüğü; sunucu concurrency sözleşmesi değişmedi",
+            "Firma hızlı düzenleme seçilen plan, abonelik durumu ve bonus kotayı kayıttan önce karşılaştırmadan PATCH gönderiyordu.",
+            "Kaydetmeden önce yüklenmiş firma verilerine dayalı plan kimliği, durum ve bonus kota önce/sonra özetlenir; iptal PATCH göndermez. Snapshot eskimiş olabilir ve sunucu eşzamanlılık kilidi yoktur. Hesap formülleri değişmedi; canlı doğrulama ayrıca gerekir.",
+            "src/pages/admin/TenantsList.tsx; src/pages/admin/admin-quick-edit-preview.ts; ilgili testler",
+          ],
         ],
       },
 
     ],
   },
 ];
+
+/** Tarihsel teknik matrisin satırlarını bozmadan, eşit revizyonları kaynak sırasıyla koru. */
+export const ROADMAP_SECTIONS: DocSection[] = ROADMAP_SOURCE_SECTIONS.map((section) => {
+  if (section.id !== "revizyon-gunlugu") return section;
+  let tableIndex = 0;
+  const blocks = section.blocks.map((block) => {
+    if (block.type !== "table") return block;
+    tableIndex += 1;
+    if (tableIndex !== 2) return block;
+    const numbered = block.rows.map((row, index) => {
+      const revision = Number(row[0].match(/Rev\. (\d+)/)?.[1]);
+      if (!Number.isFinite(revision)) throw new Error("Revizyon matrisi numarası eksik");
+      return { row, index, revision };
+    });
+    return { ...block, rows: numbered.sort((a, b) => a.revision - b.revision || a.index - b.index).map(({ row }) => row) };
+  });
+  return { ...section, blocks };
+});
 
 export const ROADMAP_SOURCES: DocSource[] = [
   { label: "OSKA HakedişPlus Kullanım Kılavuzu — açık vendor iş akışı referansı, native uyumluluk kanıtı değildir", url: "https://www.oska.com.tr/pdfdokumanlar/hakedispluskullanim-kilavuzu.pdf" },

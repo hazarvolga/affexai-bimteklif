@@ -31,6 +31,7 @@ test("supplier quote market intelligence is review-gated, outlier-aware, and ten
   const tokenReviewerA = AuthService.generateToken({ userId: reviewerA.id, companyId: companyA.id, role: "admin" });
   const tokenB = AuthService.generateToken({ userId: userB.id, companyId: companyB.id, role: "owner" });
   const [sourceDocument] = await db.insert(schema.documents).values({ companyId: companyA.id, uploadedByUserId: userA.id, originalFileName: `supplier-${suffix}.csv`, displayName: `Supplier ${suffix}`, mimeType: "text/csv", fileSizeBytes: 128, storageKey: `${companyA.id}/${suffix}/original`, checksumSha256: "c".repeat(64), status: "completed" }).returning();
+  const [pendingDocument] = await db.insert(schema.documents).values({ companyId: companyA.id, uploadedByUserId: userA.id, originalFileName: `pending-${suffix}.csv`, displayName: `Pending ${suffix}`, mimeType: "text/csv", fileSizeBytes: 128, storageKey: `${companyA.id}/${suffix}/pending`, checksumSha256: "pending", status: "uploaded" }).returning();
   const [sourceRun] = await db.insert(schema.documentProcessingRuns).values({ companyId: companyA.id, documentId: sourceDocument.id, status: "succeeded", currentStage: "completed", idempotencyKey: `run-${suffix}`, pipelineVersion: 1, progressPercent: 100, progressMessage: "Tamamlandı", completedAt: new Date() }).returning();
   const [sourceRow] = await db.insert(schema.normalizedQuantityRows).values({ companyId: companyA.id, documentId: sourceDocument.id, processingRunId: sourceRun.id, sheetName: "Teklif", sourceRowNumber: 2, sourceCellRange: "A2:F2", rawDescription: "Pompa", rawPositionCode: "M-001", rawUnit: "adet", rawQuantity: "2", rawPrice: "185", normalizedDescription: "Pompa", normalizedPositionCode: "M-001", normalizedUnit: "adet", normalizedQuantity: "2", normalizedPrice: "185", reviewStatus: "approved", reviewerUserId: userA.id, reviewedAt: new Date(), findingsJson: [] }).returning();
   const [pendingSourceRow] = await db.insert(schema.normalizedQuantityRows).values({ companyId: companyA.id, documentId: sourceDocument.id, processingRunId: sourceRun.id, sheetName: "Teklif", sourceRowNumber: 3, sourceCellRange: "A3:F3", rawDescription: "Vana", rawPositionCode: "M-002", rawUnit: "adet", rawQuantity: "1", rawPrice: "45", normalizedDescription: "Vana", normalizedPositionCode: "M-002", normalizedUnit: "adet", normalizedQuantity: "1", normalizedPrice: "45", reviewStatus: "pending_review", findingsJson: [] }).returning();
@@ -52,6 +53,11 @@ test("supplier quote market intelligence is review-gated, outlier-aware, and ten
     const create = await request("/api/market-intelligence/supplier-quotes", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ supplierName: "Tedarikçi A", quoteNumber: `SUP-${suffix}`, sourceDocumentIdentifier: `SUP-${suffix}`, sourceDocumentPayload: { supplier: "Tedarikçi A", version: "1" }, region: "İstanbul", deliveryTerms: "DAP", vatStatus: "excluded", freightStatus: "included" }) });
     assert.equal(create.status, 201);
     submissionId = (await create.json() as { id: string }).id;
+    for (const invalidPrice of [null, '', '  ', false, true]) {
+      const invalid = await request(`/api/market-intelligence/supplier-quotes/${submissionId}/entries`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ entries: [{ description: 'Fiyat bekliyor', unit: 'adet', unitPrice: invalidPrice }] }) });
+      assert.equal(invalid.status, 400, `invalid price: ${String(invalidPrice)}`);
+    }
+    assert.equal((await db.select().from(schema.supplierQuoteEntries).where(eq(schema.supplierQuoteEntries.submissionId, submissionId))).length, 0);
     const entries = await request(`/api/market-intelligence/supplier-quotes/${submissionId}/entries`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ entries: [{ positionCode: "M-001", description: "Pompa", unit: "adet", quantity: 1, unitPrice: 180, region: "İstanbul", sourceRowKey: "row-1" }] }) });
     assert.equal(entries.status, 201);
     const entriesBody = await entries.json() as { insertedCount: number; evaluations: Array<{ outlierStatus: string; baselineCount: number }> ; entries: Array<{ id: string; reviewStatus: string; priceSnapshotId: string | null }> };
@@ -68,9 +74,33 @@ test("supplier quote market intelligence is review-gated, outlier-aware, and ten
     const approvedEntry = await approve.json() as { reviewStatus: string; priceSnapshotId: string | null };
     assert.equal(approvedEntry.reviewStatus, "approved");
     assert.ok(approvedEntry.priceSnapshotId);
-    const linkedCreate = await request("/api/market-intelligence/supplier-quotes", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ supplierName: "Kaynaklı Tedarikçi", quoteNumber: `LINKED-${suffix}`, documentId: sourceDocument.id, sourceDocumentIdentifier: sourceDocument.originalFileName, region: "İstanbul", deliveryTerms: "DAP", vatStatus: "excluded", freightStatus: "included" }) });
+    const linkedPayload = { supplierName: "Kaynaklı Tedarikçi", quoteNumber: `LINKED-${suffix}`, documentId: sourceDocument.id, sourceDocumentIdentifier: sourceDocument.originalFileName, region: "İstanbul", deliveryTerms: "DAP", vatStatus: "excluded", freightStatus: "included" };
+    const createLinked = (payload: object, token = tokenA) => request("/api/market-intelligence/supplier-quotes", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(payload) }, token);
+    const mismatch = await createLinked({ ...linkedPayload, sourceDocumentHash: "d".repeat(64) });
+    assert.equal(mismatch.status, 409);
+    assert.equal((await createLinked({ ...linkedPayload, sourceDocumentHash: "not-a-hash" })).status, 409);
+    assert.equal((await createLinked({ ...linkedPayload, documentId: pendingDocument.id })).status, 409);
+    assert.equal((await db.select().from(schema.supplierQuoteSubmissions).where(and(eq(schema.supplierQuoteSubmissions.companyId, companyA.id), eq(schema.supplierQuoteSubmissions.documentId, sourceDocument.id)))).length, 0);
+    assert.equal((await createLinked(linkedPayload, tokenB)).status, 404);
+    const explicitMatch = await createLinked({ ...linkedPayload, sourceDocumentHash: "C".repeat(64) });
+    assert.equal(explicitMatch.status, 201);
+    assert.equal((await explicitMatch.json() as { sourceDocumentHash: string }).sourceDocumentHash, sourceDocument.checksumSha256);
+    const linkedCreate = await createLinked(linkedPayload);
     assert.equal(linkedCreate.status, 201);
-    const linkedSubmissionId = (await linkedCreate.json() as { id: string }).id;
+    const linkedBody = await linkedCreate.json() as { id: string; sourceDocumentHash: string };
+    assert.equal(linkedBody.sourceDocumentHash, sourceDocument.checksumSha256);
+    const linkedSubmissionId = linkedBody.id;
+    await db.update(schema.normalizedQuantityRows).set({ normalizedPrice: null }).where(eq(schema.normalizedQuantityRows.id, sourceRow.id));
+    const missingPrice = await request(`/api/market-intelligence/supplier-quotes/${linkedSubmissionId}/import-smartcheck-rows`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ rowIds: [sourceRow.id] }) });
+    assert.equal(missingPrice.status, 409);
+    assert.equal((await missingPrice.json() as { code: string }).code, 'SMARTCHECK_ROW_VALUES_MISSING');
+    assert.equal((await db.select().from(schema.supplierQuoteEntries).where(eq(schema.supplierQuoteEntries.submissionId, linkedSubmissionId))).length, 0);
+    await db.update(schema.normalizedQuantityRows).set({ normalizedPrice: '0' }).where(eq(schema.normalizedQuantityRows.id, sourceRow.id));
+    const zeroPrice = await request(`/api/market-intelligence/supplier-quotes/${linkedSubmissionId}/import-smartcheck-rows`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ rowIds: [sourceRow.id] }) });
+    assert.equal(zeroPrice.status, 201);
+    assert.equal(Number((await zeroPrice.json() as { entries: Array<{ unitPrice: string }> }).entries[0].unitPrice), 0);
+    await db.delete(schema.supplierQuoteEntries).where(eq(schema.supplierQuoteEntries.submissionId, linkedSubmissionId));
+    await db.update(schema.normalizedQuantityRows).set({ normalizedPrice: '185' }).where(eq(schema.normalizedQuantityRows.id, sourceRow.id));
     const blockedImport = await request(`/api/market-intelligence/supplier-quotes/${linkedSubmissionId}/import-smartcheck-rows`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ rowIds: [pendingSourceRow.id] }) });
     assert.equal(blockedImport.status, 409);
     const importRows = await request(`/api/market-intelligence/supplier-quotes/${linkedSubmissionId}/import-smartcheck-rows`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ rowIds: [sourceRow.id] }) });
@@ -88,6 +118,20 @@ test("supplier quote market intelligence is review-gated, outlier-aware, and ten
     assert.equal(detailBody.status, "approved");
     assert.equal(detailBody.entries[0].outlierStatus, "outlier");
     assert.ok(detailBody.entries[0].priceSnapshotId);
+    for (const query of ['', '?positionCode=M-001', '?unit=adet']) {
+      const unscoped = await request(`/api/market-intelligence/price-memory${query}`);
+      assert.equal(unscoped.status, 400);
+      assert.equal((await unscoped.json() as { code: string }).code, 'PRICE_MEMORY_SCOPE_REQUIRED');
+    }
+    for (const [code, unit, amount] of [['M-002', 'adet', 10000], ['M-001', 'm2', 8000]] as const) {
+      await db.insert(schema.priceSnapshots).values({ companyId: companyA.id, priceSourceId: baselineSource.id, snapshotKey: buildPriceSnapshotKey({ sourceDocumentHash: baselineSource.sourceDocumentHash, positionCode: code, description: 'Farklı malzeme', unit, amount, currency: 'TRY', capturedAt: new Date('2026-07-20T00:00:00Z') }), positionCode: code, description: 'Farklı malzeme', unit, amount: String(amount), currency: 'TRY', region: 'Ankara', capturedAt: new Date('2026-07-20T00:00:00Z'), sourceDocumentHash: baselineSource.sourceDocumentHash, confidence: '0.9', reviewStatus: 'approved' });
+    }
+    const scoped = await request('/api/market-intelligence/price-memory?positionCode=M-001&unit=adet');
+    const scopedBody = await scoped.json() as { summary: { count: number; median: number } };
+    assert.equal(scopedBody.summary.count, 5);
+    assert.equal(scopedBody.summary.median, 101);
+    const emptyTenant = await request('/api/market-intelligence/price-memory?positionCode=M-001&unit=adet', {}, tokenB);
+    assert.equal((await emptyTenant.json() as { summary: { count: number; median: null } }).summary.count, 0);
     const memory = await request("/api/market-intelligence/price-memory?positionCode=M-001&unit=adet&region=%C4%B0stanbul");
     assert.equal(memory.status, 200);
     assert.equal((await memory.json() as { summary: { count: number; median: number } }).summary.count, 5);

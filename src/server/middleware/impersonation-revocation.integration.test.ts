@@ -13,7 +13,7 @@ test('read-only exit persists revocation and rejects token replay across fresh a
   ]);
   const [company] = await db.insert(schema.companies).values({ name: 'Revocation test' }).returning();
   const [user] = await db.insert(schema.users).values({ email: 'revocation-user@example.test', fullName: 'User' }).returning();
-  const [admin] = await db.insert(schema.users).values({ email: 'revocation-admin@example.test', fullName: 'Admin', isSuperAdmin: true }).returning();
+  const [admin] = await db.insert(schema.users).values({ email: 'revocation-admin@example.test', fullName: 'Admin', isSuperAdmin: true, emailVerified: new Date() }).returning();
   await db.insert(schema.memberships).values({ companyId: company.id, userId: user.id, role: 'owner' });
   const issue = () => AuthService.generateImpersonationToken({ userId: user.id, companyId: company.id, impersonatedBy: admin.id });
   const token = issue(), independentToken = issue();

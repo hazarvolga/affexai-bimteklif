@@ -15,26 +15,14 @@ import {
 } from "../../services/billing/bank-transfer";
 import { formatBillingCycleLabel, normalizeBillingCycle } from "../../services/billing/billing-periods";
 import { deliverTransactionalEmail } from "../auth/email-delivery";
+import { readPublicPlans } from '../../services/billing/public-plans';
 
 const canManageBilling = checkRole(["owner", "admin"]);
 
 export function registerBillingRoutes(app: Express) {
   app.get('/api/public/plans', async (_req, res) => {
     try {
-      const publicPlans = await db.select({
-        id: plans.id, name: plans.name, monthlyPrice: plans.monthlyPrice,
-        monthlyQuoteLimit: plans.monthlyQuoteLimit, monthlyIfcLimit: plans.monthlyIfcLimit,
-        ifcMaxFileMb: plans.ifcMaxFileMb, ifcMaxConcurrent: plans.ifcMaxConcurrent,
-        monthlyPdfLimit: plans.monthlyPdfLimit, monthlyAiLimit: plans.monthlyAiLimit,
-        monthlyCrmLimit: plans.monthlyCrmLimit,
-        monthlyRegulationLimit: plans.monthlyRegulationLimit, monthlyProfitAnalysisLimit: plans.monthlyProfitAnalysisLimit,
-        storageMaxBytes: plans.storageMaxBytes, maxDocuments: plans.maxDocuments,
-        isTrial: plans.isTrial,
-        isActive: plans.isActive, isPublished: plans.isPublished, isFeatured: plans.isFeatured,
-        displayOrder: plans.displayOrder, marketingBadge: plans.marketingBadge,
-        marketingDescription: plans.marketingDescription,
-      }).from(plans).where(and(eq(plans.isActive, true), eq(plans.isPublished, true)))
-        .orderBy(asc(plans.displayOrder), asc(plans.monthlyPrice), asc(plans.name));
+      const publicPlans = await readPublicPlans();
       return res
         .set('Cache-Control', 'no-cache, no-store, must-revalidate')
         .set('Pragma', 'no-cache')
@@ -180,6 +168,9 @@ export function registerBillingRoutes(app: Express) {
       } catch (error) {
         if (error instanceof Error && error.message === "PAID_PLAN_REQUIRED") {
           return res.status(400).json({ error: "Yalnızca ücretli paketler için havale bildirimi yapılabilir." });
+        }
+        if (error instanceof Error && error.message === "BANK_ACCOUNT_UNAVAILABLE") {
+          return res.status(409).json({ error: "Seçilen banka hesabı artık kullanılamıyor. Daha önce ödeme yaptıysanız destekle iletişime geçin.", code: "BANK_ACCOUNT_UNAVAILABLE" });
         }
         if (error instanceof Error && error.message === "PAYMENT_REQUEST_NOT_FOUND") {
           return res.status(404).json({ error: "Sipariş referansı bulunamadı." });

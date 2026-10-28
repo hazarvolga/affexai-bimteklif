@@ -7,7 +7,7 @@ import { calculateTaxAdvisory } from "../../../lib/tax-advisory";
 import { ts500LapLength } from "../../../academy/lap-length";
 import { evaluateSupplierPrice } from "../../../server/market-intelligence/price-memory";
 import { CALC_MODULES } from "./calculation-content";
-import { ROADMAP_SECTIONS, ROADMAP_SOURCES } from "./roadmap-content";
+import { ROADMAP_SECTIONS, ROADMAP_SOURCE_SECTIONS, ROADMAP_SOURCES } from "./roadmap-content";
 import { CALC_REVIEW_META, CALC_REVIEW_EVIDENCE, CALC_REVIEW_CHANGELOG } from "./calculation-review";
 
 const tr = (value: number) => value.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -68,4 +68,137 @@ test("roadmap covers the agreed topics, ministry questions and official sources"
   assert.equal(questions?.type === "list" ? questions.items.length : 0, 6);
   assert.ok(ROADMAP_SOURCES.some(source => source.url?.includes("resmigazete.gov.tr/eskiler/2026/08/20260805-2")));
   assert.ok(!JSON.stringify(ROADMAP_SECTIONS).includes("%100"), "no unverifiable '100%' compliance claims");
+});
+
+
+test("Rev. 112 documents Phase 0 without claiming production or independent expert approval", () => {
+  assert.equal(CALC_REVIEW_META.version, "BIM-CALC-2026-10-29.1");
+  assert.equal(CALC_REVIEW_CHANGELOG.at(-1)?.revision, "Rev. 119");
+  const revisions = CALC_REVIEW_CHANGELOG.map(item => Number(item.revision.match(/Rev\. (\d+)/)?.[1]));
+  assert.ok(revisions.every((value, index) => index === 0 || value > revisions[index - 1]), "calculation revisions must be strictly increasing");
+  const kik = CALC_REVIEW_CHANGELOG.find(item => item.revision === "Rev. 112")?.moduleDetails?.["kik-adt"];
+  assert.match(JSON.stringify(kik), /0,90/);
+  assert.match(JSON.stringify(kik), /beyan/);
+  const journal = ROADMAP_SECTIONS.find(section => section.id === "revizyon-gunlugu")!;
+  const tables = journal.blocks.filter(block => block.type === "table");
+  assert.equal(tables.length, 2);
+  for (const [index, table] of tables.entries()) {
+    if (table.type !== "table") continue;
+    const numbers = table.rows.map(row => Number(row[0].match(/Rev\. (\d+)/)?.[1]));
+    assert.equal(numbers.at(-1), 119);
+    assert.ok(numbers.every((value, rowIndex) => rowIndex === 0 || (index === 0 ? value > numbers[rowIndex - 1] : value >= numbers[rowIndex - 1])), "roadmap revisions must be ordered");
+  }
+});
+
+test("Rev. 115 records tenant isolation and access boundaries without claiming production acceptance", () => {
+  const revision = CALC_REVIEW_CHANGELOG.find(item => item.revision === "Rev. 115")!;
+  for (const module of ["teklif-satir", "satir-dogrulama", "kota"]) {
+    const detail = revision.moduleDetails?.[module];
+    assert.ok(detail?.before && detail?.after && detail?.basis, module);
+  }
+  assert.match(revision.afterSummary, /0030/);
+  assert.match(revision.afterSummary, /0031/);
+  assert.match(revision.afterSummary, /MFA/);
+  assert.match(revision.afterSummary, /atomik/);
+  assert.match(JSON.stringify(ROADMAP_SECTIONS.find(section => section.id === 'adimlar')), /canlı.*admin/i);
+});
+
+test("Rev. 113 records source, review, transfer and AI scope with explicit outstanding limits", () => {
+  const revision = CALC_REVIEW_CHANGELOG.find(item => item.revision === "Rev. 113")!;
+  for (const module of ["ifc-metraj", "ifc-teklif-aktarim", "satir-dogrulama", "fiyat-eslestirme", "teklif-satir"]) {
+    const detail = revision.moduleDetails?.[module];
+    assert.ok(detail?.before && detail?.after && detail?.basis, module);
+  }
+  assert.match(revision.afterSummary, /diğer fiyat\/PDF yolları/);
+  assert.match(JSON.stringify(revision.moduleDetails), /24 saat/);
+  assert.match(CALC_REVIEW_META.approvalStatus, /bağımsız mühendis onayını göstermez/);
+  const status = ROADMAP_SECTIONS.find(section => section.id === "adimlar")!;
+  assert.match(JSON.stringify(status), /tarihsel IFC kayıtlarında belirsiz veya eksik kaynak yolu/);
+});
+
+test("Rev. 114 explains missing price, historical PDF ambiguity and evidence limitations", () => {
+  const revision = CALC_REVIEW_CHANGELOG.find(item => item.revision === "Rev. 114")!;
+  for (const module of ["teklif-satir", "ifc-teklif-aktarim", "fiyat-eslestirme", "aykiri-fiyat"]) {
+    const detail = revision.moduleDetails?.[module];
+    assert.ok(detail?.before && detail?.after && detail?.basis, module);
+  }
+  assert.match(revision.afterSummary, /PDF 409/);
+  assert.match(revision.afterSummary, /iki SmartCheck aktarımında yeni bilinçli sıfır, gerekçe ve aktör bağlı kanıtla kaydedilir/);
+  assert.match(revision.afterSummary, /üretim veya uzman kabulü değildir/);
+  assert.match(revision.moduleDetails!["ifc-teklif-aktarim"].after, /no-op 200/);
+  assert.match(revision.moduleDetails!["ifc-teklif-aktarim"].after, /PDF kota sürüm anahtarını değiştirmez/);
+  assert.match(revision.moduleDetails!["ifc-teklif-aktarim"].after, /tekrar aktarım audit kaydı yazmaz/);
+  assert.match(revision.moduleDetails!["teklif-satir"].after, /manuel.*kaynak kanıtlı sıfır/i);
+});
+
+
+test("technical revision matrix preserves each original row and its cell relationships", () => {
+  const matrix = (sections: typeof ROADMAP_SECTIONS) => {
+    const journal = sections.find(section => section.id === "revizyon-gunlugu")!;
+    const tables = journal.blocks.filter(block => block.type === "table");
+    const table = tables[1];
+    if (table.type !== "table") throw new Error("matrix missing");
+    return table.rows;
+  };
+  const original = matrix(ROADMAP_SOURCE_SECTIONS);
+  const ordered = matrix(ROADMAP_SECTIONS);
+  assert.deepEqual([...ordered].map(row => JSON.stringify(row)).sort(), [...original].map(row => JSON.stringify(row)).sort());
+  const rev4Original = original.filter(row => /^Rev\. 4(?:\D|$)/.test(row[0]));
+  const rev4Ordered = ordered.filter(row => /^Rev\. 4(?:\D|$)/.test(row[0]));
+  assert.ok(rev4Original.length > 1);
+  assert.deepEqual(rev4Ordered, rev4Original, "equal-revision rows retain source order");
+});
+
+test("corrected calculation revision numbers retain their historical aliases", () => {
+  for (let newRevision = 107; newRevision <= 111; newRevision++) {
+    const record = CALC_REVIEW_CHANGELOG.find(item => item.revision === `Rev. ${newRevision}`);
+    assert.ok(record?.trigger.includes(`eski etiket: Rev. ${newRevision - 6}`));
+  }
+});
+
+
+test("Rev. 116 describes operational limits and leaves external acceptance open", () => {
+  const revision = CALC_REVIEW_CHANGELOG.find(item => item.revision === "Rev. 116")!;
+  assert.match(revision.afterSummary, /90 saniye TTL/);
+  assert.match(revision.afterSummary, /32 kayıt/);
+  assert.match(revision.afterSummary, /banka mutabakatı değildir/);
+  assert.match(revision.afterSummary, /maskeli banka farkı/);
+  assert.match(revision.afterSummary, /eşzamanlılık kilidi yoktur/);
+  assert.match(revision.afterSummary, /saat dilimi bilinmiyor/);
+  assert.match(revision.afterSummary, /cursor mikro saniyeyi korur/);
+  assert.match(revision.moduleDetails.kota.after, /kota hesaplama yöntemi/);
+});
+
+test("Rev. 117 records Phase 4 scope and acceptance limits", () => {
+  const revision = CALC_REVIEW_CHANGELOG.find(item => item.revision === "Rev. 117")!;
+  assert.ok(revision);
+  for (const module of ["teklif-satir", "ifc-teklif-aktarim", "fiyat-eslestirme"]) {
+    const detail = revision.moduleDetails?.[module];
+    assert.ok(detail?.before && detail?.after && detail?.basis, module);
+  }
+  for (const term of [/1\.000/, /offset/, /400/, /sentetik/, /canlı/, /uzman/, /arayüz/]) assert.match(revision.afterSummary, term);
+});
+
+test("Rev. 118 explains unsafe IFC context and global review gate without claiming external acceptance", () => {
+  const rev = CALC_REVIEW_CHANGELOG.find(item => item.revision === "Rev. 118");
+  assert.ok(rev);
+  assert.match(rev.afterSummary, /IfcContext/);
+  assert.match(rev.afterSummary, /tüm SmartCheck satırları/);
+  assert.match(rev.afterSummary, /eğri/i);
+  assert.match(rev.afterSummary, /uzman/);
+  for (const id of ["ifc-metraj", "ifc-teklif-aktarim"]) {
+    const detail = rev.moduleDetails?.[id];
+    assert.ok(detail?.before && detail.after && detail.basis);
+  }
+  assert.match(JSON.stringify(ROADMAP_SECTIONS.find(section => section.id === "revizyon-gunlugu")), /Rev\. 118/);
+});
+
+
+test("Rev. 119 documents tenant quick edit preview and concurrency limits", () => {
+  const rev = CALC_REVIEW_CHANGELOG.find(item => item.revision === "Rev. 119");
+  assert.ok(rev);
+  assert.match(JSON.stringify(rev), /hızlı düzenleme/i);
+  assert.match(JSON.stringify(rev), /eşzamanlılık/i);
+  assert.match(JSON.stringify(rev), /formül/i);
+  assert.match(JSON.stringify(ROADMAP_SECTIONS.find(section => section.id === "revizyon-gunlugu")), /Rev\. 119/);
 });

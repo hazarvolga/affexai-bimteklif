@@ -244,9 +244,11 @@ test('SmartCheck pilot evidence declares asymmetric tenant RLS and hardened appe
   assert.deepEqual(measurements.uniqueConstraints.smartcheck_pilot_measurements_case_revision_key.columns, ['company_id', 'pilot_case_id', 'case_revision']);
   assert.equal(audits.isRLSEnabled, true);
   assert.deepEqual(Object.keys(audits.policies).sort(), [
-    'smartcheck_audit_logs_app_insert', 'smartcheck_audit_logs_app_non_pilot_mutation', 'smartcheck_audit_logs_app_read',
-    'smartcheck_audit_logs_backup_read', 'smartcheck_audit_logs_owner_migration', 'smartcheck_audit_logs_worker_non_pilot',
+    'smartcheck_audit_logs_app_insert', 'smartcheck_audit_logs_app_read',
+    'smartcheck_audit_logs_backup_read', 'smartcheck_audit_logs_owner_migration',
   ]);
+  assert.match(audits.policies.smartcheck_audit_logs_app_read.using ?? '', /bimmetraj\.company_id/);
+  assert.match(audits.policies.smartcheck_audit_logs_app_insert.withCheck ?? '', /bimmetraj\.company_id/);
   const statements = injectDataTransitions('0016_smartcheck_pilot_evidence_tenant_rls', []);
   assert.ok(statements.includes('ALTER TABLE "smartcheck_pilot_cases" FORCE ROW LEVEL SECURITY;'));
   assert.ok(statements.includes('ALTER TABLE "smartcheck_pilot_measurements" FORCE ROW LEVEL SECURITY;'));
@@ -383,7 +385,7 @@ test('release artifacts form an append-only chain matching current schema', asyn
   const migrations = await loadMigrations();
   const baseline = JSON.parse(await readFile(baselineSource, 'utf8'));
   assert.equal(Object.keys(baseline.tables).length, 63);
-  assert.equal(migrations.length, 30);
+  assert.equal(migrations.length, 33);
   let previous = drizzleApi.generateDrizzleJson({});
   for (const migration of migrations) {
     const snapshot = JSON.parse(await readFile(`${releaseDirectory}/meta/${String(migration.idx).padStart(4, '0')}_snapshot.json`, 'utf8'));

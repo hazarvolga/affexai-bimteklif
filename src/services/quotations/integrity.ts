@@ -8,6 +8,8 @@ import { calculateLineItemTotal, calculateQuotationTotals } from "../../lib/calc
 import type { ManualQuotationInput } from "./input";
 import { copyRevisionItems } from "./revision-copy";
 import { consumeQuotationQuota } from "../billing/quota";
+import { compareAiLine, verifyAiLine } from '../ai/quotation-provenance';
+import { sha256Payload } from '../../smartcheck/pricing/snapshots';
 
 export function normalizeQuotationTenantActor(actorOrCompanyId: TenantContext | string): TenantContext {
   return typeof actorOrCompanyId === "string"
@@ -44,6 +46,13 @@ export async function createManualQuotation(actor: TenantContext, input: ManualQ
       .where(and(eq(clients.id, input.clientId), eq(clients.companyId, companyId))).for("share");
     if (!client) throw new QuotationIntegrityError(400, "Client not available in this company");
     const { items, ...fields } = input;
+    const aiEvidence = items.map(item => {
+      if (!item.aiEvidenceToken) return null;
+      try { return verifyAiLine(item.aiEvidenceToken, actor); }
+      catch { throw new QuotationIntegrityError(400, 'AI kaynak kanıtı geçersiz veya süresi dolmuş. Kalemi yeniden oluşturun.'); }
+    });
+    const aiIds = aiEvidence.flatMap(item => item ? [item.id] : []);
+    if (new Set(aiIds).size !== aiIds.length) throw new QuotationIntegrityError(400, 'Aynı AI önerisi bir teklifte birden fazla kullanılamaz.');
     const resolvedIndustryId = await resolveQuotationIndustryId(
       fields.industryId,
       () => tx.select({ id: industries.id, enabled: industries.enabled }).from(industries),
@@ -66,8 +75,10 @@ export async function createManualQuotation(actor: TenantContext, input: ManualQ
       vatTotal: String(totals.vatTotal), grandTotal: String(totals.grandTotal),
       revisionVersion: 1, isLatest: true,
     }).returning();
-    await tx.insert(quotationItems).values(validatedItems.map(item => ({
-      ...item, companyId, quotationId: quote.id,
+    await tx.insert(quotationItems).values(validatedItems.map((item, index) => {
+      const { aiEvidenceToken: _token, ...savedItem } = item;
+      return {
+      ...savedItem, companyId, quotationId: quote.id,
       description: item.description, unit: item.unit,
       quantity: String(item.quantity), unitPrice: String(item.unitPrice),
       costUnitPrice: item.costUnitPrice == null ? null : String(item.costUnitPrice),
@@ -75,9 +86,18 @@ export async function createManualQuotation(actor: TenantContext, input: ManualQ
       total: String(calculateLineItemTotal({
         quantity: item.quantity, unitPrice: item.unitPrice, discountPercent: item.discountPercent, vatPercent: item.vatPercent,
       })),
-      quantitySource: "manual",
-    })));
-    const evidence = catalog.evidenceFor(quote.id);
+      quantitySource: aiEvidence[index] ? 'ai_estimate' : 'manual',
+      priceSource: aiEvidence[index] && item.priceSource === 'manual' ? 'ai_estimate' : item.priceSource,
+    }; }));
+    const evidence = [ ...catalog.evidenceFor(quote.id), ...validatedItems.flatMap((item, index) => {
+      const original = aiEvidence[index];
+      if (!original) return [];
+      const final = { description: item.description, unit: item.unit, quantity: item.quantity, unitPrice: item.unitPrice };
+      return [{ companyId, quotationId: quote.id, quotationItemId: item.id, evidenceType: 'source',
+        evidenceKey: sha256Payload({ quotationId: quote.id, quotationItemId: item.id, aiSuggestionId: original.id }),
+        capturedValueJson: { kind: 'ai_estimate', suggestionId: original.id, original: original.line, final, changedFields: compareAiLine(original.line, final), authority: 'non_authoritative' },
+        status: 'current', createdByUserId: actor.userId }];
+    }) ];
     if (evidence.length) await tx.insert(quotationItemEvidence).values(evidence);
     return quote;
   });

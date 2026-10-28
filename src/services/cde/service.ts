@@ -258,7 +258,7 @@ export class CdeService {
         const validation = validateCdeStateTransition({ fromState: container.currentState as CdeState, ...metadata!, actor: actor.userId });
         if (!validation.allowed) throw new CdeServiceError(422, "CDE_TRANSITION_INVALID", validation.reason);
         decision = "accepted";
-        reason = validation.reason;
+        reason = input.reason ?? validation.reason;
         nextState = validation.toState;
       }
       const [updated] = await tx.update(cdeContainers).set({ currentState: nextState, lockVersion: nextVersion, updatedAt: new Date() })

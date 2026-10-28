@@ -61,7 +61,7 @@ test("UI and server produce identical canonical Calm lines for layered minha fix
     rawDescription: "IfcCovering · Duvar kaplaması", rawPositionCode: "15.390.1002", rawUnit: "m2", rawQuantity: "35.4",
     normalizedDescription: "Duvar kaplaması", normalizedPositionCode: "15.390.1002", normalizedUnit: "m²", normalizedQuantity: "35.4000",
     normalizedWastePercent: "0", reviewStatus: "approved", reviewedAt: new Date("2026-10-23T09:00:00.000Z"), reviewerUserId: "44444444-4444-4444-8444-444444444444", quantitySource: "ifc_qto",
-    formulaJson: { materialLayers: JSON.stringify(["Fayans_a", "Sıva_2CM"]), coveringPredefinedType: "CLADDING", grossAreaM2: "40.68", openingAreaM2: "5.28" },
+    formulaJson: { materialLayers: JSON.stringify(["Fayans_a", "Sıva_2CM"]), coveringPredefinedType: "CLADDING", grossAreaM2: "40.68", openingAreaM2: "5.28", quantitySourcePath: "#10/#11/#12:Qto_CoveringBaseQuantities/NetArea" },
   };
   const uiItems = buildCalmIfcDatasetFromElements([parseSmartCheckRowToPseudoElement(source, 0)], null, "fixture.ifc").groups.flatMap((group) => group.items);
   const serverLines = projectApprovedRowsToCalmQuotationLines([source], {});

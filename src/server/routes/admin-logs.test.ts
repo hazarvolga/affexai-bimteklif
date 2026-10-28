@@ -4,10 +4,22 @@ import test from 'node:test';
 import express from 'express';
 
 process.env.DATABASE_URL ||= 'postgresql://test@127.0.0.1:5432/teklifpro_bootstrap_test';
-const { registerAdminLogRoutes, parseAuditQuery, safeAuditDetails } = await import('./admin-logs');
+const { registerAdminLogRoutes, parseAuditQuery, safeAuditDetails, safeAuditAction, safeAuditTarget } = await import('./admin-logs');
 const { createAuthenticate } = await import('../middleware/auth');
 const { AuthService } = await import('../../services/auth/authService');
 const id = '11111111-1111-4111-8111-111111111111';
+
+test('audit event code and target are bounded, typed and exclude raw secrets', () => {
+  assert.equal(safeAuditAction('processing_retry_scheduled'), 'processing_retry_scheduled');
+  assert.equal(safeAuditAction('future.event'), 'future.event');
+  assert.equal(safeAuditAction('IBAN TR123456789'), 'other');
+  assert.equal(safeAuditAction('sk_live_supersecretvalue'), 'other');
+  assert.equal(safeAuditAction('password_reset_secret_value'), 'other');
+  assert.equal(safeAuditAction('x'.repeat(120)), 'other');
+  assert.deepEqual(safeAuditTarget({ runId: id, iban: 'SECRET', token: 'SECRET' }), { type: 'run', id });
+  assert.deepEqual(safeAuditTarget({ after: { id, iban: 'SECRET' } }, 'plan.updated'), { type: 'plan', id });
+  assert.equal(safeAuditTarget({ runId: 'SECRET', iban: id }), null);
+});
 
 test('audit pagination rejects malformed, repeated and oversized inputs', () => {
   assert.deepEqual(parseAuditQuery({}), { limit: 25 });
@@ -34,7 +46,7 @@ test('audit API uses live super-admin authority and safe bounded responses', asy
   let fail = false;
   const app = express();
   const authenticate = createAuthenticate({
-    async findUser() { return { email: 'reader@example.test', emailVerified: null, passwordChangedAt: null, isSuperAdmin: superAdmin }; },
+    async findUser() { return { email: 'reader@example.test', emailVerified: new Date(), passwordChangedAt: null, isSuperAdmin: superAdmin }; },
     async findMembership() { return { role: 'owner' }; },
   });
   registerAdminLogRoutes(app, { authenticate, read: async ({ limit }) => {
@@ -60,6 +72,7 @@ test('audit API uses live super-admin authority and safe bounded responses', asy
   assert.equal(response.headers.get('cache-control'), 'no-store');
   const body = await response.json();
   assert.equal(body.items.length, 2);
+  assert.equal(body.items[0].createdAt, '2026-10-08T12:00:00.123456', 'timezone-naive timestamps must not acquire a UTC suffix');
   assert.ok(body.nextCursor);
   assert.equal(parseAuditQuery({ cursor: body.nextCursor }).cursor?.at, '2026-10-08T12:00:00.123456');
   assert.equal(JSON.stringify(body).includes('SECRET'), false);

@@ -4,14 +4,15 @@
  * Yalnız doğrulanmış alanlar yazılır: puan, yorum, `sameAs` profilleri ve uydurma adres eklenmez.
  */
 import { getLiveCapabilities, getPilotCapabilities } from '../../capabilities/registry';
-import { canonicalPlans } from '../../services/billing/plan-catalog';
+import type { PublicPlanView } from '../../services/billing/public-plans';
 
 const ORGANIZATION_DESCRIPTION =
   'Türkiye inşaat ve mühendislik sektörü için openBIM (IFC) tabanlı metraj, maliyet, ÇŞB 2026 poz ve RG 33331 e-PYS ön kontrol araçları. Sonuçlar ön kontrol niteliğindedir.';
 
 /** Yayındaki planların fiyat aralığı; deneme dahil, katalogdaki sırayla. */
-function aggregateOffer() {
-  const prices = canonicalPlans.filter(plan => plan.isActive && plan.isPublished).map(plan => plan.monthlyPrice);
+function aggregateOffer(plans: readonly PublicPlanView[]) {
+  const prices = plans.filter(plan => plan.isActive && plan.isPublished).map(plan => plan.monthlyPrice);
+  if (!prices.length) return undefined;
   return {
     '@type': 'AggregateOffer',
     priceCurrency: 'TRY',
@@ -26,7 +27,7 @@ export function siteFeatureList(): string[] {
   return [...getLiveCapabilities(), ...getPilotCapabilities()].map(capability => capability.title);
 }
 
-export function siteJsonLd(origin: string): Record<string, unknown> {
+export function siteJsonLd(origin: string, publicPlans: readonly PublicPlanView[] = []): Record<string, unknown> {
   return {
     '@context': 'https://schema.org',
     '@graph': [
@@ -53,7 +54,7 @@ export function siteJsonLd(origin: string): Record<string, unknown> {
         inLanguage: 'tr-TR',
         publisher: { '@id': `${origin}/#organization` },
         featureList: siteFeatureList(),
-        offers: aggregateOffer(),
+        ...(aggregateOffer(publicPlans) ? { offers: aggregateOffer(publicPlans) } : {}),
       },
     ],
   };

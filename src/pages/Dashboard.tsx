@@ -33,14 +33,13 @@ import { SectionWrapper } from '@/components/layout/SectionWrapper';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { fetchWithAuth } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
-import { Quote, QuoteStatus } from '@/types';
+import { Quote } from '@/types';
+import { fetchAllQuotes, summarizeQuotes } from './dashboard-summary';
 import { ContractorWorkflowHub } from '@/components/dashboard/ContractorWorkflowHub';
 import { TourWelcomeBanner } from '@/components/dashboard/SystemQuickTour';
 import { startTour } from '@/components/tour/useTourTrigger';
 
 const MONTH_LABELS_TR = ['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'];
-const ACTIVE_STATUSES: QuoteStatus[] = [QuoteStatus.DRAFT, QuoteStatus.SENT, QuoteStatus.NEGOTIATION];
-const DAY_MS = 24 * 60 * 60 * 1000;
 
 function buildMonthlyPipeline(quotes: Quote[]) {
   const buckets = new Map<string, number>();
@@ -67,19 +66,17 @@ export function Dashboard() {
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [truncated, setTruncated] = useState(false);
   // The status strip states the real catalogue state instead of a fixed "kanıtlı katalog" label (marka.md M-11.6).
   const [priceCatalog, setPriceCatalog] = useState<'loading' | 'ready' | 'empty' | 'unknown'>('loading');
 
   const loadQuotes = () => {
     setLoading(true);
     setError(false);
-    fetchWithAuth('/api/quotations')
-      .then((res) => {
-        if (!res.ok) throw new Error('İstek başarısız');
-        return res.json();
-      })
-      .then((data) => {
-        setQuotes(Array.isArray(data) ? data : []);
+    fetchAllQuotes(fetchWithAuth)
+      .then(({ quotes: data, truncated: partial }) => {
+        setQuotes(data);
+        setTruncated(partial);
         setLoading(false);
       })
       .catch(() => {
@@ -101,7 +98,7 @@ export function Dashboard() {
       .then(async (res) => {
         if (!res.ok) throw new Error('İstek başarısız');
         const rows: unknown = await res.json();
-        if (active) setPriceCatalog(Array.isArray(rows) && rows.length > 0 ? 'ready' : 'empty');
+        if (active) setPriceCatalog(!Array.isArray(rows) ? 'unknown' : rows.length > 0 ? 'ready' : 'empty');
       })
       .catch(() => { if (active) setPriceCatalog('unknown'); });
     return () => { active = false; };
@@ -114,22 +111,8 @@ export function Dashboard() {
 
   const primaryCurrency = company?.defaultCurrency ?? 'TRY';
   const primary = quotes.filter((q) => q.currency === primaryCurrency);
-  const otherCurrencyCount = quotes.length - primary.length;
-
-  const activeQuotes = primary.filter((q) => ACTIVE_STATUSES.includes(q.status));
-  const pendingVolume = activeQuotes.reduce((sum, q) => sum + Number(q.grandTotal || 0), 0);
-
-  const wonCount = primary.filter((q) => q.status === QuoteStatus.WON).length;
-  const lostCount = primary.filter((q) => q.status === QuoteStatus.LOST).length;
-  const decidedCount = wonCount + lostCount;
-  const winRate = decidedCount > 0 ? Math.round((wonCount / decidedCount) * 100) : null;
-
-  const now = Date.now();
-  const expiringSoonCount = primary.filter((q) => {
-    if (q.status !== QuoteStatus.SENT && q.status !== QuoteStatus.NEGOTIATION) return false;
-    const expiry = new Date(q.expiryDate).getTime();
-    return expiry >= now && expiry - now <= 7 * DAY_MS;
-  }).length;
+  const { active: activeQuotes, pendingDecisions, expiringSoon, winRate, volumes } = summarizeQuotes(quotes);
+  const expiringSoonCount = expiringSoon.length;
 
   const recentQuotes = [...quotes]
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
@@ -157,6 +140,8 @@ export function Dashboard() {
       </PageContainer>
     );
   }
+
+  if (loading) return <PageContainer><PageHeader title="Panel" description="Teklifler yükleniyor…" /><p role="status">Teklifler yükleniyor…</p></PageContainer>;
 
   return (
     <PageContainer>
@@ -202,7 +187,7 @@ export function Dashboard() {
         title="İhale & Metraj Masası"
         description="Aktif teklifleriniz, metraj hacminiz ve finansal özetiniz."
         actions={
-          <div className="flex items-center gap-2.5">
+          <div className="flex flex-wrap items-center gap-2.5">
             <Button
               variant="outline"
               size="sm"
@@ -229,7 +214,9 @@ export function Dashboard() {
         }
       />
 
-      {!loading && quotes.length === 0 ? (
+      {quotes.length > 100 && <p className="mb-3 text-xs text-muted-foreground">Teklifler sayfalar halinde yüklenir; yükleme sırasında yapılan değişiklikler özeti etkileyebilir. Güncel durum için sayfayı yenileyin.</p>}
+      {truncated && <p role="status" className="mb-4 text-sm text-amber-600">Gösterge en son 1.000 teklifle sınırlıdır; sayı ve toplamlar tüm teklifleri kapsamayabilir.</p>}
+      {quotes.length === 0 ? (
         <ContractorWorkflowHub compact={false} />
       ) : (
         <>
@@ -239,14 +226,19 @@ export function Dashboard() {
             <StatCard title="Aktif Teklifler" value={loading ? '—' : activeQuotes.length} icon={FileText} color="blue" />
             <StatCard
               title="Bekleyen Hacim"
-              value={loading ? '—' : `${pendingVolume.toLocaleString('tr-TR')} ${primaryCurrency}`}
+              value={volumes.length === 0 ? '—' : volumes.map(({ currency, total }) => `${total === null ? 'Bilinmiyor' : total.toLocaleString('tr-TR')} ${currency}`).join(' · ')}
               icon={TrendingUp}
               color="orange"
-              description={otherCurrencyCount > 0 ? `${otherCurrencyCount} teklif farklı para biriminde` : undefined}
+              description="Aktif teklif tutarları para birimine göre ayrı; kur dönüşümü yapılmaz."
             />
             <StatCard title="Kazanma Oranı" value={loading ? '—' : winRate === null ? '—' : `%${winRate}`} icon={CheckCircle2} color="emerald" description={winRate === null ? 'Henüz kazanılan/kaybedilen teklif yok' : undefined} />
             <StatCard title="Süresi Yaklaşan Teklifler" value={loading ? '—' : expiringSoonCount} icon={AlertTriangle} color={expiringSoonCount > 0 ? 'orange' : 'zinc'} description="7 gün içinde geçerliliği dolacak" />
           </div>
+
+          <Card className="mb-6 border border-border bg-card rounded-sm">
+            <CardHeader><CardTitle className="text-sm">Devam eden teklifler ve bekleyen kararlar</CardTitle><p className="text-xs text-muted-foreground">Taslak, gönderilmiş ve görüşmedeki teklifler; karar bekleyenler gönderilmiş veya görüşmedeki tekliflerdir.</p></CardHeader>
+            <CardContent><p className="text-xs mb-3">{activeQuotes.length} devam eden · {pendingDecisions.length} karar bekleyen</p>{activeQuotes.length === 0 ? <p className="text-xs text-muted-foreground">Devam eden teklif yok. Yeni teklif oluşturarak başlayın.</p> : <div className="space-y-2">{activeQuotes.slice(0, 5).map(q => <Link key={q.id} to={`/app/quotes/${q.id}`} className="flex flex-wrap justify-between gap-2 rounded-sm border border-border p-3 text-xs"><span>{q.projectName} · {q.quoteNumber}</span><span>{q.status === 'draft' ? 'Taslak' : q.status === 'sent' ? 'Gönderildi · karar bekliyor' : 'Görüşmede · karar bekliyor'} · {q.grandTotal == null ? 'Tutar bilinmiyor' : Number(q.grandTotal).toLocaleString('tr-TR')} {q.currency}</span></Link>)}</div>}{activeQuotes.length > 5 && <Link className="text-xs text-primary mt-3 inline-block" to="/app/quotes">Tüm teklifleri gör →</Link>}</CardContent>
+          </Card>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
             {/* Pipeline Chart */}
@@ -342,12 +334,7 @@ export function Dashboard() {
                     <p className="text-xs text-muted-foreground py-6 text-center font-mono">Yakın vadede süresi dolacak teklif yok.</p>
                   ) : (
                     <div className="space-y-2">
-                      {primary
-                        .filter((q) => {
-                          if (q.status !== QuoteStatus.SENT && q.status !== QuoteStatus.NEGOTIATION) return false;
-                          const expiry = new Date(q.expiryDate).getTime();
-                          return expiry >= now && expiry - now <= 7 * DAY_MS;
-                        })
+                      {expiringSoon
                         .slice(0, 4)
                         .map((quote) => (
                           <Link key={quote.id} to={`/app/quotes/${quote.id}`} className="flex items-center justify-between p-2.5 rounded-xs border border-border bg-muted/20 hover:border-primary/40 transition-colors">

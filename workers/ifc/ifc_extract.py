@@ -394,8 +394,8 @@ def extract_quantities_and_properties(
 
     # Track area quantities with set priority for formwork derivation
     explicit_formwork: List[Tuple[int, float, str]] = []
-    net_area: List[Tuple[int, float, str]] = []
-    gross_area: List[Tuple[int, float, str]] = []
+    net_area: List[Tuple[int, float, str, str]] = []
+    gross_area: List[Tuple[int, float, str, str]] = []
     net_side_area: List[Tuple[int, float, str]] = []
     gross_side_area: List[Tuple[int, float, str]] = []
     outer_surface_area: List[Tuple[int, float, str]] = []
@@ -504,9 +504,9 @@ def extract_quantities_and_properties(
                             if qty_name_lower in EXPLICIT_FORMWORK_QTY_NAMES:
                                 explicit_formwork.append((rank, scaled_area, source_path_item))
                             elif qty_name_lower == "netarea":
-                                net_area.append((rank, scaled_area, source_path_item))
+                                net_area.append((rank, scaled_area, source_path_item, "qto"))
                             elif qty_name_lower in {"grossarea", "grossfootprintarea", "footprintarea"}:
-                                gross_area.append((rank, scaled_area, source_path_item))
+                                gross_area.append((rank, scaled_area, source_path_item, "qto"))
                             elif qty_name_lower == "netsidearea":
                                 net_side_area.append((rank, scaled_area, source_path_item))
                             elif qty_name_lower == "grosssidearea":
@@ -681,13 +681,13 @@ def extract_quantities_and_properties(
                                 has_zero_net_qty = True
                             else:
                                 eff_a_scale = area_scale if (math.isfinite(area_scale) and area_scale > 0) else (eff_length_scale ** 2)
-                                net_area.append((rank, val * quantity_scale(prop, "AREAUNIT", eff_a_scale), source_path_item))
+                                net_area.append((rank, val * quantity_scale(prop, "AREAUNIT", eff_a_scale), source_path_item, "property"))
                     elif p_name_lower in {"grossarea", "area"}:
                         val = safe_float(wrapped_val)
                         if val is not None and val > 0:
                             eff_a_scale = area_scale if (math.isfinite(area_scale) and area_scale > 0) else (eff_length_scale ** 2)
                             # In Revit IFC2x3 Dimensions, Area is IFCAreaMeasure (already in m2 when AREAUNIT is SQUARE_METRE)
-                            gross_area.append((rank, val * quantity_scale(prop, "AREAUNIT", eff_a_scale), source_path_item))
+                            gross_area.append((rank, val * quantity_scale(prop, "AREAUNIT", eff_a_scale), source_path_item, "property"))
                     elif p_name_lower == "netsidearea":
                         val = safe_float(wrapped_val)
                         if val is not None and val > 0:
@@ -877,12 +877,13 @@ def extract_quantities_and_properties(
             chosen_area = gross_area[0]
         if chosen_area is not None and chosen_area[1] > 0:
             covering_area_m2 = round(chosen_area[1], 6)
-            if volume_m3 == 0.0:
-                quantity_source = "qto" if (chosen_area[0] % 10) <= 2 else "property"
-                source_path = chosen_area[2]
-                confidence = 0.95 if is_net_covering else 0.90
-                status = "review"
-                note = "IfcCovering kaplama alanı (NetArea/GrossArea) kaynağından okundu."
+            # The covering row uses area even when a separate volume exists.
+            # Its source must therefore follow the selected area, not the volume.
+            quantity_source = chosen_area[3]
+            source_path = chosen_area[2]
+            confidence = 0.95 if is_net_covering else 0.90
+            status = "review"
+            note = "IfcCovering kaplama alanı (NetArea/GrossArea) kaynağından okundu."
 
     candidates = volume_candidates + property_candidates
     if candidates and volume_m3 > 0 and any(abs(c[3] - volume_m3) > max(1e-8, abs(volume_m3) * 1e-6) for c in candidates):
@@ -1852,7 +1853,16 @@ def extract_ifc(input_path: str, output_path: str, file_name: str, run_id: str =
             elements_needing_geom.append(elem)
         preliminary_records.append((elem, mapped_type, q_res))
 
-    geom_metrics_by_id = batch_extract_3d_geometry(model, elements_needing_geom, length_scale)
+    # IfcOpenShell's geometry iterator may silently ignore project units when an
+    # IFC4 file contains multiple IfcContext instances (e.g. IfcProjectLibrary).
+    # Do not rescale its output blindly: in ordinary files it is already SI.
+    try:
+        geometry_context_count = len(model.by_type("IfcContext"))
+    except RuntimeError:  # IFC2X3 does not define IfcContext.
+        geometry_context_count = len(model.by_type("IfcProject"))
+    geometry_context_safe = geometry_context_count == 1
+    geom_metrics_by_id = batch_extract_3d_geometry(model, elements_needing_geom, length_scale) if geometry_context_safe else {}
+    geometry_blocked_ids = {elem.id() for elem in elements_needing_geom if getattr(elem, "Representation", None)} if not geometry_context_safe else set()
 
     parsed_elements: List[Dict[str, Any]] = []
     consistency_findings: List[Dict[str, Any]] = []
@@ -1882,7 +1892,6 @@ def extract_ifc(input_path: str, output_path: str, file_name: str, run_id: str =
         name = str(getattr(elem, "Name", "") or "").strip() or f"{mapped_type}_{step_id}"
 
         storey, storey_source, storey_source_path = extract_spatial_storey(elem, length_scale)
-
         (
             volume_m3,
             formwork_m2,
@@ -1931,7 +1940,7 @@ def extract_ifc(input_path: str, output_path: str, file_name: str, run_id: str =
                         rule_metadata["areaM2"] = round(derived_cov_area, 6)
                         if g_vol > 0 and volume_m3 <= 0:
                             volume_m3 = round(g_vol, 12)
-                        quantity_source = "property"
+                        quantity_source = "geometry"
                         quantity_source_path = f"#{step_id}/#{rep_step_id}:IfcShapeRepresentation/GeometryArea"
                         confidence = 0.85
                         status = "review"
@@ -1940,14 +1949,14 @@ def extract_ifc(input_path: str, output_path: str, file_name: str, run_id: str =
                 if g_vol > 0 and rebar_kg <= 0:
                     volume_m3 = round(g_vol, 12)
                     rebar_kg = round(g_vol * 7850.0, 1)
-                    quantity_source = "property"
+                    quantity_source = "geometry"
                     quantity_source_path = f"#{step_id}/#{rep_step_id}:IfcShapeRepresentation/GeometryVolume"
                     confidence = 0.85
                     status = "review"
             else:
                 if volume_m3 <= 0 and g_vol > 0:
                     volume_m3 = round(g_vol, 12)
-                    quantity_source = "property"
+                    quantity_source = "geometry"
                     quantity_source_path = f"#{step_id}/#{rep_step_id}:IfcShapeRepresentation/GeometryVolume"
                     confidence = 0.85
                     status = "review"
@@ -1983,7 +1992,7 @@ def extract_ifc(input_path: str, output_path: str, file_name: str, run_id: str =
                     cov_area = round(curve_len_m * h_m, 6)
                     rule_metadata["areaM2"] = cov_area
                     volume_m3 = round(cov_area * t_m, 12)
-                    quantity_source = "property"
+                    quantity_source = "geometry"
                     quantity_source_path = f"#{step_id}/#{curve_rep_id or step_id}:IfcShapeRepresentation/CurveLengthArea"
                     confidence = 0.85
                     status = "review"
@@ -1997,6 +2006,12 @@ def extract_ifc(input_path: str, output_path: str, file_name: str, run_id: str =
                 derived_len_m = curve_len_m if curve_len_m > 0 else (area_val / h_m if (area_val > 0 and h_m > 0) else 0.0)
                 if derived_len_m > 0:
                     rule_metadata["lengthM"] = round(derived_len_m, 4)
+                    # Length is calculated from geometry or area/height, not a direct QTO length.
+                    original_path = quantity_source_path or f"#{step_id}"
+                    quantity_source = "geometry"
+                    quantity_source_path = f"{original_path}/DerivedLength"
+                    confidence = 0.7
+                    status = "review"
 
             # Resolve parent IfcSpace and IfcZone for room-level Green Book (Yeşil Defter) traceability
             try:
@@ -2041,6 +2056,22 @@ def extract_ifc(input_path: str, output_path: str, file_name: str, run_id: str =
         # Check 3: Evaluate whether element has a valid positive measured net quantity
         cov_area_val = float(rule_metadata.get("areaM2") or 0.0)
         cov_len_val = float(rule_metadata.get("lengthM") or 0.0)
+        # Curve-length fallback uses explicit project scaling, not the 3D iterator.
+        # Do not claim it was blocked when that independent path supplied a quantity.
+        curve_fallback_used = quantity_source == "geometry" and any(
+            suffix in (quantity_source_path or "") for suffix in ("CurveLengthArea", "DerivedLength")
+        )
+        if elem.id() in geometry_blocked_ids and not curve_fallback_used:
+            consistency_findings.append({
+                "code": "GEOMETRY_CONTEXT_UNVERIFIED",
+                "severity": "medium",
+                "globalId": guid,
+                "ifcClass": raw_type,
+                "storey": storey,
+                "elementName": name,
+                "_stepId": step_id,
+                "message": "IFC bağlam sayısı nedeniyle 3B motor birim dönüşümü doğrulanamadı; 3B iterator miktarı kullanılmadı. Açık QTO/özellik korunur; ancak dosyada yüksek önem bulgusu varsa tüm SmartCheck aktarımı engellenir. Eğri yolu ayrı ölçekleme kullanır.",
+            })
         if quantity_anomaly == "NEGATIVE_NET_QUANTITY":
             measured = False
             measurement_status = "ölçülemedi"
@@ -2481,10 +2512,10 @@ def extract_ifc(input_path: str, output_path: str, file_name: str, run_id: str =
     summary = {
         "parseStatus": "succeeded",
         "extractionMode": "demo_estimate",
-        "quantitySource": "qto" if any(el["quantitySource"] == "qto" for el in parsed_elements) else "property" if any(el["quantitySource"] == "property" for el in parsed_elements) else "estimate",
+        "quantitySource": "qto" if any(el["quantitySource"] == "qto" for el in parsed_elements) else "property" if any(el["quantitySource"] == "property" for el in parsed_elements) else "geometry" if any(el["quantitySource"] == "geometry" for el in parsed_elements) else "estimate",
         "quoteTransferStatus": "needs_review",
         "warnings": [
-            "IfcOpenShell parser extracted verified QTO, PropertySet, and 3D representation quantities.",
+            "IfcOpenShell parser extracted QTO, PropertySet, and 3D representation quantities; source evidence requires review and geometry is not admitted as verified metraj.",
             "Quantities marked as estimate have no explicit QTO/Pset/3D solid in the model and require manual takeoff.",
         ],
         "unsupportedReasons": [],

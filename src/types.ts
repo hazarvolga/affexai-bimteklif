@@ -54,6 +54,7 @@ export interface Client {
 }
 
 export interface QuoteItem {
+  aiEvidenceToken?: string;
   benchmarkStagingId?: string;
   /** Approved company price-catalogue snapshot this line was picked from (M-12.6). */
   priceSnapshotId?: string;

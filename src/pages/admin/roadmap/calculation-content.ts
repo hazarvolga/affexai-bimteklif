@@ -6,6 +6,10 @@ import type { CalcModule, DocBlock } from "./doc-types";
  * functions or checked against them (13 Oct 2026); reviewers recompute and sign below.
  */
 export const CALC_INTRO: DocBlock[] = [
+  { type: "callout", tone: "info", title: "Rev. 119 firma hızlı düzenleme", text: "Firma planı, abonelik durumu ve bonus kotası kayıttan önce önizlenir; iptal kayıt yapmaz. Snapshot eskimiş olabilir; sunucu eşzamanlılık kilidi yoktur. Hesap formülleri değişmedi, canlı kabul ayrıca doğrulanır." },
+  { type: "callout", tone: "warn", title: "Rev. 118 IFC bağlam koruması", text: "Çoklu IfcContext için güvenilir olmayan iterator geometrisi kullanılmaz; açık QTO ve ayrı eğri yolu korunur. Geometriye bağlı yüksek bulgu karma modelde tüm SmartCheck satırlarını bloke eder. İzole T44 ve sentetik nesne kopyası canlı, müşteri veya uzman kabulü değildir." },
+  { type: "callout", tone: "info", title: "Rev. 117 firma iş akışları", text: "Panel en çok 1.000 teklif/10 sayfa gösterir; offset snapshot değildir. Para birimleri birleştirilmez. SmartCheck boş/hata/yarış durumları ayrılır. Demo kayıt engeli arayüzdedir. Fiyat hafızası poz ve birim ister; eksik API sorgusu 400 döner. Sentetik testler canlı ve bağımsız uzman kabulü değildir; hesap formülleri değişmedi." },
+  { type: "callout", tone: "info", title: "Rev. 116 operasyon sinyalleri", text: "DB saatli worker heartbeat ve kuyruk yaşı, güncel liste fiyatı ile sınırlı onaylı havale beyanının ayrımı ve audit görünürlüğü geliştirildi; hesap formülleri değişmedi. Ortak worker rolü kimlik veya OCI kanıtı değildir; banka mutabakatı ve yedek/restore doğrulanmadı. Önce/sonra önizleme ve maskeli banka farkı geliştirilmiştir; snapshot eskimesi uyarılır ancak sunucu eşzamanlılık kilidi yoktur. Eski audit saat dilimi bilinmiyor ve cursor kayıpsızdır; canlı dağıtım ve bağımsız kabul ayrı doğrulanır." },
   { type: "p", text: "Bu sayfa BIMMetraj'daki tüm hesaplama ve kontrol modüllerinin nasıl çalıştığını, hangi formülü ve eşiği kullandığını ve hangi kaynağa dayandığını açıklar. Amaç, yetkili mimar ve mühendislerin her modülü bağımsız olarak yeniden hesaplayıp onaylaması veya düzeltme istemesidir." },
   { type: "callout", tone: "info", title: "İnceleme durumu", text: "Dayanak etiketi yöntemin referans türünü gösterir; uzman onayı veya tam standart uygunluğu anlamına gelmez. Otomatik test, gerçek proje kabulü ve bağımsız uzman kararı ayrı kanıtlardır. Bu belge henüz imzalı uzman kabulü içermez." },
   { type: "callout", tone: "info", title: "Rev. 48 tenant izolasyonu kanıtı", text: "T41'in ilk dilimi beş CDE tablosunda FORCE RLS ve izole PG16 adversarial test düzeyindedir; hesap formüllerini değiştirmez. Diğer tenant tabloları, production credential cutover ve production deploy tamamlanmadığından genel tenant izolasyonu veya uzman kabulü iddia edilmez." },
@@ -46,7 +50,7 @@ export const CALC_MODULES: CalcModule[] = [
     title: "Teklif satırı ve teklif toplamları",
     area: "Teklif",
     status: "mevzuat",
-    sourceFiles: ["src/lib/calculations.ts", "src/lib/quote-excel-import.ts", "src/lib/quote-excel-import.test.ts"],
+    sourceFiles: ["src/lib/calculations.ts", "src/lib/quote-excel-import.ts", "src/lib/quote-excel-import.test.ts", "drizzle-release/0031_finance_quotation_tenant_rls.sql"],
     references: ["3065 sayılı KDV Kanunu (matrah: iskonto sonrası bedel)", "VUK — tutarların kuruş hassasiyeti", "ÇŞB inşaat birim fiyat analizleri (2020, 2024, 2025, 2026): birim fiyatlara %25 yüklenici kârı ve genel giderler dahildir"],
     purpose: "Her teklif satırının brüt tutarını, iskontosunu, KDV matrahını, KDV'sini ve toplamını hesaplar; teklif toplamlarını satırlardan türetir. Ekran, sunucu ve PDF aynı fonksiyonu kullanır.",
     formulas: [
@@ -60,7 +64,7 @@ export const CALC_MODULES: CalcModule[] = [
     ],
     rules: { columns: ["Doğrulama", "Kural"], rows: [
       ["Miktar", "> 0 olmalı"],
-      ["Birim fiyat", "≥ 0 olmalı (0 TL satır 'fiyat eksik' uyarısı alır)"],
+      ["Birim fiyat", "≥ 0 olmalı; açık sıfır ve eksik fiyat ayrı durumlardır. Eski belge kaynaklı sıfırın kaynağı kanıtlanamıyorsa PDF üretimi doğrulama isteğiyle durur"],
       ["İskonto ve KDV oranı", "0–100 arasında"],
       ["Toplamlar", "Kuruş cinsinden satır toplamlarından türetilir; PDF'teki satırların toplamı her zaman ara toplama eşittir"],
       ["Kâr ve genel gider %", "0–100 arasında, en fazla iki ondalık; aralık dışı değer reddedilir (kırpılmaz). Kalem birim fiyatları fiyat kaydına eşit kalır; pay teklifte, PDF'te ve Excel çıktısında ayrı satırdır"],
@@ -174,7 +178,7 @@ export const CALC_MODULES: CalcModule[] = [
     ],
     rules: { columns: ["Durum", "Davranış"], rows: [["Geometri kaynaklı veya tahmini miktar", "Kanıt satırına alınmaz (engellenir)"], ["Donatı (IfcReinforcingBar)", "Yalnız doğrudan Qto_ReinforcingElementBaseQuantities.Weight veya açık Weight/Mass property değerinden gelen pozitif kütle kg satırına alınır; nominal çap/boy hesabı, sıfır değer ve kaynak yolu olmayan miktar engellenir"], ["Kaplama (IfcCovering)", "Qto_CoveringBaseQuantities.NetArea/GrossArea (m²) mevcutsa kanıt satırına alınır"], ["Aggregate parça", "Kendi pozitif açık miktarı yoksa ana elemanla çift sayımı önlemek için dışlanır; dışlama kaydı sourceIdentity ile saklanır"], ["Kat bilgisi", "IfcRelContainedInSpatialStructure yoksa 'mekânsal kaynak eksik' bulgusu"], ["Browser önizlemesi", "Type inheritance, aggregate suppression, bağımsız birimler ve geometri fallback için tam sonuç sayılmaz; server worker'a yönlendirir"]] },
     example: { inputs: [["Duvar", "Qto_WallBaseQuantities.NetVolume = 7,5 m³; GrossVolume = 7,9 m³"], ["Kaplama", "IfcCovering NetArea = 42,5 m²; TREpys_PozOzellikSeti.PozNo = 15.275.1104"]], steps: ["Net hacim ve net alan tercih edilir", "TREpys_PozOzellikSeti.PozNo doğrudan poz koduna yazılır"], result: "Duvar: 7,5 m³ · Kaplama: 42,5 m² (Poz 15.275.1104) · kaynak 'ifc_qto'" },
-    assumptions: ["Modelin QTO değerleri doğru dışa aktarılmıştır; boşluk düşümü için ayrıca CSB_2026_V1 Minha motoru kullanılır.", "Otomatik kalite kapısı ve testler bağımsız mühendis kabulünün yerine geçmez; gerçek vendor dosyalarıyla doğrulama gerekir."],
+    assumptions: ["Modelin QTO değerleri doğru dışa aktarılmıştır; boşluk düşümü için ayrıca CSB_2026_V1 Minha motoru kullanılır.", "Otomatik kalite kapısı ve testler bağımsız mühendis kabulünün yerine geçmez; gerçek vendor dosyalarıyla doğrulama gerekir.", "Geometri veya türetilmiş süpürgelik uzunluğu inceleme kanıtı değildir. Eski kayıtlarda kaynak yolu eksik veya seçilen boyutla uyumsuzsa yeniden işleme ve inceleme gerekir."],
     questions: ["Net hacmin/alanın brüt değere tercih edilmesi ÇŞB metraj esaslarıyla uyumlu mu?", "Kiriş–döşeme ve kolon–kiriş kesişim hacimlerinin model tarafında nasıl çözülmesini beklersiniz?"],
   },
   {
@@ -214,7 +218,7 @@ export const CALC_MODULES: CalcModule[] = [
     formulas: ["miktar = kanonik Calm satırının sunucuda yeniden kurulan net quantity değeri; boyutlar karıştırılmaz", "satır tutarı = sabit noktalı miktar × yetkili snapshot birim fiyatı", "ardıl revizyon = kilitlenen güncel teklif + seçilen yeni satırlar; önceki revizyon değişmez"],
     rules: { columns: ["Kapı", "Davranış"], rows: [["Kaynak", "En yeni başarılı processing run, kaynak SHA-256 ve element/aggregate lineage zorunlu"], ["Fiyat", "Vendor/lisans/kullanım yetkisi fail-closed; tedarikçi beyanı tek başına yetki değildir"], ["Tekrar", "Actor+tenant idempotency ve teklif serisi çapında semantik kaynak tekrar kontrolü"], ["Eşzamanlılık", "Güncel teklif FOR UPDATE kilitlenir; sibling revision ve target mutation DB kapılarıyla engellenir"]] },
     example: { inputs: [["Mevcut teklif", "Rev. 3"], ["Seçili kanonik satır", "IfcCovering net 42,5 m²; yetkili snapshot"]], steps: ["Sunucu Calm projeksiyonunu yeniden kurar", "Kaynak/fiyat/yetki ve tekrar kapıları çalışır", "Rev. 4 ardıl teklif ve lineage kaydı transaction içinde oluşur"], result: "Rev. 3 korunur; Rev. 4 kalıcıdır ve aynı semantik kaynak yeniden eklenmez" },
-    assumptions: ["Bu dilim mevcut bir güncel teklif gerektirir; boş teklif oluşturmaz.", "Görüntüleme geometrisi veya kanıtsız tahmin miktar kaynağı değildir.", "Bağımsız mühendis fiyat/metraj kabulü uygulama testinden ayrıdır."],
+    assumptions: ["Bu dilim mevcut bir güncel teklif gerektirir; boş teklif oluşturmaz.", "Görüntüleme geometrisi veya kanıtsız tahmin miktar kaynağı değildir.", "Bağımsız mühendis fiyat/metraj kabulü uygulama testinden ayrıdır.", "İki SmartCheck satır aktarımı eksik fiyatı reddeder; bilinçli 0 override için gerekçe ve aktör bağlı fiyat kanıtı gerekir. PDF bu kanıtı değerlendirir; geçmiş belirsiz kayıtların teyidi ve diğer fiyat akışları ayrıca incelenmelidir.", "Bilinen eski geometry yolları engellenir; eski tüm belirsiz boyut/kaynak eşleşmeleri otomatik düzeltilmiş değildir."],
     questions: ["Pilot kabulünde ardıl teklif satırlarının şirket poz gruplaması ve onay hiyerarşisi yeterli mi?"],
   },
   {
@@ -228,7 +232,7 @@ export const CALC_MODULES: CalcModule[] = [
     formulas: [],
     rules: { columns: ["Kod", "Koşul", "Önem"], rows: [["MISSING_POSITION_CODE", "Poz kodu boş", "Yüksek"], ["DUPLICATE_POSITION_CODE", "Aynı poz dosyada birden fazla", "Orta"], ["UNKNOWN_UNIT", "Birim boş veya tanınmıyor", "Yüksek"], ["INVALID_QUANTITY", "Miktar ≤ 0 veya geçersiz", "Yüksek"], ["MISSING_PRICE_SOURCE", "Fiyat boş veya < 0", "Orta"], ["WASTE_LIMIT_EXCEEDED", "Fire > %20 (şirket limiti)", "Orta"]] },
     example: { inputs: [["Satır", "Poz yok, 2 adet, fiyat boş"]], steps: ["MISSING_POSITION_CODE + MISSING_PRICE_SOURCE"], result: "2 bulgu; satır onay için düzeltme veya gerekçeli istisna gerektirir" },
-    assumptions: ["Fire limiti varsayılan %20'dir."],
+    assumptions: ["Fire limiti varsayılan %20'dir.", "IFC kaynak bulguları review sırasında korunur; tekil/toplu karar ve audit tenant bağlamındaki işlemle yürütülür. İnsan review yetkinliği ayrıca doğrulanmalıdır.", "0030 SmartCheck audit için firma kapsamlı RLS ekler; diğer bazı audit işlemleri iş verisiyle atomik değildir. İzole test canlı güvenlik veya uzman kabulü değildir."],
     questions: ["%20 fire limiti iş kalemleri için makul mü, kalem türüne göre ayrışmalı mı?"],
   },
   {
@@ -524,7 +528,7 @@ export const CALC_MODULES: CalcModule[] = [
     area: "Teklif / Mevzuat",
     status: "mevzuat",
     sourceFiles: ["src/lib/kik-adt.ts", "src/lib/kik-adt.test.ts", "src/components/smartcheck/CalmKikPanel.tsx"],
-    references: ["4734 Sayılı Kamu İhale Kanunu Madde 38", "Kamu İhale Genel Tebliği Madde 45.1.1, 45.1.1.1, 45.1.1.4 & 45.1.2 (Yapım İşleri Sınır Değer ve Sıralı İş Kalemleri)"],
+    references: ["4734 Sayılı Kamu İhale Kanunu Madde 38", "Kamu İhale Genel Tebliği Madde 45.1.1, 45.1.1.1, 45.1.1.2–3, 45.1.1.4 & 45.1.2 (Yapım İşleri Sınır Değer ve Sıralı İş Kalemleri; https://donersermaye.aksaray.edu.tr/dosya/fa543d7b-db1c-4908-81de-74a01f211b3c.pdf; güncellik ve ihaleye uygulanabilirlik ayrıca doğrulanmalıdır)"],
     purpose: "Kaynak kimliği taşıyan idare yaklaşık maliyet cetvelinden ve YM mutabakatından %80 açıklama listesini üretir; teklif kalemleri yalnız advisory karşılaştırmadır. İhale açılış tutanağındaki YM ve geçerli teklifler girildiğinde Tebliğ m.45.1.1 sınır değerini hesaplar. Aynı modül YAMBİS için kesin ve eksik kanıta bağlı potansiyel grubu ayrı raporlar.",
     formulas: [
       "Adım 1 (%40–%120 YM Bandı — m.45.1.1): 0,40 × YM ≤ T_i ≤ 1,20 × YM aralığı dışındaki teklifler elenir; kalan n geçerli teklifin ortalaması T_ort1 ve örneklem standart sapması σ = √(∑(T_i − T_ort1)² / (n − 1)) hesaplanır",
@@ -538,7 +542,7 @@ export const CALC_MODULES: CalcModule[] = [
       steps: ["Kalan 10 teklifin ortalaması T_ort1 = 66.270,00 TL; örneklem standart sapması σ = 20.317,05 TL", "Aralık 45.952,95–86.587,05 TL: 44.000 ve 112.800 dışarıda kalır; kalan 8 teklifin ortalaması T_ort2 = 63.237,50 TL", "C = 63.237,50 / 100.000 = 0,632 (3 ondalık); K = (3,2×0,632 − 0,632² − 0,6) / 1,632 = 0,627 (3 ondalık)", "SD = (0,627 × 63.237,50) / (0,632 × 1,20) = 52.281,00 TL"],
       result: "Sınır Değer: 52.281,00 TL (Tebliğ 45.2 resmî örneğiyle birebir) · Durum: 49.500 TL teklif sınır değerin altındadır, aşırı düşük teklif sayılır · %80 Pareto Sıralı İş Kalemleri otomatik listelenir",
     },
-    assumptions: ["Kullanıcı YM ve geçerli teklifleri girmediğinde arayüz hiçbir uydurma sınır değer üretmez. Kaynaklı idare YM kalemi veya toplam mutabakatı yoksa resmî yüzde 80 listesi de üretilmez.", "Tebliğ m.45.1.1.1 uyarınca Üstyapı (Bina) için N = 1,00 ve Diğer Yapım (Altyapı) için N = 1,20 uygulanır.", "YAMBİS iş gücü geçici istisnası 31.12.2026 dahil değerlendirme tarihine bağlıdır; eksik banka verisi kesin grup oluşturmaz."],
+    assumptions: ["Kullanıcı YM ve geçerli teklifleri girmediğinde arayüz hiçbir uydurma sınır değer üretmez. Kaynaklı idare YM kalemi veya toplam mutabakatı yoksa resmî yüzde 80 listesi de üretilmez.", "Tebliğ m.45.1.1.1 uyarınca Üstyapı (Bina) için N = 1,00 ve Diğer Yapım (Altyapı) için N = 1,20 esas alınır. 1,00–1,20 arası idare katsayısı ile 0,90–0,99 ön proje üstyapı istisnası yalnız kullanıcı girdisidir; ikincisi ön proje, yetkili bakanlık, Resmî Gazete ve ihale dayanağı beyanı gerektirir. Sistem bu beyanı doğrulamaz; bağımsız uzman kabulü bekler.", "YAMBİS iş gücü geçici istisnası 31.12.2026 dahil değerlendirme tarihine bağlıdır; eksik banka verisi kesin grup oluşturmaz."],
     questions: ["İhale ilanındaki sınır değer hesabı türü (Sınır Değer Altı Ret vs Açıklama İstenmesi) teklif başlığında seçilmeli mi?"],
   },
   {
@@ -611,7 +615,7 @@ export const CALC_MODULES: CalcModule[] = [
       "Toplam Ödenecek (TL) = Etkin Aylık Fiyat × Ay Sayısı   (1 / 6 / 12 / 24 ay → 30 / 180 / 365 / 730 gün abonelik süresi)",
     ],
     example: { inputs: [["Paket", "5D BIM & SmartCheck (5.450 TL/ay), 1 Yıllık (%20 İndirim)"], ["PDF Kotası", "Paket limiti 2, eş zamanlı 6 PDF isteği"]], steps: ["Etkin aylık = 5.450 × 0,80 = 4.360 TL/ay; 12 aylık toplam = 52.320 TL (13.080 TL tasarruf)", "PDF rezervasyonu şirket bazında sıralanır: 2 kabul, 4 ret"], result: "Toplam Ödenecek: 52.320 TL (365 gün) · 2 PDF kabul, 4 ret (PDF_QUOTA_EXCEEDED)" },
-    assumptions: ["Plan sütunu boşsa eski sabit limitler geçerlidir (geçiş dönemi).", "Paket pasife alındığında aktif aboneler seçilen alternatif pakete (replacementPlanId) atomik olarak aktarılır."],
+    assumptions: ["Plan sütunu boşsa eski sabit limitler geçerlidir (geçiş dönemi).", "Paket pasife alındığında aktif aboneler seçilen alternatif pakete (replacementPlanId) atomik olarak aktarılır.", "Yeni workspace ve Academy kaydı için aktif deneme/ücretsiz plan gerekir; plan yoksa kayıt 503 döner. Askıdaki owner/admin yalnız ödeme kurtarma POST'larını kullanabilir. Canlı katalog ve admin doğrulaması dağıtım öncesi kontrol edilmelidir."],
     questions: [],
   },
   {

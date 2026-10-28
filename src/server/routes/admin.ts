@@ -4,6 +4,7 @@ import { authenticate, checkSuperAdmin } from "../middleware/auth";
 import { db } from "../../db";
 import { withAppTenant, withAppTenantTransaction, withSuperAdminQueueRead } from "../../db/app-tenant";
 import { getControlDatabase } from "../../db/control-plane";
+import { summarizeApprovedTransfers } from './admin-dashboard-metrics';
 import {
   adminAuditLogs,
   companies,
@@ -65,6 +66,28 @@ import {
   PRICING_SOURCE_CATALOG_VERSION,
 } from "../../services/pricing/source-catalog";
 
+/** A DB heartbeat is only a process-reported signal, not container or deployment proof. */
+async function readWorkerSignals() {
+  try {
+    const result = await getControlDatabase().db.execute<{ kind: unknown; last_seen: unknown; active_instances: unknown; revision: unknown; revision_source: unknown }>(sql`SELECT * FROM public.bimmetraj_worker_heartbeat_summary()`);
+    if (result.rows.length !== 2) return null;
+    const signals = result.rows.map(row => {
+      if (row.kind !== 'worker' && row.kind !== 'ifc-worker') throw new Error('Invalid worker kind');
+      if (row.active_instances == null || String(row.active_instances).trim() === '') throw new Error('Missing worker count');
+      const activeInstances = Number(row.active_instances);
+      if (!Number.isSafeInteger(activeInstances) || activeInstances < 0) throw new Error('Invalid worker count');
+      const lastSeen = row.last_seen == null ? null : new Date(String(row.last_seen));
+      if (lastSeen && !Number.isFinite(lastSeen.getTime())) throw new Error('Invalid worker timestamp');
+      if (row.revision_source != null && row.revision_source !== 'build' && row.revision_source !== 'env') throw new Error('Invalid revision source');
+      if (row.revision != null && (typeof row.revision !== 'string' || row.revision.length > 200)) throw new Error('Invalid revision');
+      return { kind: row.kind, lastSeen: lastSeen?.toISOString() ?? null, activeInstances, revision: row.revision ?? null, revisionSource: row.revision_source ?? null };
+    });
+    return new Set(signals.map(signal => signal.kind)).size === 2 ? signals : null;
+  } catch {
+    return null;
+  }
+}
+
 export function registerAdminRoutes(app: Express) {
   const router = Router();
 
@@ -104,20 +127,34 @@ export function registerAdminRoutes(app: Express) {
 
       // MRR ve Paket Dağılımı
       const mrrRes = await getControlDatabase().db.execute(sql`
-        SELECT p.name, p.monthly_price, COUNT(s.id) as active_count
+        SELECT p.id, p.name, p.monthly_price, COUNT(s.id) as active_count
         FROM subscriptions s
-        JOIN plans p ON p.id = s.plan_id
+        LEFT JOIN plans p ON p.id = s.plan_id
         WHERE s.status = 'active'
-        GROUP BY p.name, p.monthly_price
+        GROUP BY p.id, p.name, p.monthly_price
       `);
 
       let totalMRR = 0;
-      const planDistribution = mrrRes.rows.map((row: any) => {
+      let missingPlanCount = 0;
+      const planDistribution = mrrRes.rows.flatMap((row: any) => {
         const count = Number(row.active_count);
+        if (!row.id || row.monthly_price == null) { missingPlanCount += count; return []; }
         const price = Number(row.monthly_price);
         totalMRR += count * price;
-        return { name: row.name, count };
+        return [{ name: row.name, count }];
       });
+
+      // Approval events represent operator-reviewed bank transfers, not a bank statement.
+      const approvals = await getControlDatabase().db.execute<{ details: unknown }>(sql`
+        SELECT CASE WHEN jsonb_typeof(details->'requestId') = 'string' AND length(details->>'requestId') BETWEEN 1 AND 128
+          AND jsonb_typeof(details->'amountTry') = 'number' AND length(details->>'amountTry') <= 20
+          THEN jsonb_build_object('requestId', details->'requestId', 'amountTry', details->'amountTry') ELSE '{}'::jsonb END AS details
+        FROM admin_audit_logs
+        WHERE action = 'billing.payment_request.approved'
+        ORDER BY created_at DESC, id DESC
+        LIMIT 5001
+      `);
+      const approvedTransfersTotal = summarizeApprovedTransfers(approvals.rows);
 
       // Bu ayki toplam teklif ve IFC sayısı (usage_records üzerinden, mevcut ay formatı YYYY-MM)
       const usageRes = await db.execute(sql`
@@ -136,7 +173,9 @@ export function registerAdminRoutes(app: Express) {
           COUNT(CASE WHEN status = 'queued' THEN 1 END) as queued_count,
           COUNT(CASE WHEN status = 'running' THEN 1 END) as running_count,
           COUNT(CASE WHEN status = 'failed' AND completed_at >= clock_timestamp() - INTERVAL '24 hours' THEN 1 END) as failed_24h,
-          COUNT(CASE WHEN status = 'succeeded' AND completed_at >= clock_timestamp() - INTERVAL '24 hours' THEN 1 END) as succeeded_24h
+          COUNT(CASE WHEN status = 'succeeded' AND completed_at >= clock_timestamp() - INTERVAL '24 hours' THEN 1 END) as succeeded_24h,
+          MIN(created_at) FILTER (WHERE status = 'queued') AS oldest_queued_at,
+          CASE WHEN COUNT(*) FILTER (WHERE status = 'queued') = 0 THEN NULL ELSE GREATEST(0, FLOOR(EXTRACT(EPOCH FROM (clock_timestamp() - MIN(created_at) FILTER (WHERE status = 'queued'))))) END AS oldest_queued_age_seconds
         FROM document_processing_runs
       `));
 
@@ -145,16 +184,22 @@ export function registerAdminRoutes(app: Express) {
         running: Number(queueRes.rows[0]?.running_count || 0),
         failed24h: Number(queueRes.rows[0]?.failed_24h || 0),
         succeeded24h: Number(queueRes.rows[0]?.succeeded_24h || 0),
+        oldestQueuedAt: queueRes.rows[0]?.oldest_queued_at ?? null,
+        oldestQueuedAgeSeconds: queueRes.rows[0]?.oldest_queued_age_seconds == null ? null : Number(queueRes.rows[0].oldest_queued_age_seconds),
       };
+      const workerSignals = await readWorkerSignals();
 
       return res.json({
         totalTenants,
         statusCounts,
-        totalMRR,
+        totalMRR: missingPlanCount ? null : totalMRR,
+        missingPlanCount,
+        approvedTransfersTotal,
         planDistribution,
         totalQuotesThisMonth,
         totalIfcThisMonth,
         queueStats,
+        workerSignals,
       });
     } catch (error) {
       console.error("Dashboard metrics error:", error);
@@ -613,6 +658,8 @@ export function registerAdminRoutes(app: Express) {
             stale: string;
             failed24h: string;
             completed24h: string;
+            oldestQueuedAt: Date | null;
+            oldestQueuedAgeSeconds: string | null;
           }>(sql`
             SELECT
               COUNT(*) FILTER (WHERE ${documentProcessingRuns.status} = 'queued') AS pending,
@@ -622,7 +669,9 @@ export function registerAdminRoutes(app: Express) {
                    OR (${documentProcessingRuns.status} = 'queued' AND COALESCE(${documentProcessingRuns.updatedAt}, ${documentProcessingRuns.createdAt}) <= NOW() - interval '1 minute' * ${queuedMinutes})
               ) AS stale,
               COUNT(*) FILTER (WHERE ${documentProcessingRuns.status} = 'failed' AND ${documentProcessingRuns.completedAt} >= NOW() - interval '24 hours') AS failed24h,
-              COUNT(*) FILTER (WHERE ${documentProcessingRuns.status} = 'succeeded' AND ${documentProcessingRuns.completedAt} >= NOW() - interval '24 hours') AS completed24h
+              COUNT(*) FILTER (WHERE ${documentProcessingRuns.status} = 'succeeded' AND ${documentProcessingRuns.completedAt} >= NOW() - interval '24 hours') AS completed24h,
+              MIN(${documentProcessingRuns.createdAt}) FILTER (WHERE ${documentProcessingRuns.status} = 'queued') AS "oldestQueuedAt",
+              CASE WHEN COUNT(*) FILTER (WHERE ${documentProcessingRuns.status} = 'queued') = 0 THEN NULL ELSE GREATEST(0, FLOOR(EXTRACT(EPOCH FROM (clock_timestamp() - MIN(${documentProcessingRuns.createdAt}) FILTER (WHERE ${documentProcessingRuns.status} = 'queued'))))) END AS "oldestQueuedAgeSeconds"
             FROM ${documentProcessingRuns}
           `);
           const [{ total }] = await queueDb
@@ -667,6 +716,8 @@ export function registerAdminRoutes(app: Express) {
         failed24h: Number(summaryResult?.failed24h ?? 0),
         completed24h: Number(summaryResult?.completed24h ?? 0),
         succeeded24h: Number(summaryResult?.completed24h ?? 0),
+        oldestQueuedAt: summaryResult?.oldestQueuedAt ?? null,
+        oldestQueuedAgeSeconds: summaryResult?.oldestQueuedAgeSeconds == null ? null : Number(summaryResult.oldestQueuedAgeSeconds),
       };
       const runs = rawRuns.map((r) => ({
         ...r,
@@ -689,6 +740,7 @@ export function registerAdminRoutes(app: Express) {
 
       return res.json({
         summary,
+        workerSignals: await readWorkerSignals(),
         pagination: {
           page: pageNum,
           limit: limitNum,

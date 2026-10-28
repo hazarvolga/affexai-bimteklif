@@ -54,6 +54,7 @@ export async function loadEditableQuotation(actorOrCompanyId: TenantContext | st
 }
 
 export async function editManualQuotation(actorOrCompanyId: TenantContext | string, id: string, input: z.infer<typeof editQuotationInput>) {
+  if (input.items.some(item => item.aiEvidenceToken)) throw new QuotationIntegrityError(409, 'AI kaynaklı satırlar mevcut taslak düzenleyicisinde kaydedilemez; kanıtı korumak için yeni teklif oluşturun.');
   const actor = normalizeQuotationTenantActor(actorOrCompanyId);
   const { companyId } = actor;
   return withAppTenantTransaction(actor, async tx => {

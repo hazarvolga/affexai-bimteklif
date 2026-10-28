@@ -100,14 +100,18 @@ test("CDE project roles, immutable scopes, optimistic lock and idempotent decisi
     assert.equal(reused.status, 200);
     assert.equal((await reused.json() as { created: boolean }).created, false);
 
-    const sharedDecision = { action: "approve", expectedVersion: 1, toState: "SHARED", suitabilityCode: "S2", revisionCode: "P01.01" };
+    const sharedDecision = { action: "approve", expectedVersion: 1, toState: "SHARED", suitabilityCode: "S2", revisionCode: "P01.01", reason: "Koordinasyon kontrol edildi." };
     assert.equal((await post(`/api/cde/containers/${containerId}/transitions`, sharedDecision, tokens.viewer, { "Idempotency-Key": "viewer-cannot-approve" })).status, 403);
     const approved = await post(`/api/cde/containers/${containerId}/transitions`, sharedDecision, tokens.approver, { "Idempotency-Key": "approve-shared" });
     assert.equal(approved.status, 200);
-    assert.equal((await approved.json() as { replayed: boolean; event: { resultingVersion: number } }).event.resultingVersion, 2);
+    const approvedBody = await approved.json() as { replayed: boolean; event: { resultingVersion: number; reason: string } };
+    assert.equal(approvedBody.event.resultingVersion, 2);
+    assert.equal(approvedBody.event.reason, sharedDecision.reason);
     const replay = await post(`/api/cde/containers/${containerId}/transitions`, sharedDecision, tokens.approver, { "Idempotency-Key": "approve-shared" });
     assert.equal(replay.status, 200);
-    assert.equal((await replay.json() as { replayed: boolean }).replayed, true);
+    const replayBody = await replay.json() as { replayed: boolean; event: { reason: string } };
+    assert.equal(replayBody.replayed, true);
+    assert.equal(replayBody.event.reason, sharedDecision.reason);
     assert.equal((await post(`/api/cde/containers/${containerId}/transitions`, { action: "approve", expectedVersion: 2, toState: "WIP", suitabilityCode: "S0", revisionCode: "P01.01" }, tokens.approver, { "Idempotency-Key": "approve-cannot-withdraw" })).status, 422, "approve cannot bypass the reasoned withdraw audit action");
     assert.equal((await post(`/api/cde/containers/${containerId}/transitions`, sharedDecision, tokens.viewer, { "Idempotency-Key": "approve-shared" })).status, 403, "viewer cannot replay an authorized decision");
     assert.equal((await post(`/api/cde/containers/${containerId}/transitions`, sharedDecision, tokens.nonMember, { "Idempotency-Key": "approve-shared" })).status, 403, "same-tenant non-member cannot replay a project decision");
@@ -141,14 +145,21 @@ test("CDE project roles, immutable scopes, optimistic lock and idempotent decisi
     assert.equal((await post(`/api/cde/containers/${containerId}/transitions`, { action: "approve", expectedVersion: 5, toState: "SHARED", suitabilityCode: "S2", revisionCode: "P02.01" }, tokens.approver, { "Idempotency-Key": "approve-second-shared" })).status, 200);
     const withdrawn = await post(`/api/cde/containers/${containerId}/transitions`, { action: "withdraw", expectedVersion: 6, reason: "Koordinasyon girdisi güncellenecek.", revisionCode: "P02.01" }, tokens.approver, { "Idempotency-Key": "withdraw-second" });
     assert.equal(withdrawn.status, 200);
-    assert.equal((await withdrawn.json() as { event: { decision: string; resultingVersion: number }; container: { currentState: string } }).event.resultingVersion, 7);
+    const withdrawBody = await withdrawn.json() as { event: { decision: string; resultingVersion: number; reason: string }; container: { currentState: string } };
+    assert.equal(withdrawBody.event.resultingVersion, 7);
+    assert.equal(withdrawBody.event.reason, "Koordinasyon girdisi güncellenecek.");
+    const withdrawReplay = await post(`/api/cde/containers/${containerId}/transitions`, { action: "withdraw", expectedVersion: 6, reason: "Koordinasyon girdisi güncellenecek.", revisionCode: "P02.01" }, tokens.approver, { "Idempotency-Key": "withdraw-second" });
+    assert.equal((await withdrawReplay.json() as { event: { reason: string } }).event.reason, "Koordinasyon girdisi güncellenecek.");
 
     const history = await request(`/api/cde/containers/${containerId}/history`);
     assert.equal(history.status, 200);
-    const historyBody = await history.json() as { revisions: unknown[]; events: Array<{ event: { action: string; decision: string; actorDiscipline: string }; actor: { email: string } }> };
+    const historyBody = await history.json() as { revisions: unknown[]; events: Array<{ event: { action: string; decision: string; actorDiscipline: string; reason: string }; actor: { email: string } }> };
     assert.equal(historyBody.revisions.length, 2);
     assert.ok(historyBody.events.some(({ event }) => event.decision === "invalidated"));
+    assert.equal(historyBody.events.find(({ event }) => event.action === "reject")?.event.reason, "Koordinasyon eksik.");
+    assert.equal(historyBody.events.find(({ event }) => event.action === "approve")?.event.reason, sharedDecision.reason);
     assert.ok(historyBody.events.some(({ event }) => event.action === "withdraw" && event.decision === "accepted"));
+    assert.equal(historyBody.events.find(({ event }) => event.action === "withdraw")?.event.reason, "Koordinasyon girdisi güncellenecek.");
     assert.ok(historyBody.events.some(({ event, actor }) => event.actorDiscipline === "QA" && actor.email === approver.email));
     assert.equal(JSON.stringify(historyBody).includes("approve-shared"), false, "history DTO does not expose idempotency keys");
     assert.equal((await request(`/api/cde/projects/by-document/${document.id}`, {}, tokens.other)).status, 404);

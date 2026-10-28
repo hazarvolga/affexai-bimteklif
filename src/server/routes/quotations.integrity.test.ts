@@ -14,7 +14,7 @@ useTestIsolation();
 test("quotation integrity against isolated PostgreSQL", { timeout: 30_000 }, async (t) => {
   if (await skipIfDatabaseUnavailable(t)) return;
   const [{ db }, { companies, clients, quotations, quotationItems, quotationItemEvidence, users, memberships, subscriptions,
-    documents, documentProcessingRuns, normalizedQuantityRows, priceSources, priceSnapshots }, { registerQuotationRoutes }] = await Promise.all([
+    documents, documentProcessingRuns, normalizedQuantityRows, priceSources, priceSnapshots, smartcheckAuditLogs }, { registerQuotationRoutes }] = await Promise.all([
     import("../../db"), import("../../db/schema"), import("./quotations"),
   ]);
   const isolation = await db.execute(sql`SELECT current_schema() AS schema`);
@@ -39,8 +39,10 @@ test("quotation integrity against isolated PostgreSQL", { timeout: 30_000 }, asy
     items: [{ description: "Work", unit: "m2", quantity: 2, unitPrice: 100, costUnitPrice: 70, wastePercent: 5,
       costCategory: "labor", discountPercent: 10, vatPercent: 20 }],
   });
-  // Tenant transactions need a UUID actor; policies scope by company only.
-  const actorUserId = crypto.randomUUID();
+  // Route audit records require a real actor membership in the relevant company.
+  const [actor] = await db.insert(users).values({ email: `${crypto.randomUUID()}@example.test`, fullName: 'Quotation actor' }).returning();
+  await db.insert(memberships).values([company, other].map(tenant => ({ companyId: tenant.id, userId: actor.id, role: 'owner' as const })));
+  const actorUserId = actor.id;
   const call = async (route: string, body: unknown = {}, id?: string, companyId = company.id) => {
     const response = { statusCode: 200, body: undefined as any,
       status(code: number) { this.statusCode = code; return this; },
@@ -53,6 +55,39 @@ test("quotation integrity against isolated PostgreSQL", { timeout: 30_000 }, asy
   const itemsFor = (id: string) => db.select().from(quotationItems).where(eq(quotationItems.quotationId, id));
   const series = (id: string) => db.select().from(quotations).where(and(eq(quotations.companyId, company.id), or(eq(quotations.id, id), eq(quotations.parentId, id))));
   const evidenceFor = (id: string) => db.select().from(quotationItemEvidence).where(eq(quotationItemEvidence.quotationId, id));
+  await t.test('quotation pagination uses ID to break identical creation-time ties', async () => {
+    const ids = ["00000000-0000-4000-8000-000000000001", "00000000-0000-4000-8000-000000000002", "00000000-0000-4000-8000-000000000003"];
+    await db.insert(quotations).values(ids.map((id) => ({ id, companyId: company.id, clientId: client.id, quoteNumber: id, projectName: 'Tie', date: new Date('2026-01-01'), expiryDate: new Date('2026-12-01'), createdAt: new Date('2099-01-01'), subtotal: '0', discountTotal: '0', vatTotal: '0', grandTotal: '0' })));
+    const readPage = async (offset: number) => { const res = { statusCode: 200, body: [] as any[], status(code:number) {this.statusCode=code;return this}, json(value:any) {this.body=value;return this} }; await routes.get('get /api/quotations')!({ query: {limit:'1',offset:String(offset)}, user:{companyId:company.id,userId:actorUserId} },res); assert.equal(res.statusCode,200); return res.body[0].id; };
+    assert.deepEqual(await Promise.all([readPage(0), readPage(1), readPage(2)]), [...ids].reverse());
+  });
+  await t.test('quotation creation writes an audit for its tenant member', async () => {
+    const response = await create();
+    assert.equal(response.statusCode, 200);
+    const { withAppTenant } = await import('../../db/app-tenant');
+    const logs = await withAppTenant({ companyId: company.id, userId: actor.id }, tx => tx.select().from(smartcheckAuditLogs).where(and(eq(smartcheckAuditLogs.companyId, company.id), eq(smartcheckAuditLogs.entityId, response.body.id), eq(smartcheckAuditLogs.action, 'quotation.created'))));
+    assert.equal(logs.length, 1);
+    assert.equal(logs[0].userId, actor.id);
+  });
+  await t.test('detail exposes only tenant scoped sanitized AI evidence', async () => {
+    const quote = (await create()).body;
+    const [item] = await itemsFor(quote.id);
+    const [user] = await db.insert(users).values({ email: `${crypto.randomUUID()}@example.test`, fullName: 'AI reviewer' }).returning();
+    await db.insert(memberships).values({ userId: user.id, companyId: company.id, role: 'owner' });
+    await db.insert(quotationItemEvidence).values([
+      { companyId: company.id, quotationId: quote.id, quotationItemId: item.id, evidenceType: 'source', evidenceKey: crypto.randomUUID(), createdByUserId: user.id, capturedValueJson: { kind: 'ai_estimate', original: { description: 'Öneri', unit: 'm2', quantity: 1, unitPrice: 3, secret: 'must-not-leak' }, changedFields: ['quantity'], secret: 'must-not-leak' } },
+      { companyId: company.id, quotationId: quote.id, quotationItemId: item.id, evidenceType: 'rule', evidenceKey: crypto.randomUUID(), createdByUserId: user.id, capturedValueJson: { kind: 'ai_estimate', secret: 'must-not-leak' } },
+      { companyId: company.id, quotationId: quote.id, quotationItemId: item.id, evidenceType: 'quantity', evidenceKey: crypto.randomUUID(), createdByUserId: user.id, sourceCellRange: 'IFC#12', capturedValueJson: { quantity: 5, unit: 'm2', review: { status: 'approved', notes: 'must-not-leak' } } },
+      { companyId: company.id, quotationId: quote.id, quotationItemId: item.id, evidenceType: 'price', evidenceKey: crypto.randomUUID(), createdByUserId: user.id, capturedValueJson: { amount: '123', currency: 'TRY', unit: 'm2', secret: 'must-not-leak' } },
+      { companyId: company.id, quotationId: quote.id, quotationItemId: item.id, evidenceType: 'price', status: 'stale', evidenceKey: crypto.randomUUID(), createdByUserId: user.id, capturedValueJson: { amount: '999' } },
+    ]);
+    const detail = await call('get /api/quotations/:id', {}, quote.id);
+    assert.equal(detail.statusCode, 200);
+    assert.deepEqual(detail.body.items[0].aiEvidence, { original: { description: 'Öneri', unit: 'm2', quantity: 1, unitPrice: 3 }, changedFields: ['quantity'] });
+    assert.deepEqual(detail.body.items[0].sourceEvidence, { quantity: [{ quantity: '5', unit: 'm2', sourceCellRange: 'IFC#12', reviewStatus: 'approved' }], price: [{ amount: '123', currency: 'TRY', unit: 'm2', zeroPriceReason: null }] });
+    assert.ok(!JSON.stringify(detail.body).includes('must-not-leak'));
+    assert.equal((await call('get /api/quotations/:id', {}, quote.id, other.id)).statusCode, 404);
+  });
   const evidenceFixture = async () => {
     const data = payload();
     const root = (await create({ ...data, items: [data.items[0], { ...data.items[0], description: "Second item" }] })).body;
@@ -85,6 +120,21 @@ test("quotation integrity against isolated PostgreSQL", { timeout: 30_000 }, asy
     }
     return { root, items, evidence: await evidenceFor(root.id) };
   };
+
+  await t.test('PDF route returns 409 when a legacy zero has no price evidence', async () => {
+    const { root, items } = await evidenceFixture();
+    await db.update(quotationItems).set({ unitPrice: '0', priceSource: 'document' }).where(eq(quotationItems.id, items[0].id));
+    const { EventEmitter } = await import('node:events');
+    const req = Object.assign(new EventEmitter(), { params: { id: root.id }, query: {}, user: { companyId: company.id, userId: actorUserId } });
+    const res = Object.assign(new EventEmitter(), { statusCode: 200, body: undefined as any, destroyed: false,
+      status(code: number) { this.statusCode = code; return this; },
+      json(value: unknown) { this.body = value; return this; },
+      set() { return this; },
+    });
+    await routes.get('get /api/quotations/:id/pdf')!(req, res);
+    assert.equal(res.statusCode, 409);
+    assert.deepEqual(res.body, { error: 'Fiyat kaynağı belirsiz; satırı yeniden doğrulayın.', code: 'PDF_PRICE_SOURCE_UNCERTAIN' });
+  });
 
   await t.test("revision clones all evidence fields/statuses with fresh IDs and correct item mapping", async () => {
     const { root, items, evidence } = await evidenceFixture();

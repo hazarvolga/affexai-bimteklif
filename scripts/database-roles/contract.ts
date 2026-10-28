@@ -58,6 +58,8 @@ export const DATABASE_SCHEMA_SPECS = Object.freeze([
 }>[]);
 
 export const DATABASE_FUNCTION_EXECUTE_SPECS = Object.freeze([
+  Object.freeze({ schema: "public", name: "bimmetraj_worker_heartbeat", arguments: "uuid, text, text, text", fullArguments: "p_id uuid, p_kind text, p_revision text, p_revision_source text", roles: Object.freeze(["bimmetraj_worker"] as const), securityDefiner: true, strict: false, result: "void" }),
+  Object.freeze({ schema: "public", name: "bimmetraj_worker_heartbeat_summary", arguments: "", fullArguments: "", roles: Object.freeze(["bimmetraj_control"] as const), securityDefiner: true, strict: false, result: "TABLE(kind text, last_seen timestamp with time zone, active_instances bigint, revision text, revision_source text)" }),
   Object.freeze({ schema: "teklifpro_queue", name: "add_job", arguments: "text, json, text, timestamp with time zone, integer, text, integer, text[], text", fullArguments: "identifier text, payload json DEFAULT NULL::json, queue_name text DEFAULT NULL::text, run_at timestamp with time zone DEFAULT NULL::timestamp with time zone, max_attempts integer DEFAULT NULL::integer, job_key text DEFAULT NULL::text, priority integer DEFAULT NULL::integer, flags text[] DEFAULT NULL::text[], job_key_mode text DEFAULT 'replace'::text", roles: Object.freeze(["bimmetraj_worker"] as const), securityDefiner: false, strict: false, result: "teklifpro_queue._private_jobs" }),
   Object.freeze({ schema: "teklifpro_queue", name: "add_jobs", arguments: "teklifpro_queue.job_spec[], boolean", fullArguments: "specs teklifpro_queue.job_spec[], job_key_preserve_run_at boolean DEFAULT false", roles: Object.freeze(["bimmetraj_worker"] as const), securityDefiner: false, strict: false, result: "SETOF teklifpro_queue._private_jobs" }),
   Object.freeze({ schema: "teklifpro_queue", name: "remove_job", arguments: "text", fullArguments: "job_key text", roles: Object.freeze([] as const), securityDefiner: false, strict: true, result: "teklifpro_queue._private_jobs" }),
@@ -116,6 +118,8 @@ export const DATABASE_QUOTATION_CORE_RLS_TABLES = Object.freeze([
   "quotation_transfer_ledgers",
   "quotation_transfer_source_rows",
 ] as const);
+/** Finance rows inherit their tenant scope from the parent quotation. */
+export const DATABASE_FINANCE_QUOTATION_RLS_TABLES = Object.freeze(['cost_components', 'quotation_financials'] as const);
 /** Pricing, source intelligence, and regulation tables without worker or control-plane access, migrated in 0024 with the CDE policy matrix. */
 export const DATABASE_PRICING_REGULATIONS_RLS_TABLES = Object.freeze([
   "price_sources",
@@ -162,6 +166,7 @@ export const DATABASE_AUTHORITY_AUDIT_COMPANY_TABLES = Object.freeze([
   "usage_records",
 ] as const);
 export const DATABASE_PUBLIC_RESTRICTED_TABLE_ACL = Object.freeze({
+  worker_process_heartbeats: Object.freeze({ bimmetraj_app: Object.freeze([]), bimmetraj_control: Object.freeze([]), bimmetraj_worker: Object.freeze([]) }),
   companies: Object.freeze({ bimmetraj_app: Object.freeze(["SELECT"]), bimmetraj_control: Object.freeze(["DELETE", "INSERT", "SELECT", "UPDATE"]), bimmetraj_worker: Object.freeze([]) }),
   subscriptions: Object.freeze({ bimmetraj_app: Object.freeze(["SELECT"]), bimmetraj_control: Object.freeze(["DELETE", "INSERT", "SELECT", "UPDATE"]), bimmetraj_worker: Object.freeze([]) }),
   plans: Object.freeze({ bimmetraj_app: Object.freeze(["SELECT"]), bimmetraj_control: Object.freeze(["INSERT", "SELECT", "UPDATE"]), bimmetraj_worker: Object.freeze([]) }),
@@ -210,6 +215,37 @@ export const DATABASE_QUEUE_MIGRATION_REVISION = 18;
 export const DATABASE_QUEUE_STRUCTURE_FINGERPRINT = "fecec79451c22e2ae6ad1a040c7eb88c0a4b4c94467f30555d9d003ec088e57e";
 
 export const DATABASE_SECURITY_DEFINER_WRAPPERS = Object.freeze({
+  bimmetraj_worker_heartbeat: `
+BEGIN
+  IF session_user <> 'bimmetraj_worker' THEN RAISE EXCEPTION 'worker role required' USING ERRCODE = '42501'; END IF;
+  -- Serialize quota checks across processes using the shared worker identity.
+  PERFORM pg_advisory_xact_lock(hashtext('bimmetraj.worker_heartbeat.quota'));
+  DELETE FROM public.worker_process_heartbeats WHERE seen_at < clock_timestamp() - interval '1 day';
+  IF EXISTS (SELECT 1 FROM public.worker_process_heartbeats WHERE instance_id = p_id AND kind <> p_kind) THEN
+    RAISE EXCEPTION 'heartbeat kind mismatch' USING ERRCODE = '22023';
+  END IF;
+  IF EXISTS (SELECT 1 FROM public.worker_process_heartbeats WHERE instance_id = p_id AND seen_at > clock_timestamp() - interval '10 seconds') THEN RETURN; END IF;
+  IF NOT EXISTS (SELECT 1 FROM public.worker_process_heartbeats WHERE instance_id = p_id) THEN
+    IF (SELECT count(*) FROM public.worker_process_heartbeats WHERE kind = p_kind) >= 32 THEN
+      DELETE FROM public.worker_process_heartbeats WHERE instance_id = (
+        SELECT instance_id FROM public.worker_process_heartbeats WHERE kind = p_kind AND seen_at < clock_timestamp() - interval '90 seconds' ORDER BY seen_at LIMIT 1
+      );
+    END IF;
+    IF (SELECT count(*) FROM public.worker_process_heartbeats WHERE kind = p_kind) >= 32 THEN
+      RAISE EXCEPTION 'heartbeat instance quota reached' USING ERRCODE = '54000';
+    END IF;
+  END IF;
+  INSERT INTO public.worker_process_heartbeats(instance_id, kind, revision, revision_source, seen_at)
+    VALUES (p_id, p_kind, p_revision, p_revision_source, clock_timestamp())
+    ON CONFLICT (instance_id) DO UPDATE SET revision = EXCLUDED.revision, revision_source = EXCLUDED.revision_source, seen_at = clock_timestamp();
+END `,
+  bimmetraj_worker_heartbeat_summary: `
+BEGIN
+  IF session_user <> 'bimmetraj_control' THEN RAISE EXCEPTION 'control role required' USING ERRCODE = '42501'; END IF;
+  RETURN QUERY SELECT kinds.kind, latest.seen_at, (SELECT count(*) FROM public.worker_process_heartbeats h WHERE h.kind = kinds.kind AND h.seen_at >= clock_timestamp() - interval '90 seconds'), latest.revision, latest.revision_source
+    FROM (VALUES ('worker'::text), ('ifc-worker'::text)) kinds(kind)
+    LEFT JOIN LATERAL (SELECT h.seen_at, h.revision, h.revision_source FROM public.worker_process_heartbeats h WHERE h.kind = kinds.kind ORDER BY h.seen_at DESC LIMIT 1) latest ON true;
+END `,
   bimmetraj_enqueue_smartcheck: `
       begin
         if p_identifier is null or p_identifier not in ('process_smartcheck_document','process_smartcheck_ifc_document') then raise exception 'Unsupported SmartCheck task identifier' using errcode='22023'; end if;

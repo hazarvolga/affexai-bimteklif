@@ -46,6 +46,7 @@ export const smartcheckRowReviewRequestSchema = z.object({
   status: z.enum(["approved", "rejected", "accepted_exception"]),
   notes: z.string().trim().max(2000).nullable().optional(),
   reviewerDiscipline: z.enum(["STR", "ARC", "MEP"]).optional(),
+  expectedUpdatedAt: z.string().datetime({ offset: true }).optional(),
   correction: correctionSchema.optional(),
 }).passthrough();
 
@@ -59,6 +60,7 @@ export const smartcheckBulkReviewRequestSchema = z.object({
 const transferOverrideSchema = z.object({
   quantity: z.unknown().optional(),
   unitPrice: z.unknown().optional(),
+  zeroPriceReason: z.string().trim().max(2000).optional(),
   costUnitPrice: z.unknown().optional(),
   wastePercent: z.unknown().optional(),
   vatPercent: z.unknown().optional(),

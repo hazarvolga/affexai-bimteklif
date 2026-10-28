@@ -12,6 +12,6 @@ export async function selectTrialPlan(tx: Transaction) {
   const [plan] = await tx.select().from(plans)
     .where(and(eq(plans.isActive, true), or(eq(plans.isTrial, true), eq(plans.monthlyPrice, 0))))
     .orderBy(desc(plans.isTrial), asc(plans.createdAt), asc(plans.id))
-    .limit(1);
+    .limit(1).for('share');
   return plan;
 }

@@ -94,7 +94,7 @@ export const createAuthenticate = (dependencies: AuthDependencies = authDependen
     if (impersonatedBy) {
       const admin = await dependencies.findUser(impersonatedBy);
       const revoked = !dependencies.isImpersonationRevoked || await dependencies.isImpersonationRevoked(impersonationTokenHash!);
-      if (!admin?.isSuperAdmin || (admin.passwordChangedAt && iat < Math.floor(admin.passwordChangedAt.getTime() / 1000)) || revoked) {
+      if (!admin?.isSuperAdmin || !admin.emailVerified || (admin.passwordChangedAt && iat < Math.floor(admin.passwordChangedAt.getTime() / 1000)) || revoked) {
         return res.status(401).json({ error: "Impersonation session expired" });
       }
     }
@@ -108,7 +108,7 @@ export const createAuthenticate = (dependencies: AuthDependencies = authDependen
       role: membership?.role ?? null,
       email: user.email,
       emailVerified: user.emailVerified,
-      isSuperAdmin: Boolean(user.isSuperAdmin && !impersonatedBy),
+      isSuperAdmin: Boolean(user.isSuperAdmin && user.emailVerified && !impersonatedBy),
       impersonatedBy,
       readOnly: impersonatedBy ? readOnly !== false : Boolean(readOnly),
       impersonationTokenHash,
@@ -125,7 +125,9 @@ export const createAuthenticate = (dependencies: AuthDependencies = authDependen
     // Suspended tenant guard: block mutating methods for non-active subscription
     if (!req.user.isSuperAdmin && companyId && !isReadMethod && dependencies.findSubscription) {
       const sub = await dependencies.findSubscription(companyId, userId);
-      if (sub && sub.status !== "active") {
+      const path = req.originalUrl?.split('?')[0];
+      const billingRecovery = req.method === 'POST' && !req.user.impersonatedBy && ['owner', 'admin'].includes(req.user.role) && (path === '/api/billing/payment-requests/init' || path === '/api/billing/payment-requests');
+      if (sub && sub.status !== "active" && !billingRecovery) {
         return res.status(403).json({
           error: "Aboneliğiniz askıya alınmıştır veya ödeme beklenmektedir. Lütfen aboneliğinizi yenileyiniz.",
           code: "SUBSCRIPTION_SUSPENDED",
@@ -153,7 +155,7 @@ export const checkRole = (roles: string[]) => (req: any, res: any, next: any) =>
 };
 
 export const checkSuperAdmin = () => (req: any, res: any, next: any) => {
-  if (!req.user || !req.user.isSuperAdmin || req.user.impersonatedBy || req.user.emailVerified === false) {
+  if (!req.user || !req.user.isSuperAdmin || req.user.impersonatedBy || !req.user.emailVerified) {
     return res.status(403).json({ error: "Forbidden: Super Admin only" });
   }
   next();

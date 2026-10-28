@@ -2,11 +2,15 @@ import React, { useMemo, useState } from "react";
 import { evaluateKikForm, type KikFormState } from "@/lib/calculators/kik-form";
 import { CalculationFeedback } from "@/features/expert-feedback/CalculationFeedback";
 import { CalcField, CalculatorShell, calcInputClass, fmtNum, fmtTry } from "./CalculatorShell";
+import { parseTrNumber } from "@/lib/tr-number";
 
 export const KikAdtCalculatorPage: React.FC = () => {
   const [form, setForm] = useState<KikFormState>({ ym: "", category: "", bids: "", ourBid: "", items: "", nOverride: "", administrationSourceIdentity: "" });
   const set = <K extends keyof KikFormState>(k: K, v: KikFormState[K]) => setForm((f) => ({ ...f, [k]: v }));
   const outcome = useMemo(() => evaluateKikForm(form), [form]);
+  const nValue = parseTrNumber(form.nOverride ?? "");
+  const exception = form.nCoefficientException ?? { preliminaryProject: false, issuingAuthority: "", officialGazetteReference: "", tenderReference: "" };
+  const setException = (patch: Partial<typeof exception>) => set("nCoefficientException", { ...exception, ...patch });
 
   return (
     <CalculatorShell
@@ -17,7 +21,7 @@ export const KikAdtCalculatorPage: React.FC = () => {
       intro="4734 sayılı Kanun m.38 ve Kamu İhale Genel Tebliği m.45.1.1 uyarınca yapım işlerinde sınır değeri (SD) hesaplar. Yaklaşık maliyeti ve ilk oturumdaki geçerli teklifleri siz girersiniz; hiçbir değer varsayılmaz."
       sources={[
         { label: "4734 sayılı Kamu İhale Kanunu, madde 38 (aşırı düşük teklifler)" },
-        { label: "Kamu İhale Genel Tebliği m.45.1.1, 45.1.1.1, 45.1.1.4, 45.1.2 ve 45.2 örneği; RG 29.12.2010/27800 6. Mükerrer: https://www.resmigazete.gov.tr/eskiler/2010/12/20101229M6-13.htm" },
+        { label: "Kamu İhale Genel Tebliği m.45.1.1–45.1.2 ve 45.2 örneği; özellikle m.45.1.1.2 ön proje istisnası: https://www.ihale.gov.tr/DokumanDownload.aspx?DokumanID=1556" },
         { label: "Formül uygulaması: src/lib/kik-adt.ts, golden testleri src/lib/kik-adt.golden.test.ts" },
       ]}
     >
@@ -38,9 +42,19 @@ export const KikAdtCalculatorPage: React.FC = () => {
               <option value="alt_yapi">Diğer yapım işleri, altyapı vb. (N = 1,20)</option>
             </select>
           </CalcField>
-          <CalcField label="İdarenin belirlediği N (isteğe bağlı)" hint="İdare ilanda veya idari şartnamede 1,00–1,20 arasında farklı bir N belirlediyse girin; boşsa iş grubunun N değeri kullanılır.">
+          <CalcField label="İdarenin belirlediği N (isteğe bağlı)" hint="Genel aralık 1,00–1,20'dir. Bakanlıkça ön proje üzerinden ihale edilen üstyapı işleri için 0,90–1,10 istisnası, Resmî Gazete ilanı ve ihale dokümanıyla teyit edilmelidir. Boşsa iş grubunun N değeri kullanılır.">
             <input className={calcInputClass} inputMode="decimal" aria-label="İdarenin belirlediği N" value={form.nOverride ?? ""} onChange={(e) => set("nOverride", e.target.value)} placeholder="örn. 1,10" />
           </CalcField>
+          {nValue !== null && nValue < 1 && (
+            <fieldset className="space-y-3 border border-border bg-card p-3">
+              <legend className="text-sm font-semibold">Ön proje istisnası dayanağı</legend>
+              <p className="text-xs text-muted-foreground">Bu bilgiler kullanıcı beyanıdır; sistem ilan veya ihale şartlarını doğrulamaz.</p>
+              <label className="flex items-start gap-2 text-sm"><input type="checkbox" checked={exception.preliminaryProject} onChange={(e) => setException({ preliminaryProject: e.target.checked })} /> Bakanlıkça ön proje üzerinden ihale edilen üstyapı işi olduğunu ve ihale dokümanındaki katsayıyı beyan ediyorum.</label>
+              <CalcField label="Yetkili bakanlık"><input className={calcInputClass} aria-label="Yetkili bakanlık" value={exception.issuingAuthority} onChange={(e) => setException({ issuingAuthority: e.target.value })} /></CalcField>
+              <CalcField label="Resmî Gazete ilanı"><input className={calcInputClass} aria-label="Resmî Gazete ilanı" value={exception.officialGazetteReference} onChange={(e) => setException({ officialGazetteReference: e.target.value })} placeholder="Tarih ve sayı" /></CalcField>
+              <CalcField label="İhale dokümanı referansı"><input className={calcInputClass} aria-label="İhale dokümanı referansı" value={exception.tenderReference} onChange={(e) => setException({ tenderReference: e.target.value })} placeholder="İKN ve ilgili şartname maddesi" /></CalcField>
+            </fieldset>
+          )}
           <CalcField label="Geçerli teklifler (₺)" hint="Her satıra bir teklif yazın. İlk oturumdaki geçerli teklifler.">
             <textarea
               aria-label="Geçerli teklifler"

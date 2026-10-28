@@ -14,4 +14,6 @@ export const E2E_COMPANY_NAME = 'E2E Taahhüt A.Ş.';
 export const E2E_CLIENT_NAME = 'E2E Müşteri Ltd.';
 
 /** Repo sample model (buildingSMART, see fixtures/phase-0/open-source). */
-export const E2E_IFC_SAMPLE = 'fixtures/phase-0/open-source/buildingsmart/ifc4-wall-opening-window.ifc';
+export const E2E_IFC_SAMPLE = 'fixtures/phase-0/open-source/buildingsmart/ifc4x3-building-structural.ifc';
+/** Multiple contexts make this model's geometry unsafe for quantity evidence. */
+export const E2E_IFC_UNVERIFIED_GEOMETRY = 'fixtures/phase-0/open-source/buildingsmart/ifc4-wall-opening-window.ifc';

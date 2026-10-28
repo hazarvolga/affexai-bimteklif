@@ -1,3 +1,4 @@
+import { attachProcessHeartbeat } from "./process-heartbeat";
 import { cleanupExpiredPendingUploads, startPendingUploadCleanup } from "./upload-cleanup";
 import { createStorageAdapter } from "./storage";
 import { assertProductionEnvironment, validateSmartcheckStorageEnvironment } from "../../server/config/production";
@@ -36,6 +37,7 @@ export async function startWorker() {
     pollInterval: 1000,
     taskList: workerTaskList,
   }));
+  attachProcessHeartbeat(connectionString, "worker", runner.promise);
   const cleanup = startPendingUploadCleanup(() => cleanupExpiredPendingUploads(createStorageAdapter()), () => console.error("Pending upload cleanup failed"));
   void runner.promise.then(() => cleanup.stop(), () => cleanup.stop());
   return runner;

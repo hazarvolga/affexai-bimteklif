@@ -7,6 +7,7 @@ import { fetchWithAuth } from '../../lib/api';
 import { Button } from '../../components/ui/button';
 import { toast } from 'sonner';
 import { serializeCsv } from '../../lib/tabular-data';
+import { quickEditPreview } from './admin-quick-edit-preview';
 
 export function TenantsList() {
   const [tenants, setTenants] = useState<any[]>([]);
@@ -120,14 +121,12 @@ export function TenantsList() {
   };
 
   const handleSave = async () => {
+    const changes = { planId: editPlanId || null, status: editStatus, bonusQuoteLimit: Number(editBonus) };
+    if (!window.confirm(quickEditPreview(selectedTenant, changes, plans))) return;
     try {
       const res = await fetchWithAuth(`/api/admin/tenants/${selectedTenant.id}`, {
         method: 'PATCH',
-        body: JSON.stringify({
-          planId: editPlanId || null,
-          status: editStatus,
-          bonusQuoteLimit: Number(editBonus),
-        }),
+        body: JSON.stringify(changes),
       });
       if (res.ok) {
         toast.success('Firma başarıyla güncellendi.');
@@ -355,7 +354,7 @@ export function TenantsList() {
                   onChange={(e) => setEditPlanId(e.target.value)}
                   className="w-full rounded-lg border border-border bg-card px-4 py-2 text-foreground"
                 >
-                  <option value="">Paket Yok</option>
+                    <option value="">Katalog paketi seçilmedi</option>
                   {plans.map((p) => (
                     <option key={p.id} value={p.id}>
                       {p.name} (₺{p.monthlyPrice})
@@ -378,7 +377,7 @@ export function TenantsList() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-muted-foreground mb-1">Bonus Kota Ekle</label>
+                <label className="block text-sm font-medium text-muted-foreground mb-1">Ek teklif kotası (toplam)</label>
                 <input
                   type="number"
                   min={0}

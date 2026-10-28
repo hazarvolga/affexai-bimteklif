@@ -225,7 +225,7 @@ export default function LegislationView() {
           </p>
 
           <p className="text-xs text-muted-foreground leading-relaxed">
-            BIMMetraj hızlı tarayıcı önizlemesini tam metraj saymaz. Sunucu IFC işçisi QTO önceliğini, bağımsız alan/hacim/kütle birimlerini, aggregate parça dışlamalarını ve dosya–işlem–STEP kimlik zincirini raporlar; sonuç yine proje müellifi ve ilgili disiplin uzmanının incelemesini gerektirir.
+            BIMMetraj hızlı tarayıcı önizlemesini tam metraj saymaz. Sunucu IFC işçisi QTO önceliğini, bağımsız alan/hacim/kütle birimlerini, aggregate parça dışlamalarını ve dosya–işlem–STEP kimlik zincirini raporlar. Geometriden türetilen miktarlar otomatik metraj kanıt satırına alınmaz; kaynak yolu ve bulgular incelenmelidir. Dosyada yüksek önem düzeyinde miktar bulgusu varsa diğer QTO satırları da aktarım için engellenebilir. Sonuç proje müellifi ve ilgili disiplin uzmanının incelemesini gerektirir.
           </p>
 
           <p className="text-xs text-muted-foreground leading-relaxed">

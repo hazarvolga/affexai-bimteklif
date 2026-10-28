@@ -30,6 +30,7 @@ test('Admin /queue/retry and /queue/recover integration tests', async (t) => {
     email: 'queue-admin@example.test',
     fullName: 'Queue Admin',
     isSuperAdmin: true,
+    emailVerified: new Date(),
   }).returning();
 
   const adminToken = AuthService.generateToken({ userId: admin.id, companyId: null, role: null });
@@ -72,6 +73,63 @@ test('Admin /queue/retry and /queue/recover integration tests', async (t) => {
     planId: plan.id,
     status: 'active',
     bonusIfcLimit: 0,
+  });
+
+  await t.test('dashboard distinguishes list-price MRR and approved transfer events, and empty queues have no age', async () => {
+    const tenantToken = AuthService.generateToken({ userId: tenantUser.id, companyId: company.id, role: 'owner' });
+    for (const route of ['/api/admin/dashboard', '/api/admin/queue']) {
+      const denied = await fetch(`${baseUrl}${route}`, { headers: { Authorization: `Bearer ${tenantToken}` } });
+      assert.equal(denied.status, 403, 'tenant owner must not receive global admin metrics');
+    }
+    await db.insert(schema.adminAuditLogs).values([
+      { adminId: admin.id, action: 'billing.payment_request.approved', details: { requestId: 'metrics-a', amountTry: 1000 } },
+      { adminId: admin.id, action: 'billing.payment_request.approved', details: { requestId: 'metrics-a', amountTry: 1000 } },
+      { adminId: admin.id, action: 'billing.payment_request.approved', details: { requestId: 'metrics-b', amountTry: 2000 } },
+      { adminId: admin.id, action: 'billing.payment_request.approved', createdAt: new Date('2024-01-01T00:00:00Z'), details: { requestId: 'metrics-old', amountTry: 100 } },
+      { adminId: admin.id, action: 'billing.payment_request.rejected', details: { requestId: 'metrics-c', amountTry: 9000 } },
+    ]);
+    // Legacy timestamp-without-time-zone stores the same instant in different
+    // calendar months when writer sessions use different PostgreSQL time zones.
+    await fixture.query("set time zone 'America/Los_Angeles'");
+    await fixture.query("insert into admin_audit_logs(admin_id,action,details,created_at) values($1,'billing.payment_request.approved',$2::jsonb,$3::timestamptz)", [admin.id, JSON.stringify({ requestId: 'tz-west', amountTry: 100 }), '2026-03-01T00:15:00Z']);
+    await fixture.query("set time zone 'Pacific/Kiritimati'");
+    await fixture.query("insert into admin_audit_logs(admin_id,action,details,created_at) values($1,'billing.payment_request.approved',$2::jsonb,$3::timestamptz)", [admin.id, JSON.stringify({ requestId: 'tz-east', amountTry: 100 }), '2026-03-01T00:15:00Z']);
+    await fixture.query("set time zone 'UTC'");
+    const months = await fixture.query("select extract(month from created_at)::int as month from admin_audit_logs where details->>'requestId' in ('tz-west','tz-east') order by month");
+    assert.deepEqual(months.rows.map((row: any) => row.month), [2, 3]);
+    const response = await fetch(`${baseUrl}/api/admin/dashboard`, { headers: { Authorization: `Bearer ${adminToken}` } });
+    assert.equal(response.status, 200);
+    const dashboard = await response.json();
+    assert.deepEqual(dashboard.approvedTransfersTotal, { amountTry: 3300, count: 5, complete: true });
+    if (process.env.EXPECT_WORKER_SIGNALS === 'true') {
+      assert.equal(dashboard.workerSignals.length, 2);
+      const signal = dashboard.workerSignals.find((item: any) => item.kind === 'worker');
+      assert.ok(signal.activeInstances >= 1);
+      assert.equal(signal.revision, 'abcdef1234567');
+      assert.equal(signal.revisionSource, 'build');
+      assert.ok(signal.lastSeen);
+    }
+    assert.equal(dashboard.totalMRR, Number(plan.monthlyPrice));
+    assert.equal(dashboard.queueStats.oldestQueuedAt, null);
+    assert.equal(dashboard.queueStats.oldestQueuedAgeSeconds, null);
+    const [missingCompany] = await db.insert(schema.companies).values({ name: 'Planı olmayan aktif firma' }).returning();
+    const [missingSubscription] = await db.insert(schema.subscriptions).values({ companyId: missingCompany.id, planId: null, status: 'active' }).returning();
+    const missingPlan = await fetch(`${baseUrl}/api/admin/dashboard`, { headers: { Authorization: `Bearer ${adminToken}` } });
+    const missingPlanBody = await missingPlan.json();
+    assert.equal(missingPlanBody.totalMRR, null);
+    assert.equal(missingPlanBody.missingPlanCount, 1);
+    await db.delete(schema.subscriptions).where(eq(schema.subscriptions.id, missingSubscription.id));
+    await db.delete(schema.companies).where(eq(schema.companies.id, missingCompany.id));
+    const queue = await fetch(`${baseUrl}/api/admin/queue`, { headers: { Authorization: `Bearer ${adminToken}` } });
+    assert.equal(queue.status, 200);
+    const queueBody = await queue.json();
+    if (process.env.EXPECT_WORKER_SIGNALS === 'true') assert.equal(queueBody.workerSignals.find((item: any) => item.kind === 'worker')?.revision, 'abcdef1234567');
+    assert.equal(queueBody.summary.oldestQueuedAt, null);
+    assert.equal(queueBody.summary.oldestQueuedAgeSeconds, null);
+    const [malformed] = await db.insert(schema.adminAuditLogs).values({ adminId: admin.id, action: 'billing.payment_request.approved', details: { requestId: 'malformed' } }).returning();
+    const unavailable = await fetch(`${baseUrl}/api/admin/dashboard`, { headers: { Authorization: `Bearer ${adminToken}` } });
+    assert.equal((await unavailable.json()).approvedTransfersTotal.amountTry, null);
+    await db.delete(schema.adminAuditLogs).where(eq(schema.adminAuditLogs.id, malformed.id));
   });
 
   const validIfcContent = Buffer.from(
@@ -372,6 +430,8 @@ test('Admin /queue/retry and /queue/recover integration tests', async (t) => {
     assert.equal(dataAll.summary.failed24h, 30);
     assert.equal(dataAll.summary.completed24h, 30);
     assert.equal(dataAll.summary.succeeded24h, 30);
+    assert.ok(dataAll.summary.oldestQueuedAt);
+    assert.ok(dataAll.summary.oldestQueuedAgeSeconds >= 65 * 60);
 
     // Verify pagination
     assert.equal(dataAll.pagination.total, 151);

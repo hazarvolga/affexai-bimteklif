@@ -16,7 +16,6 @@ import {
   UserPlus,
   Users,
   Clock,
-  CheckCircle2,
   XCircle,
   ExternalLink,
   Layout,
@@ -39,6 +38,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { SectionWrapper } from "@/components/layout/SectionWrapper";
 import { fetchWithAuth } from "@/lib/api";
 import { persistIndustryEnabled } from "./settings-industry-client";
+import { SettingsBillingSection } from "./settings-billing-section";
 
 interface CompanyProfileState {
   name: string;
@@ -133,8 +133,6 @@ export function Settings() {
   const [loading, setLoading] = useState(false);
   const [industriesList, setIndustriesList] = useState<any[]>([]);
   const [companyIndustrySettings, setCompanyIndustrySettings] = useState<any[]>([]);
-  const [subscription, setSubscription] = useState<any>(null);
-  const [usage, setUsage] = useState<any[]>([]);
   const [riskSettings, setRiskSettings] = useState({ escalationVolatilityPercent: 0, carbonRiskPremiumPercent: 0, informationDeliveryCostPercent: 0 });
   const [calibration, setCalibration] = useState<any>(null);
   const [calibrationReport, setCalibrationReport] = useState<any>(null);
@@ -161,12 +159,10 @@ export function Settings() {
 
   const fetchData = async () => {
     try {
-      const [invRes, indRes, setRes, subRes, usageRes, riskRes, calibrationRes, reportRes, profileRes] = await Promise.all([
+      const [invRes, indRes, setRes, riskRes, calibrationRes, reportRes, profileRes] = await Promise.all([
         canInvite ? fetchWithAuth("/api/invitations") : Promise.resolve(null),
         fetchWithAuth("/api/ai/industries"),
         fetchWithAuth("/api/company/industry-settings"),
-        fetchWithAuth("/api/billing/subscription"),
-        fetchWithAuth("/api/usage/report"),
         fetchWithAuth("/api/company/risk-settings"),
         fetchWithAuth("/api/company/risk-calibration"),
         fetchWithAuth("/api/company/risk-calibration/report"),
@@ -177,8 +173,6 @@ export function Settings() {
       else setInvites([]);
       if (indRes.ok) setIndustriesList(await indRes.json());
       if (setRes.ok) setCompanyIndustrySettings(await setRes.json());
-      if (subRes.ok) setSubscription(await subRes.json());
-      if (usageRes.ok) setUsage(await usageRes.json());
       if (riskRes.ok) setRiskSettings(await riskRes.json());
       if (calibrationRes.ok) setCalibration(await calibrationRes.json());
       if (reportRes.ok) setCalibrationReport(await reportRes.json());
@@ -308,21 +302,6 @@ export function Settings() {
       toast.error("Bir hata oluştu.");
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleUpgrade = async (plan: string) => {
-    try {
-      const res = await fetchWithAuth('/api/billing/upgrade', {
-        method: 'POST',
-        body: JSON.stringify({ plan })
-      });
-      if (res.ok) {
-        toast.success(`Plan ${plan} olarak güncellendi.`);
-        fetchData();
-      }
-    } catch (e) {
-      toast.error("Yükseltme başarısız.");
     }
   };
 
@@ -696,73 +675,8 @@ export function Settings() {
           </SectionWrapper>
         </TabsContent>
 
-        <TabsContent value="billing" className="space-y-8 animate-in slide-in-from-left-2 duration-300">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <Card className="bg-card border-border shadow-none overflow-hidden relative group">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-orange-600/10 blur-3xl -mr-16 -mt-16 group-hover:bg-orange-600/20 transition-all duration-700"></div>
-              <CardHeader className="border-b border-border bg-card">
-                <CardTitle className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Mevcut Abonelik Planı</CardTitle>
-              </CardHeader>
-              <CardContent className="p-8">
-                <div className="flex items-center justify-between mb-8">
-                  <div>
-                    <h3 className="text-3xl font-black text-foreground uppercase tracking-tight">{subscription?.plan || 'Starter'}</h3>
-                    <p className="text-muted-foreground text-xs font-bold mt-1 uppercase tracking-widest italic">Aylık faturalandırma</p>
-                  </div>
-                  <Badge className="bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 font-black text-[10px] px-3 py-1">AKTİF & ÖDENMİŞ</Badge>
-                </div>
-                <div className="space-y-4 mb-10">
-                  <div className="flex items-center gap-3 text-xs font-bold text-muted-foreground">
-                    <div className="p-1 bg-emerald-500/10 rounded-lg">
-                      <CheckCircle2 size={12} className="text-emerald-500" />
-                    </div>
-                    Teklif Zekası Modülü (Sınırsız)
-                  </div>
-                  <div className="flex items-center gap-3 text-xs font-bold text-muted-foreground">
-                    <div className="p-1 bg-emerald-500/10 rounded-lg">
-                      <CheckCircle2 size={12} className="text-emerald-500" />
-                    </div>
-                    PDF & Doküman Üretimi
-                  </div>
-                  <div className="flex items-center gap-3 text-xs font-bold text-muted-foreground">
-                    <div className="p-1 bg-emerald-500/10 rounded-lg">
-                      <CheckCircle2 size={12} className="text-emerald-500" />
-                    </div>
-                    Ekip İşbirliği (3 Kullanıcı)
-                  </div>
-                </div>
-                <Button className="w-full bg-orange-700 hover:bg-orange-800 text-white font-black text-[10px] uppercase tracking-widest h-12 shadow-lg shadow-orange-900/20" onClick={() => handleUpgrade('pro')}>
-                  PLANI YÜKSELT & ÖZELLİKLERİ AÇ
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-card border-border shadow-none">
-              <CardHeader className="border-b border-border bg-card">
-                <CardTitle className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Bu Ayki Kullanım Kotası</CardTitle>
-              </CardHeader>
-              <CardContent className="p-8 space-y-8">
-                {usage.length > 0 ? usage.map((u: any) => (
-                  <div key={u.feature} className="space-y-3">
-                    <div className="flex justify-between text-[11px] font-black uppercase tracking-widest">
-                      <span className="text-muted-foreground">{u.feature.replace('_', ' ')}</span>
-                      <span className="text-foreground">{u.count} / {u.limit || '∞'}</span>
-                    </div>
-                    <div className="h-2 bg-surface-elevated rounded-full overflow-hidden border border-border">
-                      <div 
-                        className="h-full bg-orange-600 rounded-full shadow-[0_0_10px_rgba(234,88,12,0.5)] transition-all duration-1000" 
-                        style={{ width: `${Math.min(100, (u.count / (u.limit || 100)) * 100)}%` }}
-                      />
-                    </div>
-                  </div>
-                )) : (
-                  <div className="py-12 text-center text-muted-foreground text-xs font-bold uppercase tracking-widest italic">
-                    Kullanım verisi yükleniyor...
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
+        <TabsContent value="billing" className="space-y-8">
+          <SettingsBillingSection />
         </TabsContent>
 
         <TabsContent value="industries" className="space-y-8 animate-in slide-in-from-left-2 duration-300">

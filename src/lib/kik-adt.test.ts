@@ -206,6 +206,18 @@ describe("4734 KİK m.38 & Genel Tebliğ m.45.1.1 Aşırı Düşük Teklif (ADT)
 
 
 describe("N katsayısı aralığı", () => {
+  it("0,90–1,00 altı N için üstyapı, ön proje ve ilan/ihale beyanı gerektirir", () => {
+    const base = { estimatedCostTry: 100_000, validBidsTry: [50_000, 60_000, 70_000], ourBidTry: 55_000, workCategory: "ust_yapi" as const, nCoefficientOverride: 0.9 };
+    const exception = { preliminaryProject: true, issuingAuthority: "Bakanlık", officialGazetteReference: "RG 12345", tenderReference: "İhale 2026/1" };
+    assert.throws(() => evaluateKikAbnormallyLowBid(base), /ön proje|dayanak/i);
+    assert.throws(() => evaluateKikAbnormallyLowBid({ ...base, workCategory: "alt_yapi", nCoefficientException: exception }), /üstyapı/i);
+    assert.throws(() => evaluateKikAbnormallyLowBid({ ...base, workCategory: undefined, nCoefficientException: exception }), /üstyapı/i);
+    assert.throws(() => evaluateKikAbnormallyLowBid({ ...base, nCoefficientException: { ...exception, preliminaryProject: false } }), /ön proje/i);
+    assert.throws(() => evaluateKikAbnormallyLowBid({ ...base, nCoefficientException: { ...exception, officialGazetteReference: " " } }), /ilan/i);
+    assert.equal(evaluateKikAbnormallyLowBid({ ...base, nCoefficientException: exception }).nCoefficient, 0.9);
+    assert.equal(evaluateKikAbnormallyLowBid({ ...base, nCoefficientOverride: 0.99, nCoefficientException: exception }).nCoefficient, 0.99);
+    assert.throws(() => evaluateKikAbnormallyLowBid({ ...base, nCoefficientOverride: 0.89, nCoefficientException: exception }), /0,90/);
+  });
   it("idare 1,00–1,20 arasında belirleyebilir; aralık dışı değer reddedilir", async () => {
   const { evaluateKikAbnormallyLowBid } = await import("./kik-adt");
   const base = { estimatedCostTry: 100_000_000, validBidsTry: [70_000_000, 80_000_000, 90_000_000], ourBidTry: 60_000_000 };

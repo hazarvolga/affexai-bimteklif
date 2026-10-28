@@ -124,7 +124,7 @@ try {
   assert.ok(link.startsWith(`${base}/accept-invite/`));
   await page.screenshot({ path: `${output}/settings-invitation.png`, fullPage: true });
   if (process.env.GAP_ADMIN_SMOKE === 'true') {
-    const [admin] = await db.insert(schema.users).values({ email: 'ui-admin@example.test', fullName: 'UI Admin', isSuperAdmin: true }).returning();
+    const [admin] = await db.insert(schema.users).values({ email: 'ui-admin@example.test', fullName: 'UI Admin', emailVerified: new Date(), isSuperAdmin: true }).returning();
     const [plan] = await db.insert(schema.plans).values({ name: 'Zero Limit', monthlyQuoteLimit: 0, monthlyPrice: 0 }).returning();
     const adminToken = AuthService.generateToken({ userId: admin.id, companyId: null, role: null });
     await signIn(adminToken, { admin: true });
@@ -142,8 +142,23 @@ try {
     const selects = await page.$$('select');
     await selects[0].select(plan.id);
     await selects[1].select('past_due');
+    let changesSent = 0;
+    page.on('request', request => {
+      if (request.method() === 'PATCH' && request.url().endsWith(`/api/admin/tenants/${company.id}`)) changesSent++;
+    });
+    let preview = '';
+    page.once('dialog', async dialog => { preview = dialog.message(); await dialog.dismiss(); });
+    await page.$$eval('button', buttons => buttons.find(button => button.textContent?.includes('Değişiklikleri Kaydet'))!.click());
+    assert.match(preview, /Isolated UI Test/);
+    assert.match(preview, /Zero Limit/);
+    assert.match(preview, /Abonelik yok → past_due/);
+    assert.match(preview, /Yeni abonelik oluşturulacak/);
+    assert.match(preview, /başka bir yönetici değişiklik yapmış olabilir/i);
+    assert.equal(changesSent, 0, 'dismissing preview must not issue a PATCH');
+    page.once('dialog', async dialog => { await dialog.accept(); });
     await page.$$eval('button', buttons => buttons.find(button => button.textContent?.includes('Değişiklikleri Kaydet'))!.click());
     await page.waitForFunction(() => !document.body.innerText.includes('Isolated UI Test Yönetimi'));
+    assert.equal(changesSent, 1, 'accepting preview must issue one PATCH');
     const { eq } = await import('drizzle-orm');
     const saved = await db.query.subscriptions.findFirst({ where: eq(schema.subscriptions.companyId, company.id) });
     assert.equal(saved?.planId, plan.id);

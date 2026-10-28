@@ -5,6 +5,7 @@ import { AIService } from "../../services/ai/aiService";
 import { authenticate } from "../middleware/auth";
 import { usageTracker } from "../middleware/usage";
 import { consumeRateLimit } from "../auth/security";
+import { signAiLine } from '../../services/ai/quotation-provenance';
 
 const detectIndustrySchema = z.object({
   description: z.string().min(1).max(4096),
@@ -66,12 +67,14 @@ export function registerAiRoutes(app: Express, aiService: AIService, canMutate: 
     try {
       const { description, industryId } = parsed.data;
       const result = await aiService.generateQuotation(description, industryId);
+      if (!Array.isArray(result.lineItems) || result.lineItems.length > 200) throw new Error('AI_OUTPUT_INVALID');
       res.json({
         ...result,
         sourceStatus: "ai_estimate",
         authorityStatus: "non_authoritative",
         lineItems: result.lineItems.map((item) => ({
           ...item,
+          aiEvidenceToken: signAiLine(item, { companyId: req.user.companyId, userId: req.user.userId }),
           quantitySource: "ai_estimate",
           unitPriceSource: "ai_estimate",
         })),

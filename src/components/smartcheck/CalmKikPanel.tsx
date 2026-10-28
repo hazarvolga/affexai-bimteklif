@@ -87,6 +87,11 @@ export function CalmKikPanel({
           </div>
         </div>
 
+        <p className="mt-3 border border-amber-500/30 bg-amber-500/5 p-2 text-xs text-foreground">
+          Bu panel yalnızca varsayılan N=1,00 ve N=1,20 değerlerini kullanır. İlanda veya idari şartnamede farklı bir katsayı belirlenmişse, ön proje istisnası dahil,{' '}
+          <a className="font-semibold text-primary underline underline-offset-2" href="/hesaplayicilar/kik-asiri-dusuk-teklif">KİK sınır değer hesaplayıcısını açın</a> ve ilgili dayanağı kontrol edin.
+        </p>
+
         <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-mono">
           <label className="block">
             <span className="text-[10px] text-muted-foreground block mb-1">

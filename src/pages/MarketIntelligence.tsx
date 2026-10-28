@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { BarChart3, Check, FileUp, Loader2, RefreshCw, ShieldAlert, X } from "lucide-react";
 import { toast } from "sonner";
+import { z } from "zod";
 import { fetchWithAuth } from "@/lib/api";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -13,6 +14,17 @@ import { labelOf, OUTLIER_STATUS_LABEL, SUBMISSION_STATUS_LABEL } from '@/i18n/u
 
 type SupplierEntry = { id: string; description: string; positionCode: string | null; unit: string; unitPrice: string; currency: string; outlierStatus: string; baselineCount: number; confidence: string; reviewStatus: string; priceSnapshotId: string | null; sourceProcessingRunId: string | null; sourceQuantityRowId: string | null; sourceCellRange: string | null };
 type SupplierSubmission = { id: string; supplierName: string; documentId: string | null; sourceDocumentIdentifier: string; quoteNumber: string | null; region: string | null; deliveryTerms: string | null; status: string; confidence: string; entries: SupplierEntry[] };
+
+const nullableText = z.string().nullable();
+const supplierEntrySchema = z.object({
+  id: z.string(), description: z.string(), positionCode: nullableText, unit: z.string(), unitPrice: z.string(), currency: z.string(),
+  outlierStatus: z.string(), baselineCount: z.number().int().nonnegative(), confidence: z.string(), reviewStatus: z.string(),
+  priceSnapshotId: nullableText, sourceProcessingRunId: nullableText, sourceQuantityRowId: nullableText, sourceCellRange: nullableText,
+});
+const supplierSubmissionSchema = z.object({
+  id: z.string(), supplierName: z.string(), documentId: nullableText, sourceDocumentIdentifier: z.string(), quoteNumber: nullableText,
+  region: nullableText, deliveryTerms: nullableText, status: z.string(), confidence: z.string(), entries: z.array(supplierEntrySchema),
+});
 
 const emptyForm = { supplierName: "", sourceDocumentIdentifier: "", quoteNumber: "", region: "", deliveryTerms: "", validUntil: "" };
 const emptyEntry = { positionCode: "", description: "", unit: "adet", unitPrice: "", region: "" };
@@ -45,22 +57,56 @@ export function MarketIntelligence() {
   const [entry, setEntry] = useState(emptyEntry);
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(true);
+  const [listError, setListError] = useState(false);
+  const [listLoaded, setListLoaded] = useState(false);
   const [saving, setSaving] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [memory, setMemory] = useState<{ count: number; median: number | null; min: number | null; max: number | null } | null>(null);
+  const [memoryScope, setMemoryScope] = useState({ positionCode: "", unit: "", region: "" });
+  const [memoryLoading, setMemoryLoading] = useState(false);
+  const [memoryError, setMemoryError] = useState<string | null>(null);
+  const memoryRequest = useRef(0);
+  const updateMemoryScope = (field: keyof typeof memoryScope, value: string) => {
+    memoryRequest.current++;
+    setMemoryScope(current => ({ ...current, [field]: value }));
+    setMemory(null);
+    setMemoryError(null);
+    setMemoryLoading(false);
+  };
+  const loadMemory = async () => {
+    const positionCode = memoryScope.positionCode.trim();
+    const unit = memoryScope.unit.trim();
+    if (!positionCode || !unit) return;
+    const request = ++memoryRequest.current;
+    setMemory(null);
+    setMemoryError(null);
+    setMemoryLoading(true);
+    const params = new URLSearchParams({ currency: "TRY", positionCode, unit });
+    if (memoryScope.region.trim()) params.set("region", memoryScope.region.trim());
+    try {
+      const result = await readJson<{ summary: { count: number; median: number | null; min: number | null; max: number | null } }>(`/api/market-intelligence/price-memory?${params}`);
+      if (request === memoryRequest.current) setMemory(result.summary);
+    } catch {
+      if (request === memoryRequest.current) setMemoryError("Fiyat hafızası yüklenemedi. Yeniden deneyin.");
+    } finally {
+      if (request === memoryRequest.current) setMemoryLoading(false);
+    }
+  };
   const activeSubmission = submissions.find((submission) => submission.id === activeId) ?? null;
 
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
-      const [quotes, memoryResponse] = await Promise.all([
-        readJson<SupplierSubmission[]>("/api/market-intelligence/supplier-quotes"),
-        readJson<{ summary: { count: number; median: number | null; min: number | null; max: number | null } }>("/api/market-intelligence/price-memory?currency=TRY"),
-      ]);
-      setSubmissions(quotes);
-      setMemory(memoryResponse.summary);
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Piyasa verileri yüklenemedi.");
+      const quotes = await readJson<unknown>("/api/market-intelligence/supplier-quotes");
+      const parsed = z.array(supplierSubmissionSchema).safeParse(quotes);
+      if (!parsed.success) throw new Error("INVALID_SUPPLIER_QUOTE_LIST");
+      // Zod validates every required nullable field at runtime; this project’s
+      // TypeScript configuration infers those fields as optional.
+      setSubmissions(parsed.data as SupplierSubmission[]);
+      setListLoaded(true);
+      setListError(false);
+    } catch {
+      setListError(true);
     } finally {
       setLoading(false);
     }
@@ -146,11 +192,25 @@ export function MarketIntelligence() {
           </CardContent>
         </Card>
         <div className="space-y-6">
-          <Card className="border-border bg-card shadow-none"><CardHeader className="pb-3"><CardTitle className="text-xs font-black uppercase tracking-widest text-foreground">Firma fiyat hafızası</CardTitle><CardDescription className="text-xs text-muted-foreground">Onaylanmış tedarikçi teklifleri ve firma gerçekleşen maliyetleri.</CardDescription></CardHeader><CardContent><div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">{[["Kayıt", memory?.count ?? 0], ["Medyan", memory?.median == null ? "—" : `${memory.median.toLocaleString("tr-TR")} ₺`], ["Min", memory?.min == null ? "—" : `${memory.min.toLocaleString("tr-TR")} ₺`], ["Max", memory?.max == null ? "—" : `${memory.max.toLocaleString("tr-TR")} ₺`]].map(([label, value]) => <div key={String(label)} className="rounded-lg border border-border bg-background p-2"><p className="text-[11px] font-black uppercase tracking-widest text-muted-foreground">{label}</p><p className="mt-1 text-xs font-black text-foreground">{value}</p></div>)}</div></CardContent></Card>
+          <Card className="border-border bg-card shadow-none">
+            <CardHeader className="pb-3"><CardTitle className="text-xs font-black uppercase tracking-widest text-foreground">Firma fiyat hafızası</CardTitle><CardDescription className="text-xs text-muted-foreground">Karşılaştırma için kayıttaki poz kodu ve birimi aynı yazımla girin; sonuçlar onaylı firma kayıtlarından gelir.</CardDescription></CardHeader>
+            <CardContent className="space-y-3">
+              <div className="grid gap-2 sm:grid-cols-3">
+                <label className="text-xs">Poz kodu <Input value={memoryScope.positionCode} maxLength={120} onChange={e => updateMemoryScope("positionCode", e.target.value)} /></label>
+                <label className="text-xs">Birim <Input value={memoryScope.unit} maxLength={40} onChange={e => updateMemoryScope("unit", e.target.value)} /></label>
+                <label className="text-xs">Bölge (isteğe bağlı) <Input value={memoryScope.region} maxLength={120} onChange={e => updateMemoryScope("region", e.target.value)} /></label>
+              </div>
+              <Button onClick={() => void loadMemory()} disabled={memoryLoading || !memoryScope.positionCode.trim() || !memoryScope.unit.trim()}>{memoryLoading ? "Karşılaştırma yükleniyor…" : "Fiyatları karşılaştır"}</Button>
+              <p className="text-xs text-muted-foreground">Son en fazla 500 onaylı TRY kaydı kullanılır. Bölge boşsa bölgeler birlikte değerlendirilir; bölge girildiğinde tam eşleşme aranır; KDV, nakliye, tarih ve diğer ticari koşullar farklı olabilir.</p>
+              <div aria-live="polite">
+                {memoryLoading ? <p role="status" className="text-xs">Karşılaştırma yükleniyor…</p> : memoryError ? <p role="alert" className="text-xs text-red-400">{memoryError}</p> : !memory ? <p className="text-xs text-muted-foreground">Poz kodu ve birim seçerek karşılaştırmayı başlatın.</p> : memory.count === 0 ? <p className="text-xs text-muted-foreground">Bu kapsamda onaylı fiyat kaydı bulunamadı.</p> : <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">{[["Kayıt", memory.count], ["Medyan", memory.median == null ? "—" : `${memory.median.toLocaleString("tr-TR")} ₺`], ["Min", memory.min == null ? "—" : `${memory.min.toLocaleString("tr-TR")} ₺`], ["Max", memory.max == null ? "—" : `${memory.max.toLocaleString("tr-TR")} ₺`]].map(([label, value]) => <div key={String(label)} className="rounded-lg border border-border bg-background p-2"><p className="text-[11px] font-black uppercase tracking-widest text-muted-foreground">{label}</p><p className="mt-1 text-xs font-black text-foreground">{value}</p></div>)}</div>}
+              </div>
+            </CardContent>
+          </Card>
           {activeId && <Card className="border-orange-500/20 bg-orange-500/[0.03] shadow-none"><CardHeader className="pb-3"><CardTitle className="text-xs font-black uppercase tracking-widest text-foreground">Kaynak satırları</CardTitle><CardDescription className="text-xs text-muted-foreground">Onaylı SmartCheck satırlarını kaynak hücresiyle birlikte aktarın. Elle giriş yalnız yedek yöntemdir.</CardDescription></CardHeader><CardContent className="space-y-2">{activeSubmission?.documentId && <Button onClick={() => void importSmartCheckRows()} disabled={saving} className="w-full bg-orange-600 text-white hover:bg-orange-500">{saving ? <Loader2 size={14} className="animate-spin" /> : <FileUp size={14} />} Onaylı SmartCheck satırlarını aktar</Button>}<div className="border-t border-orange-500/10 pt-3"><p className="mb-2 text-[11px] uppercase tracking-widest text-muted-foreground">Manuel beta satırı</p><div className="grid grid-cols-2 gap-2"><Input aria-label="Poz kodu" placeholder="Poz kodu" value={entry.positionCode} onChange={(event) => setEntry((value) => ({ ...value, positionCode: event.target.value }))} className="border-border bg-background" /><Input aria-label="Bölge" placeholder="Bölge" value={entry.region} onChange={(event) => setEntry((value) => ({ ...value, region: event.target.value }))} className="border-border bg-background" /></div><Input aria-label="Satır açıklaması" placeholder="Açıklama" value={entry.description} onChange={(event) => setEntry((value) => ({ ...value, description: event.target.value }))} className="mt-2 border-border bg-background" /><div className="mt-2 grid grid-cols-2 gap-2"><Input aria-label="Birim" placeholder="Birim" value={entry.unit} onChange={(event) => setEntry((value) => ({ ...value, unit: event.target.value }))} className="border-border bg-background" /><Input aria-label="Birim fiyat" placeholder="Birim fiyat" type="number" min="0" value={entry.unitPrice} onChange={(event) => setEntry((value) => ({ ...value, unitPrice: event.target.value }))} className="border-border bg-background" /></div><Button onClick={() => void addEntry()} disabled={saving} className="mt-2 w-full bg-card text-foreground hover:bg-white">Satırı inceleme kuyruğuna ekle</Button></div></CardContent></Card>}
         </div>
       </div>
-      <Card className="mt-6 border-border bg-card shadow-none"><CardHeader className="pb-3"><CardTitle className="text-xs font-black uppercase tracking-widest text-foreground">Tedarikçi teklif kuyruğu</CardTitle><CardDescription className="text-xs text-muted-foreground">Olağandışı fiyatları, karşılaştırılan kayıt sayısını ve inceleme kararını birlikte görün.</CardDescription></CardHeader><CardContent>{loading ? <div className="flex items-center gap-2 text-xs text-muted-foreground"><Loader2 size={14} className="animate-spin" /> Yükleniyor</div> : submissions.length === 0 ? <p className="rounded-xl border border-dashed border-border p-5 text-xs text-muted-foreground">Henüz tedarikçi teklifi yok. İlk fiyat listenizi ekleyin; incelenen fiyatlar metraj kalemlerinizi fiyatlandırırken kullanılır.</p> : <div className="space-y-3">{submissions.map((submission) => <div key={submission.id} className="rounded-xl border border-border bg-background p-4"><div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-sm font-black text-foreground">{submission.supplierName}</p><p className="mt-1 text-[11px] text-muted-foreground">{submission.sourceDocumentIdentifier} {submission.documentId ? "· SmartCheck kaynağı" : "· Manuel kaynak"} {submission.region ? `· ${submission.region}` : ""} {submission.deliveryTerms ? `· ${submission.deliveryTerms}` : ""}</p></div><div className="flex items-center gap-2"><Badge variant="outline" className={submission.status === "approved" ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-400" : "border-amber-500/20 bg-amber-500/10 text-amber-400"}>{labelOf(SUBMISSION_STATUS_LABEL, submission.status)}</Badge><Button size="sm" variant="outline" onClick={() => setActiveId(submission.id)}>{submission.documentId ? "Kaynak satırlarını aktar" : "Satır ekle"}</Button></div></div>{submission.entries.length > 0 && <div className="mt-3 space-y-2">{submission.entries.map((row) => <div key={row.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border p-3"><div className="min-w-0"><p className="truncate text-xs text-foreground">{row.positionCode ? `${row.positionCode} · ` : ""}{row.description} · {row.unitPrice} {row.currency}/{row.unit}</p><p className="mt-1 text-[11px] text-muted-foreground">{row.sourceQuantityRowId ? "Kaynak: SmartCheck" : "Kaynak: elle girildi"} · {row.sourceCellRange ? `hücre ${row.sourceCellRange}` : "hücre bilgisi yok"} · karşılaştırılan kayıt: {row.baselineCount} · güven: {row.confidence} · fiyat kaydı: {row.priceSnapshotId ? "bağlı" : "bekliyor"}</p></div><div className="flex items-center gap-2"><Badge variant="outline" className={row.outlierStatus === "outlier" ? "border-red-500/20 bg-red-500/10 text-red-400" : row.outlierStatus === "normal" ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-400" : "border-border text-muted-foreground"}>{labelOf(OUTLIER_STATUS_LABEL, row.outlierStatus)}</Badge>{row.reviewStatus === "pending" && <><Button aria-label="Tedarikçi satırını onayla" size="icon-sm" onClick={() => void reviewEntry(row.id, "approved")} disabled={saving} className="bg-emerald-600 text-white hover:bg-emerald-500"><Check size={14} /></Button><Button aria-label="Tedarikçi satırını reddet" size="icon-sm" variant="destructive" onClick={() => void reviewEntry(row.id, "rejected")} disabled={saving}><X size={14} /></Button></>}</div></div>)}</div>}</div>)}</div>}</CardContent></Card>
+      <Card className="mt-6 border-border bg-card shadow-none"><CardHeader className="pb-3"><CardTitle className="text-xs font-black uppercase tracking-widest text-foreground">Tedarikçi teklif kuyruğu</CardTitle><CardDescription className="text-xs text-muted-foreground">Olağandışı fiyatları, karşılaştırılan kayıt sayısını ve inceleme kararını birlikte görün.</CardDescription></CardHeader><CardContent>{loading ? <div role="status" className="flex items-center gap-2 text-xs text-muted-foreground"><Loader2 size={14} className="animate-spin" /> Yükleniyor</div> : <>{listError && <div role="alert" className="mb-3 rounded-lg border border-red-500/30 p-3 text-xs text-red-400"><p>Tedarikçi teklifleri yüklenemedi.{listLoaded && submissions.length > 0 ? " Gösterilen kayıtlar güncel olmayabilir." : ""}</p><Button type="button" variant="outline" size="sm" onClick={() => void refresh()} className="mt-2">Tekrar dene</Button></div>}{!listError && submissions.length === 0 ? <p className="rounded-xl border border-dashed border-border p-5 text-xs text-muted-foreground">Henüz tedarikçi teklifi yok. İlk fiyat listenizi ekleyin; incelenen fiyatlar metraj kalemlerinizi fiyatlandırırken kullanılır.</p> : submissions.length > 0 ? <div className="space-y-3">{submissions.map((submission) => <div key={submission.id} className="rounded-xl border border-border bg-background p-4"><div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-sm font-black text-foreground">{submission.supplierName}</p><p className="mt-1 text-[11px] text-muted-foreground">{submission.sourceDocumentIdentifier} {submission.documentId ? "· SmartCheck kaynağı" : "· Manuel kaynak"} {submission.region ? `· ${submission.region}` : ""} {submission.deliveryTerms ? `· ${submission.deliveryTerms}` : ""}</p></div><div className="flex items-center gap-2"><Badge variant="outline" className={submission.status === "approved" ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-400" : "border-amber-500/20 bg-amber-500/10 text-amber-400"}>{labelOf(SUBMISSION_STATUS_LABEL, submission.status)}</Badge><Button size="sm" variant="outline" onClick={() => setActiveId(submission.id)}>{submission.documentId ? "Kaynak satırlarını aktar" : "Satır ekle"}</Button></div></div>{submission.entries.length > 0 && <div className="mt-3 space-y-2">{submission.entries.map((row) => <div key={row.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border p-3"><div className="min-w-0"><p className="truncate text-xs text-foreground">{row.positionCode ? `${row.positionCode} · ` : ""}{row.description} · {row.unitPrice} {row.currency}/{row.unit}</p><p className="mt-1 text-[11px] text-muted-foreground">{row.sourceQuantityRowId ? "Kaynak: SmartCheck" : "Kaynak: elle girildi"} · {row.sourceCellRange ? `hücre ${row.sourceCellRange}` : "hücre bilgisi yok"} · karşılaştırılan kayıt: {row.baselineCount} · güven: {row.confidence} · fiyat kaydı: {row.priceSnapshotId ? "bağlı" : "bekliyor"}</p></div><div className="flex items-center gap-2"><Badge variant="outline" className={row.outlierStatus === "outlier" ? "border-red-500/20 bg-red-500/10 text-red-400" : row.outlierStatus === "normal" ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-400" : "border-border text-muted-foreground"}>{labelOf(OUTLIER_STATUS_LABEL, row.outlierStatus)}</Badge>{row.reviewStatus === "pending" && <><Button aria-label="Tedarikçi satırını onayla" size="icon-sm" onClick={() => void reviewEntry(row.id, "approved")} disabled={saving} className="bg-emerald-600 text-white hover:bg-emerald-500"><Check size={14} /></Button><Button aria-label="Tedarikçi satırını reddet" size="icon-sm" variant="destructive" onClick={() => void reviewEntry(row.id, "rejected")} disabled={saving}><X size={14} /></Button></>}</div></div>)}</div>}</div>)}</div> : null}</>}</CardContent></Card>
     </PageContainer>
   );
 }

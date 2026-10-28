@@ -56,3 +56,17 @@ test("T46: mevzuat ve admin sayfaları yetenek kaydına bağlanır ve eski Rev. 
     getLiveCapabilities().length + getPilotCapabilities().length + getRoadmapCapabilities().length,
   );
 });
+
+test("IFC geometri ve AI açıklamaları uzman kabulü ile teknik kullanıcı incelemesini ayırır", () => {
+  const landing = readFileSync("src/pages/LandingPage.tsx", "utf8");
+  const legislation = readFileSync("src/components/bimplan/LegislationView.tsx", "utf8");
+  const glossary = readFileSync("src/components/bimplan/BimGlossary.tsx", "utf8");
+  assert.match(landing, /Geometriden türetilen miktarlar[^.]*kanıt satırına alınmaz/);
+  assert.match(landing, /AI tahmini[^.]*uzman incelemesi gerektirir/);
+  assert.doesNotMatch(landing, /Hiçbir otomatik hesap mühendis onayı olmadan teklife yazılmaz/);
+  assert.doesNotMatch(landing, /Disiplin Yetkili Mühendis Onayı/);
+  assert.match(landing, /Yetkili Kullanıcı İncelemesi/);
+  assert.match(landing, /disiplin uzmanlığı ve mühendislik kabulü ayrıca değerlendirilir/);
+  assert.match(legislation, /Geometriden türetilen miktarlar[^.]*kanıt satırına alınmaz/);
+  assert.match(glossary, /geometriden türetilen miktarlar[^.]*kanıt satırına alınmaz/);
+});

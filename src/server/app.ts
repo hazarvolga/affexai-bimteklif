@@ -56,6 +56,8 @@ import { registerAcademyRoutes } from "./routes/academy";
 import { captureError, hashReportingIdentifier, readBuildRevision, sanitizeErrorForReporting } from "./observability/error-tracking";
 import { aiTrainingPolicyFromEnv, canonicalHostRedirect, contentSecurityPolicy, isKnownSpaRoute, llmsFullTxt, llmsTxt, robotsTxt, securityTxt, sitemapXml } from "./security/web-hardening";
 import { injectRouteMeta } from "./security/route-meta";
+import { readPublicPlans } from '../services/billing/public-plans';
+import { createBoundedCatalogReader } from './security/public-catalog-reader';
 import { capabilitySummaryLines } from "./security/web-hardening";
 import { registerIfcBrowserAnalysisRoutes } from "./routes/ifc-browser-analysis";
 import { registerSmartCheckRoutes } from "./routes/smartcheck";
@@ -227,7 +229,8 @@ export function createApiApp(options?: { configureRoutes?: (app: express.Express
   return app;
 }
 
-export function registerProductionFrontend(app: express.Express, distPath: string) {
+export function registerProductionFrontend(app: express.Express, distPath: string, options?: { loadPublicPlans?: typeof readPublicPlans }) {
+  const readPublishedCatalog = createBoundedCatalogReader(options?.loadPublicPlans ?? readPublicPlans);
   app.get('/.well-known/security.txt', (_req, res) => {
     if (!process.env.PUBLIC_APP_URL) return res.status(404).end();
     res.type('text/plain; charset=utf-8').set('Cache-Control', 'public, max-age=86400').send(securityTxt(process.env.PUBLIC_APP_URL));
@@ -271,16 +274,28 @@ export function registerProductionFrontend(app: express.Express, distPath: strin
     if (!process.env.PUBLIC_APP_URL) return res.status(404).end();
     res.type('text/plain').set('Cache-Control', 'public, max-age=3600').send(robotsTxt(process.env.PUBLIC_APP_URL, aiTrainingPolicyFromEnv(process.env.ROBOTS_AI_TRAINING)));
   });
-  app.get('/llms.txt', (_req, res) => {
+  app.get('/llms.txt', async (_req, res) => {
     if (!process.env.PUBLIC_APP_URL) return res.status(404).end();
-    res.type('text/plain; charset=utf-8').set('Cache-Control', 'public, max-age=3600').send(llmsTxt(process.env.PUBLIC_APP_URL));
+    try {
+      const publicPlans = await readPublishedCatalog();
+      return res.type('text/plain; charset=utf-8').set('Cache-Control', 'no-store').send(llmsTxt(process.env.PUBLIC_APP_URL, publicPlans));
+    } catch {
+      console.error('Public plan catalog temporarily unavailable');
+      return res.status(503).set('Cache-Control', 'no-store').type('text/plain').send('Paket bilgisi geçici olarak kullanılamıyor.');
+    }
   });
-  app.get('/llms-full.txt', (_req, res) => {
+  app.get('/llms-full.txt', async (_req, res) => {
     if (!process.env.PUBLIC_APP_URL) return res.status(404).end();
-    res.type('text/plain; charset=utf-8').set('Cache-Control', 'public, max-age=3600').send(llmsFullTxt(process.env.PUBLIC_APP_URL));
+    try {
+      const publicPlans = await readPublishedCatalog();
+      return res.type('text/plain; charset=utf-8').set('Cache-Control', 'no-store').send(llmsFullTxt(process.env.PUBLIC_APP_URL, publicPlans));
+    } catch {
+      console.error('Public plan catalog temporarily unavailable');
+      return res.status(503).set('Cache-Control', 'no-store').type('text/plain').send('Paket bilgisi geçici olarak kullanılamıyor.');
+    }
   });
   const indexFile = path.join(distPath, 'index.html');
-  app.get('*', (req, res) => {
+  app.get('*', async (req, res) => {
     const pathname = decodeURIComponent(req.path);
     if (pathname !== '/index.html' && path.posix.extname(pathname)) return res.status(404).end();
     res.setHeader('Cache-Control', 'no-cache');
@@ -293,12 +308,21 @@ export function registerProductionFrontend(app: express.Express, distPath: strin
     // Crawlers that do not run JS still need the right <title>, description, canonical and noindex for this route.
     let html: string;
     try { html = fs.readFileSync(indexFile, 'utf8'); } catch { return res.sendFile(indexFile); }
+    let publicPlans: Awaited<ReturnType<typeof readPublicPlans>> = [];
+    if (pathname === '/pricing' || pathname === '/pricing/') {
+      try { publicPlans = await readPublishedCatalog(); }
+      catch {
+        console.error('Public plan catalog temporarily unavailable');
+        return res.status(503).set('Cache-Control', 'no-store').type('text/plain').send('Paket bilgisi geçici olarak kullanılamıyor.');
+      }
+    }
     res.type('html').send(injectRouteMeta(html, {
       pathname: pathname === '/index.html' ? '/' : pathname,
       origin: new URL(publicUrl).origin,
       notFound: !known,
       ogImagePath: hasOgImage ? '/og-image.png' : null,
       capabilityLines: capabilitySummaryLines(),
+      publicPlans,
     }));
   });
 }

@@ -1,4 +1,5 @@
 import type { ParsedIfcElement } from "../types";
+import { isIfcGeometryQuantity } from "../evidence-policy";
 
 export type IfcParserEngine = "browser" | "worker";
 export type IfcSchemaFamily = "IFC2X3" | "IFC4" | "IFC4X3";
@@ -86,19 +87,23 @@ export function buildIfcElementIdentity(input: IfcElementIdentityInput): IfcElem
 }
 
 function quantityEvidence(element: ParsedIfcElement): NormalizedIfcQuantityEvidence {
+  const source = isIfcGeometryQuantity(element) ? "geometry" : element.quantitySource;
+  if (element.type === "IfcCovering" && (element.coveringPredefinedType === "SKIRTINGBOARD" || /süpürgelik/i.test(element.name)) && Number.isFinite(element.lengthM) && (element.lengthM ?? 0) > 0) {
+    return { dimension: "length", value: element.lengthM!, unit: "m", source, sourcePath: element.quantitySourcePath ?? null, confidence: element.quantityConfidence ?? null };
+  }
   if (element.type === "IfcCovering" && Number.isFinite(element.areaM2) && (element.areaM2 ?? 0) > 0) {
-    return { dimension: "area", value: element.areaM2!, unit: "m2", source: element.quantitySource, sourcePath: element.quantitySourcePath ?? null, confidence: element.quantityConfidence ?? null };
+    return { dimension: "area", value: element.areaM2!, unit: "m2", source, sourcePath: element.quantitySourcePath ?? null, confidence: element.quantityConfidence ?? null };
   }
   if (element.type === "IfcCovering" && Number.isFinite(element.lengthM) && (element.lengthM ?? 0) > 0) {
-    return { dimension: "length", value: element.lengthM!, unit: "m", source: element.quantitySource, sourcePath: element.quantitySourcePath ?? null, confidence: element.quantityConfidence ?? null };
+    return { dimension: "length", value: element.lengthM!, unit: "m", source, sourcePath: element.quantitySourcePath ?? null, confidence: element.quantityConfidence ?? null };
   }
   if (element.type === "IfcReinforcingBar" && Number.isFinite(element.rebarKg) && element.rebarKg > 0) {
-    return { dimension: "mass", value: element.rebarKg, unit: "kg", source: element.quantitySource, sourcePath: element.quantitySourcePath ?? null, confidence: element.quantityConfidence ?? null };
+    return { dimension: "mass", value: element.rebarKg, unit: "kg", source, sourcePath: element.quantitySourcePath ?? null, confidence: element.quantityConfidence ?? null };
   }
   if (Number.isFinite(element.volumeM3) && element.volumeM3 > 0) {
-    return { dimension: "volume", value: element.volumeM3, unit: "m3", source: element.quantitySource, sourcePath: element.quantitySourcePath ?? null, confidence: element.quantityConfidence ?? null };
+    return { dimension: "volume", value: element.volumeM3, unit: "m3", source, sourcePath: element.quantitySourcePath ?? null, confidence: element.quantityConfidence ?? null };
   }
-  return { dimension: "none", value: null, unit: null, source: element.quantitySource, sourcePath: element.quantitySourcePath ?? null, confidence: element.quantityConfidence ?? null };
+  return { dimension: "none", value: null, unit: null, source, sourcePath: element.quantitySourcePath ?? null, confidence: element.quantityConfidence ?? null };
 }
 
 function normalizeStoreyLabel(value: string): string {

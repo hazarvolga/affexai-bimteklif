@@ -71,7 +71,7 @@ export default function BimGlossary() {
       abbreviation: 'Industry Foundation Classes',
       turkishName: 'Endüstri Temel Sınıfları',
       category: 'Teknoloji',
-      definition: 'buildingSMART tarafından geliştirilen, farklı BIM yazılımlarının (Revit, Archicad, Allplan vb.) standartlaştırılmış nesne, ilişki ve nicelik verisi alışverişi yapmasını sağlayan openBIM şemasıdır. Uygulamalar arası aktarımın kayıpsız olduğu varsayılmaz; QTO, birim, kimlik ve kapsam kanıtı ayrıca doğrulanır.',
+      definition: 'buildingSMART tarafından geliştirilen, farklı BIM yazılımlarının (Revit, Archicad, Allplan vb.) standartlaştırılmış nesne, ilişki ve nicelik verisi alışverişi yapmasını sağlayan openBIM şemasıdır. Uygulamalar arası aktarımın kayıpsız olduğu varsayılmaz; QTO, birim, kimlik ve kapsam kanıtı ayrıca doğrulanır. BIMMetraj’da geometriden türetilen miktarlar otomatik metraj kanıt satırına alınmaz; miktar kaynağı ve inceleme bulguları uzman tarafından değerlendirilmelidir.',
       englishTranslation: 'Industry Foundation Classes',
       isoRole: 'Sözleşmesel teslimatlarda yazılım bağımsızlığı ve uzun ömürlü arşivleme için zorunlu formattır.',
       importance: 'Çok Yüksek'

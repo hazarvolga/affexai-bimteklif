@@ -5,6 +5,7 @@ import { resolve } from "node:path";
 import { describe, it } from "node:test";
 import { parseIfcText } from "./parser/legacy-parser";
 import { buildIfcSmartCheckEvidenceArtifact } from "./smartcheck-evidence";
+import { buildCalmIfcDatasetFromArtifact } from "./calm-icmal";
 import type { IfcParseSummary, ParsedIfcElement } from "./types";
 
 interface EProjeManifest {
@@ -167,6 +168,26 @@ describe("IFC SmartCheck evidence adapter", () => {
     assert.equal(artifact.summary.geometryBlockedCount, 1);
     assert.deepEqual(artifact.blockedElements.map((element) => element.code), ["IFC_GEOMETRY_FALLBACK_BLOCKED"]);
     assert.match(artifact.blockedElements[0].reason, /opening deductions/);
+  });
+
+  it("blocks old artifacts whose property source path actually identifies derived geometry", () => {
+    for (const path of ["#1/#2:IfcShapeRepresentation/GeometryVolume", "#1/#2:IfcShapeRepresentation/GeometryArea", "#1/#2:IfcShapeRepresentation/CurveLengthArea"]) {
+      const element: ParsedIfcElement = { id: "1", guid: "LEGACY_GEOMETRY", type: "IfcWall", name: "Wall", storey: "B01", storeySource: "ifc_spatial", volumeM3: 4, formworkM2: 0, rebarKg: 0, quantitySource: "property", quantitySourcePath: path, smartCheckStatus: "review" };
+      const artifact = buildIfcSmartCheckEvidenceArtifact([element], { ...succeededSummary, totalElements: 1 }, { fileName: "legacy.ifc" });
+      assert.equal(artifact.rows.length, 0, path);
+      assert.equal(artifact.blockedElements[0]?.code, "IFC_GEOMETRY_FALLBACK_BLOCKED", path);
+      assert.equal(artifact.blockedElements[0]?.sourceReference, path);
+    }
+  });
+
+  it("excludes legacy geometry rows from artifact-derived Calm totals with an explicit notice", () => {
+    const element: ParsedIfcElement = { id: "1", guid: "OLD_GEOM", type: "IfcSlab", name: "Beton C30", materialLayers: ["Beton_C30"], storey: "B01", storeySource: "ifc_spatial", volumeM3: 4, formworkM2: 0, rebarKg: 0, quantitySource: "property", quantitySourcePath: "#1/AllplanAttributes/Hacim", smartCheckStatus: "review" };
+    const source = buildIfcSmartCheckEvidenceArtifact([element], { ...succeededSummary, totalElements: 1 }, { fileName: "old.ifc" });
+    assert.equal(source.rows.length, 1);
+    const legacy = { ...source, rows: [{ ...source.rows[0], formulaJson: { ...source.rows[0].formulaJson, quantitySourcePath: "#1/#2:IfcShapeRepresentation/GeometryVolume" } }] };
+    const dataset = buildCalmIfcDatasetFromArtifact(legacy);
+    assert.equal(dataset.groups.flatMap(group => group.items).length, 0);
+    assert.match(dataset.projectSubtitle, /1 doğrulanamayan kaynak satırı.*icmal dışında/i);
   });
 
   it("admits source-backed rebar mass as kg and keeps estimated rebar/formwork blocked", () => {

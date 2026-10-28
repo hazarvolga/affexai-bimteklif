@@ -11,7 +11,7 @@ const row = (overrides: Record<string, unknown> = {}) => ({
   rawPositionCode: "15.150.1006",
   rawUnit: "m3",
   rawQuantity: "1.2500",
-  formulaJson: { materialLayers: JSON.stringify(["Beton_C30"]) },
+  formulaJson: { materialLayers: JSON.stringify(["Beton_C30"]), quantitySourcePath: "#10/#11/#12:Qto_SlabBaseQuantities/NetVolume" },
   quantitySource: "ifc_qto",
   normalizedDescription: "C30/37 Betonarme",
   normalizedPositionCode: "15.150.1006",
@@ -61,6 +61,17 @@ test("Calm transfer projection fails closed for non-approved, missing quantity, 
   assert.ok(canonical[0].lineId);
 });
 
+test("Calm transfer rejects previously approved IFC geometry mislabeled as property", () => {
+  for (const sourcePath of ["#1/#2:IfcShapeRepresentation/GeometryVolume", "#1/#2:IfcShapeRepresentation/GeometryArea", "#1/#2:IfcShapeRepresentation/CurveLengthArea", "#1/Qto/Area/DerivedLength"]) {
+    const legacy = row({ quantitySource: "ifc_property", formulaJson: { materialLayers: JSON.stringify(["Beton_C30"]), quantitySourcePath: sourcePath } });
+    assert.throws(() => projectApprovedRowsToCalmQuotationLines([legacy], {}), /CALM_TRANSFER_IFC_GEOMETRY_BLOCKED/, sourcePath);
+    assert.throws(() => projectApprovedRowsToCalmQuotationLines([row(), { ...legacy, id: "00000000-0000-4000-8000-000000000002" }], {}), /CALM_TRANSFER_IFC_GEOMETRY_BLOCKED/, sourcePath);
+  }
+  for (const source of [null, "ifc_geometry", "unknown"]) {
+    assert.throws(() => projectApprovedRowsToCalmQuotationLines([row({ quantitySource: source })], {}), /CALM_TRANSFER_IFC_SOURCE_UNVERIFIED/);
+  }
+});
+
 test("server Calm projection preserves layering and minha with canonical line identities", () => {
   const layered = row({
     rawDescription: "IfcCovering · Duvar kaplaması",
@@ -69,7 +80,7 @@ test("server Calm projection preserves layering and minha with canonical line id
     normalizedQuantity: "35.4000",
     rawUnit: "m2",
     rawQuantity: "35.4000",
-    formulaJson: { materialLayers: JSON.stringify(["Fayans_a", "Sıva_2CM"]), coveringPredefinedType: "CLADDING", grossAreaM2: "40.68", openingAreaM2: "5.28" },
+    formulaJson: { materialLayers: JSON.stringify(["Fayans_a", "Sıva_2CM"]), coveringPredefinedType: "CLADDING", grossAreaM2: "40.68", openingAreaM2: "5.28", quantitySourcePath: "#10/#11/#12:Qto_CoveringBaseQuantities/NetArea" },
   });
   const lines = projectApprovedRowsToCalmQuotationLines([layered], {});
   assert.deepEqual(lines.map((line) => line.lineId).sort(), ["duvar-fayans", "duvar-ic-siva-2cm"]);

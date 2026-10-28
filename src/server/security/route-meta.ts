@@ -10,17 +10,18 @@
 import { PUBLIC_GLOSSARY_TERMS } from './public-glossary';
 import { renderJsonLdScript, routeJsonLd } from './route-jsonld';
 import { siteJsonLd } from './site-jsonld';
-import { canonicalPlans } from '../../services/billing/plan-catalog';
+import type { PublicPlanView } from '../../services/billing/public-plans';
 import { BILLING_PERIOD_OPTIONS } from '../../services/billing/billing-periods';
 
 const tl = (value: number) => value.toLocaleString('tr-TR');
 
 /** T46: fiyat ve iskonto metni elle yazılmaz; plan kataloğu ve fatura dönemlerinden üretilir. */
-function pricingBody(): string[] {
-  const plans = canonicalPlans.filter(plan => plan.isActive && plan.isPublished).sort((a, b) => a.displayOrder - b.displayOrder);
+function pricingBody(publicPlans: readonly PublicPlanView[]): string[] {
+  const plans = publicPlans.filter(plan => plan.isActive && plan.isPublished).sort((a, b) => a.displayOrder - b.displayOrder);
   const trial = plans.find(plan => plan.isTrial);
   const paid = plans.filter(plan => !plan.isTrial);
   const commitments = BILLING_PERIOD_OPTIONS.filter(option => option.discountPercent > 0);
+  if (!paid.length) return [trial ? `${trial.name} (${tl(trial.monthlyPrice)} TL/ay). Güncel ücretli paketler için iletişime geçin.` : 'Yayınlanmış paket bilgisi şu anda bulunmuyor.'];
   return [
     `${trial ? `${trial.name} (${tl(trial.monthlyPrice)} TL/ay) ve ` : ''}${paid.length} kademeli aylık paket kataloğu: ${paid.map(plan => `${plan.name} (${tl(plan.monthlyPrice)} TL/ay)`).join(', ')}.`,
     `Havale/EFT ile ${commitments.map(option => option.months).join(', ')} aylık taahhütlerde sırasıyla ${commitments.map(option => `%${option.discountPercent}`).join(', ')} iskonto uygulanır. Kredi kartı ile çevrimiçi tahsilat henüz yayında değildir; tüm ödemeler kurumsal banka havalesi/EFT ve fatura onayı ile yürütülür.`,
@@ -48,7 +49,7 @@ const PUBLIC_ROUTE_META: Readonly<Record<string, RouteMeta>> = {
   },
   '/pricing': {
     title: `Paketler ve Fiyatlandırma | ${SITE}`,
-    description: '14 günlük ücretsiz deneme ve 5 kademeli aylık paket kataloğu; Havale/EFT ile 6, 12 ve 24 aylık taahhüt iskontoları.',
+    description: 'BIMMetraj paketleri, kullanım kapsamı ve güncel fiyat bilgileri.',
   },
   '/about': {
     title: `Nasıl Çalışır? Kanıta Dayalı Metraj ve Teklif Akışı | ${SITE}`,
@@ -145,6 +146,7 @@ const ROUTE_BODY: Readonly<Record<string, readonly string[]>> = {
   '/hesaplayicilar/kik-asiri-dusuk-teklif': [
     'Yapım işlerinde aşırı düşük teklif sınır değeri, 4734 sayılı Kamu İhale Kanunu m.38 ve Kamu İhale Genel Tebliği m.45.1.1 uyarınca şu adımlarla hesaplanır:',
     '1) Yaklaşık maliyetin (YM) %120\'sinin üzerindeki ve %40\'ının altındaki teklifler hesaba katılmaz. 2) Kalan geçerli tekliflerin aritmetik ortalaması (Tort1) ve standart sapması (σ) bulunur. 3) Tort1 − σ ile Tort1 + σ aralığındaki tekliflerin ortalaması Tort2 olur. 4) C = Tort2 / YM. 5) K katsayısı: C < 0,60 için K = C; 0,60 ≤ C ≤ 1,00 için K = (3,2C − C² − 0,6) / (C + 1); C > 1,00 için K = (C² − 0,8C + 1,4) / (C + 1). 6) Sınır değer SD = K × Tort2 / (C × N). Üstyapı, elektrik, mekanik tesisat ve elektronik işlerinde N = 1,00; diğer yapım işlerinde N = 1,20 (idare 1,00–1,20 arasında farklı bir değer belirleyebilir). 7) Hesaplanan değer YM\'nin %40\'ından küçükse SD = YM × %40 alınır.',
+    'Tebliğ 45.1.1.2 kapsamında bakanlıkların ön proje üzerinden ihale ettiği üstyapı işlerinde ilan edilen 0,90–1,10 aralığında istisnai katsayılar mümkün olabilir. İlan ve ihale bilgileri kullanıcı beyanıdır; sistem tarafından doğrulanmaz.',
     'Yuvarlama: Tort1, σ ve Tort2 iki, C ve K üç ondalık basamağa yuvarlanır. Resmî örnek (Tebliğ 45.2): YM 100.000 TL, N = 1,20, 12 geçerli teklif → Tort1 = 66.270,00; σ = 20.317,05; Tort2 = 63.237,50; C = 0,632; K = 0,627; SD = 52.281,00 TL.',
     'Bu hesaplayıcı bilgilendirme amaçlıdır; ihale kararlarında resmî metinler ve ilgili idare esastır.',
   ],
@@ -161,7 +163,7 @@ const ROUTE_BODY: Readonly<Record<string, readonly string[]>> = {
     'Kat karşılığı inşaat sözleşmelerinde arsa sahibi ve müteahhit paylaşım oranı, emsale esas inşaat alanı, brüt/net alan çarpanları, birim maliyet, satış fiyatı ve hedeflenen kâr çarpanı üzerinden kullanıcı girdileriyle hesaplanır.',
     '3065 sayılı KDV Kanunu, 7346 sayılı Cumhurbaşkanı Kararı ve KDV Genel Uygulama Tebliği I/B-8 uyarınca 1/4/2022 sonrası yapı ruhsatlı konut teslimlerinde 150 m²\'ye kadar kısım (genel %10, 6306 kapsamında %1) ve 150 m² üzeri kısım (%20) ayrı dilimlenir; arsa sahibine bırakılan bağımsız bölümlerde VUK m.267/2 maliyet bedeli + %5 (toptan) / %10 (perakende) emsal bedel esas alınır. Sonuçlar bilgilendirme amaçlı ön hesaptır.',
   ],
-  '/pricing': pricingBody(),
+  '/pricing': [],
   '/pilot': [
     'Kurumsal teknik ofisler, mimarlık büroları ve yüklenici firmalar gerçek IFC modelleri, PDF paftaları ve Excel keşif listeleriyle BIMMetraj pilot programına başvurabilir.',
     'Pilot çalışmada QTO metraj sapması, Revit/Allplan IFC dışa aktarım ayarları, ÇŞB 2026 poz eşleştirmesi ve RG 33331 e-PYS EK-9 ön kontrol akışı kendi proje verileriniz üzerinde birlikte doğrulanır.',
@@ -188,9 +190,9 @@ const PRERENDER_STYLE = [
   '<noscript><style>#prerender{position:static;width:auto;height:auto;margin:0 auto;padding:2rem 1rem;overflow:visible;clip:auto;max-width:60rem;font:16px/1.6 system-ui,sans-serif}</style></noscript>',
 ].join('\n    ');
 
-function renderPrerender(pathname: string, origin: string, meta: RouteMeta, capabilityLines: readonly string[]): string {
+function renderPrerender(pathname: string, origin: string, meta: RouteMeta, capabilityLines: readonly string[], publicPlans: readonly PublicPlanView[]): string {
   const key = normalize(pathname);
-  const paragraphs = [meta.description, ...(ROUTE_BODY[key] ?? [])];
+  const paragraphs = [meta.description, ...(key === '/pricing' ? pricingBody(publicPlans) : ROUTE_BODY[key] ?? [])];
   const extra = key === '/' ? capabilityLines : [];
   const body = [
     `<h1>${escapeAttr(meta.title)}</h1>`,
@@ -227,18 +229,19 @@ export interface InjectOptions {
   ogImagePath?: string | null;
   /** Ana sayfa ön-render içeriği için yetenek özeti satırları (yetenek kaydından üretilir). */
   capabilityLines?: readonly string[];
+  publicPlans?: readonly PublicPlanView[];
 }
 
 /** `index.html` içinde başlık, açıklama, canonical ve paylaşım etiketlerini rota için yeniden yazar. */
 export function injectRouteMeta(html: string, options: InjectOptions): string {
-  const { pathname, origin, notFound = false, ogImagePath = null, capabilityLines = [] } = options;
+  const { pathname, origin, notFound = false, ogImagePath = null, capabilityLines = [], publicPlans = [] } = options;
   let out = html;
   const normalizedPath = normalize(pathname);
   const meta = getRouteMeta(pathname);
   const canonical = `${origin}${normalizedPath === '/' ? '/' : normalizedPath}`;
 
   // T46: statik site JSON-LD'si (index.html yedeği) yetenek kaydı ve plan kataloğundan üretilen grafikle değiştirilir.
-  out = out.replace(/<script id="site-jsonld" type="application\/ld\+json">[\s\S]*?<\/script>/, () => renderJsonLdScript('site-jsonld', siteJsonLd(origin)));
+  out = out.replace(/<script id="site-jsonld" type="application\/ld\+json">[\s\S]*?<\/script>/, () => renderJsonLdScript('site-jsonld', siteJsonLd(origin, publicPlans)));
 
   // FAQPage JSON-LD yalnız ana sayfada kalmalı (P2 SEO: diğer rotalarda tekrar etmemeli)
   if (normalizedPath !== '/') {
@@ -270,7 +273,7 @@ export function injectRouteMeta(html: string, options: InjectOptions): string {
   }
 
   if (meta && !notFound && !meta.noindex && !out.includes('id="prerender"') && out.includes('<div id="root"></div>')) {
-    out = out.replace('<div id="root"></div>', `<div id="root">${renderPrerender(pathname, origin, meta, capabilityLines)}</div>`);
+    out = out.replace('<div id="root"></div>', `<div id="root">${renderPrerender(pathname, origin, meta, capabilityLines, publicPlans)}</div>`);
     if (out.includes('</head>')) out = out.replace('</head>', `    ${PRERENDER_STYLE}\n  </head>`);
   }
 

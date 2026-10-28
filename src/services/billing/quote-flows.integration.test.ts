@@ -157,11 +157,10 @@ test("manual and import quotation transactions share serialized quota", { timeou
 
   await t.test("post-commit audit failures cannot turn a successful import into an error", async (t) => {
     const f = await fixture(1);
-    const insert = db.insert.bind(db);
-    t.mock.method(db, "insert", ((table: any) => {
-      if (table === schema.smartcheckAuditLogs || table === schema.usageLogs) throw new Error("private audit failure");
-      return insert(table);
-    }) as typeof db.insert);
+    // Audit now writes through a tenant transaction, not db.insert directly.
+    // Reject the actual insert so this test exercises the production boundary.
+    await db.execute(sql`ALTER TABLE smartcheck_audit_logs ADD CONSTRAINT quota_flow_audit_failure CHECK (false) NOT VALID`);
+    t.after(() => db.execute(sql`ALTER TABLE smartcheck_audit_logs DROP CONSTRAINT quota_flow_audit_failure`));
     const { getControlDatabase } = await import("../../db/control-plane");
     const controlDb = getControlDatabase().db;
     const controlInsert = controlDb.insert.bind(controlDb);
@@ -171,7 +170,9 @@ test("manual and import quotation transactions share serialized quota", { timeou
     }) as typeof controlDb.insert);
     const errors = t.mock.method(console, "error", () => {});
     assert.equal((await f.createImport()).statusCode, 201);
-    await new Promise(resolve => setImmediate(resolve));
+    for (let attempt = 0; attempt < 100 && errors.mock.callCount() < 2; attempt++) {
+      await new Promise(resolve => setTimeout(resolve, 10));
+    }
     assert.equal(await f.count(), 1);
     assert.equal((await f.quotes()).length, 1);
     assert.equal(errors.mock.callCount(), 2);

@@ -1,6 +1,6 @@
 import { basename, resolve } from 'node:path';
 import { expect, test } from '@playwright/test';
-import { E2E_IFC_SAMPLE, E2E_OWNER } from './support/fixture';
+import { E2E_IFC_SAMPLE, E2E_IFC_UNVERIFIED_GEOMETRY, E2E_OWNER } from './support/fixture';
 import { loginThroughForm, trackPageErrors } from './support/session';
 
 interface QueueRun { documentId: string; status: string; fileName: string | null; errorCode: string | null }
@@ -41,5 +41,31 @@ test('SmartCheck uploads the repo IFC sample, the worker processes it and eviden
   await expect(page.getByRole('heading', { name: fileName })).toBeVisible({ timeout: 30_000 });
   await expect(page.getByRole('button', { name: 'Yeni Dosya Yükle' })).toBeVisible();
   await page.screenshot({ path: test.info().outputPath('smartcheck-after-ifc.png'), fullPage: true });
+  expect(errors).toEqual([]);
+});
+
+test('SmartCheck rejects the multi-context IFC instead of creating unreliable geometry evidence', async ({ page }) => {
+  test.setTimeout(150_000);
+  const errors = trackPageErrors(page);
+  const fileName = basename(E2E_IFC_UNVERIFIED_GEOMETRY);
+  await loginThroughForm(page, E2E_OWNER.email, /^\/app/);
+  await page.goto('/app/smartcheck');
+  await page.locator('input[type="file"][accept*=".ifc"]').setInputFiles(resolve(E2E_IFC_UNVERIFIED_GEOMETRY));
+  await expect(page.getByText(fileName).first()).toBeVisible();
+  const queued = page.waitForResponse(response => /\/api\/smartcheck\/documents\/[^/]+\/process$/.test(response.url()));
+  await page.getByRole('button', { name: /IFC Modelini Yükle/ }).click();
+  expect((await queued).status()).toBe(202);
+
+  let run: QueueRun | undefined;
+  await expect.poll(async () => {
+    const queue = await (await page.request.get('/api/smartcheck/queue')).json() as QueueRun[];
+    run = queue.find(entry => entry.fileName === fileName);
+    return run?.status;
+  }, { timeout: 120_000, intervals: [1_000] }).toMatch(/^(succeeded|failed)$/);
+  expect(run?.status).toBe('failed');
+  expect(run?.errorCode).toBe('IFC_NO_ADMISSIBLE_QUANTITY_EVIDENCE');
+  const rowsResponse = await page.request.get(`/api/smartcheck/documents/${run!.documentId}/rows`);
+  expect(rowsResponse.status()).toBe(200);
+  expect(await rowsResponse.json()).toEqual([]);
   expect(errors).toEqual([]);
 });

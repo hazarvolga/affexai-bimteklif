@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { PageContainer } from '../../components/layout/PageContainer';
 import { Button } from '../../components/ui/button';
 import { fetchWithAuth } from '../../lib/api';
+import { previewChanges, PREVIEW_STALE_NOTICE, planIdentity } from './admin-change-preview';
 import { toast } from 'sonner';
 import { formatBillingCycleLabel } from '../../services/billing/billing-periods';
 import {
@@ -60,7 +61,7 @@ interface TenantDetailData {
     id: string;
     name: string;
     monthlyPrice: number;
-    quotesLimit: number | null;
+    monthlyQuoteLimit: number | null;
     monthlyIfcLimit: number | null;
     ifcMaxFileMb: number;
     ifcMaxConcurrent: number;
@@ -276,6 +277,9 @@ export function TenantDetail() {
 
   const handleSaveSubscription = async () => {
     if (!companyId) return;
+    const before = { planId: planIdentity(data?.plan?.name, data?.subscription?.planId), status: data?.subscription?.status, bonusQuoteLimit: data?.subscription?.bonusQuoteLimit, bonusIfcLimit: data?.subscription?.bonusIfcLimit };
+    const after = { planId: planIdentity(plans.find(plan => plan.id === editPlanId)?.name, editPlanId || null), status: editStatus, bonusQuoteLimit: Number(editBonusQuotes), bonusIfcLimit: Number(editBonusIfc) };
+    if (!window.confirm(`Firma aboneliği önizlemesi\n\n${previewChanges(before, after, Object.keys(after))}\n\nEtkilenen firma: ${data?.company.name ?? 'Bilinmiyor'}\nEtkilenen kullanıcı sayısı: Bilinmiyor\n${PREVIEW_STALE_NOTICE}\nDeğişiklik kaydedilsin mi?`)) return;
     try {
       setSavingSubscription(true);
       const res = await fetchWithAuth(`/api/admin/tenants/${companyId}`, {
@@ -824,7 +828,7 @@ export function TenantDetail() {
                 <div className="border-t border-indigo-900/40 pt-2 space-y-1 text-xs text-indigo-300">
                   <div className="flex justify-between">
                     <span>Aylık Teklif Kotası:</span>
-                    <strong>{data.plan.quotesLimit ?? 'Sınırsız'} adet</strong>
+                    <strong>{data.plan.monthlyQuoteLimit == null ? 'Bilinmiyor' : `${data.plan.monthlyQuoteLimit} adet`}</strong>
                   </div>
                   <div className="flex justify-between">
                     <span>Aylık IFC Analiz:</span>

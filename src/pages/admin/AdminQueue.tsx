@@ -3,6 +3,8 @@ import { PageContainer } from '../../components/layout/PageContainer';
 import { Button } from '../../components/ui/button';
 import { fetchWithAuth } from '../../lib/api';
 import { toast } from 'sonner';
+import { WorkerSignals, type WorkerSignal } from './WorkerSignals';
+import { workerSignalsSchema } from './admin-data';
 import {
   Cpu,
   RefreshCw,
@@ -22,9 +24,9 @@ interface QueueJob {
   id: string;
   kind: string;
   fileName: string;
-  status: 'queued' | 'running' | 'completed' | 'failed' | 'stale';
-  attempts: number;
-  maxAttempts: number;
+  status: 'queued' | 'running' | 'succeeded' | 'failed' | 'stale';
+  attempts?: number;
+  maxAttempts?: number;
   createdAt: string;
   startedAt: string | null;
   finishedAt: string | null;
@@ -40,16 +42,14 @@ interface QueueSummary {
   succeeded24h: number;
   failed24h: number;
   stale: number;
+  oldestQueuedAt: string | null;
+  oldestQueuedAgeSeconds: number | null;
 }
 
 export function AdminQueue() {
-  const [summary, setSummary] = useState<QueueSummary>({
-    queued: 0,
-    running: 0,
-    succeeded24h: 0,
-    failed24h: 0,
-    stale: 0
-  });
+  const [summary, setSummary] = useState<QueueSummary | null>(null);
+  const [queueError, setQueueError] = useState(false);
+  const [workerSignals, setWorkerSignals] = useState<WorkerSignal[] | null>(null);
   const [jobs, setJobs] = useState<QueueJob[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -68,15 +68,15 @@ export function AdminQueue() {
         throw new Error('Kuyruk bilgileri alınamadı');
       }
       const data = await res.json();
-      setSummary(data.summary || {
-        queued: 0,
-        running: 0,
-        succeeded24h: 0,
-        failed24h: 0,
-        stale: 0
-      });
+      if (!data.summary || !['queued', 'running', 'succeeded24h', 'failed24h', 'stale'].every(key => Number.isInteger(data.summary[key]) && data.summary[key] >= 0) || !Array.isArray(data.jobs)) throw new Error('Kuyruk verisi doğrulanamadı');
+      setSummary(data.summary);
+      const parsedSignals = workerSignalsSchema.safeParse(data.workerSignals);
+      setWorkerSignals(parsedSignals.success ? parsedSignals.data.map(signal => ({ ...signal, lastSeen: signal.lastSeen ?? null, revision: signal.revision ?? null, revisionSource: signal.revisionSource ?? null })) : null);
       setJobs(data.jobs || []);
+      setQueueError(false);
     } catch (err: any) {
+      setQueueError(true);
+      setWorkerSignals(null);
       if (!isBackground) {
         toast.error(err.message || 'Kuyruk yüklenemedi');
       }
@@ -162,6 +162,7 @@ export function AdminQueue() {
 
   return (
     <PageContainer>
+      {queueError && <div role="alert" className="mb-4 rounded-xl border border-red-500/30 p-4 text-sm text-red-400">Kuyruk güncellenemedi; {summary ? 'gösterilen son başarılı veriler güncel olmayabilir.' : 'durum bilinmiyor.'}</div>}
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2.5">
@@ -205,7 +206,7 @@ export function AdminQueue() {
             <span>Kuyrukta Bekleyen</span>
             <Clock size={16} className="text-blue-400" />
           </div>
-          <div className="text-2xl font-bold text-foreground">{summary.queued}</div>
+          <div className="text-2xl font-bold text-foreground">{summary?.queued ?? '—'}</div>
           <div className="text-[10px] text-muted-foreground mt-1">İşlem sırası bekliyor</div>
         </div>
 
@@ -214,7 +215,7 @@ export function AdminQueue() {
             <span>Şu An Çalışan</span>
             <RefreshCw size={16} className="text-amber-400 animate-spin" />
           </div>
-          <div className="text-2xl font-bold text-amber-400">{summary.running}</div>
+          <div className="text-2xl font-bold text-amber-400">{summary?.running ?? '—'}</div>
           <div className="text-[10px] text-muted-foreground mt-1">Aktif işlenen döküman</div>
         </div>
 
@@ -223,7 +224,7 @@ export function AdminQueue() {
             <span>Başarılı (24s)</span>
             <CheckCircle2 size={16} className="text-emerald-400" />
           </div>
-          <div className="text-2xl font-bold text-emerald-400">{summary.succeeded24h}</div>
+          <div className="text-2xl font-bold text-emerald-400">{summary?.succeeded24h ?? '—'}</div>
           <div className="text-[10px] text-muted-foreground mt-1">Son 24 saat tamamlanan</div>
         </div>
 
@@ -232,19 +233,22 @@ export function AdminQueue() {
             <span>Başarısız (24s)</span>
             <XCircle size={16} className="text-red-400" />
           </div>
-          <div className="text-2xl font-bold text-red-400">{summary.failed24h}</div>
+          <div className="text-2xl font-bold text-red-400">{summary?.failed24h ?? '—'}</div>
           <div className="text-[10px] text-muted-foreground mt-1">Hata alan işler</div>
         </div>
 
         <div className="rounded-xl border border-amber-900/40 bg-amber-950/20 p-4 col-span-2 sm:col-span-1">
           <div className="flex items-center justify-between text-amber-300 text-xs mb-2">
-            <span>Kilitli / Stale (&gt;15dk)</span>
+            <span>Gecikmiş / Stale</span>
             <AlertTriangle size={16} className="text-amber-400" />
           </div>
-          <div className="text-2xl font-bold text-amber-300">{summary.stale}</div>
+          <div className="text-2xl font-bold text-amber-300">{summary?.stale ?? '—'}</div>
           <div className="text-[10px] text-amber-400/80 mt-1">Müdahale gerekebilir</div>
         </div>
       </div>
+
+      <div className="mb-6 rounded-xl border border-border bg-card p-4 text-sm text-muted-foreground">En eski bekleyen iş: {summary?.oldestQueuedAt ? new Date(summary.oldestQueuedAt).toLocaleString('tr-TR') : summary?.queued === 0 ? 'Kuyruk boş' : 'Bilinmiyor'}{summary?.oldestQueuedAgeSeconds != null ? ` · ${Math.floor(summary.oldestQueuedAgeSeconds / 60)} dk` : ''}. Süre işin ilk oluşturulma zamanından hesaplanır.</div>
+      <div className="mb-6"><WorkerSignals signals={workerSignals} /></div>
 
       {/* Filter and Search Bar */}
       <div className="rounded-xl border border-border bg-card p-4 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -256,7 +260,7 @@ export function AdminQueue() {
             { key: 'queued', label: 'Bekleyen' },
             { key: 'stale', label: 'Kilitli (Stale)' },
             { key: 'failed', label: 'Hatalı' },
-            { key: 'completed', label: 'Başarılı' }
+            { key: 'succeeded', label: 'Başarılı' }
           ].map((tab) => (
             <button
               key={tab.key}
@@ -351,14 +355,16 @@ export function AdminQueue() {
                           <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface-elevated px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">
                             <Clock size={12} /> Bekliyor
                           </span>
-                        ) : job.status === 'completed' ? (
+                        ) : job.status === 'succeeded' ? (
                           <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-bold text-emerald-400">
                             <CheckCircle2 size={12} /> Başarılı
                           </span>
-                        ) : (
+                        ) : isFailed ? (
                           <span className="inline-flex items-center gap-1.5 rounded-full border border-red-500/40 bg-red-500/10 px-2.5 py-0.5 text-[11px] font-bold text-red-400">
                             <XCircle size={12} /> Hata
                           </span>
+                        ) : (
+                          <span className="text-muted-foreground">Bilinmeyen durum</span>
                         )}
 
                         {job.errorMessage && (
@@ -369,7 +375,7 @@ export function AdminQueue() {
                       </td>
 
                       <td className="px-5 py-3.5 font-medium">
-                        {job.attempts} / {job.maxAttempts}
+                        {job.attempts == null || job.maxAttempts == null ? '—' : `${job.attempts} / ${job.maxAttempts}`}
                       </td>
 
                       <td className="px-5 py-3.5 text-muted-foreground">

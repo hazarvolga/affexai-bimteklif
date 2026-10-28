@@ -33,6 +33,7 @@ function textValue(value: unknown, maxLength: number) {
 }
 
 function numberValue(value: unknown) {
+  if (typeof value !== "number" && (typeof value !== "string" || !value.trim())) return null;
   const number = typeof value === "number" ? value : Number(value);
   return Number.isFinite(number) ? number : null;
 }
@@ -62,7 +63,7 @@ function completeness(submission: typeof supplierQuoteSubmissions.$inferSelect, 
 }
 
 async function audit(req: any, action: string, entityType: string, entityId: string, metadataJson: Record<string, unknown> = {}) {
-  await db.insert(smartcheckAuditLogs).values({ companyId: req.user.companyId, userId: req.user.userId, action, entityType, entityId, metadataJson });
+  await withAppTenant(tenantOf(req.user), tx => tx.insert(smartcheckAuditLogs).values({ companyId: req.user.companyId, userId: req.user.userId, action, entityType, entityId, metadataJson }).then(() => undefined));
 }
 
 async function approvedSamples(actor: { companyId: string; userId: string }, currency: string) {
@@ -105,7 +106,12 @@ export function registerMarketIntelligenceRoutes(app: Express) {
       if (!document) return res.status(404).json({ error: "Kaynak doküman bulunamadı." });
       if (document.checksumSha256 === "pending") return res.status(409).json({ error: "Kaynak doküman yüklemesi tamamlanmalı." });
     }
-    const sourceDocumentHash = validHash(body.sourceDocumentHash) ? String(body.sourceDocumentHash).toLowerCase() : document?.checksumSha256 ?? (body.sourceDocumentPayload === undefined ? "" : sha256Payload(body.sourceDocumentPayload));
+    if (document && body.sourceDocumentHash !== undefined && body.sourceDocumentHash !== null && body.sourceDocumentHash !== "") {
+      if (!validHash(body.sourceDocumentHash) || String(body.sourceDocumentHash).toLowerCase() !== document.checksumSha256.toLowerCase()) {
+        return res.status(409).json({ error: "Kaynak hash'i yüklenen belgenin doğrulanmış checksum değeriyle eşleşmiyor.", code: "SOURCE_DOCUMENT_HASH_MISMATCH" });
+      }
+    }
+    const sourceDocumentHash = document?.checksumSha256.toLowerCase() ?? (validHash(body.sourceDocumentHash) ? String(body.sourceDocumentHash).toLowerCase() : body.sourceDocumentPayload === undefined ? "" : sha256Payload(body.sourceDocumentPayload));
     const sourceDocumentIdentifier = textValue(body.sourceDocumentIdentifier, 255) || document?.originalFileName || textValue(body.quoteNumber, 120);
     const currency = textValue(body.currency, 3).toUpperCase() || "TRY";
     const quoteDate = parseDate(body.quoteDate);
@@ -297,6 +303,7 @@ export function registerMarketIntelligenceRoutes(app: Express) {
     const positionCode = textValue(req.query.positionCode, 120) || null;
     const unit = textValue(req.query.unit, 40) || null;
     const region = textValue(req.query.region, 120) || null;
+    if (!positionCode || !unit) return res.status(400).json({ error: "Fiyat karşılaştırması için poz kodu ve birim zorunludur.", code: "PRICE_MEMORY_SCOPE_REQUIRED" });
     const conditions = [eq(priceSnapshots.companyId, req.user.companyId), eq(priceSnapshots.reviewStatus, "approved"), eq(priceSnapshots.currency, currency as "TRY" | "USD" | "EUR"), inArray(priceSources.sourceType, ["supplier_quote", "company_actual"] as string[])];
     if (positionCode) conditions.push(eq(priceSnapshots.positionCode, positionCode));
     if (unit) conditions.push(eq(priceSnapshots.unit, unit));

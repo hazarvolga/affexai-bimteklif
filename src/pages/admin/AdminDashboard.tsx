@@ -5,6 +5,7 @@ import { LayoutDashboard, Building2, CreditCard, Activity, Users } from 'lucide-
 import { fetchWithAuth } from '../../lib/api';
 import { Button } from '../../components/ui/button';
 import { adminDashboardSchema, readAdminResponse } from './admin-data';
+import { WorkerSignals } from './WorkerSignals';
 
 export function AdminDashboard() {
   const [data, setData] = useState<any>(null);
@@ -51,10 +52,17 @@ export function AdminDashboard() {
             <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-5 flex flex-col justify-between">
               <div className="flex items-center gap-2 mb-2">
                 <CreditCard size={16} className="text-emerald-400" />
-                <p className="text-[10px] font-black uppercase tracking-widest text-emerald-400">Tahmini MRR (Aylık Gelir)</p>
+                <p className="text-[10px] font-black uppercase tracking-widest text-emerald-400">Aktif paket liste fiyatı / ay</p>
               </div>
-              <p className="text-3xl font-black text-foreground">₺{(data?.totalMRR || 0).toLocaleString()}</p>
-              <p className="text-xs text-muted-foreground mt-4 border-t border-emerald-500/10 pt-3">Aktif aboneliklerin aylık bedel toplamı.</p>
+              <p className="text-3xl font-black text-foreground">{data?.totalMRR == null ? 'Bilinmiyor' : `₺${data.totalMRR.toLocaleString('tr-TR')}`}</p>
+              <p className="text-xs text-muted-foreground mt-4 border-t border-emerald-500/10 pt-3">Aktif aboneliklerin güncel aylık liste fiyatı toplamı; indirim, dönem ve gerçek tahsilatı yansıtmaz.</p>
+              {data?.missingPlanCount > 0 && <p className="mt-1 text-xs text-amber-400">{data.missingPlanCount} aktif aboneliğin planı bilinmiyor.</p>}
+            </div>
+
+            <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-5 flex flex-col justify-between">
+              <p className="text-[10px] font-black uppercase tracking-widest text-emerald-400">Onaylı havale kaydı · tüm zamanlar</p>
+              <p className="text-3xl font-black text-foreground">{data.approvedTransfersTotal?.amountTry == null ? 'Bilinmiyor' : `₺${data.approvedTransfersTotal.amountTry.toLocaleString('tr-TR')}`}</p>
+              <p className="text-xs text-muted-foreground mt-4">Yönetici onaylı TRY havaleleri ({data.approvedTransfersTotal?.count ?? 'bilinmeyen'} kayıt). Banka mutabakatı değildir; iade, fatura ve diğer ödeme/döviz kanalları dahil değildir. 5.000 onay olayı aşılırsa veya kayıt eksikse toplam gösterilmez.</p>
             </div>
 
             <div className="rounded-xl border border-blue-500/20 bg-blue-500/5 p-5 flex flex-col justify-between">
@@ -96,6 +104,7 @@ export function AdminDashboard() {
           </div>
 
           {/* Kuyruk Özeti Kartı */}
+          <WorkerSignals signals={data.workerSignals ?? null} />
           <div className="rounded-xl border border-border bg-card p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
@@ -110,6 +119,7 @@ export function AdminDashboard() {
                 <span>Çalışan: <strong className="text-amber-400">{data.queueStats.running}</strong></span>
                 <span>Başarısız (24 saat): <strong className={data.queueStats.failed24h ? "text-red-400" : "text-muted-foreground"}>{data.queueStats.failed24h}</strong></span>
               </div>
+              <p className="text-xs text-muted-foreground mt-2">En eski bekleyen: {data.queueStats.oldestQueuedAt ? new Date(data.queueStats.oldestQueuedAt).toLocaleString('tr-TR') : data.queueStats.queued === 0 ? 'Kuyruk boş' : 'Bilinmiyor'}{data.queueStats.oldestQueuedAgeSeconds != null ? ` · ${Math.floor(data.queueStats.oldestQueuedAgeSeconds / 60)} dk` : ''}</p>
             </div>
 
             <a

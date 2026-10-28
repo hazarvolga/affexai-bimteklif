@@ -25,6 +25,7 @@ const FINDING_CODE_LABELS: Record<IfcConsistencyFindingCode, string> = {
   NEGATIVE_NET_QUANTITY: "Negatif Net Miktar",
   ZERO_NET_QUANTITY: "Sıfır Net Miktar",
   MISSING_NET_QUANTITY: "Ölçülemedi (QTO Yok)",
+  GEOMETRY_CONTEXT_UNVERIFIED: "3B geometri birim dönüşümü doğrulanamadı",
   MISSING_SPATIAL_STOREY: "Kat Atanmamış",
   UNCOVERED_PROXY_ELEMENT: "Kapsam Dışı Proxy Eleman",
   UNMAPPED_POZ_ELEMENT: "Poza Eşleşmeyen Eleman",

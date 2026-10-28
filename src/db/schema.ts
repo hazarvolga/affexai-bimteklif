@@ -1052,7 +1052,10 @@ export const costComponents = pgTable("cost_components", {
   logisticsCost: numeric("logistics_cost", { precision: 20, scale: 2 }).default("0"),
   subcontractorCost: numeric("subcontractor_cost", { precision: 20, scale: 2 }).default("0"),
   overheadCost: numeric("overhead_cost", { precision: 20, scale: 2 }).default("0"),
-});
+}, (table) => {
+  const tenant = sql`current_user = 'bimmetraj_app' AND EXISTS (SELECT 1 FROM ${quotations} WHERE ${quotations.id} = ${table.quotationId} AND ${quotations.companyId} = nullif(current_setting('bimmetraj.company_id', true), '')::uuid)`;
+  return { appTenantPolicy: pgPolicy('cost_components_app_tenant', { for: 'all', to: 'public', using: tenant, withCheck: tenant }), backupReadPolicy: backupReadPolicy('cost_components'), ownerMigrationPolicy: ownerMigrationPolicy('cost_components') };
+}).enableRLS();
 
 export const quotationFinancials = pgTable("quotation_financials", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -1066,7 +1069,10 @@ export const quotationFinancials = pgTable("quotation_financials", {
   costDataStatus: text("cost_data_status").default("incomplete").notNull(),
   currencyExposure: text("currency_exposure"),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+}, (table) => {
+  const tenant = sql`current_user = 'bimmetraj_app' AND EXISTS (SELECT 1 FROM ${quotations} WHERE ${quotations.id} = ${table.quotationId} AND ${quotations.companyId} = nullif(current_setting('bimmetraj.company_id', true), '')::uuid)`;
+  return { appTenantPolicy: pgPolicy('quotation_financials_app_tenant', { for: 'all', to: 'public', using: tenant, withCheck: tenant }), backupReadPolicy: backupReadPolicy('quotation_financials'), ownerMigrationPolicy: ownerMigrationPolicy('quotation_financials') };
+}).enableRLS();
 
 // ============================================================
 // SMARTCHECK PHASE 1
@@ -1338,10 +1344,8 @@ export const smartcheckAuditLogs = pgTable("smartcheck_audit_logs", {
     foreignColumns: [memberships.userId, memberships.companyId],
   }).onDelete("restrict"),
   idxAuditLookup: index("idx_smartcheck_audit_lookup").on(table.companyId, table.createdAt),
-  appReadPolicy: pgPolicy("smartcheck_audit_logs_app_read", { for: "select", to: "public", using: sql`current_user = 'bimmetraj_app' AND (${table.entityType} <> 'smartcheck_pilot_case' OR ${table.companyId} = nullif(current_setting('bimmetraj.company_id', true), '')::uuid)` }),
-  appInsertPolicy: pgPolicy("smartcheck_audit_logs_app_insert", { for: "insert", to: "public", withCheck: sql`current_user = 'bimmetraj_app' AND ${table.entityType} <> 'smartcheck_pilot_case'` }),
-  appNonPilotMutationPolicy: pgPolicy("smartcheck_audit_logs_app_non_pilot_mutation", { for: "all", to: "public", using: sql`current_user = 'bimmetraj_app' AND ${table.entityType} <> 'smartcheck_pilot_case'`, withCheck: sql`current_user = 'bimmetraj_app' AND ${table.entityType} <> 'smartcheck_pilot_case'` }),
-  workerNonPilotPolicy: pgPolicy("smartcheck_audit_logs_worker_non_pilot", { for: "all", to: "public", using: sql`current_user = 'bimmetraj_worker' AND ${table.entityType} <> 'smartcheck_pilot_case'`, withCheck: sql`current_user = 'bimmetraj_worker' AND ${table.entityType} <> 'smartcheck_pilot_case'` }),
+  appReadPolicy: pgPolicy("smartcheck_audit_logs_app_read", { for: "select", to: "public", using: sql`current_user = 'bimmetraj_app' AND ${table.companyId} = nullif(current_setting('bimmetraj.company_id', true), '')::uuid` }),
+  appInsertPolicy: pgPolicy("smartcheck_audit_logs_app_insert", { for: "insert", to: "public", withCheck: sql`current_user = 'bimmetraj_app' AND ${table.companyId} = nullif(current_setting('bimmetraj.company_id', true), '')::uuid AND ${table.entityType} <> 'smartcheck_pilot_case'` }),
   backupReadPolicy: backupReadPolicy("smartcheck_audit_logs"),
   ownerMigrationPolicy: pgPolicy("smartcheck_audit_logs_owner_migration", { for: "all", to: "public", using: sql`current_user = 'bimmetraj_owner'`, withCheck: sql`current_user = 'bimmetraj_owner'` }),
 })).enableRLS();
@@ -2798,3 +2802,20 @@ export const finalAccounts = pgTable("final_accounts", {
   ownerMigrationPolicy: ownerMigrationPolicy("final_accounts"),
 })).enableRLS();
 
+
+/** Operational liveness only; no tenant, job, or user data. */
+export const workerProcessHeartbeats = pgTable('worker_process_heartbeats', {
+  instanceId: uuid('instance_id').primaryKey(),
+  kind: text('kind').notNull(),
+  revision: text('revision'),
+  revisionSource: text('revision_source'),
+  seenAt: timestamp('seen_at', { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  index('worker_process_heartbeats_seen_at_idx').on(table.seenAt),
+  check('worker_process_heartbeats_kind_check', sql`${table.kind} IN ('worker', 'ifc-worker')`),
+  check('worker_process_heartbeats_revision_check', sql`${table.revision} IS NULL OR ${table.revision} ~ '^[A-Fa-f0-9]{7,64}$'`),
+  check('worker_process_heartbeats_revision_source_check', sql`(${table.revision} IS NULL AND ${table.revisionSource} IS NULL) OR (${table.revision} IS NOT NULL AND ${table.revisionSource} IS NOT NULL AND ${table.revisionSource} IN ('build', 'env'))`),
+  pgPolicy('worker_heartbeat_definer', { for: 'all', to: 'public', using: sql`current_user = 'bimmetraj_owner' AND session_user IN ('bimmetraj_worker', 'bimmetraj_control')`, withCheck: sql`current_user = 'bimmetraj_owner' AND session_user = 'bimmetraj_worker'` }),
+  backupReadPolicy('worker_process_heartbeats'),
+  ownerMigrationPolicy('worker_process_heartbeats'),
+]).enableRLS();
