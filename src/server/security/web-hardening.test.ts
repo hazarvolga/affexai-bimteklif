@@ -4,10 +4,10 @@ import express from 'express';
 import http from 'node:http';
 import { AI_SEARCH_CRAWLERS, AI_TRAINING_CRAWLERS, aiTrainingPolicyFromEnv, canonicalHostRedirect, contentSecurityPolicy, isKnownSpaRoute, llmsTxt, robotsTxt, securityTxt, sitemapXml } from './web-hardening';
 
-test('CSP locks scripts to self (+ Cloudflare Insights beacon) and only opens the origins the app really uses', () => {
+test('CSP locks scripts to self (+ wasm-unsafe-eval for web-ifc 3D viewer & Cloudflare Insights beacon) and only opens the origins the app really uses', () => {
   const policy = contentSecurityPolicy({ SMARTCHECK_S3_ENDPOINT: 'https://acct.r2.cloudflarestorage.com' });
   const directives = Object.fromEntries(policy.split('; ').map(part => [part.split(' ')[0], part.split(' ').slice(1)]));
-  assert.deepEqual(directives['script-src'], ["'self'", 'https://static.cloudflareinsights.com']);
+  assert.deepEqual(directives['script-src'], ["'self'", "'wasm-unsafe-eval'", 'https://static.cloudflareinsights.com']);
   assert.deepEqual(directives['style-src'], ["'self'", "'unsafe-inline'"]);
   assert.deepEqual(directives['font-src'], ["'self'", 'data:']);
   assert.deepEqual(directives['object-src'], ["'none'"]);
@@ -18,7 +18,7 @@ test('CSP locks scripts to self (+ Cloudflare Insights beacon) and only opens th
   assert.ok(!directives['connect-src'].includes('https://firestore.googleapis.com'), 'academy Firebase omitted while ACADEMY_ENABLED is false');
   assert.ok(!policy.includes('fonts.googleapis.com'), 'KVKK/SEC-3: no external Google Fonts in CSP');
   assert.ok(!policy.includes('fonts.gstatic.com'), 'KVKK/SEC-3: no external Google Fonts in CSP');
-  assert.ok(!policy.includes("'unsafe-eval'"));
+  assert.ok(!directives['script-src'].includes("'unsafe-eval'"), 'JS unsafe-eval stays forbidden; only wasm-unsafe-eval is allowed');
   assert.ok(!contentSecurityPolicy({}).includes('undefined'));
   assert.ok(!contentSecurityPolicy({ SMARTCHECK_S3_ENDPOINT: 'not a url' }).includes('not a url'));
 });

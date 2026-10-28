@@ -37,7 +37,7 @@ export function contentSecurityPolicy(env: Record<string, string | undefined>): 
   const storageOrigins = storage ? [storage.origin, `https://*.${storage.host}`] : [];
   const directives: Record<string, string[]> = {
     'default-src': ["'self'"],
-    'script-src': ["'self'", 'https://static.cloudflareinsights.com'],
+    'script-src': ["'self'", "'wasm-unsafe-eval'", 'https://static.cloudflareinsights.com'],
     'style-src': ["'self'", "'unsafe-inline'"],
     'img-src': ["'self'", 'data:', 'blob:'],
     'font-src': ["'self'", 'data:'],
