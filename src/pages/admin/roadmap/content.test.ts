@@ -72,8 +72,8 @@ test("roadmap covers the agreed topics, ministry questions and official sources"
 
 
 test("Rev. 112 documents Phase 0 without claiming production or independent expert approval", () => {
-  assert.equal(CALC_REVIEW_META.version, "BIM-CALC-2026-10-28.112");
-  assert.equal(CALC_REVIEW_CHANGELOG.at(-1)?.revision, "Rev. 118");
+  assert.equal(CALC_REVIEW_META.version, "BIM-CALC-2026-10-29.1");
+  assert.equal(CALC_REVIEW_CHANGELOG.at(-1)?.revision, "Rev. 119");
   const revisions = CALC_REVIEW_CHANGELOG.map(item => Number(item.revision.match(/Rev\. (\d+)/)?.[1]));
   assert.ok(revisions.every((value, index) => index === 0 || value > revisions[index - 1]), "calculation revisions must be strictly increasing");
   const kik = CALC_REVIEW_CHANGELOG.find(item => item.revision === "Rev. 112")?.moduleDetails?.["kik-adt"];
@@ -85,7 +85,7 @@ test("Rev. 112 documents Phase 0 without claiming production or independent expe
   for (const [index, table] of tables.entries()) {
     if (table.type !== "table") continue;
     const numbers = table.rows.map(row => Number(row[0].match(/Rev\. (\d+)/)?.[1]));
-    assert.equal(numbers.at(-1), 118);
+    assert.equal(numbers.at(-1), 119);
     assert.ok(numbers.every((value, rowIndex) => rowIndex === 0 || (index === 0 ? value > numbers[rowIndex - 1] : value >= numbers[rowIndex - 1])), "roadmap revisions must be ordered");
   }
 });
@@ -191,4 +191,14 @@ test("Rev. 118 explains unsafe IFC context and global review gate without claimi
     assert.ok(detail?.before && detail.after && detail.basis);
   }
   assert.match(JSON.stringify(ROADMAP_SECTIONS.find(section => section.id === "revizyon-gunlugu")), /Rev\. 118/);
+});
+
+
+test("Rev. 119 documents tenant quick edit preview and concurrency limits", () => {
+  const rev = CALC_REVIEW_CHANGELOG.find(item => item.revision === "Rev. 119");
+  assert.ok(rev);
+  assert.match(JSON.stringify(rev), /hızlı düzenleme/i);
+  assert.match(JSON.stringify(rev), /eşzamanlılık/i);
+  assert.match(JSON.stringify(rev), /formül/i);
+  assert.match(JSON.stringify(ROADMAP_SECTIONS.find(section => section.id === "revizyon-gunlugu")), /Rev\. 119/);
 });

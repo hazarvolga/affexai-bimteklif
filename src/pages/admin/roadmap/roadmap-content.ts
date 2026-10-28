@@ -185,8 +185,9 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
   },
   {
     id: "durum",
-    title: "Uygulama durumu (28 Ekim 2026 · Rev. 118 geliştirme kaydı)",
+    title: "Uygulama durumu (29 Ekim 2026 · Rev. 119 geliştirme kaydı)",
     blocks: [
+      { type: "callout", tone: "info", title: "Rev. 119 · Firma hızlı düzenleme önizlemesi", text: "Firma hızlı düzenlemede plan, abonelik durumu ve bonus kota önce/sonra gösterilir; iptal kayıt yapmaz. Önizleme yüklenmiş verilere dayanır, sunucu eşzamanlılık kilidi yoktur. Canlı dağıtım ayrıca doğrulanır; hesap formülleri değişmedi." },
       { type: "callout", tone: "warn", title: "Rev. 118 · IFC geometri ve kurtarma sınırı", text: "Birden çok IFC bağlamında iterator geometrisi güvenle ölçeklenemiyorsa kullanılmaz. Açık QTO korunur; karma modelde yüksek miktar bulgusu tüm SmartCheck satırlarının aktarımını durdurur. Ayrı eğri yolu korunur; IfcCovering doğrudan QTO uzunluğu desteklenmez. İzole T44 ve sentetik nesne denemesi canlı, müşteri veya uzman kabulü değildir." },
       { type: "callout", tone: "info", title: "Rev. 117 · Firma iş akışları", text: "Panel en çok 1.000 teklifi/10 sayfa okur; offset eşzamanlı snapshot değildir. SmartCheck boş ve hata durumları ile geç yanıt koruması, örnek teklif için arayüz kayıt engeli ve poz/birim kapsamlı fiyat hafızası geliştirildi. Eksik poz veya birim ile API 400 döner; harici istemciler güncellenmelidir. Sentetik testler canlı dağıtım veya bağımsız uzman kabulü değildir." },
       { type: "callout", tone: "info", title: "Rev. 116 · Operasyon ve yönetici görünürlüğü", text: "0032 worker süreç heartbeat'i, bekleyen en eski iş, liste fiyatı ile onaylanmış havale ayrımı ve sınırlı yönetici audit olay sözlüğü geliştirildi. Yedek/geri yükleme kanıtı doğrulanmadı; canlı dağıtım, OCI kimliği ve bağımsız kabul ayrıca doğrulanmalıdır." },
@@ -250,6 +251,7 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
     id: "adimlar",
     title: "Sıradaki geliştirmeler ve kabul ölçütleri",
     blocks: [
+      { type: "p", text: "Rev. 119 sonrası: firma hızlı düzenleme önizlemesi yüklenmiş anlık görüntüye dayanır; başka bir yönetici değişiklik yaparsa veriyi yenileyip tekrar incelemek gerekir. Sunucu tarafı eşzamanlılık kilidi ve canlı kabul ayrıca doğrulanmalıdır." },
       { type: "callout", tone: "warn", title: "Faz 5 açık kabul adımları", text: "İzinli gerçek IFC/Excel ve bağımsız uzman referansları, canlı yedek ile tutarlı DB ve nesne geri yükleme tatbikatı ayrı yürütülmelidir. İzole T44 ve üç sentetik nesne kopyası canlı RTO/RPO veya müşteri kabulü değildir." },
       { type: "p", text: "Rev. 117 sonrası: panel çok para birimli sayıları ve ayrı tutarları en çok 1.000 teklif üzerinden gösterir; sayfa tavanı ve offset sayfaları arasında değişim riski açıktır, ileride dar alanlı sunucu aggregate ile iyileştirme gerekir. SmartCheck sıfır satır, işlem ve sorgu hatalarını ayırır; eski belge yanıtları yeni seçimi ezmez. Demo kaydı yalnız arayüzde engellenir. Fiyat hafızası API'si poz ve birim ister; uyumsuz harici istemcilere 400 döner. Sentetik tarayıcı testleri canlı veya uzman kabulü değildir." },
       { type: "p", text: "Rev. 116 sonrası: worker ortak rolü süreç kimliğini kanıtlamaz; 90 saniyede 32'den fazla aktif süreç veya hızlı yeniden başlama geçici sinyal reddine yol açabilir. Plan, aktiflik ve abonelik değişiklikleri için önce/sonra önizleme ve maskeli banka farkı gösterilir; aynı adlı planlar kimlikleriyle ayrılır. Anlık görüntü eskimiş olabilir uyarısı vardır; sunucu eşzamanlılık kilidi yoktur. Audit eski zamanlarının saat dilimi bilinmiyor olarak gösterilir ve cursor mikro saniyeyi kayıpsız korur. Banka mutabakatı ve doğrulanmış yedek/geri yükleme kanıtı yoktur; canlı test ve bağımsız kabul açıktır." },
@@ -295,17 +297,17 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
   },
   {
     id: "revizyon-gunlugu",
-    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 117 · 13–28 Ekim 2026)",
+    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 119 · 13–29 Ekim 2026)",
     blocks: [
       {
         type: "callout",
         tone: "info",
-        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 117)",
-        text: "Bu bölüm, BIMMetraj'ın teknik evrimini Rev. 0'dan 28 Ekim 2026 Rev. 117 · BIM-CALC-2026-10-28.111 geliştirme kaydına kadar kronolojik sırayla listeler; Git geçmişi ve canlı sürüm ayrı doğrulanır, bağımsız uzman onayı bu kayıtla verilmez. Rev. 91–100, marka.md ürün incelemesinden çıkan uzman önizlemesi, Faz 0 güven düzeltmeleri ve Faz 1 Excel önce / fiyat eksikliği / dışa aktarım dilimleridir; Rev. 101 ile tüm 0022..0029 migration'ları, D12 worker başlangıç düzeltmesi ve D13 canlı ifc-worker consumeIfcUsage kota tamamlama düzeltmesi canlı üretime (https://bimmetraj.com) dağıtılmıştır. Rev. 102 ile 4 katmanlı müteahhit Excel adaptörü, Rev. 103 ile /admin/pricing-sources otomatik tohumlama ve TÜİK SDMX 2.1 adaptörü, Rev. 104 ile 6 aşamalı güvenlik denetimi bulgularının ve derinlemesine sertleştirme adımlarının tamamı kapatılmıştır. Rev. 105 ile CalmIfcWorkspace 795 satıra ayrıştırılmış, Rev. 106 ile Müşteriler (/app/clients), Müşteriler & Fırsatlar (/app/crm), 6 aşamalı müşteri zaman tüneli (/app/clients/:id) ve 3 katmanlı Akıllı Müşteri Excel/CSV Adaptörü devreye alınmıştır. Rev. 90 ile T43 ≥%80 proje kapsam hedefi (%82,58) ve T56 nihai izlenebilirlik matrisi tamamlanarak dış girdi gerektirmeyen tüm teknik adımlar kapatılmıştır. Harici fixture lisansı, T45 izinli gerçek büyük müşteri dosyası/VPS post-deploy kanıtı, T50–T52 uzman/müşteri/canlı kabulü ve T55 hukuk incelemesi açık olduğundan Faz 7, Faz 9, Faz 10 ve Faz 11 dış kabuller tamamlanana dek PARTIAL kalır.",
+        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 119)",
+        text: "Bu bölüm, BIMMetraj'ın teknik evrimini Rev. 0'dan 29 Ekim 2026 Rev. 119 · BIM-CALC-2026-10-29.1 geliştirme kaydına kadar kronolojik sırayla listeler; Git geçmişi ve canlı sürüm ayrı doğrulanır, bağımsız uzman onayı bu kayıtla verilmez. Rev. 91–100, marka.md ürün incelemesinden çıkan uzman önizlemesi, Faz 0 güven düzeltmeleri ve Faz 1 Excel önce / fiyat eksikliği / dışa aktarım dilimleridir; Rev. 101 ile tüm 0022..0029 migration'ları, D12 worker başlangıç düzeltmesi ve D13 canlı ifc-worker consumeIfcUsage kota tamamlama düzeltmesi canlı üretime (https://bimmetraj.com) dağıtılmıştır. Rev. 102 ile 4 katmanlı müteahhit Excel adaptörü, Rev. 103 ile /admin/pricing-sources otomatik tohumlama ve TÜİK SDMX 2.1 adaptörü, Rev. 104 ile 6 aşamalı güvenlik denetimi bulgularının ve derinlemesine sertleştirme adımlarının tamamı kapatılmıştır. Rev. 105 ile CalmIfcWorkspace 795 satıra ayrıştırılmış, Rev. 106 ile Müşteriler (/app/clients), Müşteriler & Fırsatlar (/app/crm), 6 aşamalı müşteri zaman tüneli (/app/clients/:id) ve 3 katmanlı Akıllı Müşteri Excel/CSV Adaptörü devreye alınmıştır. Rev. 90 ile T43 ≥%80 proje kapsam hedefi (%82,58) ve T56 nihai izlenebilirlik matrisi tamamlanarak dış girdi gerektirmeyen tüm teknik adımlar kapatılmıştır. Harici fixture lisansı, T45 izinli gerçek büyük müşteri dosyası/VPS post-deploy kanıtı, T50–T52 uzman/müşteri/canlı kabulü ve T55 hukuk incelemesi açık olduğundan Faz 7, Faz 9, Faz 10 ve Faz 11 dış kabuller tamamlanana dek PARTIAL kalır.",
       },
       {
         type: "p",
-        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 117):",
+        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 119):",
       },
       {
         type: "table",
@@ -1026,11 +1028,17 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
             "BIM-CALC-2026-10-28.112 · temel 840c32e; canlı dağıtım ayrıca doğrulanır",
             "Çoklu IfcContext iterator geometri koruması; QTO korunur, karma modelde yüksek bulgu tüm SmartCheck satırlarını engeller. Ayrı eğri yolu korunur; IfcCovering doğrudan QTO uzunluğu desteklenmez. İzole T44 ve sentetik nesne denemesi canlı veya uzman kabulü değildir.",
           ],
+          [
+            "Rev. 119",
+            "29 Ekim 2026 · Firma hızlı düzenleme önizlemesi",
+            "BIM-CALC-2026-10-29.1 · temel 22743d8; canlı dağıtım ayrıca doğrulanır",
+            "Firma planı, abonelik durumu ve bonus kotası kayıttan önce karşılaştırılır; iptal kayıt yapmaz. Yüklenmiş snapshot eskimiş olabilir, sunucu eşzamanlılık kilidi yoktur. Hesap formülleri değişmedi.",
+          ],
         ],
       },
       {
         type: "p",
-        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 118 · Önceki Durum → Yeni Durum):",
+        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 119 · Önceki Durum → Yeni Durum):",
       },
       {
         type: "table",
@@ -1965,6 +1973,13 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
             "Çoklu bağlamlı açık IFC örneğinde iterator geometrisi aşırı ölçekli miktar ve geçen kalite kapısı üretebiliyordu; production restore kanıtı yoktu.",
             "Çoklu IfcContext altında iterator geometrisi dışlanır; desteklenen açık QTO/özellik ve ayrı eğri yolu korunur; IfcCovering doğrudan QTO uzunluğu desteklenmez. Eksik miktar yüksek bulgusu karma modelde tüm SmartCheck satırlarının aktarımını durdurur. İzole PG16 T44 1/1 kendi özgün nesne dizinini kullandı; bağımsız nesne restore değildir. Üç sentetik nesnenin kaynak→yedek→hedef checksum/bozulma denemesi uygulama depolaması veya tutarlı DB+object snapshot kanıtı değildir. Canlı yedek/RTO/RPO, gerçek müşteri golden ve bağımsız uzman kabulü açık.",
             "workers/ifc/{ifc_extract,test_ifc_extract}.py; src/ifc/server-path.e2e.test.ts; docs/audits/phase-5/OPEN_IFC_COMPARISON_2026-10-28.md",
+          ],
+          [
+            "Rev. 119 · 29 Ekim 2026 (Firma hızlı düzenleme önizlemesi)",
+            "Yönetici arayüzü değişiklik görünürlüğü; sunucu concurrency sözleşmesi değişmedi",
+            "Firma hızlı düzenleme seçilen plan, abonelik durumu ve bonus kotayı kayıttan önce karşılaştırmadan PATCH gönderiyordu.",
+            "Kaydetmeden önce yüklenmiş firma verilerine dayalı plan kimliği, durum ve bonus kota önce/sonra özetlenir; iptal PATCH göndermez. Snapshot eskimiş olabilir ve sunucu eşzamanlılık kilidi yoktur. Hesap formülleri değişmedi; canlı doğrulama ayrıca gerekir.",
+            "src/pages/admin/TenantsList.tsx; src/pages/admin/admin-quick-edit-preview.ts; ilgili testler",
           ],
         ],
       },
