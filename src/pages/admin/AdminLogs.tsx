@@ -3,8 +3,9 @@ import { Activity, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
 import { PageContainer } from '../../components/layout/PageContainer';
 import { fetchWithAuth } from '../../lib/api';
 import type { AuditItem, AuditPage } from '../../server/routes/admin-logs';
+import { auditActionLabel, auditOutcomeLabel, auditTimestampLabel } from './admin-audit-labels';
 
-const actions: Record<string, string> = { 'plan.created': 'Paket oluşturuldu', 'plan.updated': 'Paket güncellendi', 'subscription.updated': 'Abonelik güncellendi', other: 'Diğer işlem' };
+const targets: Record<string, string> = { plan: 'Paket', run: 'İşlem', payment: 'Ödeme talebi', staging: 'Fiyat satırı', source: 'Fiyat kaynağı', user: 'Kullanıcı', document: 'Belge' };
 const fields: Record<string, string> = { id: 'Kayıt', planId: 'Paket', companyId: 'Firma', monthlyQuoteLimit: 'Aylık teklif kotası', monthlyPrice: 'Aylık fiyat', bonusQuoteLimit: 'Ek teklif kotası', isActive: 'Aktif', status: 'Durum', plan: 'Paket türü', billingCycle: 'Fatura dönemi' };
 const display = (value: string | number | boolean | null | undefined) => value == null ? '—' : typeof value === 'boolean' ? value ? 'Evet' : 'Hayır' : String(value);
 
@@ -72,12 +73,14 @@ export function AdminLogs() {
       {!loading && !error && page?.items.length === 0 && <p role="status" className="py-8 text-sm text-muted-foreground">Denetim kaydı bulunamadı.</p>}
       {!loading && !error && page?.items.map(item => <article key={item.id} className="border-b border-border py-5 [overflow-wrap:anywhere]">
         <div className="flex flex-wrap items-start justify-between gap-2">
-          <h2 className="text-sm font-semibold text-foreground">{actions[item.action] ?? actions.other}</h2>
-          <time dateTime={item.createdAt} className="text-xs text-muted-foreground">{new Date(item.createdAt).toLocaleString('tr-TR')}</time>
+          <h2 className="text-sm font-semibold text-foreground">{auditActionLabel(item.action)}</h2>
+          <time dateTime={item.createdAt} className="text-xs text-muted-foreground">{auditTimestampLabel(item.createdAt)}</time>
         </div>
         <dl className="mt-3 grid gap-3 text-xs sm:grid-cols-2">
-          <div className="min-w-0"><dt className="text-muted-foreground">Yönetici</dt><dd className="mt-1 font-mono text-foreground dark:text-muted-foreground">{item.adminId}</dd></div>
-          <div className="min-w-0"><dt className="text-muted-foreground">Firma</dt><dd className="mt-1 font-mono text-foreground dark:text-muted-foreground">{item.targetCompanyId ?? 'Platform'}</dd></div>
+          <div className="min-w-0"><dt className="text-muted-foreground">Aktör</dt><dd className="mt-1 text-foreground dark:text-muted-foreground">{item.actorName ?? item.adminId}</dd></div>
+          <div className="min-w-0"><dt className="text-muted-foreground">Firma</dt><dd className="mt-1 text-foreground dark:text-muted-foreground">{item.companyName ?? item.targetCompanyId ?? 'Platform'}</dd></div>
+          <div className="min-w-0"><dt className="text-muted-foreground">Hedef</dt><dd className="mt-1 text-foreground">{item.target ? `${targets[item.target.type] ?? 'Kayıt'} · ${item.target.id}` : 'Belirtilmedi'}</dd></div>
+          <div><dt className="text-muted-foreground">Sonuç</dt><dd className="mt-1 text-foreground">{auditOutcomeLabel(item.action)}</dd></div>
         </dl>
         <AuditDetails item={item} />
       </article>)}

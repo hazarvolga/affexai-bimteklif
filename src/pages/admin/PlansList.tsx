@@ -25,6 +25,8 @@ import { Button } from '../../components/ui/button';
 import { toast } from 'sonner';
 import { adminPlansSchema, readAdminResponse } from './admin-data';
 import { removeBankAt } from './bank-account-list';
+import { affectedCount, previewBanks, previewChanges, PREVIEW_STALE_NOTICE } from './admin-change-preview';
+import { canonicalPlans } from '../../services/billing/plan-catalog';
 import {
   formatBillingCycleLabel,
   type BillingCycleId,
@@ -80,6 +82,7 @@ export function PlansList() {
 
   // Bank Accounts State
   const [bankAccounts, setBankAccounts] = useState<BankAccountFormItem[]>([]);
+  const [savedBanks, setSavedBanks] = useState<BankAccountFormItem[] | null>(null);
   const [loadingBanks, setLoadingBanks] = useState(true);
   const [savingBanks, setSavingBanks] = useState(false);
 
@@ -108,13 +111,13 @@ export function PlansList() {
       if (res.ok) {
         const body = await res.json();
         const rawList = Array.isArray(body) ? body : Array.isArray(body?.accounts) ? body.accounts : [];
-        setBankAccounts(
-          rawList.map((item: any) => ({
+        const loaded = rawList.map((item: any) => ({
             ...item,
             description: item.descriptionNote ?? item.description ?? null,
             descriptionNote: item.descriptionNote ?? item.description ?? null,
-          })),
-        );
+          }));
+        setBankAccounts(loaded);
+        setSavedBanks(loaded);
       }
     } catch {
       // ignore
@@ -167,6 +170,7 @@ export function PlansList() {
   };
 
   const handleQuickActivate = async (plan: any) => {
+    if (!window.confirm(`Paket etkinleştirme önizlemesi\n\n${previewChanges(plan, { isActive: true, isPublished: true }, ['isActive', 'isPublished'])}\n\nEtkilenen firma sayısı: ${affectedCount(plan.subscriberCount)}\n${PREVIEW_STALE_NOTICE}\nDevam edilsin mi?`)) return;
     setTogglingPlanId(plan.id);
     try {
       const res = await fetchWithAuth(`/api/admin/plans/${plan.id}`, {
@@ -189,6 +193,7 @@ export function PlansList() {
 
   const handleConfirmDeactivate = async () => {
     if (!deactivatingPlan) return;
+    if (deactivateMode === 'deactivate_and_migrate' && typeof deactivatingPlan.subscriberCount !== 'number') return toast.error('Firma sayısı bilinmiyor. Güncel paket verisini yeniden yükleyin.');
     const subCount = deactivatingPlan.subscriberCount ?? 0;
 
     if (deactivateMode === 'hide_only') {
@@ -204,7 +209,7 @@ export function PlansList() {
           return;
         }
         toast.success(
-          `"${deactivatingPlan.name}" yeni satışa kapatıldı. Mevcut ${subCount} firma paketlerini kullanmaya devam edebilir.`,
+          `"${deactivatingPlan.name}" yeni satışa kapatıldı. Firma sayısı: ${affectedCount(deactivatingPlan.subscriberCount)}.`,
         );
         setDeactivatingPlan(null);
         loadPlans();
@@ -291,6 +296,8 @@ export function PlansList() {
   };
 
   const handleSaveBankAccounts = async () => {
+    if (!savedBanks) return toast.error('Mevcut banka hesapları alınamadı; önce yeniden yükleyin.');
+    if (!window.confirm(`Banka hesabı değişikliği önizlemesi\n\n${previewBanks(savedBanks, bankAccounts)}\n\n${PREVIEW_STALE_NOTICE}\nDeğişiklik kaydedilsin mi?`)) return;
     setSavingBanks(true);
     try {
       const payloadAccounts = bankAccounts.map((acc) => ({
@@ -314,6 +321,7 @@ export function PlansList() {
             descriptionNote: item.descriptionNote ?? item.description ?? null,
           })),
         );
+        setSavedBanks(savedList.map((item: any) => ({ ...item, description: item.descriptionNote ?? item.description ?? null, descriptionNote: item.descriptionNote ?? item.description ?? null })));
       }
       toast.success('Banka hesap bilgileri kaydedildi ve tüm müşteriler için güncellendi.');
     } catch (err: any) {
@@ -356,6 +364,13 @@ export function PlansList() {
   const [syncingCatalog, setSyncingCatalog] = useState(false);
 
   const handleSyncCatalog = async () => {
+    if (loading || error) return toast.error('Güncel paketleri yükleyip yeniden deneyin.');
+    const fields = ['name', 'monthlyPrice', 'monthlyQuoteLimit', 'monthlyIfcLimit', 'ifcMaxFileMb', 'ifcMaxConcurrent', 'monthlyAiLimit', 'monthlyPdfLimit', 'monthlyCrmLimit', 'monthlyRegulationLimit', 'monthlyProfitAnalysisLimit', 'storageMaxBytes', 'maxDocuments', 'isTrial', 'isActive', 'isPublished', 'isFeatured', 'displayOrder', 'marketingBadge', 'marketingDescription'];
+    const summary = canonicalPlans.map(target => {
+      const previous = plans.find(plan => plan.id === target.id);
+      return `${target.name}:\n${previewChanges(previous ?? {}, { ...target }, fields)}`;
+    }).join('\n\n');
+    if (!window.confirm(`Standart katalog eşitleme önizlemesi\n\n${summary}\n\nEtkilenen firma sayısı: Bilinmiyor\n${PREVIEW_STALE_NOTICE}\nKaydedilsin mi?`)) return;
     setSyncingCatalog(true);
     try {
       const res = await fetchWithAuth('/api/admin/plans/sync-catalog', {
@@ -494,7 +509,7 @@ export function PlansList() {
                       }`}
                     >
                       <Users size={10} />
-                      {subCount} Firma
+                      {affectedCount(plan.subscriberCount)} Firma
                     </span>
                   </div>
 
@@ -948,6 +963,7 @@ export function PlansList() {
                 <p className="text-xs text-muted-foreground mt-1">
                   Bu paketi yeni satışa kapatabilir veya tamamen pasife alarak mevcut müşterileri alternatif bir pakete kesintisiz aktarabilirsiniz.
                 </p>
+                <p className="text-xs text-muted-foreground mt-1">{PREVIEW_STALE_NOTICE}</p>
               </div>
               <button
                 type="button"
@@ -966,7 +982,7 @@ export function PlansList() {
                   Bu Paketi Kullanan Firma Sayısı:
                 </span>
                 <span className="font-bold text-foreground">
-                  {deactivatingPlan.subscriberCount ?? 0} Firma
+                  {affectedCount(deactivatingPlan.subscriberCount)} Firma
                 </span>
               </div>
               {Array.isArray(deactivatingPlan.subscribers) && deactivatingPlan.subscribers.length > 0 && (
@@ -1011,7 +1027,7 @@ export function PlansList() {
                       Paket tamamen kullanım dışı bırakılır (`isActive: false`) ve vitrinden kaldırılır.{' '}
                       {(deactivatingPlan.subscriberCount ?? 0) > 0
                         ? 'Mevcut firmalar seçtiğiniz alternatif aktif pakete otomatik olarak aktarılır; hiçbir müşteri hizmet kesintisi yaşamaz.'
-                        : 'Bu pakete bağlı müşteri bulunmadığı için doğrudan pasife alınır.'}
+                        : typeof deactivatingPlan.subscriberCount === 'number' ? 'Bu pakete bağlı müşteri bulunmadığı için doğrudan pasife alınır.' : 'Firma sayısı bilinmiyor; devam etmek için güncel veriyi yükleyin.'}
                     </p>
 
                     {deactivateMode === 'deactivate_and_migrate' &&
@@ -1065,7 +1081,7 @@ export function PlansList() {
                       </p>
                       <p className="text-[11px] text-muted-foreground mt-1">
                         Paket kayıt ve fiyatlandırma sayfasından gizlenir (`isPublished: false`), ancak mevcut{' '}
-                        {deactivatingPlan.subscriberCount ?? 0} firma kendi paket kotalarını kullanmaya devam eder.
+                        {affectedCount(deactivatingPlan.subscriberCount)} firma kendi paket kotalarını kullanmaya devam eder.
                       </p>
                     </div>
                   </div>
@@ -1081,6 +1097,7 @@ export function PlansList() {
                 type="button"
                 disabled={
                   togglingPlanId === deactivatingPlan.id ||
+                  (deactivateMode === 'deactivate_and_migrate' && typeof deactivatingPlan.subscriberCount !== 'number') ||
                   (deactivateMode === 'deactivate_and_migrate' &&
                     (deactivatingPlan.subscriberCount ?? 0) > 0 &&
                     !replacementPlanId)

@@ -225,6 +225,13 @@
       "sha256": "233b4e532ef221165429e072e498ac5c34934f92c32e8eb4f1a840a01e7195ce",
       "snapshotSha256": "c4124bf0dfcf73aecb84120ae170a9f7dca7a0e3c5fc54ff8cc4dee1cc5d4a74",
       "statements": 10
+    },
+    {
+      "idx": 32,
+      "tag": "0032_worker_process_heartbeat",
+      "sha256": "c03ecf5addef25bf27e41ddf6419f9e03374dc9ea8bf4cc2599c85ffaec369ec",
+      "snapshotSha256": "37158a01d41baf783bb08b053a17cd19626af96588866a84459a2f401494013b",
+      "statements": 16
     }
   ]
 }

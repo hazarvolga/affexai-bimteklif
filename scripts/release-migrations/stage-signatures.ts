@@ -134,6 +134,11 @@ const stages = [
     sql: '233b4e532ef221165429e072e498ac5c34934f92c32e8eb4f1a840a01e7195ce',
     snapshot: 'c4124bf0dfcf73aecb84120ae170a9f7dca7a0e3c5fc54ff8cc4dee1cc5d4a74',
     catalog: '535eb93d26a0bff7f8afa1326ebf1e569b117e6ead6459c40b23702a27e94c1f' },
+  // Catalog from isolated PostgreSQL 16 after 0000–0032.
+  { tag: '0032_worker_process_heartbeat',
+    sql: 'c03ecf5addef25bf27e41ddf6419f9e03374dc9ea8bf4cc2599c85ffaec369ec',
+    snapshot: '37158a01d41baf783bb08b053a17cd19626af96588866a84459a2f401494013b',
+    catalog: '26543105abea3d258c7f1ed239ee201143944ea89f08ea7b387e0f6256e76c24' },
 ] as const;
 
 export function pinnedSignature(migration: { idx: number; tag: string; sha256: string; snapshotSha256: string }) {

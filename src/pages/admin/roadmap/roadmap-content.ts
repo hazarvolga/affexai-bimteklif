@@ -185,8 +185,9 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
   },
   {
     id: "durum",
-    title: "Uygulama durumu (28 Ekim 2026 · Rev. 115 geliştirme kaydı)",
+    title: "Uygulama durumu (28 Ekim 2026 · Rev. 116 geliştirme kaydı)",
     blocks: [
+      { type: "callout", tone: "info", title: "Rev. 116 · Operasyon ve yönetici görünürlüğü", text: "0032 worker süreç heartbeat'i, bekleyen en eski iş, liste fiyatı ile onaylanmış havale ayrımı ve sınırlı yönetici audit olay sözlüğü geliştirildi. Yedek/geri yükleme kanıtı doğrulanmadı; canlı dağıtım, OCI kimliği ve bağımsız kabul ayrıca doğrulanmalıdır." },
       { type: "callout", tone: "info", title: "Rev. 115 · Erişim ve firma izolasyonu", text: "Yönetici e-posta doğrulaması, askıda ödeme kurtarma ve başlangıç planı kilidi ile 0030/0031 firma RLS politikaları geliştirildi. Kısıtlı roller izole PostgreSQL'de sınanır; canlı admin ve plan cutover, üretim dağıtımı ve bağımsız kabul ayrıca doğrulanmalıdır." },
       { type: "callout", tone: "info", title: "Rev. 114 · Fiyat ve kanıt görünürlüğü", text: "Tedarikçi girdilerinde boş değer ile sıfır ayrımı, teklif satırı kaynak kanıtı görünümü ve geçmişte kaynağı belirsiz sıfır için PDF 409 koruması geliştirildi. Eski sıfır override kökeni belirsizse kullanıcı doğrulaması gerektirir; canlı ve uzman kabulü ayrıca doğrulanır." },
       { type: "callout", tone: "info", title: "Rev. 113 · Faz 1 kaynak ve karar güvenliği", text: "IFC kaynak türü ve eski geometrik yollar, review kilidi/audit, iki SmartCheck aktarımında eksik fiyat, CDE gerekçesi, belge checksum ve AI öneri kanıtı güncellendi. Eski kaynağı belirsiz kayıtların tümü onarılmış değildir; uzman kabulü ve üretim dağıtımı ayrıca doğrulanmalıdır." },
@@ -247,6 +248,7 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
     id: "adimlar",
     title: "Sıradaki geliştirmeler ve kabul ölçütleri",
     blocks: [
+      { type: "p", text: "Rev. 116 sonrası: worker ortak rolü süreç kimliğini kanıtlamaz; 90 saniyede 32'den fazla aktif süreç veya hızlı yeniden başlama geçici sinyal reddine yol açabilir. Plan, aktiflik ve abonelik değişiklikleri için önce/sonra önizleme ve maskeli banka farkı gösterilir; aynı adlı planlar kimlikleriyle ayrılır. Anlık görüntü eskimiş olabilir uyarısı vardır; sunucu eşzamanlılık kilidi yoktur. Audit eski zamanlarının saat dilimi bilinmiyor olarak gösterilir ve cursor mikro saniyeyi kayıpsız korur. Banka mutabakatı ve doğrulanmış yedek/geri yükleme kanıtı yoktur; canlı test ve bağımsız kabul açıktır." },
       { type: "p", text: "Rev. 115 sonrası: MFA ve oturum iptali tasarımı, tüm endpointlerde IDOR matrisi ve veri saklama/silme yaşam döngüsü açıktır. Bazı audit işlemleri iş verisiyle atomik değildir. Dağıtım öncesi canlı super admin e-posta doğrulaması ve aktif trial/ücretsiz plan cutover kontrolü gerekir; Academy kaydı da plan yoksa 503 alır. İzole kısıtlı rol testleri canlı kabul değildir." },
       { type: "p", text: "Rev. 114 sonrası: tarihsel sıfır override kaynağının belirsizliği için kullanıcı doğrulaması, yeni gerekçeli sıfır aktarımının canlı ve kullanıcı kabulü, diğer fiyat yüzeyleri ve üretim/uzman doğrulamaları açık kalır." },
       { type: "p", text: "Rev. 113 sonrası: tarihsel IFC kayıtlarında belirsiz veya eksik kaynak yolu ve karma boyut kanıtının yeniden işlenmesi, diğer fiyat/PDF akışlarında null–sıfır ayrımı, AI kanıtının zorunluluğu ve gerçek sağlayıcı kabulü, bağımsız mühendis incelemesi ve üretim doğrulaması açık kalır." },
@@ -289,17 +291,17 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
   },
   {
     id: "revizyon-gunlugu",
-    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 115 · 13–28 Ekim 2026)",
+    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 116 · 13–28 Ekim 2026)",
     blocks: [
       {
         type: "callout",
         tone: "info",
-        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 115)",
-        text: "Bu bölüm, BIMMetraj'ın teknik evrimini Rev. 0'dan 28 Ekim 2026 Rev. 115 · BIM-CALC-2026-10-28.109 geliştirme kaydına kadar kronolojik sırayla listeler; Git geçmişi ve canlı sürüm ayrı doğrulanır, bağımsız uzman onayı bu kayıtla verilmez. Rev. 91–100, marka.md ürün incelemesinden çıkan uzman önizlemesi, Faz 0 güven düzeltmeleri ve Faz 1 Excel önce / fiyat eksikliği / dışa aktarım dilimleridir; Rev. 101 ile tüm 0022..0029 migration'ları, D12 worker başlangıç düzeltmesi ve D13 canlı ifc-worker consumeIfcUsage kota tamamlama düzeltmesi canlı üretime (https://bimmetraj.com) dağıtılmıştır. Rev. 102 ile 4 katmanlı müteahhit Excel adaptörü, Rev. 103 ile /admin/pricing-sources otomatik tohumlama ve TÜİK SDMX 2.1 adaptörü, Rev. 104 ile 6 aşamalı güvenlik denetimi bulgularının ve derinlemesine sertleştirme adımlarının tamamı kapatılmıştır. Rev. 105 ile CalmIfcWorkspace 795 satıra ayrıştırılmış, Rev. 106 ile Müşteriler (/app/clients), Müşteriler & Fırsatlar (/app/crm), 6 aşamalı müşteri zaman tüneli (/app/clients/:id) ve 3 katmanlı Akıllı Müşteri Excel/CSV Adaptörü devreye alınmıştır. Rev. 90 ile T43 ≥%80 proje kapsam hedefi (%82,58) ve T56 nihai izlenebilirlik matrisi tamamlanarak dış girdi gerektirmeyen tüm teknik adımlar kapatılmıştır. Harici fixture lisansı, T45 izinli gerçek büyük müşteri dosyası/VPS post-deploy kanıtı, T50–T52 uzman/müşteri/canlı kabulü ve T55 hukuk incelemesi açık olduğundan Faz 7, Faz 9, Faz 10 ve Faz 11 dış kabuller tamamlanana dek PARTIAL kalır.",
+        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 116)",
+        text: "Bu bölüm, BIMMetraj'ın teknik evrimini Rev. 0'dan 28 Ekim 2026 Rev. 116 · BIM-CALC-2026-10-28.110 geliştirme kaydına kadar kronolojik sırayla listeler; Git geçmişi ve canlı sürüm ayrı doğrulanır, bağımsız uzman onayı bu kayıtla verilmez. Rev. 91–100, marka.md ürün incelemesinden çıkan uzman önizlemesi, Faz 0 güven düzeltmeleri ve Faz 1 Excel önce / fiyat eksikliği / dışa aktarım dilimleridir; Rev. 101 ile tüm 0022..0029 migration'ları, D12 worker başlangıç düzeltmesi ve D13 canlı ifc-worker consumeIfcUsage kota tamamlama düzeltmesi canlı üretime (https://bimmetraj.com) dağıtılmıştır. Rev. 102 ile 4 katmanlı müteahhit Excel adaptörü, Rev. 103 ile /admin/pricing-sources otomatik tohumlama ve TÜİK SDMX 2.1 adaptörü, Rev. 104 ile 6 aşamalı güvenlik denetimi bulgularının ve derinlemesine sertleştirme adımlarının tamamı kapatılmıştır. Rev. 105 ile CalmIfcWorkspace 795 satıra ayrıştırılmış, Rev. 106 ile Müşteriler (/app/clients), Müşteriler & Fırsatlar (/app/crm), 6 aşamalı müşteri zaman tüneli (/app/clients/:id) ve 3 katmanlı Akıllı Müşteri Excel/CSV Adaptörü devreye alınmıştır. Rev. 90 ile T43 ≥%80 proje kapsam hedefi (%82,58) ve T56 nihai izlenebilirlik matrisi tamamlanarak dış girdi gerektirmeyen tüm teknik adımlar kapatılmıştır. Harici fixture lisansı, T45 izinli gerçek büyük müşteri dosyası/VPS post-deploy kanıtı, T50–T52 uzman/müşteri/canlı kabulü ve T55 hukuk incelemesi açık olduğundan Faz 7, Faz 9, Faz 10 ve Faz 11 dış kabuller tamamlanana dek PARTIAL kalır.",
       },
       {
         type: "p",
-        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 115):",
+        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 116):",
       },
       {
         type: "table",
@@ -1002,11 +1004,17 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
             "BIM-CALC-2026-10-28.109 · temel ff674a0; Git ve canlı durum ayrıca doğrulanır",
             "Doğrulanmış admin erişimi, askıda ödeme kurtarma ve kayıt plan kilidi; 0030 audit ve 0031 teklife bağlı finans RLS. İzole rol testleri canlı kabul değildir; MFA, oturum iptali ve diğer açıklar sürer.",
           ],
+          [
+            "Rev. 116",
+            "28 Ekim 2026 · Faz 3 operasyon görünürlüğü",
+            "BIM-CALC-2026-10-28.110 · temel a006c07; Git ve canlı durum ayrıca doğrulanır",
+            "DB saatli worker heartbeat, en eski kuyruk işi, liste fiyatı ve sınırlı onaylı havale ayrımı, audit sözlüğü ve doğrulanmamış yedek/restore uyarısı. Banka mutabakatı, OCI kimliği ve canlı kabul açık; yönetici değişiklikleri önce/sonra ve maskeli banka farkıyla önizlenir; audit eski saat dilimi bilinmiyor, cursor kayıpsızdır.",
+          ],
         ],
       },
       {
         type: "p",
-        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 115 · Önceki Durum → Yeni Durum):",
+        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 116 · Önceki Durum → Yeni Durum):",
       },
       {
         type: "table",
@@ -1920,6 +1928,13 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
             "Doğrulanmamış super admin etkili yetki gibi gösterilebiliyor, askıdaki firmanın ödeme kurtarması bloke oluyor, plansız kayıt açılabiliyor; SmartCheck audit ve teklife bağlı finans tablolarının RLS sınırı eksik kalıyordu.",
             "Etkili admin ve impersonation e-posta doğrulaması ister; askıda owner/admin yalnız iki ödeme POST'una erişir; kayıt planı yoksa workspace/Academy 503 alır ve seçili plan transaction boyunca kilitlenir. 0030 audit ve 0031 finans RLS izole PostgreSQL kısıtlı rollerle sınanır. MFA, oturum iptali, tüm endpoint IDOR, veri yaşam döngüsü ve bazı audit atomikliği açık; canlı admin/plan doğrulaması ve dağıtım bekler.",
             "src/server/{middleware/auth,routes/auth,routes/auth-phase2.integration.test}.ts, src/services/billing/trial-plan.ts, drizzle-release/0030_smartcheck_audit_tenant_rls.sql, drizzle-release/0031_finance_quotation_tenant_rls.sql, src/contracts/{smartcheck-pilot-tenant-rls,finance-quotation-rls}.pgtest.ts",
+          ],
+          [
+            "Rev. 116 · 28 Ekim 2026 (Faz 3 operasyon görünürlüğü)",
+            "PostgreSQL DB saati, kısıtlı rol ve RLS; denetim olay sözlüğü; liste fiyatı ve ödeme beyanı ayrımı",
+            "Kuyruk sayıları süreç canlılığını göstermiyor; en eski bekleyen iş ve worker build beyanı görünmüyor, liste fiyatı MRR olarak yorumlanabiliyor; bazı bilinen audit olayları other olarak görünüyordu.",
+            "0032 ile worker ve IFC worker 30 saniyede DB saatli heartbeat yazar; 90 saniye TTL, tür başına 32 aktif kayıt ve 10 saniyelik tekrar sınırlaması vardır; eski kayıt yeniden başlamada değiştirilebilir. Ortak DB rolü kimlik ispatı değildir ve 90 saniyede 32'yi aşan hızlı yeniden başlamalar yeni sinyali geçici engelleyebilir. En eski bekleyen iş gösterilir; güncel liste fiyatı toplamı ile en çok 5000 olaydan yinelenmeyen, tüm zamanlar onaylı havale beyanı ayrılır; banka mutabakatı değildir. Bilinen güvenli audit olayları etiketlenir, yedek/restore doğrulanmadı gösterilir. Plan ve abonelik önce/sonra önizlemesi, maskeli banka farkı ve kayıpsız audit cursor geliştirildi; snapshot eskimesi uyarılır, sunucu eşzamanlılık kilidi yoktur. Audit eski saat dilimi bilinmiyor. OCI, canlı dağıtım ve bağımsız kabul doğrulanmadı.",
+            "drizzle-release/0032_worker_process_heartbeat.sql; src/smartcheck/import/{worker,ifc-worker,process-heartbeat}.ts; src/server/routes/{admin,admin-dashboard-metrics,admin-logs}.ts; src/pages/admin/{AdminDashboard,AdminQueue,AdminLogs,WorkerSignals}.tsx",
           ],
         ],
       },

@@ -166,6 +166,20 @@ export const inspectQuotationCoreRlsViolations = (client: Queryable) => inspectP
   client, DATABASE_QUOTATION_CORE_RLS_TABLES, "0023_quotation_core_rls", "quotation core",
 );
 
+export async function inspectWorkerHeartbeatRlsViolations(client: Queryable): Promise<string[]> {
+  const state = await client.query<{ enabled: boolean; forced: boolean; owner: string }>(`select c.relrowsecurity enabled,c.relforcerowsecurity forced,pg_get_userbyid(c.relowner) owner from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relname='worker_process_heartbeats' and c.relkind='r'`);
+  const ledger = await client.query<{ present: boolean; has_tag: boolean }>("select to_regclass('teklifpro_release.migrations') is not null as present, exists(select 1 from information_schema.columns where table_schema='teklifpro_release' and table_name='migrations' and column_name='tag') as has_tag");
+  const applied = ledger.rows[0]?.present && ledger.rows[0]?.has_tag ? (await client.query<{ applied: boolean }>("select exists(select 1 from teklifpro_release.migrations where tag='0032_worker_process_heartbeat') as applied")).rows[0]?.applied : false;
+  if (!applied && state.rowCount === 0) return [];
+  const policies = await client.query<{ name: string; command: string; roles: number[]; permissive: boolean; using_expression: string | null; check_expression: string | null }>(`select p.polname name,p.polcmd command,p.polroles::oid[] roles,p.polpermissive permissive,pg_get_expr(p.polqual,p.polrelid) using_expression,pg_get_expr(p.polwithcheck,p.polrelid) check_expression from pg_policy p join pg_class c on c.oid=p.polrelid join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relname='worker_process_heartbeats' order by p.polname`);
+  const expected = [
+    { name: 'worker_heartbeat_definer', command: '*', roles: [0], permissive: true, using_expression: "((CURRENT_USER = 'bimmetraj_owner'::name) AND (SESSION_USER = ANY (ARRAY['bimmetraj_worker'::name, 'bimmetraj_control'::name])))", check_expression: "((CURRENT_USER = 'bimmetraj_owner'::name) AND (SESSION_USER = 'bimmetraj_worker'::name))" },
+    { name: 'worker_process_heartbeats_backup_read', command: 'r', roles: [0], permissive: true, using_expression: "(CURRENT_USER = 'bimmetraj_backup'::name)", check_expression: null },
+    { name: 'worker_process_heartbeats_owner_migration', command: '*', roles: [0], permissive: true, using_expression: "((SESSION_USER = 'bimmetraj_migrator'::name) AND (CURRENT_USER = 'bimmetraj_owner'::name))", check_expression: "((SESSION_USER = 'bimmetraj_migrator'::name) AND (CURRENT_USER = 'bimmetraj_owner'::name))" },
+  ];
+  return applied && state.rowCount === 1 && state.rows[0]?.enabled && state.rows[0]?.forced && state.rows[0]?.owner === 'bimmetraj_owner' && JSON.stringify(policies.rows) === JSON.stringify(expected) ? [] : ['public.worker_process_heartbeats: FORCE-RLS policy or owner drift'];
+}
+
 export async function inspectFinanceQuotationRlsViolations(client: Queryable): Promise<string[]> {
   const tables = DATABASE_FINANCE_QUOTATION_RLS_TABLES;
   const states = await client.query<{ table_name: string; enabled: boolean; forced: boolean }>(`select c.relname as table_name,c.relrowsecurity as enabled,c.relforcerowsecurity as forced from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relname=any($1::text[]) and c.relkind in ('r','p')`, [tables]);
@@ -607,6 +621,7 @@ async function inspectManagedSchemaViolations(
   violations.push(...await inspectTenantBusinessRlsViolations(client));
   violations.push(...await inspectQuotationCoreRlsViolations(client));
   violations.push(...await inspectFinanceQuotationRlsViolations(client));
+  violations.push(...await inspectWorkerHeartbeatRlsViolations(client));
   violations.push(...await inspectPricingRegulationsRlsViolations(client));
   violations.push(...await inspectAllplanLearnerRlsViolations(client));
   violations.push(...await inspectAcademyControlRlsViolations(client));

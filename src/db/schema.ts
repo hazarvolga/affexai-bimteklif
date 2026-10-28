@@ -2802,3 +2802,20 @@ export const finalAccounts = pgTable("final_accounts", {
   ownerMigrationPolicy: ownerMigrationPolicy("final_accounts"),
 })).enableRLS();
 
+
+/** Operational liveness only; no tenant, job, or user data. */
+export const workerProcessHeartbeats = pgTable('worker_process_heartbeats', {
+  instanceId: uuid('instance_id').primaryKey(),
+  kind: text('kind').notNull(),
+  revision: text('revision'),
+  revisionSource: text('revision_source'),
+  seenAt: timestamp('seen_at', { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  index('worker_process_heartbeats_seen_at_idx').on(table.seenAt),
+  check('worker_process_heartbeats_kind_check', sql`${table.kind} IN ('worker', 'ifc-worker')`),
+  check('worker_process_heartbeats_revision_check', sql`${table.revision} IS NULL OR ${table.revision} ~ '^[A-Fa-f0-9]{7,64}$'`),
+  check('worker_process_heartbeats_revision_source_check', sql`(${table.revision} IS NULL AND ${table.revisionSource} IS NULL) OR (${table.revision} IS NOT NULL AND ${table.revisionSource} IS NOT NULL AND ${table.revisionSource} IN ('build', 'env'))`),
+  pgPolicy('worker_heartbeat_definer', { for: 'all', to: 'public', using: sql`current_user = 'bimmetraj_owner' AND session_user IN ('bimmetraj_worker', 'bimmetraj_control')`, withCheck: sql`current_user = 'bimmetraj_owner' AND session_user = 'bimmetraj_worker'` }),
+  backupReadPolicy('worker_process_heartbeats'),
+  ownerMigrationPolicy('worker_process_heartbeats'),
+]).enableRLS();

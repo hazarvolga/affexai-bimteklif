@@ -21,6 +21,7 @@ import {
   Users,
 } from 'lucide-react';
 import { fetchWithAuth } from '../../lib/api';
+import { affectedCount, previewChanges, PREVIEW_STALE_NOTICE } from './admin-change-preview';
 import { Button } from '../../components/ui/button';
 import { toast } from 'sonner';
 import { adminPlansSchema, readAdminResponse } from './admin-data';
@@ -351,8 +352,18 @@ export function PlanEditor() {
   const handleSave = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
 
+    if (!isCreateMode && !currentPlan) {
+      toast.error('Mevcut paket bilgileri yüklenemedi; önizleme için yeniden deneyin.');
+      return;
+    }
+
     if (!name.trim()) {
       toast.error('Lütfen geçerli bir paket adı girin.');
+      return;
+    }
+
+    if (!isCreateMode && (isDeactivating || forceMigrateSubscribers) && typeof currentPlan?.subscriberCount !== 'number') {
+      toast.error('Etkilenen firma sayısı bilinmiyor; güncel paket verisini yeniden yükleyin.');
       return;
     }
 
@@ -405,6 +416,9 @@ export function PlanEditor() {
       if (!isCreateMode && needsReplacementPlan && replacementPlanId) {
         payload.replacementPlanId = replacementPlanId;
       }
+
+      const comparison = previewChanges(currentPlan ?? {}, payload, Object.keys(payload));
+      if (!window.confirm(`Paket değişikliği önizlemesi\n\n${comparison}\n\nEtkilenen firma sayısı: ${affectedCount(currentPlan?.subscriberCount)}\n${PREVIEW_STALE_NOTICE}\nDeğişiklik kaydedilsin mi?`)) return;
 
       const url = isCreateMode ? '/api/admin/plans' : `/api/admin/plans/${planId}`;
       const method = isCreateMode ? 'POST' : 'PATCH';
@@ -511,7 +525,7 @@ export function PlanEditor() {
                 </span>
                 <span className="inline-flex items-center gap-1 rounded-full bg-surface-elevated border border-border px-2.5 py-0.5 text-xs font-bold text-foreground">
                   <Users size={11} className="text-indigo-400" />
-                  {subscriberCount} Kayıtlı Firma
+                  {affectedCount(currentPlan?.subscriberCount)} Kayıtlı Firma
                 </span>
               </>
             )}
@@ -651,7 +665,7 @@ export function PlanEditor() {
                 </div>
                 <p className="text-[11px] text-muted-foreground leading-relaxed">
                   Yeni kayıt olanlar bu paketi göremez (`isPublished: false`), ancak mevcut{' '}
-                  <strong className="text-foreground">{subscriberCount} firma</strong> kendi paket kotalarıyla kesintisiz devam eder.
+                  <strong className="text-foreground">{affectedCount(currentPlan?.subscriberCount)} firma</strong> kendi paket kotalarıyla devam eder.
                 </p>
               </label>
 
@@ -1358,11 +1372,11 @@ export function PlanEditor() {
                   Bu Paketi Kullanan Firmalar
                 </h3>
                 <span className="rounded-full bg-surface-elevated px-2.5 py-0.5 text-xs font-bold text-foreground">
-                  {subscriberCount}
+                  {affectedCount(currentPlan?.subscriberCount)}
                 </span>
               </div>
 
-              {subscriberCount === 0 ? (
+              {typeof currentPlan?.subscriberCount !== 'number' ? <p className="text-xs text-muted-foreground">Firma sayısı bilinmiyor.</p> : subscriberCount === 0 ? (
                 <p className="text-xs text-muted-foreground">
                   Şu anda bu pakete tanımlı aktif bir müşteri/firma bulunmuyor.
                 </p>

@@ -13,6 +13,7 @@ test('audit API reads isolated real data with stable microsecond pagination and 
     import('../../db'), import('../../db/schema'), import('../app'), import('../../services/auth/authService'),
   ]);
   const [admin] = await db.insert(schema.users).values({ email: 'audit-reader@example.test', fullName: 'Audit Reader', isSuperAdmin: true, emailVerified: new Date() }).returning();
+  const [company] = await db.insert(schema.companies).values({ name: 'Test Company' }).returning();
   const token = AuthService.generateToken({ userId: admin.id, companyId: null, role: null });
   const server = createServer(createApiApp());
   await new Promise<void>(resolve => server.listen(0, '127.0.0.1', resolve));
@@ -22,8 +23,8 @@ test('audit API reads isolated real data with stable microsecond pagination and 
   assert.deepEqual(await (await request()).json(), { items: [], nextCursor: null });
   const ids = [1, 2, 3].map(n => `11111111-1111-4111-8111-${String(n).padStart(12, '0')}`);
   for (const [index, id] of ids.entries()) {
-    await db.execute(sql`insert into admin_audit_logs(id,admin_id,action,details,created_at)
-      values (${id},${admin.id},'plan.updated',${JSON.stringify({ after: { monthlyPrice: 0, token: 'NEVER_EXPOSE' } })}::jsonb,
+    await db.execute(sql`insert into admin_audit_logs(id,admin_id,target_company_id,action,details,created_at)
+      values (${id},${admin.id},${company.id},'plan.updated',${JSON.stringify({ after: { monthlyPrice: 0, token: 'NEVER_EXPOSE' }, newRunId: id, iban: 'NEVER_EXPOSE' })}::jsonb,
       ${index === 0 ? '2026-10-08T12:00:00.123455' : '2026-10-08T12:00:00.123456'}::timestamp)`);
   }
   const found: string[] = [];
@@ -34,6 +35,9 @@ test('audit API reads isolated real data with stable microsecond pagination and 
     const body = await response.json();
     assert.equal(JSON.stringify(body).includes('NEVER_EXPOSE'), false);
     assert.equal(body.items[0].details.after.monthlyPrice, 0);
+    assert.equal(body.items[0].actorName, 'Audit Reader');
+    assert.equal(body.items[0].companyName, 'Test Company');
+    assert.deepEqual(body.items[0].target, { type: 'run', id: body.items[0].id });
     found.push(body.items[0].id);
     cursor = body.nextCursor;
     assert.ok(found.length <= 3, 'cursor must make progress');
