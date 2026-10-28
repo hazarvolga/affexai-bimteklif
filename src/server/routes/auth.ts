@@ -1,3 +1,4 @@
+import { revokePresentedSessions } from "../auth/session-revocation";
 import { deliverTransactionalEmail } from '../auth/email-delivery';
 import { withAppTenant } from "../../db/app-tenant";
 import type { EmailRenderContext } from '../auth/email-templates';
@@ -420,11 +421,16 @@ export function registerAuthRoutes(app: Express) {
   });
 
   // Cookies are HttpOnly, so only the server can end a browser session.
-  app.post("/api/auth/logout", (req, res) => {
+  app.post("/api/auth/logout", async (req, res) => {
     // Unauthenticated by design (idempotent), but never cross-site: SameSite=Strict cookies plus the origin proof below.
     if (!isSameOriginMutation(req)) return res.status(403).json({ error: "Geçersiz istek kaynağı.", code: "CSRF_ORIGIN_MISMATCH" });
-    clearSessionCookies(res);
-    res.json({ success: true });
+    try {
+      await revokePresentedSessions(req);
+      clearSessionCookies(res);
+      res.json({ success: true });
+    } catch {
+      res.status(503).json({ error: "Oturum güvenli biçimde sonlandırılamadı.", code: "SESSION_REVOCATION_UNAVAILABLE" });
+    }
   });
 
   app.post("/api/auth/impersonate/exit", authenticate, async (req, res) => {

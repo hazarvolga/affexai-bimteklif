@@ -58,6 +58,8 @@ export const DATABASE_SCHEMA_SPECS = Object.freeze([
 }>[]);
 
 export const DATABASE_FUNCTION_EXECUTE_SPECS = Object.freeze([
+  Object.freeze({ schema: "public", name: "bimmetraj_revoke_session", arguments: "text, uuid, timestamp with time zone", fullArguments: "p_token_hash text, p_user_id uuid, p_expires_at timestamp with time zone", roles: Object.freeze(["bimmetraj_control"] as const), securityDefiner: true, strict: false, result: "void" }),
+  Object.freeze({ schema: "public", name: "bimmetraj_cleanup_revoked_sessions", arguments: "", fullArguments: "", roles: Object.freeze(["bimmetraj_control"] as const), securityDefiner: true, strict: false, result: "void" }),
   Object.freeze({ schema: "public", name: "bimmetraj_worker_heartbeat", arguments: "uuid, text, text, text", fullArguments: "p_id uuid, p_kind text, p_revision text, p_revision_source text", roles: Object.freeze(["bimmetraj_worker"] as const), securityDefiner: true, strict: false, result: "void" }),
   Object.freeze({ schema: "public", name: "bimmetraj_worker_heartbeat_summary", arguments: "", fullArguments: "", roles: Object.freeze(["bimmetraj_control"] as const), securityDefiner: true, strict: false, result: "TABLE(kind text, last_seen timestamp with time zone, active_instances bigint, revision text, revision_source text)" }),
   Object.freeze({ schema: "teklifpro_queue", name: "add_job", arguments: "text, json, text, timestamp with time zone, integer, text, integer, text[], text", fullArguments: "identifier text, payload json DEFAULT NULL::json, queue_name text DEFAULT NULL::text, run_at timestamp with time zone DEFAULT NULL::timestamp with time zone, max_attempts integer DEFAULT NULL::integer, job_key text DEFAULT NULL::text, priority integer DEFAULT NULL::integer, flags text[] DEFAULT NULL::text[], job_key_mode text DEFAULT 'replace'::text", roles: Object.freeze(["bimmetraj_worker"] as const), securityDefiner: false, strict: false, result: "teklifpro_queue._private_jobs" }),
@@ -166,6 +168,7 @@ export const DATABASE_AUTHORITY_AUDIT_COMPANY_TABLES = Object.freeze([
   "usage_records",
 ] as const);
 export const DATABASE_PUBLIC_RESTRICTED_TABLE_ACL = Object.freeze({
+  revoked_sessions: Object.freeze({ bimmetraj_app: Object.freeze([]), bimmetraj_control: Object.freeze(["SELECT"]), bimmetraj_worker: Object.freeze([]) }),
   worker_process_heartbeats: Object.freeze({ bimmetraj_app: Object.freeze([]), bimmetraj_control: Object.freeze([]), bimmetraj_worker: Object.freeze([]) }),
   companies: Object.freeze({ bimmetraj_app: Object.freeze(["SELECT"]), bimmetraj_control: Object.freeze(["DELETE", "INSERT", "SELECT", "UPDATE"]), bimmetraj_worker: Object.freeze([]) }),
   subscriptions: Object.freeze({ bimmetraj_app: Object.freeze(["SELECT"]), bimmetraj_control: Object.freeze(["DELETE", "INSERT", "SELECT", "UPDATE"]), bimmetraj_worker: Object.freeze([]) }),
@@ -215,6 +218,18 @@ export const DATABASE_QUEUE_MIGRATION_REVISION = 18;
 export const DATABASE_QUEUE_STRUCTURE_FINGERPRINT = "fecec79451c22e2ae6ad1a040c7eb88c0a4b4c94467f30555d9d003ec088e57e";
 
 export const DATABASE_SECURITY_DEFINER_WRAPPERS = Object.freeze({
+  bimmetraj_revoke_session: `
+BEGIN
+  IF session_user <> 'bimmetraj_control' THEN RAISE EXCEPTION 'control role required' USING ERRCODE = '42501'; END IF;
+  IF p_token_hash IS NULL OR p_token_hash !~ '^[a-f0-9]{64}$' OR p_user_id IS NULL OR p_expires_at IS NULL THEN RAISE EXCEPTION 'invalid session revocation' USING ERRCODE = '22023'; END IF;
+  INSERT INTO public.revoked_sessions(token_hash,user_id,expires_at) VALUES (p_token_hash,p_user_id,p_expires_at)
+    ON CONFLICT (token_hash) DO UPDATE SET expires_at = GREATEST(public.revoked_sessions.expires_at, EXCLUDED.expires_at);
+END `,
+  bimmetraj_cleanup_revoked_sessions: `
+BEGIN
+  IF session_user <> 'bimmetraj_control' THEN RAISE EXCEPTION 'control role required' USING ERRCODE = '42501'; END IF;
+  DELETE FROM public.revoked_sessions WHERE token_hash IN (SELECT token_hash FROM public.revoked_sessions WHERE expires_at < clock_timestamp() - interval '7 days' ORDER BY expires_at LIMIT 500 FOR UPDATE SKIP LOCKED);
+END `,
   bimmetraj_worker_heartbeat: `
 BEGIN
   IF session_user <> 'bimmetraj_worker' THEN RAISE EXCEPTION 'worker role required' USING ERRCODE = '42501'; END IF;

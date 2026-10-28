@@ -21,7 +21,7 @@ export class AuthService {
   }
 
   static generateToken(payload: { userId: string; companyId: string | null; role: string | null }): string {
-    return jwt.sign(payload, jwtSecret(), { expiresIn: "7d", algorithm: "HS256" });
+    return jwt.sign(payload, jwtSecret(), { expiresIn: "7d", algorithm: "HS256", jwtid: randomUUID() });
   }
 
   static generateImpersonationToken(payload: {

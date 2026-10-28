@@ -6,6 +6,7 @@ import { and, eq, sql } from "drizzle-orm";
 import { hashActionToken } from "../auth/security";
 import { isSameOriginMutation, readSessionToken } from "../auth/session-cookie";
 import { z } from "zod";
+import { isSessionRevoked } from "../auth/session-revocation";
 
 declare global {
   namespace Express {
@@ -31,6 +32,7 @@ type AuthDependencies = {
   findUser(userId: string): Promise<AuthUser | undefined>;
   findMembership(userId: string, companyId: string): Promise<AuthMembership | undefined>;
   isImpersonationRevoked?(tokenHash: string): Promise<boolean>;
+  isSessionRevoked(tokenHash: string): Promise<boolean>;
   findSubscription?(companyId: string, userId: string): Promise<{ status: string } | undefined>;
 };
 
@@ -38,11 +40,13 @@ const sessionClaims = z.object({
   userId: z.string().uuid(),
   companyId: z.string().uuid().nullable(),
   iat: z.number().int().positive(),
+  exp: z.number().int().positive(),
   impersonatedBy: z.string().uuid().optional(),
   readOnly: z.boolean().optional(),
 });
 
 export const authDependencies: AuthDependencies = {
+  isSessionRevoked,
   async isImpersonationRevoked(tokenHash) {
     const rows = await db.select({ id: adminAuditLogs.id }).from(adminAuditLogs).where(and(
       eq(adminAuditLogs.action, "impersonation.ended"),
@@ -87,6 +91,7 @@ export const createAuthenticate = (dependencies: AuthDependencies = authDependen
     const parsed = sessionClaims.safeParse(AuthService.verifyToken(token));
     if (!parsed.success) return res.status(401).json({ error: "Invalid token" });
     const { userId, companyId, iat, impersonatedBy, readOnly } = parsed.data;
+    if (!dependencies.isSessionRevoked || await dependencies.isSessionRevoked(hashActionToken(token))) return res.status(401).json({ error: "Session expired" });
     const user = await dependencies.findUser(userId);
     if (!user) return res.status(401).json({ error: "Invalid token" });
     if (user.passwordChangedAt && iat < Math.floor(user.passwordChangedAt.getTime() / 1000)) return res.status(401).json({ error: "Session expired" });

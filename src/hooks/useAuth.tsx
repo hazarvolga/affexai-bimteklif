@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import { endBrowserSession } from './logout-session';
 import { Currency, type Company } from '@/types';
 import { hasSessionHint, isAdminContext, purgeLegacyTokens, setSessionHint } from '@/lib/api';
 
@@ -122,11 +123,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     toast.success("Hizmete erişim sağlandı.");
   };
 
-  const logout = () => {
-    // Çerezleri yalnız sunucu silebilir; ağ hatasında bile yerel durum temizlenir.
-    void fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' }).catch(() => undefined);
-    clearLocalSession();
-    toast.info("Oturum kapatıldı.");
+  const logout = async () => {
+    if (isDemoMode) {
+      clearLocalSession();
+      toast.info("Oturum kapatıldı.");
+      return;
+    }
+    const ended = await endBrowserSession(
+      () => fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' }),
+      clearLocalSession,
+    );
+    if (ended) toast.info("Oturum kapatıldı.");
+    else toast.error('Oturum sunucuda sonlandırılamadı. Lütfen tekrar deneyin.');
   };
 
   const exitImpersonation = async () => {

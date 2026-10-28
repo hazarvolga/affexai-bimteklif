@@ -234,6 +234,13 @@
       "when": 1791417600032,
       "tag": "0032_worker_process_heartbeat",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1791417600033,
+      "tag": "0033_revoked_sessions",
+      "breakpoints": true
     }
   ]
 }

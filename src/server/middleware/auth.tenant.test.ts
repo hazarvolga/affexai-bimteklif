@@ -21,6 +21,7 @@ async function request(options: { membership?: { role: 'owner' | 'viewer' }; sup
   const req: any = { headers: { authorization: options.authorization ?? `Bearer ${token()}` } };
   const res: any = { status(code: number) { status = code; return this; }, json(value: unknown) { body = value; return this; } };
   const authenticate = createAuthenticate({
+    isSessionRevoked: async () => false,
     async findUser(id) {
       assert.equal(id, userId);
       if (options.fail === 'user') throw new Error('private database details');
@@ -111,6 +112,7 @@ test('membership authority scopes both keys and refreshes membership on every re
     } };
   } })) as any);
   const authenticate = createAuthenticate({
+    isSessionRevoked: async () => false,
     findUser: authDependencies.findUser,
     findMembership: async (candidateUserId, candidateCompanyId) => {
       assert.equal(candidateUserId, userId);

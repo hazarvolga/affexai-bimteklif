@@ -253,6 +253,13 @@ export const authActionTokens = pgTable("auth_action_tokens", {
   idxUserActionTokens: index("idx_auth_action_tokens_user_type").on(table.userId, table.type, table.createdAt),
 }));
 
+export const revokedSessions = pgTable("revoked_sessions", {
+  tokenHash: text("token_hash").primaryKey(),
+  userId: uuid("user_id").notNull(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  revokedAt: timestamp("revoked_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({ expiresAtIdx: index("revoked_sessions_expires_at_idx").on(table.expiresAt) }));
+
 export const rateLimitBuckets = pgTable("rate_limit_buckets", {
   bucketKey: text("bucket_key").primaryKey(),
   requestCount: integer("request_count").default(0).notNull(),

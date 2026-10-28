@@ -72,8 +72,8 @@ test("roadmap covers the agreed topics, ministry questions and official sources"
 
 
 test("Rev. 112 documents Phase 0 without claiming production or independent expert approval", () => {
-  assert.equal(CALC_REVIEW_META.version, "BIM-CALC-2026-10-29.1");
-  assert.equal(CALC_REVIEW_CHANGELOG.at(-1)?.revision, "Rev. 119");
+  assert.equal(CALC_REVIEW_META.version, "BIM-CALC-2026-10-29.2");
+  assert.equal(CALC_REVIEW_CHANGELOG.at(-1)?.revision, "Rev. 120");
   const revisions = CALC_REVIEW_CHANGELOG.map(item => Number(item.revision.match(/Rev\. (\d+)/)?.[1]));
   assert.ok(revisions.every((value, index) => index === 0 || value > revisions[index - 1]), "calculation revisions must be strictly increasing");
   const kik = CALC_REVIEW_CHANGELOG.find(item => item.revision === "Rev. 112")?.moduleDetails?.["kik-adt"];
@@ -85,7 +85,7 @@ test("Rev. 112 documents Phase 0 without claiming production or independent expe
   for (const [index, table] of tables.entries()) {
     if (table.type !== "table") continue;
     const numbers = table.rows.map(row => Number(row[0].match(/Rev\. (\d+)/)?.[1]));
-    assert.equal(numbers.at(-1), 119);
+    assert.equal(numbers.at(-1), 120);
     assert.ok(numbers.every((value, rowIndex) => rowIndex === 0 || (index === 0 ? value > numbers[rowIndex - 1] : value >= numbers[rowIndex - 1])), "roadmap revisions must be ordered");
   }
 });
@@ -201,4 +201,15 @@ test("Rev. 119 documents tenant quick edit preview and concurrency limits", () =
   assert.match(JSON.stringify(rev), /eşzamanlılık/i);
   assert.match(JSON.stringify(rev), /formül/i);
   assert.match(JSON.stringify(ROADMAP_SECTIONS.find(section => section.id === "revizyon-gunlugu")), /Rev\. 119/);
+});
+
+
+test("Rev. 120 records session revocation and rollback limits without claiming live acceptance", () => {
+  const rev = CALC_REVIEW_CHANGELOG.find(item => item.revision === "Rev. 120");
+  assert.ok(rev);
+  for (const term of [/SHA-256/, /0033/, /jti/, /yedi gün/, /rollback/, /MFA/, /canlı/, /formülleri değişmedi/]) assert.match(rev.afterSummary, term);
+  assert.deepEqual(rev.affectedModules, []);
+  const journal = JSON.stringify(ROADMAP_SECTIONS.find(section => section.id === "revizyon-gunlugu"));
+  assert.match(journal, /Rev\. 120/);
+  assert.match(journal, /iptal jetonlarını yeniden geçerli kılabilir/);
 });

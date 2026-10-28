@@ -205,6 +205,16 @@ test("tenant business tables enforce FORCE RLS, pool-safe tenant context and CRM
     const worker = new pg.Pool({ connectionString: urlFor(control, databaseName, "bimmetraj_worker", credentials.bimmetraj_worker), max: 1 });
     const backup = new pg.Pool({ connectionString: urlFor(control, databaseName, "bimmetraj_backup", credentials.bimmetraj_backup), max: 1 });
     pools.push(app, singleApp, controlPlane, worker, backup);
+    // Revocation entries are append-only for the runtime roles. Cleanup is a bounded
+    // SECURITY DEFINER operation that retains an extra seven days for clock skew.
+    await denied(() => app.query('select token_hash from public.revoked_sessions'));
+    await denied(() => worker.query('select token_hash from public.revoked_sessions'));
+    await denied(() => controlPlane.query("insert into public.revoked_sessions(token_hash,user_id,expires_at) values ($1,$2,now())", ['a'.repeat(64), ids.userA]));
+    await controlPlane.query("select public.bimmetraj_revoke_session($1,$2,now()-interval '8 days'), public.bimmetraj_revoke_session($3,$2,now()-interval '1 hour')", ['a'.repeat(64), ids.userA, 'b'.repeat(64)]);
+    await denied(() => controlPlane.query('delete from public.revoked_sessions'));
+    await denied(() => controlPlane.query("update public.revoked_sessions set expires_at=now()"));
+    await controlPlane.query('select public.bimmetraj_cleanup_revoked_sessions()');
+    assert.deepEqual((await controlPlane.query('select token_hash from public.revoked_sessions order by token_hash')).rows.map(row => row.token_hash), ['b'.repeat(64)]);
     const companiesSeen = async (actor: TenantContext, table: Table) => withTenantTransaction(app, actor, async client =>
       (await client.query<{ company_id: string }>(`select company_id::text company_id from ${quote(table)}`)).rows.map(row => row.company_id));
     const adminCount = async (table: Table, companyId: string) =>

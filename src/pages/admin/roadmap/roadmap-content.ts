@@ -185,8 +185,9 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
   },
   {
     id: "durum",
-    title: "Uygulama durumu (29 Ekim 2026 · Rev. 119 geliştirme kaydı)",
+    title: "Uygulama durumu (29 Ekim 2026 · Rev. 120 geliştirme kaydı)",
     blocks: [
+      { type: "callout", tone: "info", title: "Rev. 120 · Sunucu taraflı oturum iptali", text: "Çıkışta doğrulanmış çerez ve Bearer oturumlarının SHA-256 özeti ve bitiş zamanı saklanır; sonraki kimlik kontrollerinde iptal sorgulanır. Yeni oturumlarda benzersiz jti kullanılır; veritabanı hatasında erişim ve çıkış güvenli biçimde reddedilir. Yerel geliştirme kaydıdır; canlı yayın ve dış güvenlik kabulü ayrı doğrulanır. Hesap formülleri değişmedi." },
       { type: "callout", tone: "info", title: "Rev. 119 · Firma hızlı düzenleme önizlemesi", text: "Firma hızlı düzenlemede plan, abonelik durumu ve bonus kota önce/sonra gösterilir; iptal kayıt yapmaz. Önizleme yüklenmiş verilere dayanır, sunucu eşzamanlılık kilidi yoktur. Canlı dağıtım ayrıca doğrulanır; hesap formülleri değişmedi." },
       { type: "callout", tone: "warn", title: "Rev. 118 · IFC geometri ve kurtarma sınırı", text: "Birden çok IFC bağlamında iterator geometrisi güvenle ölçeklenemiyorsa kullanılmaz. Açık QTO korunur; karma modelde yüksek miktar bulgusu tüm SmartCheck satırlarının aktarımını durdurur. Ayrı eğri yolu korunur; IfcCovering doğrudan QTO uzunluğu desteklenmez. İzole T44 ve sentetik nesne denemesi canlı, müşteri veya uzman kabulü değildir." },
       { type: "callout", tone: "info", title: "Rev. 117 · Firma iş akışları", text: "Panel en çok 1.000 teklifi/10 sayfa okur; offset eşzamanlı snapshot değildir. SmartCheck boş ve hata durumları ile geç yanıt koruması, örnek teklif için arayüz kayıt engeli ve poz/birim kapsamlı fiyat hafızası geliştirildi. Eksik poz veya birim ile API 400 döner; harici istemciler güncellenmelidir. Sentetik testler canlı dağıtım veya bağımsız uzman kabulü değildir." },
@@ -251,6 +252,7 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
     id: "adimlar",
     title: "Sıradaki geliştirmeler ve kabul ölçütleri",
     blocks: [
+      { type: "p", text: "Rev. 120 sonrası: MFA, tüm cihazlardan çıkış, bağımsız dış güvenlik incelemesi ve canlı doğrulama açıktır. 0033 öncesi imaja dönüş iptal kayıtlarını okumayacağından iptal edilmiş jetonları yeniden geçerli kılabilir; revocation destekleyen geri dönüş veya kontrollü anahtar ve oturum geçersizleştirme planı gerekir. Temizlik yalnız ayrıcalıklı işlevle, süresi yedi gün önce dolmuş en çok 500 kayıt için uygulanır; saat farkı toleransı daha büyük sapmaları garanti etmez." },
       { type: "p", text: "Rev. 119 sonrası: firma hızlı düzenleme önizlemesi yüklenmiş anlık görüntüye dayanır; başka bir yönetici değişiklik yaparsa veriyi yenileyip tekrar incelemek gerekir. Sunucu tarafı eşzamanlılık kilidi ve canlı kabul ayrıca doğrulanmalıdır." },
       { type: "callout", tone: "warn", title: "Faz 5 açık kabul adımları", text: "İzinli gerçek IFC/Excel ve bağımsız uzman referansları, canlı yedek ile tutarlı DB ve nesne geri yükleme tatbikatı ayrı yürütülmelidir. İzole T44 ve üç sentetik nesne kopyası canlı RTO/RPO veya müşteri kabulü değildir." },
       { type: "p", text: "Rev. 117 sonrası: panel çok para birimli sayıları ve ayrı tutarları en çok 1.000 teklif üzerinden gösterir; sayfa tavanı ve offset sayfaları arasında değişim riski açıktır, ileride dar alanlı sunucu aggregate ile iyileştirme gerekir. SmartCheck sıfır satır, işlem ve sorgu hatalarını ayırır; eski belge yanıtları yeni seçimi ezmez. Demo kaydı yalnız arayüzde engellenir. Fiyat hafızası API'si poz ve birim ister; uyumsuz harici istemcilere 400 döner. Sentetik tarayıcı testleri canlı veya uzman kabulü değildir." },
@@ -297,17 +299,17 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
   },
   {
     id: "revizyon-gunlugu",
-    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 119 · 13–29 Ekim 2026)",
+    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 120 · 13–29 Ekim 2026)",
     blocks: [
       {
         type: "callout",
         tone: "info",
-        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 119)",
-        text: "Bu bölüm, BIMMetraj'ın teknik evrimini Rev. 0'dan 29 Ekim 2026 Rev. 119 · BIM-CALC-2026-10-29.1 geliştirme kaydına kadar kronolojik sırayla listeler; Git geçmişi ve canlı sürüm ayrı doğrulanır, bağımsız uzman onayı bu kayıtla verilmez. Rev. 91–100, marka.md ürün incelemesinden çıkan uzman önizlemesi, Faz 0 güven düzeltmeleri ve Faz 1 Excel önce / fiyat eksikliği / dışa aktarım dilimleridir; Rev. 101 ile tüm 0022..0029 migration'ları, D12 worker başlangıç düzeltmesi ve D13 canlı ifc-worker consumeIfcUsage kota tamamlama düzeltmesi canlı üretime (https://bimmetraj.com) dağıtılmıştır. Rev. 102 ile 4 katmanlı müteahhit Excel adaptörü, Rev. 103 ile /admin/pricing-sources otomatik tohumlama ve TÜİK SDMX 2.1 adaptörü, Rev. 104 ile 6 aşamalı güvenlik denetimi bulgularının ve derinlemesine sertleştirme adımlarının tamamı kapatılmıştır. Rev. 105 ile CalmIfcWorkspace 795 satıra ayrıştırılmış, Rev. 106 ile Müşteriler (/app/clients), Müşteriler & Fırsatlar (/app/crm), 6 aşamalı müşteri zaman tüneli (/app/clients/:id) ve 3 katmanlı Akıllı Müşteri Excel/CSV Adaptörü devreye alınmıştır. Rev. 90 ile T43 ≥%80 proje kapsam hedefi (%82,58) ve T56 nihai izlenebilirlik matrisi tamamlanarak dış girdi gerektirmeyen tüm teknik adımlar kapatılmıştır. Harici fixture lisansı, T45 izinli gerçek büyük müşteri dosyası/VPS post-deploy kanıtı, T50–T52 uzman/müşteri/canlı kabulü ve T55 hukuk incelemesi açık olduğundan Faz 7, Faz 9, Faz 10 ve Faz 11 dış kabuller tamamlanana dek PARTIAL kalır.",
+        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 120)",
+        text: "Bu bölüm, BIMMetraj'ın teknik evrimini Rev. 0'dan 29 Ekim 2026 Rev. 120 · BIM-CALC-2026-10-29.2 geliştirme kaydına kadar kronolojik sırayla listeler; Git geçmişi ve canlı sürüm ayrı doğrulanır, bağımsız uzman onayı bu kayıtla verilmez. Rev. 91–100, marka.md ürün incelemesinden çıkan uzman önizlemesi, Faz 0 güven düzeltmeleri ve Faz 1 Excel önce / fiyat eksikliği / dışa aktarım dilimleridir; Rev. 101 ile tüm 0022..0029 migration'ları, D12 worker başlangıç düzeltmesi ve D13 canlı ifc-worker consumeIfcUsage kota tamamlama düzeltmesi canlı üretime (https://bimmetraj.com) dağıtılmıştır. Rev. 102 ile 4 katmanlı müteahhit Excel adaptörü, Rev. 103 ile /admin/pricing-sources otomatik tohumlama ve TÜİK SDMX 2.1 adaptörü, Rev. 104 ile 6 aşamalı güvenlik denetimi bulgularının ve derinlemesine sertleştirme adımlarının tamamı kapatılmıştır. Rev. 105 ile CalmIfcWorkspace 795 satıra ayrıştırılmış, Rev. 106 ile Müşteriler (/app/clients), Müşteriler & Fırsatlar (/app/crm), 6 aşamalı müşteri zaman tüneli (/app/clients/:id) ve 3 katmanlı Akıllı Müşteri Excel/CSV Adaptörü devreye alınmıştır. Rev. 90 ile T43 ≥%80 proje kapsam hedefi (%82,58) ve T56 nihai izlenebilirlik matrisi tamamlanarak dış girdi gerektirmeyen tüm teknik adımlar kapatılmıştır. Harici fixture lisansı, T45 izinli gerçek büyük müşteri dosyası/VPS post-deploy kanıtı, T50–T52 uzman/müşteri/canlı kabulü ve T55 hukuk incelemesi açık olduğundan Faz 7, Faz 9, Faz 10 ve Faz 11 dış kabuller tamamlanana dek PARTIAL kalır.",
       },
       {
         type: "p",
-        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 119):",
+        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 120):",
       },
       {
         type: "table",
@@ -1034,11 +1036,17 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
             "BIM-CALC-2026-10-29.1 · temel 22743d8; canlı dağıtım ayrıca doğrulanır",
             "Firma planı, abonelik durumu ve bonus kotası kayıttan önce karşılaştırılır; iptal kayıt yapmaz. Yüklenmiş snapshot eskimiş olabilir, sunucu eşzamanlılık kilidi yoktur. Hesap formülleri değişmedi.",
           ],
+          [
+            "Rev. 120",
+            "29 Ekim 2026 · Sunucu taraflı oturum iptali",
+            "BIM-CALC-2026-10-29.2 · temel fdb369b; canlı dağıtım ayrıca doğrulanır",
+            "Doğrulanmış oturum jetonunun SHA-256 özeti ve geçerlilik süresiyle iptali, yeni jetonlarda jti, 0033 migration ve sınırlı temizlik. MFA, tüm cihazlardan çıkış, geri dönüş güvenliği ve canlı kabul açıktır; hesap formülleri değişmedi.",
+          ],
         ],
       },
       {
         type: "p",
-        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 119 · Önceki Durum → Yeni Durum):",
+        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 120 · Önceki Durum → Yeni Durum):",
       },
       {
         type: "table",
@@ -1980,6 +1988,13 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
             "Firma hızlı düzenleme seçilen plan, abonelik durumu ve bonus kotayı kayıttan önce karşılaştırmadan PATCH gönderiyordu.",
             "Kaydetmeden önce yüklenmiş firma verilerine dayalı plan kimliği, durum ve bonus kota önce/sonra özetlenir; iptal PATCH göndermez. Snapshot eskimiş olabilir ve sunucu eşzamanlılık kilidi yoktur. Hesap formülleri değişmedi; canlı doğrulama ayrıca gerekir.",
             "src/pages/admin/TenantsList.tsx; src/pages/admin/admin-quick-edit-preview.ts; ilgili testler",
+          ],
+          [
+            "Rev. 120 · 29 Ekim 2026 (Sunucu taraflı oturum iptali)",
+            "İmzalı JWT, SHA-256 jeton özeti, 0033 iptal kaydı ve ayrıcalıklı süreli temizlik",
+            "Çıkış çerezleri temizliyor ancak normal JWT sunucuda iptal edilmiyordu; aynı saniyede üretilen benzer oturumlar aynı jeton olabiliyordu.",
+            "Çıkışta doğrulanmış Bearer ve iki oturum çerezinin özeti ve bitişi aynı işlemde kaydedilir; yeni jetonlara benzersiz jti eklenir. İsteklerde iptal kontrolü ve veritabanı hatasında fail-closed davranış, başarısız çıkışta kullanıcı bildirimi sağlanır; temsil oturumu çıkışı yönetici oturumunu korur. Temizlik kontrol rolüyle, süresinden yedi gün sonra en çok 500 kayıtta yapılır. Eski imaja dönüş iptal jetonlarını yeniden geçerli kılabilir; revocation bilen geri dönüş veya anahtar/oturum geçersizleştirme gerekir. MFA, tüm cihazlardan çıkış, dış güvenlik kabulü ve canlı dağıtım açıktır; hesap formülleri değişmedi.",
+            "drizzle-release/0033_revoked_sessions.sql; src/server/auth/session-revocation.ts; src/server/middleware/auth.ts; src/server/routes/auth.ts; src/services/auth/authService.ts; src/hooks/logout-session.ts",
           ],
         ],
       },

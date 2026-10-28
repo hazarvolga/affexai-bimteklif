@@ -12,6 +12,7 @@ async function request(path: string, revoked = false, activeAdmin = true, method
   let status = 200, passed = false;
   const res: any = { status(value: number) { status = value; return this; }, json() { return this; } };
   await createAuthenticate({
+    isSessionRevoked: async () => false,
     findUser: async (id) => ({ email: 'test@example.test', emailVerified: new Date(), passwordChangedAt: null, isSuperAdmin: id === adminId && activeAdmin }),
     findMembership: async () => ({ role: 'owner' }),
     isImpersonationRevoked: async () => revoked,
