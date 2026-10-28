@@ -1,15 +1,34 @@
 import * as THREE from "three";
 import { IfcAPI } from "web-ifc";
 import wasmUrl from "web-ifc/web-ifc.wasm?url";
-import { IFC_VIEWER_MAX_MEMORY_BYTES, assertGeometryBudget, buildViewerIdentityIndex } from "./model";
+import {
+  IFC_VIEWER_MAX_MEMORY_BYTES,
+  assertGeometryBudget,
+  buildViewerIdentityIndex,
+  computeFitCameraDistance,
+  computePanDelta,
+  computeSectionCutConstant,
+  getCameraPresetAngles,
+  type IfcCameraPreset,
+} from "./model";
 import type { IfcSourceIdentity } from "../types";
+
+export type IfcViewerInteractionMode = "orbit" | "pan";
 
 export interface IfcViewerController {
   selectElement(elementKey: string | null): void;
+  focusElement(elementKey: string | null): void;
   hideElement(elementKey: string): void;
   showAll(): void;
   isolateElement(elementKey: string): void;
   resetView(): void;
+  fitToModel(): void;
+  setCameraPreset(preset: IfcCameraPreset): void;
+  zoomByFactor(factor: number): void;
+  panByPixels(dx: number, dy: number): void;
+  setInteractionMode(mode: IfcViewerInteractionMode): void;
+  setSectionCutPercent(percent: number): void;
+  setWireframe(enabled: boolean): void;
   dispose(): void;
 }
 
@@ -53,15 +72,24 @@ export async function createIfcViewer(
   const { api, modelId, renderer } = await initializeIfcRuntime(bytes);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.setClearColor(0x0b1220, 1);
+  renderer.localClippingEnabled = true;
+  renderer.domElement.style.width = "100%";
+  renderer.domElement.style.height = "100%";
+  renderer.domElement.style.display = "block";
+  renderer.domElement.style.touchAction = "none";
   container.replaceChildren(renderer.domElement);
   const scene = new THREE.Scene();
   scene.add(new THREE.HemisphereLight(0xffffff, 0x334155, 2.2));
   const directional = new THREE.DirectionalLight(0xffffff, 2.6);
   directional.position.set(12, 18, 10);
   scene.add(directional);
+  const fillLight = new THREE.DirectionalLight(0x94a3b8, 1.4);
+  fillLight.position.set(-14, 12, -12);
+  scene.add(fillLight);
   const camera = new THREE.PerspectiveCamera(42, 1, 0.01, 100_000);
   const modelRoot = new THREE.Group();
   scene.add(modelRoot);
+  const sectionPlane = new THREE.Plane(new THREE.Vector3(0, -1, 0), 10_000);
   const byExpressId = new Map<number, THREE.Object3D[]>();
   const identityIndex = buildViewerIdentityIndex(identities);
   let geometryBudget = { allocatedBytes: 0, triangleCount: 0, meshCount: 0 };
@@ -95,7 +123,13 @@ export async function createIfcViewer(
       geometry.setAttribute("normal", new THREE.BufferAttribute(normals, 3));
       geometry.setIndex(new THREE.BufferAttribute(new Uint32Array(indexData), 1));
       const color = new THREE.Color(placed.color.x, placed.color.y, placed.color.z);
-      const material = new THREE.MeshStandardMaterial({ color, transparent: placed.color.w < 1, opacity: placed.color.w });
+      const material = new THREE.MeshStandardMaterial({
+        color,
+        transparent: placed.color.w < 1,
+        opacity: placed.color.w,
+        side: THREE.DoubleSide,
+        clippingPlanes: [sectionPlane],
+      });
       const mesh = new THREE.Mesh(geometry, material);
       mesh.applyMatrix4(new THREE.Matrix4().fromArray(placed.flatTransformation));
       mesh.userData.expressId = flatMesh.expressID;
@@ -119,11 +153,21 @@ export async function createIfcViewer(
 
   const box = new THREE.Box3().setFromObject(modelRoot);
   const sphere = box.getBoundingSphere(new THREE.Sphere());
-  const target = sphere.center.clone();
-  let radius = Math.max(sphere.radius, 1);
+  const initialTarget = sphere.center.clone();
+  const target = initialTarget.clone();
+  const minY = Number.isFinite(box.min.y) ? box.min.y : -1;
+  const maxY = Number.isFinite(box.max.y) ? box.max.y : 10;
+  sectionPlane.constant = computeSectionCutConstant(minY, maxY, 100);
+  const radius = Math.max(sphere.radius, 1);
   let azimuth = Math.PI / 4;
   let elevation = Math.PI / 5;
-  let distance = radius * 2.8;
+  let distance = computeFitCameraDistance(
+    radius,
+    camera.fov,
+    Math.max(container.clientWidth, 1) / Math.max(container.clientHeight, 1),
+  );
+  let hasUserAdjustedCamera = false;
+  let interactionMode: IfcViewerInteractionMode = "orbit";
   let selectedExpressId: number | null = null;
 
   const updateCamera = () => {
@@ -159,9 +203,12 @@ export async function createIfcViewer(
   const resize = () => {
     const width = Math.max(container.clientWidth, 1);
     const height = Math.max(container.clientHeight, 1);
-    renderer.setSize(width, height, false);
+    renderer.setSize(width, height, true);
     camera.aspect = width / height;
-    camera.updateProjectionMatrix();
+    if (!hasUserAdjustedCamera) {
+      distance = computeFitCameraDistance(radius, camera.fov, camera.aspect);
+    }
+    updateCamera();
   };
   const observer = new ResizeObserver(resize);
   observer.observe(container);
@@ -171,34 +218,77 @@ export async function createIfcViewer(
   draw();
 
   let dragging = false;
+  let activeDragMode: IfcViewerInteractionMode = "orbit";
   let moved = false;
   let previousX = 0;
   let previousY = 0;
-  const onPointerDown = (event: PointerEvent) => { dragging = true; moved = false; previousX = event.clientX; previousY = event.clientY; renderer.domElement.setPointerCapture(event.pointerId); };
+  const applyPanPixels = (dx: number, dy: number) => {
+    const delta = computePanDelta({
+      dx,
+      dy,
+      azimuth,
+      elevation,
+      distance,
+      viewportHeight: Math.max(container.clientHeight, 1),
+      fovDegrees: camera.fov,
+    });
+    target.x += delta.x;
+    target.y += delta.y;
+    target.z += delta.z;
+    hasUserAdjustedCamera = true;
+    updateCamera();
+  };
+  const onContextMenu = (event: MouseEvent) => {
+    event.preventDefault();
+  };
+  const onPointerDown = (event: PointerEvent) => {
+    dragging = true;
+    moved = false;
+    previousX = event.clientX;
+    previousY = event.clientY;
+    activeDragMode =
+      event.button === 1 || event.button === 2 || event.shiftKey || interactionMode === "pan"
+        ? "pan"
+        : "orbit";
+    renderer.domElement.setPointerCapture(event.pointerId);
+  };
   const onPointerMove = (event: PointerEvent) => {
     if (!dragging) return;
     const dx = event.clientX - previousX;
     const dy = event.clientY - previousY;
     moved ||= Math.abs(dx) + Math.abs(dy) > 3;
-    azimuth -= dx * 0.006;
-    elevation = Math.max(-1.45, Math.min(1.45, elevation + dy * 0.006));
     previousX = event.clientX;
     previousY = event.clientY;
-    updateCamera();
+    if (activeDragMode === "pan" || event.shiftKey) {
+      applyPanPixels(dx, dy);
+    } else {
+      azimuth -= dx * 0.006;
+      elevation = Math.max(-1.45, Math.min(1.45, elevation + dy * 0.006));
+      hasUserAdjustedCamera = true;
+      updateCamera();
+    }
   };
   const onPointerUp = (event: PointerEvent) => {
     dragging = false;
-    if (moved) return;
+    if (moved || event.button !== 0) return;
     const rect = renderer.domElement.getBoundingClientRect();
     const pointer = new THREE.Vector2(((event.clientX - rect.left) / rect.width) * 2 - 1, -((event.clientY - rect.top) / rect.height) * 2 + 1);
     const raycaster = new THREE.Raycaster();
     raycaster.setFromCamera(pointer, camera);
-    const hits = raycaster.intersectObjects(modelRoot.children, false);
-    const expressId = hits[0]?.object.userData.expressId as number | undefined;
+    const visibleChildren = modelRoot.children.filter(child => child.visible);
+    const hits = raycaster.intersectObjects(visibleChildren, false);
+    const hit = hits.find(candidate => candidate.point.y <= sectionPlane.constant);
+    const expressId = hit?.object.userData.expressId as number | undefined;
     setHighlighted(expressId ?? null);
     onSelection(expressId === undefined ? null : identityIndex.byExpressId.get(expressId) ?? null);
   };
-  const onWheel = (event: WheelEvent) => { event.preventDefault(); distance = Math.max(radius * 0.05, Math.min(radius * 40, distance * Math.exp(event.deltaY * 0.001))); updateCamera(); };
+  const onWheel = (event: WheelEvent) => {
+    event.preventDefault();
+    hasUserAdjustedCamera = true;
+    distance = Math.max(radius * 0.05, Math.min(radius * 40, distance * Math.exp(event.deltaY * 0.001)));
+    updateCamera();
+  };
+  renderer.domElement.addEventListener("contextmenu", onContextMenu);
   renderer.domElement.addEventListener("pointerdown", onPointerDown);
   renderer.domElement.addEventListener("pointermove", onPointerMove);
   renderer.domElement.addEventListener("pointerup", onPointerUp);
@@ -211,6 +301,24 @@ export async function createIfcViewer(
   const setOnlyVisible = (expressId: number | null) => {
     for (const [id, objects] of byExpressId) for (const object of objects) object.visible = expressId === null || id === expressId;
   };
+  const focusExpressId = (expressId: number | null) => {
+    if (expressId === null) return;
+    const objects = byExpressId.get(expressId);
+    if (!objects || objects.length === 0) return;
+    const elemBox = new THREE.Box3();
+    for (const obj of objects) {
+      elemBox.expandByObject(obj);
+    }
+    if (elemBox.isEmpty()) return;
+    const elemSphere = elemBox.getBoundingSphere(new THREE.Sphere());
+    target.copy(elemSphere.center);
+    distance = Math.max(
+      computeFitCameraDistance(Math.max(elemSphere.radius, 0.75), camera.fov, camera.aspect, 1.8),
+      radius * 0.15,
+    );
+    hasUserAdjustedCamera = true;
+    updateCamera();
+  };
 
   return {
     selectElement(elementKey) {
@@ -218,13 +326,73 @@ export async function createIfcViewer(
       setHighlighted(expressId);
       onSelection(expressId === null ? null : identityIndex.byExpressId.get(expressId) ?? null);
     },
+    focusElement(elementKey) {
+      const expressId = elementKey ? expressIdForKey(elementKey) : selectedExpressId;
+      focusExpressId(expressId);
+    },
     hideElement(elementKey) { const id = expressIdForKey(elementKey); if (id !== null) for (const object of byExpressId.get(id) ?? []) object.visible = false; },
     showAll() { setOnlyVisible(null); },
-    isolateElement(elementKey) { setOnlyVisible(expressIdForKey(elementKey)); },
-    resetView() { setOnlyVisible(null); setHighlighted(null); azimuth = Math.PI / 4; elevation = Math.PI / 5; distance = radius * 2.8; updateCamera(); onSelection(null); },
+    isolateElement(elementKey) {
+      const id = expressIdForKey(elementKey);
+      setOnlyVisible(id);
+      focusExpressId(id);
+    },
+    fitToModel() {
+      target.copy(initialTarget);
+      distance = computeFitCameraDistance(radius, camera.fov, camera.aspect);
+      hasUserAdjustedCamera = false;
+      updateCamera();
+    },
+    setCameraPreset(preset) {
+      const angles = getCameraPresetAngles(preset);
+      azimuth = angles.azimuth;
+      elevation = angles.elevation;
+      target.copy(initialTarget);
+      distance = computeFitCameraDistance(radius, camera.fov, camera.aspect);
+      hasUserAdjustedCamera = true;
+      updateCamera();
+    },
+    zoomByFactor(factor) {
+      const safeFactor = Number.isFinite(factor) && factor > 0 ? factor : 1;
+      hasUserAdjustedCamera = true;
+      distance = Math.max(radius * 0.05, Math.min(radius * 40, distance * safeFactor));
+      updateCamera();
+    },
+    panByPixels(dx, dy) {
+      applyPanPixels(dx, dy);
+    },
+    setInteractionMode(mode) {
+      interactionMode = mode;
+    },
+    setSectionCutPercent(percent) {
+      sectionPlane.constant = computeSectionCutConstant(minY, maxY, percent);
+    },
+    setWireframe(enabled) {
+      modelRoot.traverse(object => {
+        if (object instanceof THREE.Mesh) {
+          (Array.isArray(object.material) ? object.material : [object.material]).forEach(material => {
+            (material as THREE.MeshStandardMaterial).wireframe = enabled;
+          });
+        }
+      });
+    },
+    resetView() {
+      setOnlyVisible(null);
+      setHighlighted(null);
+      const angles = getCameraPresetAngles("iso");
+      azimuth = angles.azimuth;
+      elevation = angles.elevation;
+      target.copy(initialTarget);
+      distance = computeFitCameraDistance(radius, camera.fov, camera.aspect);
+      sectionPlane.constant = computeSectionCutConstant(minY, maxY, 100);
+      hasUserAdjustedCamera = false;
+      updateCamera();
+      onSelection(null);
+    },
     dispose() {
       cancelAnimationFrame(animationFrame);
       observer.disconnect();
+      renderer.domElement.removeEventListener("contextmenu", onContextMenu);
       renderer.domElement.removeEventListener("pointerdown", onPointerDown);
       renderer.domElement.removeEventListener("pointermove", onPointerMove);
       renderer.domElement.removeEventListener("pointerup", onPointerUp);

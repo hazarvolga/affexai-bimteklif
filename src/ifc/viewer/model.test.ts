@@ -8,6 +8,10 @@ import {
   IFC_VIEWER_MAX_TRIANGLES,
   assertGeometryBudget,
   buildViewerIdentityIndex,
+  computeFitCameraDistance,
+  computePanDelta,
+  computeSectionCutConstant,
+  getCameraPresetAngles,
   parseViewerContext,
   sha256Hex,
 } from "./model";
@@ -55,5 +59,38 @@ describe("IFC viewer model boundary", () => {
 
   it("caps evidence identities at a review-sized boundary", () => {
     assert.throws(() => parseViewerContext({ ...context, identities: Array(IFC_VIEWER_MAX_IDENTITIES + 1).fill(context.identities[0]) }));
+  });
+
+  it("computes aspect-aware fit camera distance and preset angles for 3D space controls", () => {
+    const wideDist = computeFitCameraDistance(10, 42, 16 / 9);
+    const narrowDist = computeFitCameraDistance(10, 42, 0.5);
+    assert.equal(wideDist > 20, true);
+    assert.equal(narrowDist > wideDist, true);
+
+    const iso = getCameraPresetAngles("iso");
+    const top = getCameraPresetAngles("top");
+    const front = getCameraPresetAngles("front");
+    const right = getCameraPresetAngles("right");
+    assert.equal(top.elevation > iso.elevation, true);
+    assert.notEqual(front.azimuth, right.azimuth);
+  });
+
+  it("computes screen-space pan delta and vertical section cut plane height", () => {
+    const pan = computePanDelta({
+      dx: 100,
+      dy: 50,
+      azimuth: 0,
+      elevation: 0,
+      distance: 20,
+      viewportHeight: 500,
+      fovDegrees: 42,
+    });
+    assert.equal(Math.abs(pan.x) < 1e-9, true);
+    assert.equal(pan.y > 0, true);
+    assert.equal(pan.z > 0, true);
+
+    assert.equal(computeSectionCutConstant(0, 12, 50), 6);
+    assert.equal(computeSectionCutConstant(0, 12, 0) >= 0.6, true);
+    assert.equal(computeSectionCutConstant(0, 12, 100) > 12, true);
   });
 });
