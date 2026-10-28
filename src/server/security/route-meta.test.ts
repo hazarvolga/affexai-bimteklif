@@ -56,7 +56,8 @@ test('llms-full.txt yetenekleri kayıttan üretir ve imzasız yeteneği "uzman o
   assert.match(text, /Uzman onayı: Yok/);
   assert.equal(text.includes('L3 CANLI'), false);
   assert.equal(text.includes('Denetim Kurulu'), false);
-  assert.equal(text.includes('/hesaplayicilar/yambis-muteahhitlik-grubu'), false);
+  assert.equal(text.includes('/hesaplayicilar/yambis-muteahhitlik-grubu'), true);
+  assert.equal(text.includes('/hesaplayicilar/kat-karsiligi-ve-kentsel-donusum'), true);
 });
 
 test('T48: rota içeriği #root içinde ön-render olarak, noscript dışında ve bir kez eklenir', () => {

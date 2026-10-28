@@ -549,7 +549,7 @@ export function CreateQuote() {
     <PageContainer>
       <PageHeader 
         title={id ? 'Taslağı Düzenle' : 'Yeni Teklif Oluştur'}
-        description={id ? formData.quoteNumber : 'AI destekli kalem sihirbazı ile saniyeler içinde profesyonel teklifler hazırlayın.'}
+        description={id ? formData.quoteNumber : 'Excel/CSV metraj cetveli, firma kataloğu, onaylı piyasa rayiçleri veya isteğe bağlı AI sihirbazı ile teklif hazırlayın.'}
         icon={Plus}
         backButton={{
           label: "Tekliflere Dön",
@@ -558,6 +558,16 @@ export function CreateQuote() {
         actions={
           <div className="flex flex-wrap gap-2.5">
             {!id && <>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={importingFile}
+              onClick={() => fileInputRef.current?.click()}
+              className="border-primary/50 bg-primary/10 hover:bg-primary/20 text-foreground font-mono text-xs uppercase tracking-wider h-10 px-4 gap-2 shadow-none"
+            >
+              {importingFile ? <Loader2 size={14} className="animate-spin text-primary" /> : <FileSpreadsheet size={14} className="text-primary" />}
+              Excel / CSV Yükle
+            </Button>
             <Button
               variant="outline" 
               onClick={() => navigate('/app/smartcheck')}
@@ -585,7 +595,7 @@ export function CreateQuote() {
       {saveError && <div role="alert" className="mb-4 text-xs font-mono text-destructive">{saveError} {id && <Button variant="outline" size="sm" onClick={() => window.location.reload()}>Yeniden yükle</Button>}</div>}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        <div className="min-w-0 lg:col-span-8 space-y-8">
+        <div className="min-w-0 lg:col-span-8 space-y-5">
           {/* AI Wizard Section */}
           {!id && (
             <QuoteAiWizard
@@ -598,7 +608,7 @@ export function CreateQuote() {
               aiResult={aiResult}
               generateWithAi={generateWithAi}
               aiConfigured={aiConfigured}
-              collapsedByDefault={startFromExcel || Boolean(excelImportNotice) || demoLoaded}
+              collapsedByDefault={startFromExcel || Boolean(excelImportNotice) || demoLoaded || aiConfigured !== true}
               existingItemCount={populatedItems.length}
             />
           )}
@@ -698,17 +708,16 @@ export function CreateQuote() {
               </div>
             )}
 
-            {/* PRICE VALIDITY & DISCLAIMER BANNER */}
+            {/* COMPACT CATALOG & BENCHMARK PICKER BARS ABOVE TABLE */}
             <CompanyCatalogPicker currency={formData.currency} onPick={applyCatalogItem} />
-            {benchmarksData && <BenchmarkPanel data={benchmarksData} onApply={applyBenchmarkItem} />}
+            {benchmarksData && <BenchmarkPanel data={benchmarksData} onApply={applyBenchmarkItem} mode="compact-picker" />}
 
             <Card className="bg-card border border-border shadow-none overflow-hidden">
               <CardContent className="p-0">
-                <QuoteItemsTable items={items} currency={formData.currency} onUpdate={updateItem} onRemove={removeItem} />
                 <div
                   ref={excelImportRef}
                   data-testid="quote-excel-import"
-                  className={`p-3 border-t border-border flex flex-wrap items-center justify-between gap-2 px-4 ${startFromExcel ? 'bg-primary/10 ring-2 ring-primary/40' : 'bg-muted/20'}`}
+                  className={`p-3 border-b border-border flex flex-wrap items-center justify-between gap-2 px-4 ${startFromExcel ? 'bg-primary/10 ring-2 ring-primary/40' : 'bg-muted/20'}`}
                 >
                   <div className="flex flex-wrap items-center gap-2">
                     {startFromExcel && (
@@ -730,9 +739,9 @@ export function CreateQuote() {
                       variant="outline"
                       disabled={importingFile}
                       onClick={() => fileInputRef.current?.click()}
-                      className="font-mono text-xs h-8 px-3 gap-1.5 border-border bg-background hover:bg-card text-foreground shadow-none"
+                      className="font-mono text-xs h-8 px-3 gap-1.5 border-primary/50 bg-primary/10 hover:bg-primary/20 text-foreground font-semibold shadow-none"
                     >
-                      {importingFile ? <Loader2 size={13} className="animate-spin text-primary" /> : <FileSpreadsheet size={13} className="text-muted-foreground" />}
+                      {importingFile ? <Loader2 size={13} className="animate-spin text-primary" /> : <FileSpreadsheet size={13} className="text-primary" />}
                       Excel / CSV'den Kalem Aktar
                     </Button>
                     <Button
@@ -752,12 +761,21 @@ export function CreateQuote() {
                       CSV şablonu
                     </Button>
                   </div>
-                  <Button variant="ghost" onClick={addItem} className="text-primary hover:bg-primary/10 font-mono text-xs h-8 px-5 gap-1.5">
+                  <Button variant="ghost" onClick={addItem} className="text-primary hover:bg-primary/10 font-mono text-xs h-8 px-4 gap-1.5">
+                    <Plus size={14} /> Yeni Kalem Ekle
+                  </Button>
+                </div>
+                <QuoteItemsTable items={items} currency={formData.currency} onUpdate={updateItem} onRemove={removeItem} />
+                <div className="px-4 py-2.5 border-t border-border bg-muted/10 flex items-center justify-end">
+                  <Button variant="ghost" onClick={addItem} className="text-primary hover:bg-primary/10 font-mono text-xs h-8 px-4 gap-1.5">
                     <Plus size={14} /> Yeni Kalem Ekle
                   </Button>
                 </div>
               </CardContent>
             </Card>
+
+            {/* PRICE VALIDITY & DISCLAIMER NOTICE BELOW TABLE (Option C) */}
+            {benchmarksData && <BenchmarkPanel data={benchmarksData} onApply={applyBenchmarkItem} mode="sources-notice" />}
           </SectionWrapper>
         </div>
 

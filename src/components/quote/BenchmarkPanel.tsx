@@ -31,27 +31,79 @@ export type BenchmarkItem = BenchmarkData['items'][number];
 interface BenchmarkPanelProps {
   data: BenchmarkData;
   onApply: (item: BenchmarkItem) => void;
+  /**
+   * 'compact-picker': renders only the 1-line benchmark pool picker bar & drawer above the table.
+   * 'sources-notice': renders the 3 source validity cards and legal disclaimer below the table (Option C).
+   * 'full': renders both together (legacy default).
+   */
+  mode?: 'compact-picker' | 'sources-notice' | 'full';
 }
 
-export function BenchmarkPanel({ data, onApply }: BenchmarkPanelProps) {
+export function BenchmarkPanel({ data, onApply, mode = 'full' }: BenchmarkPanelProps) {
   const [showDrawer, setShowDrawer] = useState(false);
+
+  if (mode === 'sources-notice') {
+    return (
+      <div className="mt-4 border border-border bg-card p-4 shadow-none" data-testid="benchmark-sources-notice">
+        <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-border">
+          <div className="flex items-center gap-2">
+            <Info size={15} className="text-primary shrink-0" />
+            <span className="text-xs font-mono font-bold text-foreground uppercase tracking-wider">
+              Piyasa Rayiçleri & Fiyat Geçerlilik Bildirimi
+            </span>
+            <Badge variant="outline" className="border-border text-muted-foreground text-[10px] font-mono">
+              Bilgilendirme
+            </Badge>
+          </div>
+          <span className="text-[11px] font-mono text-muted-foreground">
+            {data.sourcesSummary.length} referans kaynak · Tablo üstünden kalem ekleyebilirsiniz
+          </span>
+        </div>
+
+        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 mt-3 text-xs">
+          {data.sourcesSummary.slice(0, 3).map((s, idx) => (
+            <div key={idx} className="flex items-center gap-2 bg-muted/20 p-2.5 border border-border">
+              <Calendar size={13} className="text-muted-foreground shrink-0" />
+              <div className="truncate">
+                <span className="font-bold text-foreground block truncate text-xs">{s.name}</span>
+                <span className="text-[10px] font-mono text-muted-foreground">Geçerlilik: {s.validityRange}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <p className="mt-3 text-xs text-muted-foreground leading-relaxed bg-muted/10 p-3 border border-border font-sans">
+          <strong className="text-foreground">⚠️ Kullanıcı Sorumluluğu & Manuel Teyit:</strong> {data.disclaimer}
+        </p>
+      </div>
+    );
+  }
+
   return (
-          <div className="mb-4 border border-border bg-card p-4 shadow-none">
-            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 pb-3 border-b border-border">
+          <div className="mb-3 border border-border bg-card px-4 py-3 shadow-none" data-testid="benchmark-picker-bar">
+            <div className={`flex flex-col md:flex-row items-start md:items-center justify-between gap-3 ${mode === 'full' || showDrawer ? 'pb-3 border-b border-border' : ''}`}>
               <div className="flex items-center gap-2">
-                <Info size={15} className="text-primary shrink-0" />
-                <span className="text-xs font-mono font-bold text-foreground uppercase tracking-wider">
-                  Piyasa Rayiçleri & Fiyat Geçerlilik Bildirimi
-                </span>
-                <Badge variant="outline" className="border-border text-muted-foreground text-[10px] font-mono">
-                  Bilgilendirme
-                </Badge>
+                <Sparkles size={15} className="text-primary shrink-0" />
+                <div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-xs font-semibold text-foreground">
+                      Piyasa rayiç havuzu
+                    </span>
+                    <Badge variant="outline" className="border-border text-muted-foreground text-[10px] font-mono">
+                      {data.items.length} Kalem
+                    </Badge>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground">
+                    Demir, hazır beton ve TÜİK referanslı güncel piyasa rayiçlerinden teklife satır ekleyin.
+                  </p>
+                </div>
               </div>
               <Button
                 type="button"
                 onClick={() => setShowDrawer(!showDrawer)}
                 variant="outline"
-                className="border-border bg-background hover:bg-muted text-foreground text-xs font-mono h-7 gap-1.5 shadow-none"
+                data-testid="benchmark-drawer-toggle"
+                className="border-border bg-background hover:bg-muted text-foreground text-xs font-mono h-7 gap-1.5 shadow-none shrink-0"
               >
                 <Sparkles size={12} className="text-primary" />
                 {showDrawer ? 'Rayiç Havuzunu Gizle' : `Onaylı Rayiçleri Gör (${data.items.length} Kalem)`}
@@ -59,25 +111,29 @@ export function BenchmarkPanel({ data, onApply }: BenchmarkPanelProps) {
               </Button>
             </div>
 
-            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 mt-3 text-xs">
-              {data.sourcesSummary.slice(0, 3).map((s, idx) => (
-                <div key={idx} className="flex items-center gap-2 bg-muted/20 p-2.5 border border-border">
-                  <Calendar size={13} className="text-muted-foreground shrink-0" />
-                  <div className="truncate">
-                    <span className="font-bold text-foreground block truncate text-xs">{s.name}</span>
-                    <span className="text-[10px] font-mono text-muted-foreground">Geçerlilik: {s.validityRange}</span>
-                  </div>
+            {mode === 'full' && (
+              <>
+                <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 mt-3 text-xs">
+                  {data.sourcesSummary.slice(0, 3).map((s, idx) => (
+                    <div key={idx} className="flex items-center gap-2 bg-muted/20 p-2.5 border border-border">
+                      <Calendar size={13} className="text-muted-foreground shrink-0" />
+                      <div className="truncate">
+                        <span className="font-bold text-foreground block truncate text-xs">{s.name}</span>
+                        <span className="text-[10px] font-mono text-muted-foreground">Geçerlilik: {s.validityRange}</span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
 
-            <p className="mt-3 text-xs text-muted-foreground leading-relaxed bg-muted/10 p-3 border border-border font-sans">
-              <strong className="text-foreground">⚠️ Kullanıcı Sorumluluğu & Manuel Teyit:</strong> {data.disclaimer}
-            </p>
+                <p className="mt-3 text-xs text-muted-foreground leading-relaxed bg-muted/10 p-3 border border-border font-sans">
+                  <strong className="text-foreground">⚠️ Kullanıcı Sorumluluğu & Manuel Teyit:</strong> {data.disclaimer}
+                </p>
+              </>
+            )}
 
             {/* BENCHMARK QUICK PICKER DRAWER */}
             {showDrawer && (
-              <div className="mt-4 pt-3 border-t border-border">
+              <div className="mt-3 pt-1">
                 <p className="text-xs font-mono font-bold text-foreground mb-2 flex items-center gap-1.5">
                   <Zap size={13} className="text-primary" /> Taranmış Güncel Rayiçlerden Teklife Ekle:
                 </p>

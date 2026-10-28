@@ -52,7 +52,7 @@ export function CompanyCatalogPicker({ currency, onPick }: CompanyCatalogPickerP
   const hiddenCount = (snapshots?.length ?? 0) - pickable.length;
 
   return (
-    <div className="mb-4 border border-border bg-card p-4" data-testid="company-catalog-picker">
+    <div className="mb-3 border border-border bg-card px-4 py-3" data-testid="company-catalog-picker">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <BookOpenCheck size={15} className="shrink-0 text-primary" />

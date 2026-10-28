@@ -63,10 +63,10 @@ try {
   assert.equal(await anonymous.$('[data-testid="expert-feedback"]'), null, 'anonymous visitors must not see the feedback card');
   // Production sends anonymous visitors to /login (ProtectedRoute; route placement is guarded in registry.test.ts).
   // The Vite dev server instead enters the dev-only demo session, which must never be offered the feedback form.
-  for (const previewPath of ['/app/uzman-onizleme/yambis', '/app/uzman-onizleme/kat-karsiligi']) {
-    await anonymous.goto(`${base}${previewPath}`, { waitUntil: 'networkidle0' });
-    await anonymous.waitForFunction(() => location.pathname === '/login' || document.querySelector('[data-testid="expert-preview-notice"]'), { timeout: 10_000 });
-    assert.equal(await anonymous.$('[data-testid="expert-feedback"]'), null, `${previewPath}: no feedback form without a real session`);
+  for (const calcPath of ['/hesaplayicilar/yambis-muteahhitlik-grubu', '/hesaplayicilar/kat-karsiligi-ve-kentsel-donusum']) {
+    await anonymous.goto(`${base}${calcPath}`, { waitUntil: 'networkidle0' });
+    await anonymous.waitForSelector('[data-testid="calculator-disclaimer"]', { timeout: 10_000 });
+    assert.equal(await anonymous.$('[data-testid="expert-feedback"]'), null, `${calcPath}: no feedback form without a real session`);
   }
   await anonymous.close();
 

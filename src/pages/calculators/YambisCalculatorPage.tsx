@@ -5,8 +5,7 @@ import { CalcField, CalculatorShell, calcInputClass, fmtNum, fmtTry } from "./Ca
 
 /**
  * Yetki belgesi grubu ön değerlendirmesi. Hiçbir değer varsayılmaz; yapı sınır bedeli her yıl Bakanlıkça yayımlanan
- * III. ve IV. sınıf birim maliyetlerinden hesaplanır ve kullanıcıdan alınır. Sayfa, kaynak ve uzman doğrulaması
- * tamamlanana kadar yayında değildir (rota, sitemap ve llms.txt dışında).
+ * III. ve IV. sınıf birim maliyetlerinden hesaplanır ve kullanıcıdan alınır. Sonuçlar bilgilendirme amaçlı ön hesaptır.
  */
 type FormKey =
   | "evaluationDate" | "yapiSinirBedeli" | "isDeneyimi" | "usta" | "teknik" | "ciro" | "bankaReferans"
@@ -68,7 +67,6 @@ export const YambisCalculatorPage: React.FC = () => {
       title="Müteahhitlik Yetki Belgesi Grubu Ön Değerlendirmesi | BIMMetraj"
       description="Yapı Müteahhitlerinin Sınıflandırılması Yönetmeliği'ndeki grup koşullarını (iş deneyimi, iş gücü, bilanço oranları, ciro) kendi verilerinizle karşılaştırın. Bilgilendirme amaçlıdır."
       canonicalPath="/hesaplayicilar/yambis-muteahhitlik-grubu"
-      preview
       heading="Müteahhitlik Yetki Belgesi Grubu Ön Değerlendirmesi"
       intro="Değerleri yönetmelik tanımlarına göre siz girersiniz; hiçbir değer varsayılmaz. Sonuç Bakanlığın başvuru incelemesinin yerini tutmaz."
       sources={[

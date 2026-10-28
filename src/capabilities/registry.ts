@@ -381,11 +381,11 @@ export const CAPABILITY_REGISTRY: readonly CapabilityRecord[] = [
   },
   {
     id: 'free-public-calculators',
-    title: 'Ücretsiz Halka Açık Hesaplayıcılar — Aşırı Düşük Teklif Sınır Değeri ve 4735 Fiyat Farkı (Pilot · L2)',
+    title: 'Ücretsiz Halka Açık Hesaplayıcılar — KİK Sınır Değer, 4735 Fiyat Farkı, YAMBİS ve Kat Karşılığı/KDV (Pilot · L2)',
     shortClaim:
-      'Giriş gerektirmeyen iki ön hesaplayıcı: KİK m.38 / Tebliğ m.45.1.1 sınır değer ve 4735 fiyat farkı. Tüm katsayılar ve endeksler kullanıcı girdisidir; bağımsız doğrulanmamıştır.',
+      'Giriş gerektirmeyen dört ön hesaplayıcı: KİK m.38 sınır değer, 4735 fiyat farkı, YAMBİS müteahhitlik yetki belgesi grubu ve kat karşılığı paylaşım / KDV. Tüm katsayılar ve endeksler kullanıcı girdisidir; bağımsız doğrulanmamıştır.',
     longDescription:
-      'Mevcut KİK ve 4735 motorlarını (src/lib/kik-adt.ts, src/lib/price-escalation.ts) herkese açık sayfalara bağlar. Hesap tarayıcıda yapılır, hiçbir değer varsayılmaz (B katsayısı ve sabit katsayı dahil), endeks verisi çekilmez. Sayfalarda "bağımsız mühendis/mali müşavir doğrulaması yoktur" uyarısı bulunur. Gerçek bir bağımsız doğrulama alınana kadar pilot olarak işaretlidir.',
+      'Mevcut KİK, 4735, YAMBİS ve Kat Karşılığı motorlarını (src/lib/kik-adt.ts, src/lib/price-escalation.ts, src/lib/yambis-classification.ts, src/lib/kat-karsiligi.ts) herkese açık sayfalara bağlar. Hesap tarayıcıda yapılır, hiçbir değer varsayılmaz (B katsayısı, yapı sınır bedeli ve sabit katsayı dahil), endeks verisi çekilmez. Sayfalarda "bağımsız mühendis/mali müşavir doğrulaması yoktur" uyarısı ve oturum açmış kullanıcılar için uzman geri bildirim kartı bulunur. Gerçek bir bağımsız doğrulama alınana kadar pilot olarak işaretlidir.',
     level: 'L2',
     status: 'pilot',
     stream: 'C',
@@ -447,13 +447,13 @@ export const CAPABILITY_REGISTRY: readonly CapabilityRecord[] = [
   },
   {
     id: 'kat-karsiligi-ve-kentsel-donusum-calculator',
-    title: 'Kat Karşılığı ve Kentsel Dönüşüm Paylaşım / KDV Hesaplayıcısı (Yol Haritasında)',
+    title: 'Kat Karşılığı ve Kentsel Dönüşüm Paylaşım / KDV Hesaplayıcısı (Pilot · L2)',
     shortClaim:
-      'Arsa sahibi ve müteahhit paylaşımı ile 6306 kapsamındaki KDV etkisinin kullanıcı girdili hesaplanması (Yol Haritasında; kaynak ve uzman doğrulaması bekliyor).',
+      'Arsa sahibi ve müteahhit paylaşımı ile 6306 kapsamındaki KDV etkisinin kullanıcı girdili ön hesaplanması (Pilot · L2; bağımsız uzman doğrulaması bekliyor).',
     longDescription:
-      'Motor (src/lib/kat-karsiligi.ts) resmî kurallara göre yeniden yazıldı: gizli varsayılan yok, konut KDV\'si net alana göre kısım bazlı (1/4/2022 sonrası ruhsat: genel ilk 150 m² %10, fazlası %20; 6306 kapsamında ilk 150 m² %1, fazlası %20), arsa sahibine teslim, VUK m.267/2 maliyet bedeline toptan %5 / perakende %10 eklenerek bulunan emsal bedelden vergilendirilir (KDV Genel Uygulama Tebliği I/B-8, RG 5.6.2018), tapu devri aşamaları örnek şablondur. Yayına alınmadı: GİB Genel Uygulama Tebliği ile karşılaştırma ve mali müşavir onayı bekliyor (docs/audits/RESMI_VERI_ARASTIRMASI_2026-10-17.md).',
-    level: 'L1',
-    status: 'roadmap',
+      'Motor (src/lib/kat-karsiligi.ts) resmî kurallara göre yeniden yazıldı ve /hesaplayicilar/kat-karsiligi-ve-kentsel-donusum rotasında kullanıcı sınamasına açıldı: gizli varsayılan yok, konut KDV\'si net alana göre kısım bazlı (1/4/2022 sonrası ruhsat: genel ilk 150 m² %10, fazlası %20; 6306 kapsamında ilk 150 m² %1, fazlası %20), arsa sahibine teslim, VUK m.267/2 maliyet bedeline toptan %5 / perakende %10 eklenerek bulunan emsal bedelden vergilendirilir (KDV Genel Uygulama Tebliği I/B-8, RG 5.6.2018), tapu devri aşamaları örnek şablondur. Bağımsız mali müşavir onayı alınana kadar L2 Pilot olarak işaretlidir.',
+    level: 'L2',
+    status: 'pilot',
     stream: 'C',
     evidence: {
       modulePath: 'src/lib/kat-karsiligi.ts',
@@ -461,7 +461,7 @@ export const CAPABILITY_REGISTRY: readonly CapabilityRecord[] = [
       officialSource: {
         institution: 'Gelir İdaresi Başkanlığı / 3065 sayılı KDV Kanunu / 6306 sayılı Kanun',
         documentTitle: 'Konut teslimlerinde KDV oranları ve 6306 kapsamındaki teslimler',
-        articleOrTable: '7346 sayılı CK (RG 7.7.2023) oranları üç kaynakta tutarlı; GİB Genel Uygulama Tebliği karşılaştırması bekliyor',
+        articleOrTable: '7346 sayılı CK (RG 7.7.2023) ve KDV Genel Uygulama Tebliği I/B-8; bağımsız mali müşavir onayı bekliyor',
         publicationDate: '2026-10-17',
       },
     },
@@ -469,13 +469,13 @@ export const CAPABILITY_REGISTRY: readonly CapabilityRecord[] = [
   },
   {
     id: 'yambis-muteahhitlik-grubu-calculator',
-    title: 'Müteahhitlik Yetki Belgesi Grubu Danışmanı (Yol Haritasında)',
+    title: 'Müteahhitlik Yetki Belgesi Grubu Danışmanı — YAMBİS (Pilot · L2)',
     shortClaim:
-      'Mali rasyoların ve iş deneyiminin yönetmelik tablolarıyla karşılaştırılarak yetki belgesi grubu ön değerlendirmesi (Yol Haritasında; yönetmelik tabloları doğrulanıyor).',
+      'Mali rasyoların, cironun ve iş deneyiminin yönetmelik tablolarıyla karşılaştırılarak A–H yetki belgesi grubu ön değerlendirmesi (Pilot · L2; bağımsız uzman doğrulaması bekliyor).',
     longDescription:
-      'Motor (src/lib/yambis-classification.ts) yönetmeliğin konsolide metnine göre yeniden yazıldı: 14 grup yapı sınır bedelinin katlarıyla tanımlı (2026: 1.238.250.000 TL), iş gücü, bilanço oranları (0,75 / 0,15 / <0,75), ciro (%10 / %15), banka referansı (%5), G ve G1 için yalnız banka referansı, H için şart yok, azami iş tutarı çarpanları. Yayına alınmadı: yönetmeliğin 13. maddesine göre iş deneyiminin belirlenmesi kapsam dışıdır ve bağımsız uzman onayı yoktur.',
-    level: 'L1',
-    status: 'roadmap',
+      'Motor (src/lib/yambis-classification.ts) yönetmeliğin konsolide metnine göre yeniden yazıldı ve /hesaplayicilar/yambis-muteahhitlik-grubu rotasında kullanıcı sınamasına açıldı: 14 grup yapı sınır bedelinin katlarıyla tanımlı, iş gücü (Geçici m.1/2 tarih rejimi), bilanço oranları (0,75 / 0,15 / <0,75), ciro (%10 / %15), banka referansı (%5), G ve G1 için yalnız banka referansı, H için şart yok, azami iş tutarı çarpanları. Yönetmeliğin 13. maddesine göre iş deneyiminin belirlenmesi kullanıcı girdisidir ve bağımsız uzman onayı alınana kadar L2 Pilot olarak işaretlidir.',
+    level: 'L2',
+    status: 'pilot',
     stream: 'C',
     evidence: {
       modulePath: 'src/lib/yambis-classification.ts',

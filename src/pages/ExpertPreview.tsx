@@ -26,15 +26,13 @@ export const EXPERT_PREVIEW_TASKS: readonly PreviewTask[] = [
     audience: "Müteahhit / mali müşavir",
     title: "Müteahhitlik yetki belgesi grubu (YAMBİS)",
     task: "Bilinen bir firmanın bilanço, ciro ve iş deneyimi verilerini girin; çıkan grup Bakanlığın verdiği grupla aynı mı?",
-    path: "/app/uzman-onizleme/yambis",
-    unpublished: true,
+    path: "/hesaplayicilar/yambis-muteahhitlik-grubu",
   },
   {
     audience: "Mali müşavir / müteahhit",
     title: "Kat karşılığı paylaşım ve KDV",
     task: "Tamamlanmış bir kat karşılığı projesinin değerlerini girin; paylaşım ve satır bazlı KDV sizin hesabınızla tutuyor mu?",
-    path: "/app/uzman-onizleme/kat-karsiligi",
-    unpublished: true,
+    path: "/hesaplayicilar/kat-karsiligi-ve-kentsel-donusum",
   },
   {
     audience: "Müteahhit / proje yöneticisi",

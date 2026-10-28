@@ -66,6 +66,8 @@ const CALCULATOR_PAGES = [
   '/hesaplayicilar',
   '/hesaplayicilar/kik-asiri-dusuk-teklif',
   '/hesaplayicilar/fiyat-farki-4735',
+  '/hesaplayicilar/yambis-muteahhitlik-grubu',
+  '/hesaplayicilar/kat-karsiligi-ve-kentsel-donusum',
 ];
 const PUBLIC_PAGES = ['/', '/about', '/features', '/pricing', '/smartcheck', '/bim-sozlugu', ...CALCULATOR_PAGES, ...(ACADEMY_ENABLED ? ACADEMY_PAGES : []), '/pilot', '/terms', '/privacy'];
 
@@ -206,6 +208,8 @@ export function llmsTxt(publicAppUrl: string): string {
     `- [Ücretsiz Hesaplayıcılar](${origin}/hesaplayicilar): Giriş gerektirmeyen, varsayılan değer içermeyen ön hesaplayıcılar (bağımsız doğrulanmamıştır).`,
     `- [Aşırı Düşük Teklif Sınır Değeri](${origin}/hesaplayicilar/kik-asiri-dusuk-teklif): KİK m.38 ve Tebliğ m.45.1.1 yapım işleri sınır değer hesabı.`,
     `- [4735 Fiyat Farkı](${origin}/hesaplayicilar/fiyat-farki-4735): F = A × B × (Pn − 1) fiyat farkı hesabı, kullanıcı girdili katsayı ve endeks.`,
+    `- [Müteahhitlik Yetki Belgesi Grubu (YAMBİS)](${origin}/hesaplayicilar/yambis-muteahhitlik-grubu): Yapı Müteahhitlerinin Sınıflandırılması Yönetmeliği bilanço rasyoları, ciro ve iş deneyimi ön değerlendirmesi.`,
+    `- [Kat Karşılığı Paylaşım ve KDV](${origin}/hesaplayicilar/kat-karsiligi-ve-kentsel-donusum): Arsa sahibi / müteahhit paylaşımı, VUK m.267/2 emsal bedel matrahı ve 150 m² kademeli KDV ön hesabı.`,
     `- [Pilot Başvurusu](${origin}/pilot): Kurumsal teknik ofisler için gerçek proje dosyalarıyla pilot çalışma başvurusu.`,
     `- [Kullanım Koşulları](${origin}/terms): Mühendislik sorumluluğu, ön-kontrol niteliği ve abonelik koşulları.`,
     `- [KVKK ve Gizlilik Bildirimi](${origin}/privacy): 6698 sayılı KVKK aydınlatma metni ve proje dosyalarında kişisel veri maskeleme politikası.`,

@@ -137,30 +137,32 @@ test('Gerçek imza kapısı: kurgusal kurul/ajan/rol adı onay sayılmaz, her on
   }
 });
 
-test('Yayımlanmamış hesaplayıcılar: kaynak doğrulaması bitmeyen yetenekler halka açık olamaz', () => {
-  const unpublished = ['kat-karsiligi-ve-kentsel-donusum-calculator', 'yambis-muteahhitlik-grubu-calculator'];
-  for (const id of unpublished) {
+test('Pilot hesaplayıcılar: KİK, 4735, YAMBİS ve Kat Karşılığı L2 pilot statüsünde ve sorumluluk uyarılı olarak yayındadır', () => {
+  const pilotCalculators = [
+    'free-public-calculators',
+    'kat-karsiligi-ve-kentsel-donusum-calculator',
+    'yambis-muteahhitlik-grubu-calculator',
+  ];
+  for (const id of pilotCalculators) {
     const cap = CAPABILITY_REGISTRY.find((c) => c.id === id);
     assert.ok(cap, `${id} kayıtta olmalı`);
-    assert.equal(cap.status, 'roadmap');
-    assert.equal(cap.level, 'L1');
+    assert.equal(cap.status, 'pilot');
+    assert.equal(cap.level, 'L2');
   }
-  // Uzman önizlemesi: yalnız oturum gerektiren /app/uzman-onizleme/* altında, "yayında değil" uyarısıyla açılabilirler.
   const app = fs.readFileSync(path.resolve(REPO_ROOT, 'src/App.tsx'), 'utf8');
-  const protectedStart = app.indexOf('<Route element={<ProtectedRoute />}>');
-  const appShellStart = app.indexOf('<Route path="/app" element={<Shell />}>');
-  assert.ok(protectedStart > 0 && appShellStart > protectedStart, 'korumalı /app kabuğu bulunamadı');
-  for (const component of ['KatKarsiligiCalculatorPage', 'YambisCalculatorPage']) {
-    const routes = [...app.matchAll(new RegExp(`<Route path="([^"]+)" element={<${component} />} />`, 'g'))];
-    assert.equal(routes.length, 1, `${component}: tek bir rota olmalı`);
-    const [match] = routes;
-    assert.match(match[1], /^uzman-onizleme\/[a-z-]+$/, `${component}: yalnız /app/uzman-onizleme altında olabilir`);
-    assert.ok(match.index! > appShellStart, `${component}: rota oturum gerektiren /app kabuğunun içinde olmalı`);
+  for (const [component, publicPath] of [
+    ['KatKarsiligiCalculatorPage', '/hesaplayicilar/kat-karsiligi-ve-kentsel-donusum'],
+    ['YambisCalculatorPage', '/hesaplayicilar/yambis-muteahhitlik-grubu'],
+  ] as const) {
+    assert.ok(app.includes(`<Route path="${publicPath}" element={<${component} />} />`), `${component}: genel rota tanımlı olmalı`);
     const source = fs.readFileSync(path.resolve(REPO_ROOT, `src/pages/calculators/${component}.tsx`), 'utf8');
-    assert.match(source, /<CalculatorShell[\s\S]*?\n\s+preview\n/, `${component}: önizleme kabuğu (uyarı, herkese açık meta yok) kullanılmalı`);
+    assert.match(source, /<CalculatorShell[\s\S]*?canonicalPath=/, `${component}: CalculatorShell kullanılmalı`);
+    assert.doesNotMatch(source, /<CalculatorShell[\s\S]*?\n\s+preview\n/, `${component}: yayındaki hesaplayıcıda preview kilidi olmamalı`);
   }
   for (const generated of [sitemapXml('https://bimmetraj.com'), llmsTxt('https://bimmetraj.com'), llmsFullTxt('https://bimmetraj.com')]) {
-    assert.doesNotMatch(generated, /\/app\/uzman-onizleme|\/hesaplayicilar\/(yambis|kat-karsiligi)/i);
+    assert.doesNotMatch(generated, /\/app\/uzman-onizleme/i);
+    assert.match(generated, /\/hesaplayicilar\/yambis-muteahhitlik-grubu/);
+    assert.match(generated, /\/hesaplayicilar\/kat-karsiligi-ve-kentsel-donusum/);
   }
 });
 

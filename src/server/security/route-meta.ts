@@ -64,7 +64,7 @@ const PUBLIC_ROUTE_META: Readonly<Record<string, RouteMeta>> = {
   },
   '/hesaplayicilar': {
     title: `Ücretsiz İnşaat Hesaplayıcıları | ${SITE}`,
-    description: 'Varsayılan değer içermeyen, tarayıcıda çalışan KİK aşırı düşük teklif sınır değeri ve 4735 fiyat farkı hesaplayıcıları. Bağımsız doğrulanmamıştır.',
+    description: 'Varsayılan değer içermeyen, tarayıcıda çalışan KİK aşırı düşük teklif sınır değeri, 4735 fiyat farkı, YAMBİS yetki belgesi grubu ve kat karşılığı KDV hesaplayıcıları. Bağımsız doğrulanmamıştır.',
   },
   '/hesaplayicilar/kik-asiri-dusuk-teklif': {
     title: `Aşırı Düşük Teklif Sınır Değeri Hesaplama (KİK m.38) | ${SITE}`,
@@ -73,6 +73,14 @@ const PUBLIC_ROUTE_META: Readonly<Record<string, RouteMeta>> = {
   '/hesaplayicilar/fiyat-farki-4735': {
     title: `4735 Fiyat Farkı Hesaplama | ${SITE}`,
     description: 'F = A × B × (Pn − 1) fiyat farkı hesabı. Katsayı ve endeks değerlerini sözleşmenize göre siz girersiniz.',
+  },
+  '/hesaplayicilar/yambis-muteahhitlik-grubu': {
+    title: `Müteahhitlik Yetki Belgesi Grubu Ön Değerlendirmesi (YAMBİS) | ${SITE}`,
+    description: 'Yapı Müteahhitlerinin Sınıflandırılması Yönetmeliği grup koşullarını (iş deneyimi, bilanço rasyoları, ciro) kendi verilerinizle karşılaştırın. Bilgilendirme amaçlıdır.',
+  },
+  '/hesaplayicilar/kat-karsiligi-ve-kentsel-donusum': {
+    title: `Kat Karşılığı Paylaşım ve KDV Ön Hesabı | ${SITE}`,
+    description: 'Arsa sahibi ve müteahhit payını, VUK m.267/2 emsal bedel matrahını ve konut KDV\'sini (150 m² kademeli) kendi girdilerinizle hesaplayın. Bilgilendirme amaçlıdır.',
   },
   '/pilot': {
     title: `Pilot Başvurusu | ${SITE}`,
@@ -144,6 +152,14 @@ const ROUTE_BODY: Readonly<Record<string, readonly string[]>> = {
     'Yapım işlerinde fiyat farkı (4735 sayılı Kanun m.8; Yapım İşlerinde Uygulanacak Fiyat Farkına İlişkin Esaslar, 2013/5217 sayılı Karar ve sonraki değişiklikler) F = An × B × (Pn − 1) formülüyle hesaplanır.',
     'An, uygulama ayında gerçekleşen iş miktarlarının sözleşme birim fiyatlarıyla çarpımıdır; B = 0,90 sabit katsayısıdır; Pn, a (işçilik), b1–b6 (malzeme grupları) ve c (makine-ekipman) ağırlık katsayıları ile temel ve güncel endekslerden bulunur. Ağırlık katsayılarının toplamı 1,00\'dir ve ihale dokümanında gösterilir; sözleşme süresince değiştirilemez. Temel endeks ihale ayına, güncel endeks uygulama ayına aittir.',
     'Bu hesaplayıcı bilgilendirme amaçlıdır; sözleşmenizdeki katsayı ve endeks değerlerini siz girersiniz.',
+  ],
+  '/hesaplayicilar/yambis-muteahhitlik-grubu': [
+    'Yapı Müteahhitlerinin Sınıflandırılması ve Kayıtlarının Tutulması Hakkında Yönetmelik (m.4, m.11, m.12, m.13, m.14) kapsamında A–H yetki belgesi grupları; yapı sınır bedeli, iş deneyim tutarı, cari oran (≥ 0,75), öz kaynak oranı (≥ 0,15), banka borcu / öz kaynak oranı (< 0,75), önceki yıl cirosu ve banka referans mektubu koşullarıyla değerlendirilir.',
+    'Hiçbir değer varsayılmaz; başvuru tarihi (Geçici m.1/2 iş gücü muafiyeti kontrolü için) ve Bakanlıkça yayımlanan yapı sınır bedeli dahil tüm veriler kullanıcı tarafından girilir. Sonuçlar bilgilendirme amaçlı ön hesaptır.',
+  ],
+  '/hesaplayicilar/kat-karsiligi-ve-kentsel-donusum': [
+    'Kat karşılığı inşaat sözleşmelerinde arsa sahibi ve müteahhit paylaşım oranı, emsale esas inşaat alanı, brüt/net alan çarpanları, birim maliyet, satış fiyatı ve hedeflenen kâr çarpanı üzerinden kullanıcı girdileriyle hesaplanır.',
+    '3065 sayılı KDV Kanunu, 7346 sayılı Cumhurbaşkanı Kararı ve KDV Genel Uygulama Tebliği I/B-8 uyarınca 1/4/2022 sonrası yapı ruhsatlı konut teslimlerinde 150 m²\'ye kadar kısım (genel %10, 6306 kapsamında %1) ve 150 m² üzeri kısım (%20) ayrı dilimlenir; arsa sahibine bırakılan bağımsız bölümlerde VUK m.267/2 maliyet bedeli + %5 (toptan) / %10 (perakende) emsal bedel esas alınır. Sonuçlar bilgilendirme amaçlı ön hesaptır.',
   ],
   '/pricing': pricingBody(),
   '/pilot': [

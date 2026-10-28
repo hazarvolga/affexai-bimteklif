@@ -50,16 +50,17 @@ export function QuoteAiWizard({
   existingItemCount = 0,
 }: QuoteAiWizardProps) {
   const [expanded, setExpanded] = useState(!collapsedByDefault);
+  const [userToggled, setUserToggled] = useState(false);
 
   useEffect(() => {
-    if (collapsedByDefault) {
-      setExpanded(false);
+    if (!userToggled) {
+      setExpanded(!collapsedByDefault);
     }
-  }, [collapsedByDefault]);
+  }, [collapsedByDefault, userToggled]);
 
   return (
     <Card className="border border-border bg-card shadow-none" data-testid="quote-ai-wizard">
-      <CardHeader className="pb-3 border-b border-border flex flex-row flex-wrap items-center justify-between gap-2">
+      <CardHeader className={`${expanded ? 'pb-3 border-b border-border' : 'py-3'} flex flex-row flex-wrap items-center justify-between gap-2`}>
         <div className="flex flex-wrap items-center gap-2">
           <CardTitle className="text-foreground flex items-center gap-2 text-xs font-mono uppercase tracking-wider font-bold">
             <Sparkles size={14} className="text-primary" />
@@ -93,7 +94,10 @@ export function QuoteAiWizard({
           type="button"
           variant="ghost"
           size="sm"
-          onClick={() => setExpanded((prev) => !prev)}
+          onClick={() => {
+            setUserToggled(true);
+            setExpanded((prev) => !prev);
+          }}
           className="h-7 px-2.5 text-[11px] font-mono text-muted-foreground hover:text-foreground gap-1"
         >
           {expanded ? (

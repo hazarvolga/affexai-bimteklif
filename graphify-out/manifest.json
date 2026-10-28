@@ -835,8 +835,8 @@
     "semantic_hash": ""
   },
   "src/App.tsx": {
-    "mtime": 1793114096.746501,
-    "ast_hash": "11f024c5be96eecb05245f2411e75af8",
+    "mtime": 1793146025.1382158,
+    "ast_hash": "0974ca70241605710d45cb820702b9b7",
     "semantic_hash": ""
   },
   "src/academy/activation.test.ts": {
@@ -1455,8 +1455,8 @@
     "semantic_hash": ""
   },
   "src/pages/CreateQuote.tsx": {
-    "mtime": 1793142757.8395145,
-    "ast_hash": "3c4fcc11e3a789d1366c676da28e2354",
+    "mtime": 1793145921.778071,
+    "ast_hash": "9ec96111010081de98b4d8752b6d50e0",
     "semantic_hash": ""
   },
   "src/pages/Dashboard.tsx": {
@@ -3980,8 +3980,8 @@
     "semantic_hash": ""
   },
   "docs/agent-memory/WORKING_STATE.md": {
-    "mtime": 1793142972.1386309,
-    "ast_hash": "b543b5df38d490a30318664295656d22",
+    "mtime": 1793146245.1881623,
+    "ast_hash": "2f92467ee552d1740c97adea681c7129",
     "semantic_hash": ""
   },
   "docs/architecture/5d-bim-ihale-motoru-gap-notu.md": {
@@ -5850,8 +5850,8 @@
     "semantic_hash": ""
   },
   "src/pages/admin/roadmap/roadmap-content.ts": {
-    "mtime": 1793142932.942294,
-    "ast_hash": "6be0af9ad94872b771f84653ef6bf54d",
+    "mtime": 1793146203.5123885,
+    "ast_hash": "5795b23a7093ba662537bb628880499d",
     "semantic_hash": ""
   },
   "src/server/observability/error-tracking.test.ts": {
@@ -5875,13 +5875,13 @@
     "semantic_hash": ""
   },
   "src/server/security/web-hardening.test.ts": {
-    "mtime": 1792932198.4921672,
-    "ast_hash": "8545633811e73b3657764ab6c2e92393",
+    "mtime": 1793146088.5441384,
+    "ast_hash": "14026eac2c8ad254e5be6519aaee52e3",
     "semantic_hash": ""
   },
   "src/server/security/web-hardening.ts": {
-    "mtime": 1792932198.492701,
-    "ast_hash": "6a559dc69c1c2552bdb994d6c210cdf0",
+    "mtime": 1793146031.5036085,
+    "ast_hash": "5b57a7cb0a63ecd1057c4873e30c2b2d",
     "semantic_hash": ""
   },
   "src/services/billing/feature-limits.test.ts": {
@@ -6110,8 +6110,8 @@
     "semantic_hash": ""
   },
   "src/pages/admin/roadmap/calculation-review.ts": {
-    "mtime": 1793142937.2846029,
-    "ast_hash": "fd11331fd20b0c34e7ee6d125e541993",
+    "mtime": 1793146206.332285,
+    "ast_hash": "05d965c64927b92f77f48203bf5a5894",
     "semantic_hash": ""
   },
   "src/smartcheck/rules/minha.test.ts": {
@@ -6270,13 +6270,13 @@
     "semantic_hash": ""
   },
   "src/capabilities/registry.test.ts": {
-    "mtime": 1793103948.3802435,
-    "ast_hash": "0288d7747fb4535606ef9a6a957f2097",
+    "mtime": 1793146085.922003,
+    "ast_hash": "4e0bc21302967ea4715caa1534caf3c9",
     "semantic_hash": ""
   },
   "src/capabilities/registry.ts": {
-    "mtime": 1792780533.769492,
-    "ast_hash": "a3f33ba17cc1f6e1331e58e61977e13b",
+    "mtime": 1793146028.3252616,
+    "ast_hash": "e1311ff76623c8af6d01c613ee794d5b",
     "semantic_hash": ""
   },
   "src/lib/kik-adt.golden.test.ts": {
@@ -6420,8 +6420,8 @@
     "semantic_hash": ""
   },
   "src/pages/calculators/CalculatorsIndexPage.tsx": {
-    "mtime": 1792260364.7979262,
-    "ast_hash": "f5bd71a66b0873ffef42eb3a49ec632c",
+    "mtime": 1793145963.7250316,
+    "ast_hash": "e5c51e00d44621c6da9ffa478df69e10",
     "semantic_hash": ""
   },
   "src/pages/calculators/KikAdtCalculatorPage.tsx": {
@@ -6480,13 +6480,13 @@
     "semantic_hash": ""
   },
   "src/pages/calculators/KatKarsiligiCalculatorPage.tsx": {
-    "mtime": 1793081339.9647403,
-    "ast_hash": "36a021ffeb2a134e12a237eb148ca128",
+    "mtime": 1793145962.1486475,
+    "ast_hash": "961b0595624df4ac2a6fa1762529ebd2",
     "semantic_hash": ""
   },
   "src/pages/calculators/YambisCalculatorPage.tsx": {
-    "mtime": 1793081339.9662352,
-    "ast_hash": "e06f70d9ffbf8524dccd3195f1217e98",
+    "mtime": 1793145958.8249888,
+    "ast_hash": "44090d61b4ec840c4101e802d57ffe12",
     "semantic_hash": ""
   },
   "scripts/e2e-core-flow-smoke.ts": {
@@ -6535,13 +6535,13 @@
     "semantic_hash": ""
   },
   "src/server/security/route-meta.test.ts": {
-    "mtime": 1792932587.7986856,
-    "ast_hash": "b75c6b1c019641d716642903815a3320",
+    "mtime": 1793146090.284915,
+    "ast_hash": "ca945642d5c353487c5bebceffb6fcc8",
     "semantic_hash": ""
   },
   "src/server/security/route-meta.ts": {
-    "mtime": 1792932587.7989087,
-    "ast_hash": "1607e8784d0490526f6d597284830d6a",
+    "mtime": 1793146035.040781,
+    "ast_hash": "d98b2c73f6221e8d3af2af1efaf0bd3b",
     "semantic_hash": ""
   },
   "docs/agent-memory/NEXT_AGENT_PROMPT_2026-10-17.md": {
@@ -7010,8 +7010,8 @@
     "semantic_hash": ""
   },
   "scripts/expert-feedback-ui-smoke.ts": {
-    "mtime": 1793081339.9208453,
-    "ast_hash": "40fc3e004a99bbea1ecfa4fc25a96755",
+    "mtime": 1793146092.0105505,
+    "ast_hash": "3fd6cfc87bdfe0c0c3c5afc512902fd9",
     "semantic_hash": ""
   },
   "scripts/faz0-trust-ui-smoke.ts": {
@@ -7145,18 +7145,18 @@
     "semantic_hash": ""
   },
   "src/components/quote/BenchmarkPanel.tsx": {
-    "mtime": 1793081339.926343,
-    "ast_hash": "399cf81ed9aa4af0a9c022c94b83b9ea",
+    "mtime": 1793145820.2092552,
+    "ast_hash": "5f39a351a62b5dff3b6b9e3a72a93b63",
     "semantic_hash": ""
   },
   "src/components/quote/CompanyCatalogPicker.tsx": {
-    "mtime": 1793081339.926623,
-    "ast_hash": "d5e56d5d1d47a009d9c6f93e1a53b483",
+    "mtime": 1793145868.5062482,
+    "ast_hash": "729bf0b77cec86c1aee7f9f8e7e09ae1",
     "semantic_hash": ""
   },
   "src/components/quote/QuoteAiWizard.tsx": {
-    "mtime": 1793142637.5671315,
-    "ast_hash": "8a89381a7127308081d5b103e7d81841",
+    "mtime": 1793145857.813967,
+    "ast_hash": "7a36389280a500f9c8f4981811b65212",
     "semantic_hash": ""
   },
   "src/components/quote/QuoteItemsTable.tsx": {
@@ -7830,8 +7830,8 @@
     "semantic_hash": ""
   },
   "src/pages/ExpertPreview.tsx": {
-    "mtime": 1793081339.9524314,
-    "ast_hash": "c4147c139b2811ccd6c106b802e84cf3",
+    "mtime": 1793145956.0107555,
+    "ast_hash": "786b2316659c8ed23b02e9512ef7bab7",
     "semantic_hash": ""
   },
   "src/pages/HowItWorks.test.ts": {
@@ -8005,8 +8005,8 @@
     "semantic_hash": ""
   },
   "src/server/security/route-jsonld.ts": {
-    "mtime": 1792932198.490456,
-    "ast_hash": "7f34a3a7c475b53eb935fefaf15cecdd",
+    "mtime": 1793146036.3071287,
+    "ast_hash": "d4b02d522ad521ce3264d67828041aeb",
     "semantic_hash": ""
   },
   "src/server/security/security-audit-remediation.test.ts": {

@@ -13,8 +13,7 @@ import { CalculationFeedback } from "@/features/expert-feedback/CalculationFeedb
 import { CalcField, CalculatorShell, calcInputClass, fmtNum, fmtTry } from "./CalculatorShell";
 
 /**
- * Kat karşılığı paylaşım ve KDV ön hesabı. Hiçbir değer varsayılmaz. Sayfa, KDV ve emsal bedel kurallarının
- * mali müşavir tarafından doğrulanmasına kadar yayında değildir (rota, sitemap ve llms.txt dışında).
+ * Kat karşılığı paylaşım ve KDV ön hesabı. Hiçbir değer varsayılmaz; sonuçlar bilgilendirme amaçlı ön hesaptır.
  */
 type FormKey =
   | "arsaAlani" | "kaks" | "brutCarpani" | "netOrani" | "maliyet" | "satis" | "karCarpani" | "konutNet" | "emsalBedel";
@@ -89,7 +88,6 @@ export const KatKarsiligiCalculatorPage: React.FC = () => {
       title="Kat Karşılığı Paylaşım ve KDV Ön Hesabı | BIMMetraj"
       description="Arsa sahibi ve müteahhit payını ve konut KDV'sini (150 m² kademeli) kendi girdilerinizle hesaplayın. Bilgilendirme amaçlıdır."
       canonicalPath="/hesaplayicilar/kat-karsiligi-ve-kentsel-donusum"
-      preview
       heading="Kat Karşılığı Paylaşım ve KDV Ön Hesabı"
       intro="Tüm çarpanlar ve bedeller sizin girdinizdir; hiçbir değer varsayılmaz. KDV yalnızca 1/4/2022 ve sonrası yapı ruhsatlı konutlar için hesaplanır."
       sources={[

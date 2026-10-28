@@ -1,9 +1,9 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-28.101",
+  version: "BIM-CALC-2026-10-28.102",
   updatedOn: "28 Ekim 2026",
-  implementationBaseline: "c9b0a0258dd38c5ee178d66ef1463477ca17b29e",
-  approvalStatus: "Rev. 107 (Yeni Teklif ekranında generateWithAi !res.ok koruması, Excel/Demo kalemlerinin ezilmemesi, sunucu AI yapılandırma şeffaflığı, satır içi + Hızlı Müşteri Ekleme ve 3 adımlı QuoteNextStepsBanner rehberi; hesap formülleri değişmedi), Rev. 106 (Müşteriler /app/clients, Müşteriler & Fırsatlar /app/crm, 6 aşamalı müşteri görüşme zaman tüneli /app/clients/:id, /api/crm/leads Zod v4 integerQuery düzeltmesi ve 3 katmanlı Akıllı Müşteri Excel/CSV Adaptörü; hesap formülleri değişmedi), Rev. 105 (CalmIfcWorkspace 2.004 satırdan 795 satıra modüler bölünmesi PR #31 ve T43 CI kapsam ratchet güçlendirmesi; hesap formülleri değişmedi), Rev. 104 (6 aşamalı güvenlik denetimi bulguları ve derinlemesine savunma sertleştirmesi: hakediş/fiyat istihbaratı/CDE maker-checker ve rol sınırları, Academy super-admin kapısı, IFC/PDF ayrıştırıcı bellek/döngü sınırları, alt süreç env izolasyonu ve DB rol ACL daraltması; hesap formülleri değişmedi), Rev. 103 (/admin/pricing-sources otomatik katalog tohumlama, yetki kanıtı zinciri, canlı crawler iyileştirmesi ve TÜİK Veri Portalı SDMX 2.1 entegrasyonu; hesap yöntemi değişmedi), Rev. 102 (4 katmanlı Akıllı Müteahhit Excel Adaptörü: düz icmal, katlara göre pivot, TOKİ tekrarlayan poz blokları, hibrit sayfa ve otomatik korpus tarayıcı; birim fiyat/tutar aritmetiği değişmedi), Rev. 101 (canlı üretim dağıtımı 0022..0029 + worker control-plane izolasyonu D12 ve canlı ifc-worker consumeIfcUsage kota tamamlama düzeltmesi D13; hesap yöntemi değişmedi), Rev. 100 (elle teklif satırı firma kataloğundaki onaylı fiyat kaydına bağlanabilir; tutar hesabı değişmedi), Rev. 99 (kamuya açık SmartCheck demosu yeniden sıralandı; hesap yöntemi değişmedi), Rev. 98 (arsa fizibilitesi ayrı ekranda, boş formda hata yok; hesap yöntemi değişmedi), Rev. 97 (teklif tablosu görünümü ve dosya bölünmesi; hesap yöntemi değişmedi), Rev. 96 (araç ve görünüm düzeni; hesap yöntemi değişmedi) ve Rev. 95; marka.md incelemesinden çıkan Faz 0 güven düzeltmelerini ve Faz 1 Excel önce / fiyat eksikliği / dışa aktarım dilimlerini kapsar. Hesap yöntemi değişiklikleri: teklif toplamlarına teklif düzeyinde müteahhitlik kârı ve genel gider payı (release 0029; satır neti üzerinden, KDV pay dahil matrah üzerinden), kârlılık hesabında bu payın gelir sayılması, IFC maliyet sekmesinde fiyatı eksik kalemin 0 TL yerine 'fiyat bekliyor' olarak toplam dışında tutulması ve icmal dışa aktarımında satır tutarının tam lira yerine kuruşa yuvarlanması. Doğrulama: 1515 testte 1500 PASS / 0 FAIL / 15 SKIP, kapsam kapısı geçti; gerçek tarayıcı smoke'ları scripts/faz0-trust-ui-smoke.ts, faz1-excel-flow-smoke.ts ve faz1-price-gap-smoke.ts. ÇŞB birim fiyatlarına %25 yüklenici kârı ve genel giderin dahil olduğu ÇŞB analizlerinden doğrulandı. Bu kayıt bağımsız uzman onayı veya L3 değildir; Faz 9 T50–T52 dış kabulleri açıktır.",
+  implementationBaseline: "9b118619b8967fc5e965c89de278c79b2c5e5ef9",
+  approvalStatus: "Rev. 108 (Yeni Teklif ekranında Excel/CSV araç çubuğunun tablo üstüne taşınması, Seçenek C hibrit piyasa rayiç düzeni ve YAMBİS ile Kat Karşılığı/KDV hesaplayıcılarının L2 Pilot statüsüyle son kullanıcı sınamasına açılması; hesap formülleri değişmedi), Rev. 107 (Yeni Teklif ekranında generateWithAi !res.ok koruması, Excel/Demo kalemlerinin ezilmemesi, sunucu AI yapılandırma şeffaflığı, satır içi + Hızlı Müşteri Ekleme ve 3 adımlı QuoteNextStepsBanner rehberi; hesap formülleri değişmedi), Rev. 106 (Müşteriler /app/clients, Müşteriler & Fırsatlar /app/crm, 6 aşamalı müşteri görüşme zaman tüneli /app/clients/:id, /api/crm/leads Zod v4 integerQuery düzeltmesi ve 3 katmanlı Akıllı Müşteri Excel/CSV Adaptörü; hesap formülleri değişmedi), Rev. 105 (CalmIfcWorkspace 2.004 satırdan 795 satıra modüler bölünmesi PR #31 ve T43 CI kapsam ratchet güçlendirmesi; hesap formülleri değişmedi), Rev. 104 (6 aşamalı güvenlik denetimi bulguları ve derinlemesine savunma sertleştirmesi: hakediş/fiyat istihbaratı/CDE maker-checker ve rol sınırları, Academy super-admin kapısı, IFC/PDF ayrıştırıcı bellek/döngü sınırları, alt süreç env izolasyonu ve DB rol ACL daraltması; hesap formülleri değişmedi), Rev. 103 (/admin/pricing-sources otomatik katalog tohumlama, yetki kanıtı zinciri, canlı crawler iyileştirmesi ve TÜİK Veri Portalı SDMX 2.1 entegrasyonu; hesap yöntemi değişmedi), Rev. 102 (4 katmanlı Akıllı Müteahhit Excel Adaptörü: düz icmal, katlara göre pivot, TOKİ tekrarlayan poz blokları, hibrit sayfa ve otomatik korpus tarayıcı; birim fiyat/tutar aritmetiği değişmedi), Rev. 101 (canlı üretim dağıtımı 0022..0029 + worker control-plane izolasyonu D12 ve canlı ifc-worker consumeIfcUsage kota tamamlama düzeltmesi D13; hesap yöntemi değişmedi), Rev. 100 (elle teklif satırı firma kataloğundaki onaylı fiyat kaydına bağlanabilir; tutar hesabı değişmedi), Rev. 99 (kamuya açık SmartCheck demosu yeniden sıralandı; hesap yöntemi değişmedi), Rev. 98 (arsa fizibilitesi ayrı ekranda, boş formda hata yok; hesap yöntemi değişmedi), Rev. 97 (teklif tablosu görünümü ve dosya bölünmesi; hesap yöntemi değişmedi), Rev. 96 (araç ve görünüm düzeni; hesap yöntemi değişmedi) ve Rev. 95; marka.md incelemesinden çıkan Faz 0 güven düzeltmelerini ve Faz 1 Excel önce / fiyat eksikliği / dışa aktarım dilimlerini kapsar. Hesap yöntemi değişiklikleri: teklif toplamlarına teklif düzeyinde müteahhitlik kârı ve genel gider payı (release 0029; satır neti üzerinden, KDV pay dahil matrah üzerinden), kârlılık hesabında bu payın gelir sayılması, IFC maliyet sekmesinde fiyatı eksik kalemin 0 TL yerine 'fiyat bekliyor' olarak toplam dışında tutulması ve icmal dışa aktarımında satır tutarının tam lira yerine kuruşa yuvarlanması. Doğrulama: 1515 testte 1500 PASS / 0 FAIL / 15 SKIP, kapsam kapısı geçti; gerçek tarayıcı smoke'ları scripts/faz0-trust-ui-smoke.ts, faz1-excel-flow-smoke.ts ve faz1-price-gap-smoke.ts. ÇŞB birim fiyatlarına %25 yüklenici kârı ve genel giderin dahil olduğu ÇŞB analizlerinden doğrulandı. Bu kayıt bağımsız uzman onayı veya L3 değildir; Faz 9 T50–T52 dış kabulleri açıktır.",
 };
 
 export interface ModuleRevisionNote {
@@ -2301,7 +2301,7 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
     revision: "Rev. 101",
     version: "BIM-CALC-2026-10-28.101",
     date: "28 Ekim 2026",
-    commit: "c9b0a0258dd38c5ee178d66ef1463477ca17b29e",
+    commit: "9b118619b8967fc5e965c89de278c79b2c5e5ef9",
     trigger: "Yeni Teklif (CreateQuote) AI Hata Koruması, Excel/Demo Kalemlerini Koruma Kalkanı, Satır İçi Hızlı Müşteri Ekleme ve 3 Adımlı Sonraki İşlem Rehberi (Paket B)",
     beforeSummary:
       "CreateQuote.tsx içindeki generateWithAi fonksiyonu !res.ok kontrolü yapmadığı için sunucuda AI anahtarı olmadığında (500) kullanıcının yüklediği Excel kalemlerini silip yanıltıcı başarı mesajı gösteriyordu; Demo Şablon Yükle geçersiz 'demo-client-id' atıyordu.",
@@ -2313,6 +2313,35 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
         before: "generateWithAi 500 yanıtında setItems([]) çalıştırarak yüklenen Excel satırlarını siliyor, Demo şablon 'demo-client-id' atıyordu.",
         after: "generateWithAi hata durumunda mevcut satırları korur, başarı durumunda mevcut satırlara ekler; QuoteNextStepsBanner ve satır içi hızlı müşteri oluşturma eklendi.",
         basis: "src/pages/t43-ui-pages-and-components.test.ts & src/server/routes/t43-route-ratchet.integration.test.ts",
+      },
+    },
+  },
+  {
+    revision: "Rev. 102",
+    version: "BIM-CALC-2026-10-28.102",
+    date: "28 Ekim 2026",
+    commit: "9b118619b8967fc5e965c89de278c79b2c5e5ef9",
+    trigger: "Yeni Teklif Görsel Hiyerarşi Düzenlemesi (Seçenek C Hibrit Rayiç Düzeni & Tablo Üstü Excel Barı) ve YAMBİS / Kat Karşılığı Hesaplayıcılarının Son Kullanıcıya Açılması",
+    beforeSummary:
+      "/app/quotes/new?clientId=... ekranında AI Sihirbazı, Firma Kataloğu ve Piyasa Rayiçleri 3 kaynak kartı + yasal uyarı kutusu ilk ekranı tamamen doldurarak Teklif Kalemleri tablosunu ve altbilgideki Excel yükleme butonunu ekran dışına itiyordu. Ayrıca /app/uzman-onizleme üzerindeki YAMBİS ve Kat Karşılığı/KDV hesaplayıcıları 'Yayında Değil' etiketi taşıyor ve /hesaplayicilar dizininde listelenmiyordu.",
+    afterSummary:
+      "Excel/CSV yükleme araç çubuğu (quote-excel-import) Teklif Kalemleri kartının en üst giriş barına taşındı, PageHeader'a 'Excel / CSV Yükle' eklendi, aiConfigured !== true durumunda QuoteAiWizard varsayılan daraltıldı ve BenchmarkPanel Seçenek C hibrit düzeniyle (tablo üstü kompakt 50 kalem seçici + tablo altı 3 kaynak ve yasal sorumluluk bildirimi) ayrıştırıldı. YAMBİS (/hesaplayicilar/yambis-muteahhitlik-grubu) ve Kat Karşılığı/KDV (/hesaplayicilar/kat-karsiligi-ve-kentsel-donusum) L2 Pilot statüsüyle tüm son kullanıcıların kullanımına ve sınamasına açıldı. Hesap formülleri değişmedi.",
+    affectedModules: ["teklif-satir", "kdv-tevkifat", "on-teklif-fizibilite"],
+    moduleDetails: {
+      "teklif-satir": {
+        before: "Excel/CSV yükleme çubuğu tablonun altbilgisindeydi ve 240px'lik Piyasa Rayiçleri bildirim bloğu tabloyu ilk ekranın dışına itiyordu.",
+        after: "Excel/CSV yükleme barı tablonun en üst giriş barına ve sayfa başlığına taşındı; Piyasa Rayiçleri seçicisi tablo üstünde kompakt şerit, 3 kaynak ve yasal uyarı ise tablo altında gösterilir.",
+        basis: "marka.md M-12.1 (İlk Bakış Alanında Tablo & Excel Önceliği)",
+      },
+      "kdv-tevkifat": {
+        before: "Kat Karşılığı Paylaşım ve KDV hesaplayıcısı yalnız /app/uzman-onizleme/kat-karsiligi altında 'Yayında Değil' etiketiyle sınırlıydı.",
+        after: "/hesaplayicilar/kat-karsiligi-ve-kentsel-donusum rotasında L2 Pilot statüsü, açık sorumluluk bildirimi ve uzman geri bildirim kartıyla son kullanıcıların sınamasına açıldı.",
+        basis: "src/lib/kat-karsiligi.test.ts & src/capabilities/registry.test.ts",
+      },
+      "on-teklif-fizibilite": {
+        before: "YAMBİS müteahhitlik yetki belgesi grubu ve Kat Karşılığı hesaplayıcıları /hesaplayicilar genel dizininde yer almıyordu.",
+        after: "Her iki hesaplayıcı da /hesaplayicilar dizinine, /app/uzman-onizleme görev kartlarına ve SEO/GEO rotalarına L2 Pilot olarak eklendi.",
+        basis: "src/lib/yambis-classification.test.ts & src/server/security/web-hardening.test.ts",
       },
     },
   },

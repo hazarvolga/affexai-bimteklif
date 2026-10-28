@@ -117,6 +117,8 @@ function AppRoutes() {
       <Route path="/hesaplayicilar" element={<CalculatorsIndexPage />} />
       <Route path="/hesaplayicilar/kik-asiri-dusuk-teklif" element={<KikAdtCalculatorPage />} />
       <Route path="/hesaplayicilar/fiyat-farki-4735" element={<PriceEscalationCalculatorPage />} />
+      <Route path="/hesaplayicilar/yambis-muteahhitlik-grubu" element={<YambisCalculatorPage />} />
+      <Route path="/hesaplayicilar/kat-karsiligi-ve-kentsel-donusum" element={<KatKarsiligiCalculatorPage />} />
       {ACADEMY_ENABLED ? <>
         <Route path="/academy" element={<PublicAcademy />} />
         <Route path="/academy/complete" element={<CompleteAcademyContent />} />

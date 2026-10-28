@@ -69,18 +69,14 @@ test('sitemap lists public pages on the canonical origin and robots/llms/securit
     '/hesaplayicilar',
     '/hesaplayicilar/kik-asiri-dusuk-teklif',
     '/hesaplayicilar/fiyat-farki-4735',
+    '/hesaplayicilar/kat-karsiligi-ve-kentsel-donusum',
+    '/hesaplayicilar/yambis-muteahhitlik-grubu',
   ]) {
     assert.equal(isKnownSpaRoute(p), true, p);
     assert.ok(xml.includes(`<loc>https://bimmetraj.com${p}</loc>`), `sitemap: ${p}`);
     assert.ok(llms.includes(`https://bimmetraj.com${p}`), `llms.txt: ${p}`);
   }
   assert.equal(isKnownSpaRoute('/hesaplayicilar/olmayan'), false);
-  // Denetim P0-3: kaynak doğrulaması bitmeyen hesaplayıcılar yayında olmamalı
-  for (const p of ['/hesaplayicilar/kat-karsiligi-ve-kentsel-donusum', '/hesaplayicilar/yambis-muteahhitlik-grubu']) {
-    assert.equal(isKnownSpaRoute(p), false, p);
-    assert.equal(xml.includes(p), false, `sitemap: ${p}`);
-    assert.equal(llms.includes(p), false, `llms.txt: ${p}`);
-  }
   assert.equal(llms.includes('L3 CANLI'), false);
 });
 

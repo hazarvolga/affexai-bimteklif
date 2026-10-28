@@ -17,9 +17,16 @@ const BREADCRUMBS: Readonly<Record<string, readonly Crumb[]>> = {
   '/hesaplayicilar': [HOME, CALCULATORS],
   '/hesaplayicilar/kik-asiri-dusuk-teklif': [HOME, CALCULATORS, { name: 'Aşırı Düşük Teklif Sınır Değeri', path: '/hesaplayicilar/kik-asiri-dusuk-teklif' }],
   '/hesaplayicilar/fiyat-farki-4735': [HOME, CALCULATORS, { name: '4735 Fiyat Farkı', path: '/hesaplayicilar/fiyat-farki-4735' }],
+  '/hesaplayicilar/yambis-muteahhitlik-grubu': [HOME, CALCULATORS, { name: 'Müteahhitlik Yetki Belgesi Grubu (YAMBİS)', path: '/hesaplayicilar/yambis-muteahhitlik-grubu' }],
+  '/hesaplayicilar/kat-karsiligi-ve-kentsel-donusum': [HOME, CALCULATORS, { name: 'Kat Karşılığı Paylaşım ve KDV', path: '/hesaplayicilar/kat-karsiligi-ve-kentsel-donusum' }],
 };
 
-const CALCULATOR_ROUTES = new Set(['/hesaplayicilar/kik-asiri-dusuk-teklif', '/hesaplayicilar/fiyat-farki-4735']);
+const CALCULATOR_ROUTES = new Set([
+  '/hesaplayicilar/kik-asiri-dusuk-teklif',
+  '/hesaplayicilar/fiyat-farki-4735',
+  '/hesaplayicilar/yambis-muteahhitlik-grubu',
+  '/hesaplayicilar/kat-karsiligi-ve-kentsel-donusum',
+]);
 
 const absolute = (origin: string, path: string) => `${origin}${path}`;
 

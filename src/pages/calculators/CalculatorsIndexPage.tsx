@@ -13,12 +13,22 @@ const CALCULATORS = [
     title: "4735 Fiyat Farkı",
     text: "Hakediş tutarı, B katsayısı ve TÜİK alt endekslerinden F = A × B × (Pn − 1) hesaplayın.",
   },
+  {
+    to: "/hesaplayicilar/yambis-muteahhitlik-grubu",
+    title: "Müteahhitlik Yetki Belgesi Grubu (YAMBİS)",
+    text: "Bilanço rasyoları, ciro, iş deneyimi ve yapı sınır bedelini girerek A–H yetki belgesi grubu ön değerlendirmesini yapın.",
+  },
+  {
+    to: "/hesaplayicilar/kat-karsiligi-ve-kentsel-donusum",
+    title: "Kat Karşılığı Paylaşım ve KDV",
+    text: "Arsa sahibi / müteahhit paylaşım oranını, emsal bedel matrahını ve 150 m² kademeli konut / 6306 KDV etkisini hesaplayın.",
+  },
 ];
 
 export const CalculatorsIndexPage: React.FC = () => (
   <CalculatorShell
     title="Ücretsiz İnşaat Hesaplayıcıları | BIMMetraj"
-    description="Müteahhitler ve teknik ofisler için ücretsiz, varsayılan değer içermeyen hesaplayıcılar: aşırı düşük teklif sınır değeri (KİK) ve 4735 fiyat farkı."
+    description="Müteahhitler, mali müşavirler ve teknik ofisler için ücretsiz, varsayılan değer içermeyen hesaplayıcılar: KİK aşırı düşük teklif sınır değeri, 4735 fiyat farkı, YAMBİS müteahhitlik yetki belgesi grubu ve kat karşılığı paylaşım / KDV."
     canonicalPath="/hesaplayicilar"
     heading="Ücretsiz Hesaplayıcılar"
     intro="Giriş gerektirmez. Girdiğiniz değerler tarayıcınızda hesaplanır. Hiçbir hesaplayıcı sizin yerinize varsayılan oran veya piyasa değeri koymaz; her sayı sizin girdinizdir."
