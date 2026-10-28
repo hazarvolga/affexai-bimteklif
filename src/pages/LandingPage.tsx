@@ -652,7 +652,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
                   4 Adımda BIM Modelinden Kanıtı Görünen, Sizin Onayınızla Hazırlanan Teklife
                 </h2>
                 <p className="mt-3 text-base text-muted-foreground">
-                  IFC modelinizi, PDF/A paftalarınızı veya Excel metrajınızı yükleyin; RG 33331 e-PYS ön kontrolü, TS 500 &amp; Minha kesinti hesapları ve disiplin yetkili mühendis incelemesiyle kanıt izini koruyan teklif cetveli hazırlayın.
+                  IFC modelinizi, PDF/A paftalarınızı veya Excel metrajınızı yükleyin; e-PYS ön kontrolü ve hesap sonuçlarını yetkili kullanıcı olarak inceleyin. Uzmanlık ve mühendislik kabulü ayrıca değerlendirilmelidir.
                 </p>
               </div>
               <div className="flex flex-wrap gap-2 shrink-0">
@@ -693,19 +693,19 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
                 highlights={[
                   '≤%3 QTO şirket politikası & lisanslı standart inceleme ayrımı',
                   'EK-9 Tablo 9.1 (Mimari 21) & Tablo 9.2 (Diğer 16)',
-                  'Kaynak kimlikli 3B pilot inceleme; metraj sunucu kanıtından gelir',
+                  'Kaynak kimlikli 3B inceleme; QTO ve özellik kaynak yolu ayrı gösterilir',
                 ]}
               />
               <WorkflowCard
                 number="ADIM 03"
                 badge="ÇŞB 2026 · STR / ARC / MEP"
                 icon={<ClipboardCheck size={20} />}
-                title="Poz Eşleştirme & Uzman Onayı"
+                title="Poz Eşleştirme & İnceleme"
                 text="Kalemleriniz poz numarası veya denetimli arama ile firmanızın kayıtlı fiyatlarıyla eşleşir. Birim, geçerlilik veya kullanım izni eksikse fiyat otomatik seçilmez; yetkili kişinin incelemesi gerekir."
                 highlights={[
                   'SHA-256 kaynak izi + kullanım yetkisi kanıtı',
                   'Birim uyuşmazlığı (m² ↔ m³ ↔ ton) kilidi',
-                  'Disiplin bazlı (STR/ARC/MEP) uzman onay izi',
+                  'Yetkili kullanıcı inceleme izi; uzmanlık ayrıca doğrulanır',
                 ]}
               />
               <WorkflowCard
@@ -733,7 +733,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
                     Sıfır Kara Kutu (Zero Black-Box) Mühendislik Prensibi
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    Hiçbir otomatik hesap mühendis onayı olmadan teklife yazılmaz; tüm Minha, kesişim düşümü ve e-PYS bulguları formül ve kaynak referansıyla denetlenebilir.
+                    Geometriden türetilen miktarlar otomatik metraj kanıt satırına alınmaz. Kaynak yolu ve inceleme kararı kontrol edilmelidir; AI tahmini doğrulanmış metraj veya fiyat değildir ve uzman incelemesi gerektirir.
                   </p>
                 </div>
               </div>
@@ -764,7 +764,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
             <div className="mt-10 grid gap-4 sm:grid-cols-2 md:grid-cols-4">
               <EvidenceCard title="IFC Kimliği ve Kat" text="Nesnenin IFC GlobalId değeri, sınıfı (IfcWall, IfcBeam, IfcCovering) ve bağlı katı (IfcBuildingStorey)." />
               <EvidenceCard title="Miktar & Kesinti Kaynağı" text="Miktarın hangi QTO setinden okunduğu, TS 500 kesişim ve CSB_2026_V1 Minha düşüm kanıtları." />
-              <EvidenceCard title="Disiplin Yetkili Mühendis Onayı" text="STR, ARC veya MEP disiplin yetkisine göre onay, düzeltme veya gerekçeli istisna kararının tarihli kaydı." />
+              <EvidenceCard title="Yetkili Kullanıcı İncelemesi" text="Yetkili kullanıcının onay, düzeltme veya gerekçeli istisna kararının tarihli kaydı; disiplin uzmanlığı ve mühendislik kabulü ayrıca değerlendirilir." />
               <EvidenceCard title="SHA-256 Fiyat Kaynak Kaydı" text="Kullanılan ÇŞB 2026 pozu veya kurum içi rayicin birim, belge, tarih ve SHA-256 doğrulama izi." />
             </div>
           </div>

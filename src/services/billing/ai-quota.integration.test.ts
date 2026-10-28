@@ -34,7 +34,8 @@ test('AI HTTP validates before reservation and retains failed provider attempts 
   const app = expressModule.default();
   app.use(expressModule.default.json());
   let providerCalls = 0;
-  registerAiRoutes(app, { generateQuotation: async () => { providerCalls++; return { lineItems: [] }; },
+  let invalidProviderValue = false;
+  registerAiRoutes(app, { generateQuotation: async () => { providerCalls++; return { lineItems: [{ description: 'Beton', unit: 'm3', quantity: 2, unitPrice: invalidProviderValue ? null : 100 }] }; },
     improveQuotation: async () => { providerCalls++; throw new Error('provider unavailable'); },
   } as any, (_req: unknown, _res: unknown, next: () => void) => next());
   const server = app.listen(0, '127.0.0.1');
@@ -47,14 +48,22 @@ test('AI HTTP validates before reservation and retains failed provider attempts 
     assert.equal((await request('/api/ai/generate-quotation', { description: '' })).status, 400);
     assert.equal(await count(), 0);
     assert.equal(providerCalls, 0);
-    assert.equal((await request('/api/ai/generate-quotation', { description: 'test' })).status, 200);
+    const generated = await request('/api/ai/generate-quotation', { description: 'test' });
+    assert.equal(generated.status, 200);
+    const generatedBody = await generated.json() as { lineItems: Array<{ aiEvidenceToken: string }> };
+    const { verifyAiLine } = await import('../ai/quotation-provenance');
+    assert.deepEqual(verifyAiLine(generatedBody.lineItems[0].aiEvidenceToken, { companyId: company.id, userId: user.id }).line, { description: 'Beton', unit: 'm3', quantity: 2, unitPrice: 100 });
+    invalidProviderValue = true;
+    const invalidResponse = await request('/api/ai/generate-quotation', { description: 'test' });
+    assert.equal(invalidResponse.status, 500);
+    assert.equal('lineItems' in await invalidResponse.json(), false);
     assert.equal((await request('/api/ai/improve-quotation', { items: [], instructions: 'test' })).status, 500);
-    assert.equal(providerCalls, 2);
-    assert.equal(await count(), 2);
+    assert.equal(providerCalls, 3);
+    assert.equal(await count(), 3);
     const report = await import('./usage-report').then(module => module.readBillingUsage({ companyId: company.id, userId: user.id }));
     const ai = report.usage.find(row => row.feature === 'AI_QUOTATION_GENERATED');
     assert.equal(ai?.enforced, true);
-    assert.equal(ai?.remaining, 18);
+    assert.equal(ai?.remaining, 17);
   } finally {
     await new Promise<void>((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
   }

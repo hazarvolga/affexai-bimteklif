@@ -1,7 +1,8 @@
 import type { Express, Request } from "express";
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "../../db";
-import { quotationItems, quotations, smartcheckAuditLogs } from "../../db/schema";
+import { quotationItems, quotationItemEvidence, quotations, smartcheckAuditLogs } from "../../db/schema";
+import { publicAiEvidence } from './quotation-ai-evidence';
 import { manualQuotationInput, quotationStatusInput } from "../../services/quotations/input";
 import { createManualQuotation, createQuotationRevision, QuotationIntegrityError } from "../../services/quotations/integrity";
 import { auditQuotationItems } from "../../lib/quotation-audit";
@@ -104,6 +105,14 @@ export function registerQuotationRoutes(app: Express, canMutate: any) {
           .from(quotationItems)
           .where(and(eq(quotationItems.quotationId, id), eq(quotationItems.companyId, req.user.companyId)));
 
+        const evidence = await tenantDb.select({ itemId: quotationItemEvidence.quotationItemId, payload: quotationItemEvidence.capturedValueJson })
+          .from(quotationItemEvidence)
+          .where(and(eq(quotationItemEvidence.companyId, req.user.companyId), eq(quotationItemEvidence.quotationId, id), eq(quotationItemEvidence.evidenceType, 'source'), eq(quotationItemEvidence.status, 'current')));
+        const aiByItem = new Map(evidence.flatMap(record => {
+          const ai = publicAiEvidence(record.payload);
+          return ai ? [[record.itemId, ai] as const] : [];
+        }));
+
         const revisions = await tenantDb.select()
           .from(quotations)
           .where(
@@ -114,7 +123,7 @@ export function registerQuotationRoutes(app: Express, canMutate: any) {
           )
           .orderBy(desc(quotations.revisionVersion));
 
-        return { ...quote, items, revisions };
+        return { ...quote, items: items.map(item => ({ ...item, aiEvidence: aiByItem.get(item.id) ?? null })), revisions };
       });
 
       if (!detail) return res.status(404).json({ error: "Quote not found" });

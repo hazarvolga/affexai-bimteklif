@@ -26,6 +26,24 @@ function hasPythonIfcRuntime(): boolean {
 
 const PYTHON_AVAILABLE = hasPythonIfcRuntime();
 
+test("worker geometry survives zod and is excluded from SmartCheck evidence", (t) => {
+  if (!PYTHON_AVAILABLE) return t.skip("Python IFC runtime unavailable");
+  const input = path.join(ROOT, "workers/ifc/fixtures/epys/123456_00_MM_GNEL_MD_BIM_000_01_000.ifc");
+  const dir = mkdtempSync(path.join(tmpdir(), "ifc-geometry-e2e-"));
+  try {
+    const output = path.join(dir, "output.json");
+    execFileSync(PYTHON, [CLI, "--input", input, "--output", output, "--file-name", path.basename(input)], { timeout: 120_000 });
+    const parsed = IfcExtractorOutputSchema.parse(JSON.parse(readFileSync(output, "utf8")));
+    assert.ok(parsed.elements.some(element => element.quantitySource === "geometry"));
+    const artifact = buildIfcSmartCheckEvidenceArtifact(parsed.elements as never, parsed.summary as never, { fileName: path.basename(input) });
+    assert.equal(artifact.rows.length, 0);
+    assert.ok(artifact.blockedElements.length > 0);
+    assert.ok(artifact.blockedElements.every(element => element.code === "IFC_GEOMETRY_FALLBACK_BLOCKED"));
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 function runWorker(sample: string): { raw: unknown } | null {
   const input = path.join(ROOT, "harici-kaynaklar/klasorler-ve-ornekler/IfcSampleFiles-main", sample);
   if (!PYTHON_AVAILABLE || !existsSync(input)) return null;

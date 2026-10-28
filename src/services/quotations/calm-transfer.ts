@@ -112,6 +112,8 @@ export function projectApprovedRowsToCalmQuotationLines(
     if (waste < 0n) throw new Error("CALM_TRANSFER_WASTE_INVALID");
   }
   const pseudoElements = rows.map((row, index) => parseSmartCheckRowToPseudoElement(row, index));
+  if (pseudoElements.some((element) => element.quantitySource === "geometry")) throw new Error("CALM_TRANSFER_IFC_GEOMETRY_BLOCKED");
+  if (rows.some((row) => (row.quantitySource !== "ifc_qto" && row.quantitySource !== "ifc_property") || !row.formulaJson?.quantitySourcePath?.trim())) throw new Error("CALM_TRANSFER_IFC_SOURCE_UNVERIFIED");
   const items = buildCalmIfcDatasetFromElements(pseudoElements, null, "server-calm-projection.ifc").groups.flatMap((group) => group.items);
   if (!items.length) throw new Error("CALM_TRANSFER_LINES_REQUIRED");
   const lineIds = new Set(items.map((item) => item.id));

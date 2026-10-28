@@ -81,6 +81,28 @@ test("M-12.6: a manual line picked from the company catalogue keeps its approved
   assert.equal(revisedItems.filter((item) => item.priceSnapshotId === approved.id).length, 1);
   assert.equal((await db.select().from(schema.quotationItemEvidence).where(drizzle.eq(schema.quotationItemEvidence.quotationId, revision.id))).length, 1);
 
+  // AI provenance comes only from a server-signed tenant/actor-bound snapshot.
+  const { signAiLine } = await import('../ai/quotation-provenance');
+  const suggestion = { description: 'Perde duvar betonu', unit: 'm³', quantity: 20, unitPrice: 2400 };
+  const aiEvidenceToken = signAiLine(suggestion, tenant);
+  const aiLine = { ...catalogLine, aiEvidenceToken };
+  const aiQuote = await integrity.createManualQuotation(tenant, payload([aiLine, { description: 'Manuel', unit: 'adet', quantity: 1, unitPrice: 10 }]));
+  const aiItems = await db.select().from(schema.quotationItems).where(drizzle.eq(schema.quotationItems.quotationId, aiQuote.id));
+  const aiItem = aiItems.find(item => item.priceSnapshotId === approved.id)!;
+  assert.equal(aiItem.quantitySource, 'ai_estimate');
+  assert.equal(aiItem.priceSource, 'snapshot');
+  const aiEvidence = await db.select().from(schema.quotationItemEvidence).where(drizzle.eq(schema.quotationItemEvidence.quotationId, aiQuote.id));
+  const aiRecord = aiEvidence.find(item => item.evidenceType === 'source')!;
+  assert.deepEqual(aiRecord.capturedValueJson.original, suggestion);
+  assert.deepEqual(aiRecord.capturedValueJson.changedFields, ['quantity', 'unitPrice']);
+  assert.equal(aiEvidence.filter(item => item.evidenceType === 'price').length, 1);
+  const aiRevision = await integrity.createQuotationRevision(tenant, aiQuote.id);
+  const copied = await db.select().from(schema.quotationItemEvidence).where(drizzle.eq(schema.quotationItemEvidence.quotationId, aiRevision.id));
+  assert.deepEqual(copied.find(item => item.evidenceType === 'source')?.capturedValueJson, aiRecord.capturedValueJson);
+  await assert.rejects(integrity.createManualQuotation(tenant, payload([aiLine, aiLine])), { status: 400 });
+  await assert.rejects(integrity.createManualQuotation(tenant, payload([{ ...aiLine, aiEvidenceToken: `${aiEvidenceToken}x` }])), { status: 400 });
+  await assert.rejects(integrity.createManualQuotation({ companyId: companyA.id, userId: authorizer.id }, payload([aiLine])), { status: 400 });
+
   // Every mismatch is refused before anything is written.
   const before = await countQuotes();
   for (const line of [

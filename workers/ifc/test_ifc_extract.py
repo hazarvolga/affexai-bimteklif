@@ -29,6 +29,52 @@ def test_missing_input_file():
         assert "IFC_PARSE_FAILED" in res.stderr
 
 
+@pytest.mark.parametrize("ifc_class,source_suffix", [("IfcBeam", "GeometryVolume"), ("IfcCovering", "GeometryArea"), ("IfcReinforcingBar", "GeometryVolume")])
+def test_geometry_fallback_is_never_labeled_property(monkeypatch, tmp_path, ifc_class, source_suffix):
+    import ifcopenshell
+    from workers.ifc import ifc_extract
+
+    model = ifcopenshell.file(schema="IFC4")
+    model.create_entity("IfcProject", GlobalId="0000000000000000000001", Name="Test")
+    model.create_entity(ifc_class, GlobalId="0000000000000000000002", Name="Element")
+    source = tmp_path / "geometry.ifc"
+    output = tmp_path / "geometry.json"
+    model.write(str(source))
+    monkeypatch.setattr(ifc_extract, "batch_extract_3d_geometry", lambda model, elements, scale: {
+        element.id(): (2.5, 1.0, 1.0, 1.0, 1.0, element.id()) for element in elements
+    })
+    with pytest.raises(SystemExit) as exit_code:
+        ifc_extract.extract_ifc(str(source), str(output), "geometry.ifc")
+    assert exit_code.value.code == 0
+    data = json.loads(output.read_text())
+    assert data["elements"][0]["quantitySource"] == "geometry"
+    assert source_suffix in data["elements"][0]["quantitySourcePath"]
+
+
+@pytest.mark.parametrize("volume_is_qto", [True, False])
+def test_covering_source_tracks_selected_area_even_with_other_volume(volume_is_qto):
+    import ifcopenshell
+    from workers.ifc.ifc_extract import extract_quantities_and_properties
+    model = ifcopenshell.file(schema="IFC4")
+    covering = model.create_entity("IfcCovering", GlobalId="0000000000000000000001", Name="Floor")
+    if volume_is_qto:
+        qty = model.create_entity("IfcQuantityVolume", Name="NetVolume", VolumeValue=2.0)
+        prop = model.create_entity("IfcPropertySingleValue", Name="NetArea", NominalValue=model.create_entity("IfcReal", 12.0))
+    else:
+        qty = model.create_entity("IfcQuantityArea", Name="NetArea", AreaValue=12.0)
+        prop = model.create_entity("IfcPropertySingleValue", Name="Hacim", NominalValue=model.create_entity("IfcReal", 2.0))
+    # Misleading set names must never replace the IFC entity type as the source.
+    qto = model.create_entity("IfcElementQuantity", GlobalId="0000000000000000000002", Name="VendorQuantitySet", Quantities=[qty])
+    pset = model.create_entity("IfcPropertySet", GlobalId="0000000000000000000003", Name="Qto_CoveringBaseQuantities", HasProperties=[prop])
+    model.create_entity("IfcRelDefinesByProperties", GlobalId="0000000000000000000004", RelatedObjects=[covering], RelatingPropertyDefinition=qto)
+    model.create_entity("IfcRelDefinesByProperties", GlobalId="0000000000000000000005", RelatedObjects=[covering], RelatingPropertyDefinition=pset)
+    result = extract_quantities_and_properties(covering, 1.0, 1.0)
+    assert result[0] == 2.0
+    assert result[12]["areaM2"] == 12.0
+    assert result[5] == ("property" if volume_is_qto else "qto")
+    assert result[6].endswith("/NetArea")
+
+
 def test_corrupt_ifc_file():
     with tempfile.TemporaryDirectory() as tmpdir:
         bad_ifc = os.path.join(tmpdir, "bad.ifc")

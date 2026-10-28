@@ -46,6 +46,7 @@ export const smartcheckRowReviewRequestSchema = z.object({
   status: z.enum(["approved", "rejected", "accepted_exception"]),
   notes: z.string().trim().max(2000).nullable().optional(),
   reviewerDiscipline: z.enum(["STR", "ARC", "MEP"]).optional(),
+  expectedUpdatedAt: z.string().datetime({ offset: true }).optional(),
   correction: correctionSchema.optional(),
 }).passthrough();
 

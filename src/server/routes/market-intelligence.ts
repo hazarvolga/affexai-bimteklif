@@ -105,7 +105,12 @@ export function registerMarketIntelligenceRoutes(app: Express) {
       if (!document) return res.status(404).json({ error: "Kaynak doküman bulunamadı." });
       if (document.checksumSha256 === "pending") return res.status(409).json({ error: "Kaynak doküman yüklemesi tamamlanmalı." });
     }
-    const sourceDocumentHash = validHash(body.sourceDocumentHash) ? String(body.sourceDocumentHash).toLowerCase() : document?.checksumSha256 ?? (body.sourceDocumentPayload === undefined ? "" : sha256Payload(body.sourceDocumentPayload));
+    if (document && body.sourceDocumentHash !== undefined && body.sourceDocumentHash !== null && body.sourceDocumentHash !== "") {
+      if (!validHash(body.sourceDocumentHash) || String(body.sourceDocumentHash).toLowerCase() !== document.checksumSha256.toLowerCase()) {
+        return res.status(409).json({ error: "Kaynak hash'i yüklenen belgenin doğrulanmış checksum değeriyle eşleşmiyor.", code: "SOURCE_DOCUMENT_HASH_MISMATCH" });
+      }
+    }
+    const sourceDocumentHash = document?.checksumSha256.toLowerCase() ?? (validHash(body.sourceDocumentHash) ? String(body.sourceDocumentHash).toLowerCase() : body.sourceDocumentPayload === undefined ? "" : sha256Payload(body.sourceDocumentPayload));
     const sourceDocumentIdentifier = textValue(body.sourceDocumentIdentifier, 255) || document?.originalFileName || textValue(body.quoteNumber, 120);
     const currency = textValue(body.currency, 3).toUpperCase() || "TRY";
     const quoteDate = parseDate(body.quoteDate);

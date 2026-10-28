@@ -174,7 +174,7 @@ export const CALC_MODULES: CalcModule[] = [
     ],
     rules: { columns: ["Durum", "Davranış"], rows: [["Geometri kaynaklı veya tahmini miktar", "Kanıt satırına alınmaz (engellenir)"], ["Donatı (IfcReinforcingBar)", "Yalnız doğrudan Qto_ReinforcingElementBaseQuantities.Weight veya açık Weight/Mass property değerinden gelen pozitif kütle kg satırına alınır; nominal çap/boy hesabı, sıfır değer ve kaynak yolu olmayan miktar engellenir"], ["Kaplama (IfcCovering)", "Qto_CoveringBaseQuantities.NetArea/GrossArea (m²) mevcutsa kanıt satırına alınır"], ["Aggregate parça", "Kendi pozitif açık miktarı yoksa ana elemanla çift sayımı önlemek için dışlanır; dışlama kaydı sourceIdentity ile saklanır"], ["Kat bilgisi", "IfcRelContainedInSpatialStructure yoksa 'mekânsal kaynak eksik' bulgusu"], ["Browser önizlemesi", "Type inheritance, aggregate suppression, bağımsız birimler ve geometri fallback için tam sonuç sayılmaz; server worker'a yönlendirir"]] },
     example: { inputs: [["Duvar", "Qto_WallBaseQuantities.NetVolume = 7,5 m³; GrossVolume = 7,9 m³"], ["Kaplama", "IfcCovering NetArea = 42,5 m²; TREpys_PozOzellikSeti.PozNo = 15.275.1104"]], steps: ["Net hacim ve net alan tercih edilir", "TREpys_PozOzellikSeti.PozNo doğrudan poz koduna yazılır"], result: "Duvar: 7,5 m³ · Kaplama: 42,5 m² (Poz 15.275.1104) · kaynak 'ifc_qto'" },
-    assumptions: ["Modelin QTO değerleri doğru dışa aktarılmıştır; boşluk düşümü için ayrıca CSB_2026_V1 Minha motoru kullanılır.", "Otomatik kalite kapısı ve testler bağımsız mühendis kabulünün yerine geçmez; gerçek vendor dosyalarıyla doğrulama gerekir."],
+    assumptions: ["Modelin QTO değerleri doğru dışa aktarılmıştır; boşluk düşümü için ayrıca CSB_2026_V1 Minha motoru kullanılır.", "Otomatik kalite kapısı ve testler bağımsız mühendis kabulünün yerine geçmez; gerçek vendor dosyalarıyla doğrulama gerekir.", "Geometri veya türetilmiş süpürgelik uzunluğu inceleme kanıtı değildir. Eski kayıtlarda kaynak yolu eksik veya seçilen boyutla uyumsuzsa yeniden işleme ve inceleme gerekir."],
     questions: ["Net hacmin/alanın brüt değere tercih edilmesi ÇŞB metraj esaslarıyla uyumlu mu?", "Kiriş–döşeme ve kolon–kiriş kesişim hacimlerinin model tarafında nasıl çözülmesini beklersiniz?"],
   },
   {
@@ -214,7 +214,7 @@ export const CALC_MODULES: CalcModule[] = [
     formulas: ["miktar = kanonik Calm satırının sunucuda yeniden kurulan net quantity değeri; boyutlar karıştırılmaz", "satır tutarı = sabit noktalı miktar × yetkili snapshot birim fiyatı", "ardıl revizyon = kilitlenen güncel teklif + seçilen yeni satırlar; önceki revizyon değişmez"],
     rules: { columns: ["Kapı", "Davranış"], rows: [["Kaynak", "En yeni başarılı processing run, kaynak SHA-256 ve element/aggregate lineage zorunlu"], ["Fiyat", "Vendor/lisans/kullanım yetkisi fail-closed; tedarikçi beyanı tek başına yetki değildir"], ["Tekrar", "Actor+tenant idempotency ve teklif serisi çapında semantik kaynak tekrar kontrolü"], ["Eşzamanlılık", "Güncel teklif FOR UPDATE kilitlenir; sibling revision ve target mutation DB kapılarıyla engellenir"]] },
     example: { inputs: [["Mevcut teklif", "Rev. 3"], ["Seçili kanonik satır", "IfcCovering net 42,5 m²; yetkili snapshot"]], steps: ["Sunucu Calm projeksiyonunu yeniden kurar", "Kaynak/fiyat/yetki ve tekrar kapıları çalışır", "Rev. 4 ardıl teklif ve lineage kaydı transaction içinde oluşur"], result: "Rev. 3 korunur; Rev. 4 kalıcıdır ve aynı semantik kaynak yeniden eklenmez" },
-    assumptions: ["Bu dilim mevcut bir güncel teklif gerektirir; boş teklif oluşturmaz.", "Görüntüleme geometrisi veya kanıtsız tahmin miktar kaynağı değildir.", "Bağımsız mühendis fiyat/metraj kabulü uygulama testinden ayrıdır."],
+    assumptions: ["Bu dilim mevcut bir güncel teklif gerektirir; boş teklif oluşturmaz.", "Görüntüleme geometrisi veya kanıtsız tahmin miktar kaynağı değildir.", "Bağımsız mühendis fiyat/metraj kabulü uygulama testinden ayrıdır.", "İki SmartCheck satır aktarımı eksik fiyatı reddeder ve açık sıfırdan ayırır; bu diğer fiyat/PDF akışlarına genellenemez.", "Bilinen eski geometry yolları engellenir; eski tüm belirsiz boyut/kaynak eşleşmeleri otomatik düzeltilmiş değildir."],
     questions: ["Pilot kabulünde ardıl teklif satırlarının şirket poz gruplaması ve onay hiyerarşisi yeterli mi?"],
   },
   {
@@ -228,7 +228,7 @@ export const CALC_MODULES: CalcModule[] = [
     formulas: [],
     rules: { columns: ["Kod", "Koşul", "Önem"], rows: [["MISSING_POSITION_CODE", "Poz kodu boş", "Yüksek"], ["DUPLICATE_POSITION_CODE", "Aynı poz dosyada birden fazla", "Orta"], ["UNKNOWN_UNIT", "Birim boş veya tanınmıyor", "Yüksek"], ["INVALID_QUANTITY", "Miktar ≤ 0 veya geçersiz", "Yüksek"], ["MISSING_PRICE_SOURCE", "Fiyat boş veya < 0", "Orta"], ["WASTE_LIMIT_EXCEEDED", "Fire > %20 (şirket limiti)", "Orta"]] },
     example: { inputs: [["Satır", "Poz yok, 2 adet, fiyat boş"]], steps: ["MISSING_POSITION_CODE + MISSING_PRICE_SOURCE"], result: "2 bulgu; satır onay için düzeltme veya gerekçeli istisna gerektirir" },
-    assumptions: ["Fire limiti varsayılan %20'dir."],
+    assumptions: ["Fire limiti varsayılan %20'dir.", "IFC kaynak bulguları review sırasında korunur; tekil/toplu karar ve audit tenant bağlamındaki işlemle yürütülür. İnsan review yetkinliği ayrıca doğrulanmalıdır."],
     questions: ["%20 fire limiti iş kalemleri için makul mü, kalem türüne göre ayrışmalı mı?"],
   },
   {

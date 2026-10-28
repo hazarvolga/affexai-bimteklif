@@ -65,6 +65,7 @@ import { SectionWrapper } from '@/components/layout/SectionWrapper';
 import { StatusBadge } from '@/components/business/StatusBadge';
 import { ProfitabilityBadge } from '@/components/business/ProfitabilityBadge';
 import { useAuth } from '@/hooks/useAuth';
+import { QuoteAiEvidence } from '@/components/quote/QuoteAiEvidence';
 
 export function QuoteDetail() {
   const { role } = useAuth();
@@ -637,7 +638,7 @@ export function QuoteDetail() {
                   <TableBody>
                     {data.items.map((item: any) => (
                       <TableRow key={item.id} className="border-border/60 hover:bg-muted/30">
-                        <TableCell className="text-foreground font-medium pl-6 py-3 text-xs">{item.description}</TableCell>
+                        <TableCell className="text-foreground font-medium pl-6 py-3 text-xs">{item.description}<QuoteAiEvidence evidence={item.aiEvidence ?? null} currency={data.currency} /></TableCell>
                         <TableCell className="text-center text-muted-foreground text-xs font-mono py-3">{item.unit}</TableCell>
                         <TableCell className="text-right font-mono text-muted-foreground text-xs py-3 tabular-nums">{item.quantity}</TableCell>
                         <TableCell className="text-right font-mono text-foreground font-semibold text-xs py-3 tabular-nums">{Number(item.unitPrice).toLocaleString('tr-TR')} {data.currency}</TableCell>

@@ -411,6 +411,7 @@ export function CreateQuote() {
       const formattedItems = aiItems.map((item: any) => {
         const baseItem: Partial<QuoteItem> = {
           id: crypto.randomUUID(),
+          aiEvidenceToken: item.aiEvidenceToken,
           description: item.description,
           unit: item.unit || 'm2',
           quantity: Number(item.quantity) || 0,

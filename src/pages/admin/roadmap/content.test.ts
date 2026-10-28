@@ -72,11 +72,11 @@ test("roadmap covers the agreed topics, ministry questions and official sources"
 
 
 test("Rev. 112 documents Phase 0 without claiming production or independent expert approval", () => {
-  assert.equal(CALC_REVIEW_META.version, "BIM-CALC-2026-10-28.106");
-  assert.equal(CALC_REVIEW_CHANGELOG.at(-1)?.revision, "Rev. 112");
+  assert.equal(CALC_REVIEW_META.version, "BIM-CALC-2026-10-28.107");
+  assert.equal(CALC_REVIEW_CHANGELOG.at(-1)?.revision, "Rev. 113");
   const revisions = CALC_REVIEW_CHANGELOG.map(item => Number(item.revision.match(/Rev\. (\d+)/)?.[1]));
   assert.ok(revisions.every((value, index) => index === 0 || value > revisions[index - 1]), "calculation revisions must be strictly increasing");
-  const kik = CALC_REVIEW_CHANGELOG.at(-1)?.moduleDetails?.["kik-adt"];
+  const kik = CALC_REVIEW_CHANGELOG.find(item => item.revision === "Rev. 112")?.moduleDetails?.["kik-adt"];
   assert.match(JSON.stringify(kik), /0,90/);
   assert.match(JSON.stringify(kik), /beyan/);
   const journal = ROADMAP_SECTIONS.find(section => section.id === "revizyon-gunlugu")!;
@@ -85,9 +85,22 @@ test("Rev. 112 documents Phase 0 without claiming production or independent expe
   for (const [index, table] of tables.entries()) {
     if (table.type !== "table") continue;
     const numbers = table.rows.map(row => Number(row[0].match(/Rev\. (\d+)/)?.[1]));
-    assert.equal(numbers.at(-1), 112);
+    assert.equal(numbers.at(-1), 113);
     assert.ok(numbers.every((value, rowIndex) => rowIndex === 0 || (index === 0 ? value > numbers[rowIndex - 1] : value >= numbers[rowIndex - 1])), "roadmap revisions must be ordered");
   }
+});
+
+test("Rev. 113 records source, review, transfer and AI scope with explicit outstanding limits", () => {
+  const revision = CALC_REVIEW_CHANGELOG.find(item => item.revision === "Rev. 113")!;
+  for (const module of ["ifc-metraj", "ifc-teklif-aktarim", "satir-dogrulama", "fiyat-eslestirme", "teklif-satir"]) {
+    const detail = revision.moduleDetails?.[module];
+    assert.ok(detail?.before && detail?.after && detail?.basis, module);
+  }
+  assert.match(revision.afterSummary, /diğer fiyat\/PDF yolları/);
+  assert.match(JSON.stringify(revision.moduleDetails), /24 saat/);
+  assert.match(CALC_REVIEW_META.approvalStatus, /bağımsız mühendis onayını göstermez/);
+  const status = ROADMAP_SECTIONS.find(section => section.id === "adimlar")!;
+  assert.match(JSON.stringify(status), /tarihsel IFC kayıtlarında belirsiz veya eksik kaynak yolu/);
 });
 
 

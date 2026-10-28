@@ -4,6 +4,7 @@ import { validateRows } from "@/smartcheck/import/normalize";
 import type { IfcConsistencyReport, IfcParseSummary, IfcParserContract, IfcSourceIdentity, ParsedIfcElement, ParsedOpening, TrPsetCsbProjectCompliance } from "./types";
 import type { IfcRuleEvaluations } from "@/smartcheck/rules/ifc-rule-run";
 import { hasDirectIfcRebarMassEvidence } from "./rebar-evidence";
+import { isIfcGeometryQuantity } from "./evidence-policy";
 
 export interface IfcEvidenceDocumentContext {
   fileName: string;
@@ -223,7 +224,7 @@ function blockElement(element: ParsedIfcElement): IfcBlockedEvidenceElement {
       sourceIdentity: element.sourceIdentity,
     };
   }
-  if (element.quantitySource === "geometry") {
+  if (isIfcGeometryQuantity(element)) {
     return {
       elementId: element.id,
       globalId: element.guid,
@@ -295,7 +296,7 @@ export function buildIfcSmartCheckEvidenceArtifact(
 
   const evidenceElements = elements.filter(
     (element) =>
-      (element.quantitySource === "qto" || element.quantitySource === "property") &&
+      !isIfcGeometryQuantity(element) && (element.quantitySource === "qto" || element.quantitySource === "property") &&
       (element.type === "IfcReinforcingBar"
         ? isSourceBackedRebar(element)
         : element.volumeM3 > 0 || (element.type === "IfcCovering" && (element.areaM2 ?? 0) > 0)),

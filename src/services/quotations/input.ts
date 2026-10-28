@@ -28,6 +28,7 @@ export const manualQuotationInput = z.object({
   /** "Müteahhitlik kârı ve genel gider" on the net subtotal; added to the customer price, VAT included on it. */
   overheadProfitPercent: percent.default(0),
   items: z.array(z.object({
+    aiEvidenceToken: z.string().min(1).max(8192).optional(),
     benchmarkStagingId: z.string().uuid().optional(),
     /** M-12.6: approved company price-catalogue snapshot the line was picked from. */
     priceSnapshotId: z.string().uuid().optional(),

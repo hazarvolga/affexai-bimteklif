@@ -12,6 +12,7 @@ import type { IfcSmartCheckEvidenceArtifact, IfcSmartCheckEvidenceRow } from "./
 import { elementQuantity } from "./uncovered-quantity";
 import { classifyStructuralMaterial, isStructuralType, type SupportedConcreteClass } from "./structural-material";
 import { hasDirectIfcRebarMassEvidence } from "./rebar-evidence";
+import { isIfcGeometryQuantity } from "./evidence-policy";
 
 /** Bump only when the persisted Calm grouping/quantity projection semantics change. */
 export const CALM_ICMAL_RULE_VERSION = "calm-icmal.v1" as const;
@@ -612,7 +613,8 @@ export function parseSmartCheckRowToPseudoElement(
     zoneName: row.formulaJson?.zoneName,
     formworkM2: 0,
     rebarKg: 0,
-    quantitySource: row.quantitySource === "ifc_qto" ? "qto" : "property",
+    quantitySource: isIfcGeometryQuantity({ quantitySource: row.quantitySource === "ifc_qto" ? "qto" : row.quantitySource === "ifc_property" ? "property" : "estimate", quantitySourcePath: row.formulaJson?.quantitySourcePath }) ? "geometry" : row.quantitySource === "ifc_qto" ? "qto" : row.quantitySource === "ifc_property" ? "property" : "estimate",
+    quantitySourcePath: row.formulaJson?.quantitySourcePath,
     smartCheckStatus: "pass",
     pozNo: row.normalizedPositionCode ?? row.rawPositionCode ?? undefined,
     sourceIdentity,
@@ -1139,9 +1141,16 @@ export function buildCalmIfcDatasetFromElements(
  */
 export function buildCalmIfcDatasetFromArtifact(artifact: IfcSmartCheckEvidenceArtifact): CalmIfcDataset {
   const fileName = artifact.document?.fileName || "";
-  const pseudoElements: ParsedIfcElement[] = artifact.rows.map((row, idx) =>
+  const parsedElements: ParsedIfcElement[] = artifact.rows.map((row, idx) =>
     parseSmartCheckRowToPseudoElement(row, idx),
   );
+  // Existing artifacts may predate the worker's corrected geometry classification.
+  const pseudoElements = parsedElements.filter(element =>
+    !isIfcGeometryQuantity(element)
+    && (element.quantitySource === "qto" || element.quantitySource === "property")
+    && Boolean(element.quantitySourcePath?.trim()),
+  );
+  const excludedSourceCount = parsedElements.length - pseudoElements.length;
 
   const dataset = buildCalmIfcDatasetFromElements(
     pseudoElements,
@@ -1155,6 +1164,7 @@ export function buildCalmIfcDatasetFromArtifact(artifact: IfcSmartCheckEvidenceA
   const authoring = artifact.summary.authoringSoftware;
   return {
     ...dataset,
+    projectSubtitle: excludedSourceCount ? `${dataset.projectSubtitle} · ${excludedSourceCount} doğrulanamayan kaynak satırı güvenli inceleme için icmal dışında` : dataset.projectSubtitle,
     ...(authoring ? { authoringAdvisory: buildAuthoringAdvisory(authoring) } : {}),
     openings: artifact.summary.openings,
   };

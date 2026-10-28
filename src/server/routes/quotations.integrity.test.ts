@@ -53,6 +53,21 @@ test("quotation integrity against isolated PostgreSQL", { timeout: 30_000 }, asy
   const itemsFor = (id: string) => db.select().from(quotationItems).where(eq(quotationItems.quotationId, id));
   const series = (id: string) => db.select().from(quotations).where(and(eq(quotations.companyId, company.id), or(eq(quotations.id, id), eq(quotations.parentId, id))));
   const evidenceFor = (id: string) => db.select().from(quotationItemEvidence).where(eq(quotationItemEvidence.quotationId, id));
+  await t.test('detail exposes only tenant scoped sanitized AI evidence', async () => {
+    const quote = (await create()).body;
+    const [item] = await itemsFor(quote.id);
+    const [user] = await db.insert(users).values({ email: `${crypto.randomUUID()}@example.test`, fullName: 'AI reviewer' }).returning();
+    await db.insert(memberships).values({ userId: user.id, companyId: company.id, role: 'owner' });
+    await db.insert(quotationItemEvidence).values([
+      { companyId: company.id, quotationId: quote.id, quotationItemId: item.id, evidenceType: 'source', evidenceKey: crypto.randomUUID(), createdByUserId: user.id, capturedValueJson: { kind: 'ai_estimate', original: { description: 'Öneri', unit: 'm2', quantity: 1, unitPrice: 3, secret: 'must-not-leak' }, changedFields: ['quantity'], secret: 'must-not-leak' } },
+      { companyId: company.id, quotationId: quote.id, quotationItemId: item.id, evidenceType: 'rule', evidenceKey: crypto.randomUUID(), createdByUserId: user.id, capturedValueJson: { kind: 'ai_estimate', secret: 'must-not-leak' } },
+    ]);
+    const detail = await call('get /api/quotations/:id', {}, quote.id);
+    assert.equal(detail.statusCode, 200);
+    assert.deepEqual(detail.body.items[0].aiEvidence, { original: { description: 'Öneri', unit: 'm2', quantity: 1, unitPrice: 3 }, changedFields: ['quantity'] });
+    assert.ok(!JSON.stringify(detail.body).includes('must-not-leak'));
+    assert.equal((await call('get /api/quotations/:id', {}, quote.id, other.id)).statusCode, 404);
+  });
   const evidenceFixture = async () => {
     const data = payload();
     const root = (await create({ ...data, items: [data.items[0], { ...data.items[0], description: "Second item" }] })).body;

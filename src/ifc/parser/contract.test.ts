@@ -31,6 +31,19 @@ const element = (overrides: Partial<ParsedIfcElement> = {}): ParsedIfcElement =>
 });
 
 describe("IFC parser parity contract", () => {
+  it("uses the same linear skirting quantity as the SmartCheck row", () => {
+    const skirting = element({ type: "IfcCovering", ifcClass: "IfcCovering", name: "Süpürgelik", coveringPredefinedType: "SKIRTINGBOARD", volumeM3: 0, areaM2: 2, lengthM: 10, quantitySource: "geometry" });
+    const normalized = normalizeIfcElementsForParity([skirting], { engine: "worker", fileSha256: "a".repeat(64), runId: "run" });
+    assert.equal(normalized.elements[0].quantity.dimension, "length");
+    assert.equal(normalized.elements[0].quantity.value, 10);
+  });
+
+  it("does not classify legacy geometric source paths as property in parity output", () => {
+    const legacy = element({ quantitySource: "property", quantitySourcePath: "#1/#2:IfcShapeRepresentation/GeometryVolume" });
+    const normalized = normalizeIfcElementsForParity([legacy], { engine: "worker", fileSha256: "a".repeat(64), runId: "run" });
+    assert.equal(normalized.elements[0].quantity.source, "geometry");
+    assert.equal(normalized.elements[0].quantity.sourcePath, legacy.quantitySourcePath);
+  });
   it("keeps duplicate GlobalIds distinct with file, run and STEP identity", () => {
     const first = buildIfcElementIdentity({ fileSha256: "a".repeat(64), runId: "run-1", stepId: "42", globalId: "DUPLICATE_GUID_0000001" });
     const second = buildIfcElementIdentity({ fileSha256: "a".repeat(64), runId: "run-1", stepId: "43", globalId: "DUPLICATE_GUID_0000001" });

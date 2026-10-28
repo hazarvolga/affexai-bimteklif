@@ -45,6 +45,7 @@ type Row = {
   reviewStatus: string;
   reviewerUserId: string | null;
   reviewedAt: string | null;
+  updatedAt: string;
   reviewerNotes: string | null;
   findingsJson: Finding[];
 };
@@ -529,8 +530,13 @@ export function SmartCheckImportWorkspace() {
     const notes = reviewDraft.notes.trim();
     if ((reviewDraft.status === "accepted_exception" || reviewDraft.status === "rejected") && !notes) return toast.error("İstisna veya red kararı için gerekçe zorunludur.");
     const correction = reviewDraft.status === "approved" && reviewDraft.quantity.trim() ? { quantity: reviewDraft.quantity.trim() } : undefined;
-    const response = await fetchWithAuth(`/api/smartcheck/rows/${reviewDraft.row.id}/review`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: reviewDraft.status, notes: notes || undefined, correction }) });
+    const response = await fetchWithAuth(`/api/smartcheck/rows/${reviewDraft.row.id}/review`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: reviewDraft.status, notes: notes || undefined, correction, expectedUpdatedAt: reviewDraft.row.updatedAt }) });
     const body = await response.json();
+    if (response.status === 409 && body.code === "REVIEW_VERSION_CONFLICT") {
+      setReviewDraft(null);
+      if (documentId) await loadRows(documentId);
+      return toast.error("Satır başka bir işlemde değişti. Güncel satır yüklendi; kararınızı yeniden gözden geçirin.");
+    }
     if (!response.ok) return toast.error(body.error ?? "Review kararı kaydedilemedi.");
     setReviewDraft(null);
     if (documentId) await loadRows(documentId);

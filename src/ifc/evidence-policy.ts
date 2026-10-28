@@ -1,4 +1,5 @@
 import type { ParsedIfcElement } from "./types";
+import { hasDirectIfcRebarMassEvidence } from "./rebar-evidence";
 
 export interface IfcEvidencePolicySummary {
   acceptedQtoCount: number;
@@ -17,9 +18,14 @@ export interface IfcQuantityEvidenceDisplay {
   reason: string;
 }
 
+/** Older worker versions mislabeled derived representation quantities as property. */
+export function isIfcGeometryQuantity(element: Pick<ParsedIfcElement, "quantitySource" | "quantitySourcePath">): boolean {
+  return element.quantitySource === "geometry" || /(?:IfcShapeRepresentation\/(?:GeometryVolume|GeometryArea|CurveLengthArea)|\/DerivedLength)$/i.test(element.quantitySourcePath ?? "");
+}
+
 export function isIfcConcreteQuantityAdmissible(element: ParsedIfcElement): boolean {
-  const sourceBacked = element.quantitySource === "qto" || element.quantitySource === "property";
-  if (element.type === "IfcReinforcingBar") return sourceBacked && element.rebarKg > 0 && Boolean(element.quantitySourcePath);
+  const sourceBacked = !isIfcGeometryQuantity(element) && Boolean(element.quantitySourcePath?.trim()) && (element.quantitySource === "qto" || element.quantitySource === "property");
+  if (element.type === "IfcReinforcingBar") return sourceBacked && hasDirectIfcRebarMassEvidence(element);
   return sourceBacked;
 }
 
@@ -28,7 +34,7 @@ export function summarizeIfcEvidencePolicy(elements: ParsedIfcElement[]): IfcEvi
     acceptedQtoCount: elements.filter((element) => isIfcConcreteQuantityAdmissible(element) && element.quantitySource === "qto").length,
     acceptedPropertyCount: elements.filter((element) => isIfcConcreteQuantityAdmissible(element) && element.quantitySource === "property").length,
     blockedEstimateCount: elements.filter((element) => element.quantitySource === "estimate" && element.type !== "IfcReinforcingBar").length,
-    blockedGeometryCount: elements.filter((element) => element.quantitySource === "geometry").length,
+    blockedGeometryCount: elements.filter(isIfcGeometryQuantity).length,
     blockedRebarCount: elements.filter((element) => element.type === "IfcReinforcingBar" && !isIfcConcreteQuantityAdmissible(element)).length,
     blockedFormworkEstimateCount: elements.filter((element) => element.formworkM2 > 0).length,
     admissibleQuantityCount: elements.filter(isIfcConcreteQuantityAdmissible).length,
@@ -36,6 +42,14 @@ export function summarizeIfcEvidencePolicy(elements: ParsedIfcElement[]): IfcEvi
 }
 
 export function describeIfcQuantityEvidence(element: ParsedIfcElement): IfcQuantityEvidenceDisplay {
+  if (!isIfcGeometryQuantity(element) && (element.quantitySource === "qto" || element.quantitySource === "property") && !element.quantitySourcePath?.trim()) {
+    return {
+      label: "Kaynak Yolu Eksik",
+      tone: "rose",
+      admittedToSmartCheck: false,
+      reason: "IFC miktarının kaynak yolu eksik. Satır incelemede görünebilir, ancak kaynak doğrulanmadan onaylanamaz.",
+    };
+  }
   if (element.type === "IfcReinforcingBar") {
     if (isIfcConcreteQuantityAdmissible(element)) {
       return {
@@ -52,6 +66,14 @@ export function describeIfcQuantityEvidence(element: ParsedIfcElement): IfcQuant
       reason: "Donatı için çubuk metrajı/kütlesi, çap gruplandırması, bindirme payı ve uzman denetçi doğrulaması gerekir.",
     };
   }
+  if (isIfcGeometryQuantity(element)) {
+    return {
+      label: "Geometri Uyumsuz",
+      tone: "rose",
+      admittedToSmartCheck: false,
+      reason: "Geometrik hesaplama için birim, boşluk minha, net/brüt ve tolerans kuralları henüz tamamlanmadı.",
+    };
+  }
   if (element.quantitySource === "qto") {
     return {
       label: "Kabul Edilen Metraj (QTO)",
@@ -66,14 +88,6 @@ export function describeIfcQuantityEvidence(element: ParsedIfcElement): IfcQuant
       tone: "sky",
       admittedToSmartCheck: true,
       reason: "Onaylı nitelik (özellik) kanıtı SmartCheck inceleme satırına aktarılabilir.",
-    };
-  }
-  if (element.quantitySource === "geometry") {
-    return {
-      label: "Geometri Uyumsuz",
-      tone: "rose",
-      admittedToSmartCheck: false,
-      reason: "Geometrik hesaplama için birim, boşluk minha, net/brüt ve tolerans kuralları henüz tamamlanmadı.",
     };
   }
   return {

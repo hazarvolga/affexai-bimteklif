@@ -115,7 +115,7 @@ test("Calm transfer is tenant-safe, transactional, replayable and creates exactl
     rawPositionCode: "15.150.1006",
     rawUnit: "m3",
     rawQuantity: number === 1 ? "1.2500" : "2.1000",
-    formulaJson: { materialLayers: JSON.stringify(["Beton_C30"]) },
+    formulaJson: { materialLayers: JSON.stringify(["Beton_C30"]), quantitySourcePath: "#1/Qto_SlabBaseQuantities/NetVolume" },
     quantitySource: "ifc_qto",
     reviewStatus: "approved",
     reviewerUserId: reviewer.id,
@@ -135,7 +135,7 @@ test("Calm transfer is tenant-safe, transactional, replayable and creates exactl
     companyId: companyA.id, documentId: document.id, processingRunId: olderRun.id, sheetName: "IFC", sourceRowNumber: 1,
     sourceCellRange: "IfcSlab#old", rawDescription: "IfcSlab · Beton_C30", rawPositionCode: "15.150.1006", rawUnit: "m3", rawQuantity: "99",
     normalizedDescription: "C30/37 Betonarme", normalizedPositionCode: "15.150.1006", normalizedUnit: "m³", normalizedQuantity: "99",
-    formulaJson: { materialLayers: JSON.stringify(["Beton_C30"]) }, quantitySource: "ifc_qto", reviewStatus: "approved",
+    formulaJson: { materialLayers: JSON.stringify(["Beton_C30"]), quantitySourcePath: "#1/Qto_SlabBaseQuantities/NetVolume" }, quantitySource: "ifc_qto", reviewStatus: "approved",
     reviewerUserId: reviewer.id, reviewedAt: new Date("2026-10-23T09:30:00Z"),
   });
   const [source] = await db.insert(schema.priceSources).values({
@@ -177,6 +177,43 @@ test("Calm transfer is tenant-safe, transactional, replayable and creates exactl
     priceSnapshotIdsByCalmLineId: Object.fromEntries(calmLines.map((line) => [line.lineId, snapshot.id])),
   });
   const at = new Date("2026-10-23T12:00:00Z");
+
+  await t.test("legacy approved geometry cannot create a quotation or transfer ledger", async () => {
+    const originalFormula = rows[0].formulaJson;
+    await db.update(schema.normalizedQuantityRows).set({
+      quantitySource: "ifc_property",
+      formulaJson: { ...originalFormula, quantitySourcePath: "#1/#2:IfcShapeRepresentation/GeometryVolume" },
+    }).where(drizzle.eq(schema.normalizedQuantityRows.id, rows[0].id));
+    try {
+      await assert.rejects(
+        service.transferCalmRowsToQuotationRevision({ companyId: companyA.id, userId: actor.id }, "legacy-geometry", input(root.id), at),
+        (error: unknown) => error instanceof service.CalmTransferError && error.code === "CALM_TRANSFER_IFC_GEOMETRY_BLOCKED" && error.status === 409,
+      );
+      assert.equal((await db.select().from(schema.quotations).where(drizzle.eq(schema.quotations.parentId, root.id))).length, 0);
+      assert.equal((await db.select().from(schema.quotationTransferLedgers).where(drizzle.eq(schema.quotationTransferLedgers.companyId, companyA.id))).length, 0);
+    } finally {
+      await db.update(schema.normalizedQuantityRows).set({ quantitySource: rows[0].quantitySource, formulaJson: originalFormula }).where(drizzle.eq(schema.normalizedQuantityRows.id, rows[0].id));
+    }
+  });
+
+  await t.test("legacy approved IFC rows without source paths cannot create a quotation or transfer ledger", async () => {
+    const originalFormula = rows[0].formulaJson;
+    try {
+      for (const quantitySource of ["ifc_qto", "ifc_property"]) {
+        for (const quantitySourcePath of ["", "   "]) {
+          await db.update(schema.normalizedQuantityRows).set({ quantitySource, formulaJson: { ...originalFormula, quantitySourcePath } }).where(drizzle.eq(schema.normalizedQuantityRows.id, rows[0].id));
+          await assert.rejects(
+            service.transferCalmRowsToQuotationRevision({ companyId: companyA.id, userId: actor.id }, `missing-source-${quantitySource}-${quantitySourcePath.length}`, input(root.id), at),
+            (error: unknown) => error instanceof service.CalmTransferError && error.code === "CALM_TRANSFER_IFC_SOURCE_UNVERIFIED" && error.status === 409,
+          );
+          assert.equal((await db.select().from(schema.quotations).where(drizzle.eq(schema.quotations.parentId, root.id))).length, 0);
+          assert.equal((await db.select().from(schema.quotationTransferLedgers).where(drizzle.eq(schema.quotationTransferLedgers.companyId, companyA.id))).length, 0);
+        }
+      }
+    } finally {
+      await db.update(schema.normalizedQuantityRows).set({ quantitySource: rows[0].quantitySource, formulaJson: originalFormula }).where(drizzle.eq(schema.normalizedQuantityRows.id, rows[0].id));
+    }
+  });
 
   const concurrentReplay = await Promise.all([
     service.transferCalmRowsToQuotationRevision({ companyId: companyA.id, userId: actor.id }, "same-request", input(root.id), at),
@@ -293,7 +330,7 @@ test("Calm transfer is tenant-safe, transactional, replayable and creates exactl
     companyId: companyA.id, documentId: secondDocument.id, processingRunId: secondRun.id, sheetName: "IFC", sourceRowNumber: 1,
     sourceCellRange: "IfcSlab#second", rawDescription: "IfcSlab · Beton_C30", rawPositionCode: "15.150.1006", rawUnit: "m3", rawQuantity: "1.0000",
     normalizedDescription: "C30/37 Betonarme", normalizedPositionCode: "15.150.1006", normalizedUnit: "m³", normalizedQuantity: "1.0000",
-    formulaJson: { materialLayers: JSON.stringify(["Beton_C30"]) }, quantitySource: "ifc_qto", reviewStatus: "approved",
+    formulaJson: { materialLayers: JSON.stringify(["Beton_C30"]), quantitySourcePath: "#1/Qto_SlabBaseQuantities/NetVolume" }, quantitySource: "ifc_qto", reviewStatus: "approved",
     reviewerUserId: reviewer.id, reviewedAt: new Date("2026-10-23T12:15:00Z"),
   }).returning();
   const secondLines = service.projectApprovedRowsToCalmQuotationLines([secondRow], {});
@@ -346,7 +383,7 @@ test("Calm transfer is tenant-safe, transactional, replayable and creates exactl
     companyId: companyA.id, documentId: newDocument.id, processingRunId: newRun.id, sheetName: "IFC", sourceRowNumber: 1,
     sourceCellRange: "IfcSlab#new", rawDescription: "IfcSlab · Beton_C30", rawPositionCode: "15.150.1006", rawUnit: "m3", rawQuantity: "2.0000",
     normalizedDescription: "C30/37 Betonarme", normalizedPositionCode: "15.150.1006", normalizedUnit: "m³", normalizedQuantity: "2.0000",
-    formulaJson: { materialLayers: JSON.stringify(["Beton_C30"]) }, quantitySource: "ifc_qto", reviewStatus: "approved",
+    formulaJson: { materialLayers: JSON.stringify(["Beton_C30"]), quantitySourcePath: "#1/Qto_SlabBaseQuantities/NetVolume" }, quantitySource: "ifc_qto", reviewStatus: "approved",
     reviewerUserId: reviewer.id, reviewedAt: new Date("2026-10-23T12:35:00Z"),
   }).returning();
   const newLines = service.projectApprovedRowsToCalmQuotationLines([newRow], {});

@@ -24,3 +24,8 @@ test("sayfa çıktıların ön hesap olduğunu ve resmî karar yerine geçmediğ
   assert.match(html, /ön hesaptır/);
   assert.match(html, /resmî uygunluk kararı yerine geçmez/);
 });
+
+test("IFC çalışma açıklaması geometri ve uzman kabulü sınırını açıklar", () => {
+  assert.match(html, /Geometri veya türetilmiş süpürgelik uzunluğu inceleme kanıtı değildir/);
+  assert.match(html, /bağımsız mühendis kabulünün yerine geçmez/);
+});
