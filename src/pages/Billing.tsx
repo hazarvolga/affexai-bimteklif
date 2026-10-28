@@ -27,6 +27,7 @@ import {
   normalizeBillingCycle,
 } from '@/services/billing/billing-periods';
 import { UsageStat, usageDisplay, usageHints, usageLabels } from './billing-usage';
+import { hasSelectedBankAccount } from './billing-transfer-state';
 
 interface BillingData {
   plan: string;
@@ -270,6 +271,10 @@ export function Billing() {
 
   const handleSubmitNotification = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!hasSelectedBankAccount(bankAccounts, selectedBankId)) {
+      toast.error('Doğrulanmış banka hesabı seçilemiyor. Daha önce ödeme yaptıysanız lütfen destekle iletişime geçin.');
+      return;
+    }
     const targetPlanId = activeOrder?.planId || selectedPlanId;
     if (!targetPlanId) {
       toast.error('Lütfen önce geçiş yapmak istediğiniz paketi seçin.');
@@ -615,7 +620,7 @@ export function Billing() {
             {/* Banka Hesap Kartları */}
             {bankAccounts.length === 0 ? (
               <div className="rounded-xl border border-border bg-card p-4 text-xs text-muted-foreground">
-                Aktif banka hesabı bilgisi bulunamadı. Lütfen yöneticiyle iletişime geçin.
+                Doğrulanmış aktif banka hesabı bilgisi bulunamadı. Ödeme yapmadan önce yöneticiyle iletişime geçin. Daha önce ödeme yaptıysanız dekontunuzu destek ekibine iletin.
               </div>
             ) : (
               <div className="grid gap-4 md:grid-cols-2">
@@ -729,6 +734,7 @@ export function Billing() {
                         onChange={(e) => setSelectedBankId(e.target.value)}
                         className="w-full rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground"
                       >
+                        {!hasSelectedBankAccount(bankAccounts, selectedBankId) && <option value="">Banka hesabı seçin</option>}
                         {bankAccounts.map((b) => (
                           <option key={b.id} value={b.id}>
                             {b.bankName} ({b.currency})
@@ -828,7 +834,7 @@ export function Billing() {
                   <div className="flex justify-end">
                     <Button
                       type="submit"
-                      disabled={submittingPayment}
+                      disabled={submittingPayment || !hasSelectedBankAccount(bankAccounts, selectedBankId)}
                       className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold gap-2"
                     >
                       <Send size={14} />

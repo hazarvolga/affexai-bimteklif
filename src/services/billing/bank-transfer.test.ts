@@ -4,6 +4,10 @@ import {
   formatIban,
   generatePaymentReferenceCode,
   normalizeIban,
+  isValidIban,
+  getActiveBankAccounts,
+  getAllBankAccountsForAdmin,
+  selectBankAccount,
   parseBankAccountsInput,
   parseEnvBankAccounts,
   reconstructPaymentRequests,
@@ -23,11 +27,13 @@ test("normalizeIban and formatIban normalize Turkish IBANs cleanly", () => {
   assert.equal(formatIban(normalized), "TR33 0006 1005 1978 6457 8413 26");
 });
 
-test("parseEnvBankAccounts falls back to default multi-bank list when env is empty or invalid", () => {
-  const fallback = parseEnvBankAccounts(undefined);
-  assert.ok(fallback.length >= 2);
-  assert.equal(fallback[0].currency, "TRY");
-  assert.ok(fallback[0].iban.startsWith("TR"));
+test("bank accounts fail closed when env is empty, invalid or has an invalid checksum", () => {
+  assert.deepEqual(parseEnvBankAccounts(""), []);
+  assert.deepEqual(parseEnvBankAccounts("not json"), []);
+  assert.equal(isValidIban("TR33 0006 1005 1978 6457 8413 26"), true);
+  assert.equal(isValidIban("TR33 0006 2000 1230 0006 2990 10"), false);
+  assert.equal(isValidIban("TR56 0006 4000 0011 2345 6789 01"), false);
+  assert.equal(isValidIban("TR33 0006 1005 1978 6457 8413 2"), false);
 
   const customEnv = JSON.stringify([
     {
@@ -35,7 +41,7 @@ test("parseEnvBankAccounts falls back to default multi-bank list when env is emp
       bankName: "Ziraat Bankası",
       branchName: "Kurumsal Şube",
       accountHolder: "AffexAI Teknoloji A.Ş.",
-      iban: "TR120001000123456789012345",
+      iban: "TR330006100519786457841326",
       currency: "TRY",
       descriptionNote: "Lütfen açıklama kısmına referans kodunu yazınız.",
       isActive: true,
@@ -45,6 +51,7 @@ test("parseEnvBankAccounts falls back to default multi-bank list when env is emp
   assert.equal(parsed.length, 1);
   assert.equal(parsed[0].bankName, "Ziraat Bankası");
   assert.equal(parsed[0].accountHolder, "AffexAI Teknoloji A.Ş.");
+  assert.deepEqual(parseEnvBankAccounts(customEnv.replace("TR330006100519786457841326", "TR330006200012300006299010")), []);
 });
 
 test("parseBankAccountsInput validates multi-bank payload and rejects malformed IBAN", () => {
@@ -65,7 +72,7 @@ test("parseBankAccountsInput validates multi-bank payload and rejects malformed 
         bankName: "Türkiye İş Bankası",
         branchName: "Levent Ticari",
         accountHolder: "BIMMetraj Yazılım A.Ş.",
-        iban: "TR56 0006 4000 0011 2345 6789 01",
+        iban: "GB82 WEST 1234 5698 7654 32",
         currency: "TRY",
         descriptionNote: "FAST / EFT 7/24",
         isActive: true,
@@ -89,6 +96,41 @@ test("parseBankAccountsInput validates multi-bank payload and rejects malformed 
     ],
   });
   assert.equal(invalid, null);
+  assert.equal(parseBankAccountsInput({ accounts: [{ bankName: "Test Bank", accountHolder: "Test Firm", iban: "TR330006200012300006299010" }] }), null);
+});
+
+test("legacy bank records remain repairable by admin but invalid accounts are never public", async () => {
+  const accounts = [
+    { id: "valid", bankName: "Valid Bank", accountHolder: "Test Firm", iban: "TR330006100519786457841326", isActive: true },
+    { id: "invalid", bankName: "Old Bank", accountHolder: "Test Firm", iban: "TR330006200012300006299010", isActive: true },
+  ];
+  const runner = { select: () => ({ from: () => ({ where: () => ({ orderBy: () => ({ limit: async () => [{ details: { accounts } }] }) }) }) }) };
+  const admin = await getAllBankAccountsForAdmin(runner as never);
+  assert.deepEqual(admin.map((account) => account.id), ["valid", "invalid"]);
+  const visible = await getActiveBankAccounts(runner as never);
+  assert.deepEqual(visible.map((account) => account.id), ["valid"]);
+});
+
+test("bank account lookup never falls back to environment accounts on database failure", async () => {
+  const runner = { select: () => { throw new Error("connection unavailable"); } };
+  await assert.rejects(() => getActiveBankAccounts(runner as never), /connection unavailable/);
+});
+
+test("explicit missing or removed bank account is never silently substituted", () => {
+  const account = { id: "bank-1", bankName: "Bank", accountHolder: "Company", iban: "TR330006100519786457841326", isActive: true, currency: "TRY" as const, branchName: null, descriptionNote: null };
+  assert.equal(selectBankAccount([account], "bank-1"), account);
+  assert.throws(() => selectBankAccount([account], "removed-bank"), /BANK_ACCOUNT_UNAVAILABLE/);
+  assert.throws(() => selectBankAccount([], "removed-bank"), /BANK_ACCOUNT_UNAVAILABLE/);
+  assert.equal(selectBankAccount([], null), null);
+});
+
+test("admin can deactivate a legacy invalid account or explicitly remove all accounts", async () => {
+  const legacy = { id: "invalid", bankName: "Old Bank", accountHolder: "Test Firm", iban: "TR330006200012300006299010", isActive: false };
+  assert.equal(parseBankAccountsInput({ accounts: [legacy] })?.[0].isActive, false);
+  assert.deepEqual(parseBankAccountsInput({ accounts: [] }), []);
+  const runner = { select: () => ({ from: () => ({ where: () => ({ orderBy: () => ({ limit: async () => [{ details: { accounts: [] } }] }) }) }) }) };
+  assert.deepEqual(await getAllBankAccountsForAdmin(runner as never), []);
+  assert.deepEqual(await getActiveBankAccounts(runner as never), []);
 });
 
 test("generatePaymentReferenceCode produces deterministic prefix with year and suffix", () => {

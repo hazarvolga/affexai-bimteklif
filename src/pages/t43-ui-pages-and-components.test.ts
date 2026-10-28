@@ -581,7 +581,7 @@ globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit): Promis
           id: 'run-3',
           kind: 'ifc',
           fileName: 'ofis_statik.ifc',
-          status: 'completed',
+          status: 'succeeded',
           attempts: 1,
           maxAttempts: 3,
           createdAt: '2026-10-26T06:00:00Z',
@@ -601,21 +601,12 @@ globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit): Promis
   if (path === '/api/admin/reports/usage') {
     return jsonResponse({
       monthlyTrends: [
-        { period: '2026-08', quoteCount: 34, ifcCount: 12 },
-        { period: '2026-09', quoteCount: 48, ifcCount: 19 },
-        { period: '2026-10', quoteCount: 62, ifcCount: 29 },
+        { period: '2026-08', total_quotes: '34', total_ifcs: '12' },
+        { period: '2026-09', total_quotes: '48', total_ifcs: '19' },
+        { period: '2026-10', total_quotes: '62', total_ifcs: '29' },
       ],
-      topTenants: [
-        {
-          id: 'comp-1',
-          name: 'BIMPlan Mühendislik A.Ş.',
-          planName: 'Profesyonel Mühendislik Ofisi',
-          status: 'active',
-          quoteUsage: 18,
-          ifcUsage: 9,
-          bonusQuotes: 5,
-          bonusIfc: 2,
-        },
+      topConsumers: [
+        { id: 'comp-1', name: 'BIMPlan Mühendislik A.Ş.', total_quotes: '18', total_ifcs: '9' },
       ],
     });
   }
@@ -696,7 +687,7 @@ globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit): Promis
         id: 'plan-pro',
         name: 'Profesyonel Mühendislik Ofisi',
         monthlyPrice: 2450,
-        quotesLimit: 25,
+        monthlyQuoteLimit: 25,
         monthlyIfcLimit: 15,
         ifcMaxFileMb: 75,
         ifcMaxConcurrent: 2,
@@ -1845,6 +1836,7 @@ test('T43 UI Slice 1: Admin yönetim sayfaları (PricingSources, PlanEditor, Pla
     },
   );
   assert.ok(tenantDetailHtml.length > 300);
+  assert.match(tenantDetailHtml, /Aylık Teklif Kotası:[\s\S]{0,250}25 adet/);
 
   const tenantsListHtml = await renderInRouter(
     createElement(TenantsList),
@@ -1861,10 +1853,12 @@ test('T43 UI Slice 1: Admin yönetim sayfaları (PricingSources, PlanEditor, Pla
     '/admin/queue',
     '/admin/queue',
     async (container) => {
-      clickButtonsByText(container, ['Kurtar', 'Yeniden', 'Hatalı', 'Kilitli', 'Tümü', 'Yenile']);
+      clickButtonsByText(container, ['Başarılı']);
     },
   );
   assert.ok(queueHtml.length > 200);
+  assert.match(queueHtml, /ofis_statik\.ifc/);
+  assert.doesNotMatch(queueHtml, /Eşleşen kuyruk işlemi bulunamadı/);
 
   const reportsHtml = await renderInRouter(
     createElement(AdminReports),
@@ -1875,6 +1869,10 @@ test('T43 UI Slice 1: Admin yönetim sayfaları (PricingSources, PlanEditor, Pla
     },
   );
   assert.ok(reportsHtml.length > 200);
+  assert.match(reportsHtml, /BIMPlan Mühendislik A\.Ş\./);
+  assert.match(reportsHtml, /62 Teklif/);
+  assert.match(reportsHtml, /29 IFC/);
+  assert.doesNotMatch(reportsHtml, /Henüz kullanım verisi bulunan firma yok/);
 
   const dashHtml = await renderInRouter(createElement(AdminDashboard), '/admin', '/admin');
   assert.ok(dashHtml.length > 200);

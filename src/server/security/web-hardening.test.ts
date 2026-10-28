@@ -125,7 +125,7 @@ test('GEO-01: ROBOTS_AI_TRAINING=disallow closes the site only for training craw
 test('T46: llms.txt describes capabilities only through the registry and packages only through the plan catalog', async () => {
   const { canonicalPlans } = await import('../../services/billing/plan-catalog');
   const { CAPABILITY_REGISTRY } = await import('../../capabilities/registry');
-  const llms = llmsTxt('https://bimmetraj.com');
+  const llms = llmsTxt('https://bimmetraj.com', canonicalPlans);
   assert.equal(/Faz \d yol haritas/i.test(llms), false, 'eski elle yazılmış yol haritası ifadesi kalmamalı');
   for (const capability of CAPABILITY_REGISTRY) assert.ok(llms.includes(capability.title), capability.id);
   for (const plan of canonicalPlans.filter(p => p.isActive && p.isPublished)) {

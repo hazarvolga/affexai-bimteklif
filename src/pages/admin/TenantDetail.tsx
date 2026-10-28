@@ -60,7 +60,7 @@ interface TenantDetailData {
     id: string;
     name: string;
     monthlyPrice: number;
-    quotesLimit: number | null;
+    monthlyQuoteLimit: number | null;
     monthlyIfcLimit: number | null;
     ifcMaxFileMb: number;
     ifcMaxConcurrent: number;
@@ -824,7 +824,7 @@ export function TenantDetail() {
                 <div className="border-t border-indigo-900/40 pt-2 space-y-1 text-xs text-indigo-300">
                   <div className="flex justify-between">
                     <span>Aylık Teklif Kotası:</span>
-                    <strong>{data.plan.quotesLimit ?? 'Sınırsız'} adet</strong>
+                    <strong>{data.plan.monthlyQuoteLimit == null ? 'Bilinmiyor' : `${data.plan.monthlyQuoteLimit} adet`}</strong>
                   </div>
                   <div className="flex justify-between">
                     <span>Aylık IFC Analiz:</span>

@@ -2,7 +2,7 @@
  * KİK aşırı düşük teklif hesaplayıcısı: form → motor eşlemesi (saf, test edilebilir).
  * Hiçbir alan için varsayılan yoktur; eksik zorunlu girdi varsa hesap yapılmaz.
  */
-import { evaluateKikAbnormallyLowBid, type KikAdtResult, type KikLineItemInput, type KikWorkCategory } from "../kik-adt";
+import { evaluateKikAbnormallyLowBid, validateKikNCoefficient, type KikAdtResult, type KikLineItemInput, type KikWorkCategory, type KikNCoefficientException } from "../kik-adt";
 import { parseTrNumber, parseTrNumberList } from "../tr-number";
 
 export interface KikFormState {
@@ -19,8 +19,9 @@ export interface KikFormState {
     documentId: string;
     sha256: string;
   };
-  /** İdare ilanda farklı bir N belirlediyse (1,00–1,20); boşsa iş grubunun N değeri. */
+  /** İdare ilanda farklı bir N belirlediyse; boşsa iş grubunun N değeri. */
   nOverride?: string;
+  nCoefficientException?: KikNCoefficientException;
 }
 
 export type KikFormOutcome =
@@ -62,8 +63,9 @@ export function evaluateKikForm(f: KikFormState): KikFormOutcome {
   const ourBid = f.ourBid.trim() === "" ? null : parseTrNumber(f.ourBid);
   if (f.ourBid.trim() !== "" && (ourBid === null || ourBid <= 0)) errors.push("Sizin teklifiniz sıfırdan büyük bir sayı olmalı.");
   const nOverride = (f.nOverride ?? "").trim() === "" ? null : parseTrNumber(f.nOverride as string);
-  if ((f.nOverride ?? "").trim() !== "" && (nOverride === null || nOverride < 1 || nOverride > 1.2)) {
-    errors.push("N katsayısı 1,00 ile 1,20 arasında olmalı (idarenin ilanda belirttiği değer).");
+  if ((f.nOverride ?? "").trim() !== "") {
+    const issue = nOverride === null ? "N katsayısı geçerli bir sayı olmalıdır." : validateKikNCoefficient(nOverride, f.category || undefined, f.nCoefficientException);
+    if (issue) errors.push(issue);
   }
   if (errors.length > 0) return { status: "error", errors };
 
@@ -73,11 +75,13 @@ export function evaluateKikForm(f: KikFormState): KikFormOutcome {
     ourBidTry: ourBid ?? (ym as number),
     workCategory: f.category as KikWorkCategory,
     ...(nOverride !== null ? { nCoefficientOverride: nOverride } : {}),
+    nCoefficientException: f.nCoefficientException,
     administrationEstimatedCostItems: items.items,
     administrationEstimatedCostSourceIdentity: f.administrationSourceIdentity,
     administrationEstimatedCostSourceVerification: f.administrationSourceVerification,
   });
   const warnings: string[] = [];
+  if (nOverride !== null && nOverride < 1) warnings.push("Ön proje istisnası ve ilan/ihale dayanakları kullanıcı beyanıdır; sistem tarafından doğrulanmadı. İlgili idare ve Resmî Gazete kaydıyla teyit edin.");
   if (result.admittedBidsTry.length === 0) {
     warnings.push("Hiçbir teklif YM'nin %40–%120 aralığında değil; Tebliğ m.45.1.1.4 uyarınca sınır değer %40 YM alınır.");
   }

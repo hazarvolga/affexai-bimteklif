@@ -26,8 +26,27 @@
 
 export type KikWorkCategory = "ust_yapi" | "alt_yapi";
 
+/** Kullanıcı beyanıdır; resmî ilan veya ihale belgesinin doğrulanması değildir. */
+export interface KikNCoefficientException {
+  preliminaryProject: boolean;
+  issuingAuthority: string;
+  officialGazetteReference: string;
+  tenderReference: string;
+}
+
+export function validateKikNCoefficient(n: number, category: KikWorkCategory | undefined, exception?: KikNCoefficientException): string | null {
+  if (!Number.isFinite(n) || n < 0.9 || n > 1.2) return "N katsayısı 1,00 ile 1,20 arasında olmalıdır; ön proje istisnasında alt sınır 0,90'dır.";
+  if (n >= 1) return null;
+  if (category !== "ust_yapi") return "1,00 altındaki N istisnası yalnız üstyapı ön proje işleri için kullanılabilir.";
+  const hasText = (value: unknown) => typeof value === "string" && value.trim().length > 0;
+  if (exception?.preliminaryProject !== true || !hasText(exception.issuingAuthority) || !hasText(exception.officialGazetteReference) || !hasText(exception.tenderReference)) {
+    return "1,00 altındaki N için ön proje beyanı, yetkili bakanlık, Resmî Gazete ilanı ve ihale dayanağı gereklidir.";
+  }
+  return null;
+}
+
 export const KIK_ADT_SOURCE_CITATION =
-  "4734 Sayılı Kamu İhale Kanunu m.38 ve Kamu İhale Genel Tebliği m.45.1.1–45.1.2; RG 29.12.2010/27800 6. Mükerrer değişiklik metni ve m.45.2 örneği: https://www.resmigazete.gov.tr/eskiler/2010/12/20101229M6-13.htm ; m.45.1.2 idare yaklaşık maliyet dağılımı için KİK kararı: https://ekap.kik.gov.tr/EKAP/Vatandas/KurulKararGoster.aspx?KararId=26178bd78b9730925abbf20cecee0c1b9668cd30333cd4f9b4e9dde116a58a53";
+  "4734 Sayılı Kamu İhale Kanunu m.38 ve Kamu İhale Genel Tebliği m.45.1.1–45.1.2; m.45.1.1.2 ön proje istisnası: https://www.ihale.gov.tr/DokumanDownload.aspx?DokumanID=1556 ; RG 29.12.2010/27800 6. Mükerrer değişiklik metni ve m.45.2 örneği: https://www.resmigazete.gov.tr/eskiler/2010/12/20101229M6-13.htm ; m.45.1.2 idare yaklaşık maliyet dağılımı için KİK kararı: https://ekap.kik.gov.tr/EKAP/Vatandas/KurulKararGoster.aspx?KararId=26178bd78b9730925abbf20cecee0c1b9668cd30333cd4f9b4e9dde116a58a53";
 
 export interface KikLineItemInput {
   id: string;
@@ -44,6 +63,7 @@ export interface KikAdtInput {
   ourBidTry: number;
   workCategory?: KikWorkCategory;
   nCoefficientOverride?: number;
+  nCoefficientException?: KikNCoefficientException;
   /** İdarenin yaklaşık maliyet cetvelindeki iş kalemleri. Resmî m.45.1.2 listesi yalnız bu veriyle hesaplanır. */
   administrationEstimatedCostItems?: KikLineItemInput[];
   /** İdare cetvelini tekil olarak tanımlayan ihale/doküman/sürüm kimliği. */
@@ -174,13 +194,9 @@ export function evaluateKikAbnormallyLowBid(input: KikAdtInput): KikAdtResult {
   const rawYm = Number(input.estimatedCostTry);
   const ourBid = Math.max(0, Number(input.ourBidTry) || 0);
   const workCategory: KikWorkCategory = input.workCategory ?? "ust_yapi";
-  // İdare, işin niteliğine göre N'yi 1,00–1,20 arasında belirleyebilir (ilan/idari şartnamede yayımlanır).
-  // Aralık dışı bir değer sessizce kabul edilmez; yanlış sınır değer üretir.
   if (input.nCoefficientOverride !== undefined && input.nCoefficientOverride !== null) {
-    const n = input.nCoefficientOverride;
-    if (typeof n !== "number" || !Number.isFinite(n) || n < 1 || n > 1.2) {
-      throw new Error("N katsayısı 1,00 ile 1,20 arasında olmalıdır.");
-    }
+    const issue = validateKikNCoefficient(input.nCoefficientOverride, input.workCategory, input.nCoefficientException);
+    if (issue) throw new Error(issue);
   }
   const nCoefficient =
     typeof input.nCoefficientOverride === "number"

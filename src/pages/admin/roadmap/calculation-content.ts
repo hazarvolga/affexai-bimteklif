@@ -524,7 +524,7 @@ export const CALC_MODULES: CalcModule[] = [
     area: "Teklif / Mevzuat",
     status: "mevzuat",
     sourceFiles: ["src/lib/kik-adt.ts", "src/lib/kik-adt.test.ts", "src/components/smartcheck/CalmKikPanel.tsx"],
-    references: ["4734 Sayılı Kamu İhale Kanunu Madde 38", "Kamu İhale Genel Tebliği Madde 45.1.1, 45.1.1.1, 45.1.1.4 & 45.1.2 (Yapım İşleri Sınır Değer ve Sıralı İş Kalemleri)"],
+    references: ["4734 Sayılı Kamu İhale Kanunu Madde 38", "Kamu İhale Genel Tebliği Madde 45.1.1, 45.1.1.1, 45.1.1.2–3, 45.1.1.4 & 45.1.2 (Yapım İşleri Sınır Değer ve Sıralı İş Kalemleri; https://donersermaye.aksaray.edu.tr/dosya/fa543d7b-db1c-4908-81de-74a01f211b3c.pdf; güncellik ve ihaleye uygulanabilirlik ayrıca doğrulanmalıdır)"],
     purpose: "Kaynak kimliği taşıyan idare yaklaşık maliyet cetvelinden ve YM mutabakatından %80 açıklama listesini üretir; teklif kalemleri yalnız advisory karşılaştırmadır. İhale açılış tutanağındaki YM ve geçerli teklifler girildiğinde Tebliğ m.45.1.1 sınır değerini hesaplar. Aynı modül YAMBİS için kesin ve eksik kanıta bağlı potansiyel grubu ayrı raporlar.",
     formulas: [
       "Adım 1 (%40–%120 YM Bandı — m.45.1.1): 0,40 × YM ≤ T_i ≤ 1,20 × YM aralığı dışındaki teklifler elenir; kalan n geçerli teklifin ortalaması T_ort1 ve örneklem standart sapması σ = √(∑(T_i − T_ort1)² / (n − 1)) hesaplanır",
@@ -538,7 +538,7 @@ export const CALC_MODULES: CalcModule[] = [
       steps: ["Kalan 10 teklifin ortalaması T_ort1 = 66.270,00 TL; örneklem standart sapması σ = 20.317,05 TL", "Aralık 45.952,95–86.587,05 TL: 44.000 ve 112.800 dışarıda kalır; kalan 8 teklifin ortalaması T_ort2 = 63.237,50 TL", "C = 63.237,50 / 100.000 = 0,632 (3 ondalık); K = (3,2×0,632 − 0,632² − 0,6) / 1,632 = 0,627 (3 ondalık)", "SD = (0,627 × 63.237,50) / (0,632 × 1,20) = 52.281,00 TL"],
       result: "Sınır Değer: 52.281,00 TL (Tebliğ 45.2 resmî örneğiyle birebir) · Durum: 49.500 TL teklif sınır değerin altındadır, aşırı düşük teklif sayılır · %80 Pareto Sıralı İş Kalemleri otomatik listelenir",
     },
-    assumptions: ["Kullanıcı YM ve geçerli teklifleri girmediğinde arayüz hiçbir uydurma sınır değer üretmez. Kaynaklı idare YM kalemi veya toplam mutabakatı yoksa resmî yüzde 80 listesi de üretilmez.", "Tebliğ m.45.1.1.1 uyarınca Üstyapı (Bina) için N = 1,00 ve Diğer Yapım (Altyapı) için N = 1,20 uygulanır.", "YAMBİS iş gücü geçici istisnası 31.12.2026 dahil değerlendirme tarihine bağlıdır; eksik banka verisi kesin grup oluşturmaz."],
+    assumptions: ["Kullanıcı YM ve geçerli teklifleri girmediğinde arayüz hiçbir uydurma sınır değer üretmez. Kaynaklı idare YM kalemi veya toplam mutabakatı yoksa resmî yüzde 80 listesi de üretilmez.", "Tebliğ m.45.1.1.1 uyarınca Üstyapı (Bina) için N = 1,00 ve Diğer Yapım (Altyapı) için N = 1,20 esas alınır. 1,00–1,20 arası idare katsayısı ile 0,90–0,99 ön proje üstyapı istisnası yalnız kullanıcı girdisidir; ikincisi ön proje, yetkili bakanlık, Resmî Gazete ve ihale dayanağı beyanı gerektirir. Sistem bu beyanı doğrulamaz; bağımsız uzman kabulü bekler.", "YAMBİS iş gücü geçici istisnası 31.12.2026 dahil değerlendirme tarihine bağlıdır; eksik banka verisi kesin grup oluşturmaz."],
     questions: ["İhale ilanındaki sınır değer hesabı türü (Sınır Değer Altı Ret vs Açıklama İstenmesi) teklif başlığında seçilmeli mi?"],
   },
   {

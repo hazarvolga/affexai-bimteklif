@@ -6,7 +6,8 @@ import {
   getRoadmapCapabilities,
 } from '../../capabilities/registry';
 import { ACADEMY_ENABLED } from '../../config/features';
-import { PLAN_CATALOG_VERSION, canonicalPlans } from '../../services/billing/plan-catalog';
+import { PLAN_CATALOG_VERSION } from '../../services/billing/plan-catalog';
+import type { PublicPlanView } from '../../services/billing/public-plans';
 
 /** Firebase (Academy profile/certificates) is the only third-party runtime the SPA talks to. */
 const FIREBASE_ORIGINS = [
@@ -167,14 +168,14 @@ export function securityTxt(publicAppUrl: string): string {
 const tl = (value: number) => value.toLocaleString('tr-TR');
 
 /** T46: paket satırları elle yazılmaz; plan kataloğundan (ilk kurulum değerleri) üretilir. */
-export function planCatalogLines(): string[] {
-  return canonicalPlans
+export function planCatalogLines(publicPlans: readonly PublicPlanView[] = []): string[] {
+  return publicPlans
     .filter(plan => plan.isActive && plan.isPublished)
     .sort((a, b) => a.displayOrder - b.displayOrder)
     .map(plan => `- **${plan.name}**: ${tl(plan.monthlyPrice)} ₺/ay (${plan.monthlyQuoteLimit} Teklif, ${plan.monthlyIfcLimit ?? 0} IFC / ${plan.ifcMaxFileMb} MB, ${plan.monthlyPdfLimit ?? 0} PDF ön kontrol)`);
 }
 
-export function llmsTxt(publicAppUrl: string): string {
+export function llmsTxt(publicAppUrl: string, publicPlans: readonly PublicPlanView[] = []): string {
   const origin = new URL(publicAppUrl).origin;
   const liveLines = getLiveCapabilities().map(
     (c) =>
@@ -197,13 +198,14 @@ export function llmsTxt(publicAppUrl: string): string {
     ...roadmapLines,
     '',
     `## Paketler (${PLAN_CATALOG_VERSION})`,
-    ...planCatalogLines(),
+    ...planCatalogLines(publicPlans),
+    ...(publicPlans.length ? [] : ['Yayınlanmış paket bilgisi şu anda bulunmuyor.']),
     '',
     '## Genel Sayfalar ve Bilgi Kaynakları',
     `- [Ana Sayfa](${origin}/): BIMMetraj 5D ihale ve metraj platformu genel bakış.`,
     `- [Özellikler](${origin}/features): IFC QTO, SmartCheck 3x3 & Minha denetimi, ÇŞB 2026 poz eşleştirme ve RG 33331 e-PYS / PDF/A ön kontrol yetenekleri.`,
     `- [SmartCheck Canlı Demo](${origin}/smartcheck): Kanıta dayalı 3x3 metraj ve kalite kontrol simülatörü.`,
-    `- [Paketler ve Fiyatlandırma](${origin}/pricing): 5 kademeli v6 paket kataloğu ve 6 Aylık (%10), 1 Yıllık (%20), 2 Yıllık (%30) Havale/EFT taahhüt iskontoları.`,
+    `- [Paketler ve Fiyatlandırma](${origin}/pricing): Güncel yayınlanan paketler ve ödeme seçenekleri.`,
     `- [BIM & Mevzuat Sözlüğü](${origin}/bim-sozlugu): openBIM IFC 4.3, QTO, LOD, COBie, ÇŞB 2026 Poz ve RG 33331 e-PYS kapsamlı Türkçe mühendislik sözlüğü.`,
     `- [Ücretsiz Hesaplayıcılar](${origin}/hesaplayicilar): Giriş gerektirmeyen, varsayılan değer içermeyen ön hesaplayıcılar (bağımsız doğrulanmamıştır).`,
     `- [Aşırı Düşük Teklif Sınır Değeri](${origin}/hesaplayicilar/kik-asiri-dusuk-teklif): KİK m.38 ve Tebliğ m.45.1.1 yapım işleri sınır değer hesabı.`,
@@ -222,7 +224,7 @@ export function llmsTxt(publicAppUrl: string): string {
  * Genişletilmiş makine-okunur özet (llms-full.txt): yetenek kaydındaki her kaydın tam açıklaması,
  * dayandığı kaynak ve doğrulama seviyesi. Yalnız kayıttan üretilir; elle iddia eklenmez.
  */
-export function llmsFullTxt(publicAppUrl: string): string {
+export function llmsFullTxt(publicAppUrl: string, publicPlans: readonly PublicPlanView[] = []): string {
   const all = [...getLiveCapabilities(), ...getPilotCapabilities(), ...getRoadmapCapabilities()];
   const statusLabel = { live: 'CANLI', pilot: 'PİLOT', roadmap: 'YOL HARİTASI' } as const;
   const blocks = all.map((c) =>
@@ -237,7 +239,7 @@ export function llmsFullTxt(publicAppUrl: string): string {
     ].join('\n'),
   );
   return [
-    llmsTxt(publicAppUrl).trimEnd(),
+    llmsTxt(publicAppUrl, publicPlans).trimEnd(),
     '',
     `## Yetenek Ayrıntıları (${CAPABILITY_REGISTRY_VERSION})`,
     'Seviyeler: L1 motor ve birim test; L2 uygulama akışına bağlı; L3 resmî kaynak ve altın örnekle doğrulanmış, imzalı uzman onaylı; L4 pilot müşteride saha kabulü.',

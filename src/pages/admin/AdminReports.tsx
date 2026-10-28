@@ -25,12 +25,8 @@ interface MonthlyTrend {
 interface TopTenant {
   id: string;
   name: string;
-  planName: string;
-  status: string;
   quoteUsage: number;
   ifcUsage: number;
-  bonusQuotes: number;
-  bonusIfc: number;
 }
 
 export function AdminReports() {
@@ -47,8 +43,12 @@ export function AdminReports() {
         throw new Error('Rapor verileri alınamadı');
       }
       const data = await res.json();
-      setTrends(data.monthlyTrends || []);
-      setTopTenants(data.topTenants || []);
+      setTrends((data.monthlyTrends ?? []).map((row: { period: string; total_quotes: string | number; total_ifcs: string | number }) => ({
+        period: row.period, quoteCount: Number(row.total_quotes), ifcCount: Number(row.total_ifcs),
+      })));
+      setTopTenants((data.topConsumers ?? []).map((row: { id: string; name: string; total_quotes: string | number; total_ifcs: string | number }) => ({
+        id: row.id, name: row.name, quoteUsage: Number(row.total_quotes), ifcUsage: Number(row.total_ifcs),
+      })));
     } catch (err: any) {
       toast.error(err.message || 'Rapor yüklenirken hata oluştu');
     } finally {
@@ -184,24 +184,21 @@ export function AdminReports() {
             <thead className="border-b border-border bg-background text-muted-foreground uppercase tracking-wider font-semibold">
               <tr>
                 <th className="px-5 py-3">Firma</th>
-                <th className="px-5 py-3">Paket</th>
-                <th className="px-5 py-3">Durum</th>
                 <th className="px-5 py-3">Bu Ayki Teklif</th>
                 <th className="px-5 py-3">Bu Ayki IFC</th>
-                <th className="px-5 py-3">Bonus Limitler</th>
                 <th className="px-5 py-3 text-right">Detay</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border text-foreground dark:text-muted-foreground">
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="p-8 text-center text-muted-foreground">
+                  <td colSpan={4} className="p-8 text-center text-muted-foreground">
                     Kayıtlar yükleniyor...
                   </td>
                 </tr>
               ) : topTenants.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="p-8 text-center text-muted-foreground">
+                  <td colSpan={4} className="p-8 text-center text-muted-foreground">
                     Henüz kullanım verisi bulunan firma yok.
                   </td>
                 </tr>
@@ -215,32 +212,12 @@ export function AdminReports() {
                       </div>
                     </td>
 
-                    <td className="px-5 py-3.5">
-                      <span className="rounded border border-indigo-500/30 bg-indigo-500/10 px-2 py-0.5 text-[10px] font-bold text-indigo-400 uppercase">
-                        {tenant.planName}
-                      </span>
-                    </td>
-
-                    <td className="px-5 py-3.5">
-                      {tenant.status === 'active' ? (
-                        <span className="text-emerald-400 font-medium">Aktif</span>
-                      ) : tenant.status === 'past_due' ? (
-                        <span className="text-amber-400 font-medium">Ödeme Bekliyor</span>
-                      ) : (
-                        <span className="text-muted-foreground">{tenant.status}</span>
-                      )}
-                    </td>
-
                     <td className="px-5 py-3.5 font-semibold text-foreground">
                       {tenant.quoteUsage}
                     </td>
 
                     <td className="px-5 py-3.5 font-semibold text-amber-400">
                       {tenant.ifcUsage}
-                    </td>
-
-                    <td className="px-5 py-3.5 text-muted-foreground text-[11px]">
-                      +{tenant.bonusQuotes} Teklif / +{tenant.bonusIfc} IFC
                     </td>
 
                     <td className="px-5 py-3.5 text-right">

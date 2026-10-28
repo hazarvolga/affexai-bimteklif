@@ -22,9 +22,9 @@ interface QueueJob {
   id: string;
   kind: string;
   fileName: string;
-  status: 'queued' | 'running' | 'completed' | 'failed' | 'stale';
-  attempts: number;
-  maxAttempts: number;
+  status: 'queued' | 'running' | 'succeeded' | 'failed' | 'stale';
+  attempts?: number;
+  maxAttempts?: number;
   createdAt: string;
   startedAt: string | null;
   finishedAt: string | null;
@@ -256,7 +256,7 @@ export function AdminQueue() {
             { key: 'queued', label: 'Bekleyen' },
             { key: 'stale', label: 'Kilitli (Stale)' },
             { key: 'failed', label: 'Hatalı' },
-            { key: 'completed', label: 'Başarılı' }
+            { key: 'succeeded', label: 'Başarılı' }
           ].map((tab) => (
             <button
               key={tab.key}
@@ -351,14 +351,16 @@ export function AdminQueue() {
                           <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface-elevated px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">
                             <Clock size={12} /> Bekliyor
                           </span>
-                        ) : job.status === 'completed' ? (
+                        ) : job.status === 'succeeded' ? (
                           <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-bold text-emerald-400">
                             <CheckCircle2 size={12} /> Başarılı
                           </span>
-                        ) : (
+                        ) : isFailed ? (
                           <span className="inline-flex items-center gap-1.5 rounded-full border border-red-500/40 bg-red-500/10 px-2.5 py-0.5 text-[11px] font-bold text-red-400">
                             <XCircle size={12} /> Hata
                           </span>
+                        ) : (
+                          <span className="text-muted-foreground">Bilinmeyen durum</span>
                         )}
 
                         {job.errorMessage && (
@@ -369,7 +371,7 @@ export function AdminQueue() {
                       </td>
 
                       <td className="px-5 py-3.5 font-medium">
-                        {job.attempts} / {job.maxAttempts}
+                        {job.attempts == null || job.maxAttempts == null ? '—' : `${job.attempts} / ${job.maxAttempts}`}
                       </td>
 
                       <td className="px-5 py-3.5 text-muted-foreground">

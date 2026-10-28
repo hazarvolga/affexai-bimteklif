@@ -5,6 +5,11 @@ import { mkdtemp, mkdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { registerProductionFrontend } from './app';
+import { canonicalPlans } from '../services/billing/plan-catalog';
+import type { readPublicPlans } from '../services/billing/public-plans';
+
+const publishedPlan = canonicalPlans.find(plan => plan.isTrial && plan.isPublished && plan.isActive)!;
+const loadPublishedPlans = async () => [publishedPlan] as Awaited<ReturnType<typeof readPublicPlans>>;
 
 test('production static serving keeps frontend assets and SPA while rejecting server artifacts and maps', async t => {
   const root = await mkdtemp(path.join(tmpdir(), 'teklifpro-public-assets-'));
@@ -61,7 +66,7 @@ test('production frontend serves sitemap.xml and robots.txt for the canonical or
   const previous = process.env.PUBLIC_APP_URL;
   process.env.PUBLIC_APP_URL = 'https://bimmetraj.com';
   const app = express();
-  registerProductionFrontend(app, root);
+  registerProductionFrontend(app, root, { loadPublicPlans: loadPublishedPlans });
   const server = app.listen(0, '127.0.0.1');
   await new Promise<void>(resolve => server.once('listening', resolve));
   t.after(async () => {
@@ -78,7 +83,9 @@ test('production frontend serves sitemap.xml and robots.txt for the canonical or
   const llms = await fetch(`${base}/llms.txt`);
   assert.equal(llms.status, 200);
   assert.match(llms.headers.get('content-type') ?? '', /text\/plain/);
-  assert.match(await llms.text(), /# BIMMetraj \(TeklifPro\)/);
+  const llmsBody = await llms.text();
+  assert.match(llmsBody, /# BIMMetraj \(TeklifPro\)/);
+  assert.ok(llmsBody.includes(publishedPlan.name));
 });
 
 
@@ -90,7 +97,7 @@ test('production frontend injects per-route head tags, noindex for unknown paths
   const previous = process.env.PUBLIC_APP_URL;
   process.env.PUBLIC_APP_URL = 'https://bimmetraj.com';
   const app = express();
-  registerProductionFrontend(app, root);
+  registerProductionFrontend(app, root, { loadPublicPlans: loadPublishedPlans });
   const server = app.listen(0, '127.0.0.1');
   await new Promise<void>(resolve => server.once('listening', resolve));
   t.after(async () => {
@@ -112,7 +119,9 @@ test('production frontend injects per-route head tags, noindex for unknown paths
   assert.equal((await fetch(`${base}/og-image.png`)).status, 200);
   const full = await fetch(`${base}/llms-full.txt`);
   assert.equal(full.status, 200);
-  assert.match(await full.text(), /Yetenek Ayrıntıları/);
+  const fullBody = await full.text();
+  assert.match(fullBody, /Yetenek Ayrıntıları/);
+  assert.ok(fullBody.includes(publishedPlan.name));
 });
 
 test('SEO-04: PUBLIC_APP_URL yokken (yalnız yerel/test) SEO dosyaları bir host uydurmaz, 404 döner', async t => {

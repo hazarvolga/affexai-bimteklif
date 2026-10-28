@@ -1,9 +1,9 @@
 /** Review snapshot, not an approval registry. Bump the version when methods or evidence change. */
 export const CALC_REVIEW_META = {
-  version: "BIM-CALC-2026-10-28.105",
+  version: "BIM-CALC-2026-10-28.106",
   updatedOn: "28 Ekim 2026",
-  implementationBaseline: "621e9ac67b8dfad7a591d41fe77e78fde95dd45f",
-  approvalStatus: "Rev. 111 (Kaynak IFC · 3B İnceleme panelinde Retina tuval taşmasının giderilmesi, en-boy duyarlı model merkezleme, Döndür/Kaydır Pan modu, Üst/Ön/Sağ/İzometrik kamera açıları, Seçime Odakla, Kat Kesiti Z-Clipping sürgüsü, Tel Kafes ve Tam Ekran/Geniş/Daralt kontrolleri; metraj ve maliyet formülleri değişmedi), Rev. 110 (Kaynak IFC · 3B İnceleme WebGL görüntüleyicisinin web-ifc.wasm WebAssembly modülünü derleyebilmesi için Content-Security-Policy script-src direktifine W3C CSP Level 3 'wasm-unsafe-eval' izninin eklenmesi ve JavaScript 'unsafe-eval' engelinin korunması; hesap formülleri değişmedi), Rev. 109 (Firma Profili /admin/tenants/:companyId içindeki Firma Kullanıcıları tablosuna Şirket Rolü seçicisi + Super Admin kontrollü UZMAN Önizleme Yetkisi anahtarı eklenmesi, Uzman Önizlemesi /app/uzman-onizleme ve CalculationFeedback doğrulama kartlarının yalnız UZMAN yetkililere sınırlandırılması ve 4 hesaplayıcının standart araç olarak tüm kullanıcılara açık tutulması; hesap formülleri değişmedi), Rev. 108 (Yeni Teklif ekranında Excel/CSV araç çubuğunun tablo üstüne taşınması, Seçenek C hibrit piyasa rayiç düzeni ve YAMBİS ile Kat Karşılığı/KDV hesaplayıcılarının L2 Pilot statüsüyle son kullanıcı sınamasına açılması; hesap formülleri değişmedi), Rev. 107 (Yeni Teklif ekranında generateWithAi !res.ok koruması, Excel/Demo kalemlerinin ezilmemesi, sunucu AI yapılandırma şeffaflığı, satır içi + Hızlı Müşteri Ekleme ve 3 adımlı QuoteNextStepsBanner rehberi; hesap formülleri değişmedi), Rev. 106 (Müşteriler /app/clients, Müşteriler & Fırsatlar /app/crm, 6 aşamalı müşteri görüşme zaman tüneli /app/clients/:id, /api/crm/leads Zod v4 integerQuery düzeltmesi ve 3 katmanlı Akıllı Müşteri Excel/CSV Adaptörü; hesap formülleri değişmedi), Rev. 105 (CalmIfcWorkspace 2.004 satırdan 795 satıra modüler bölünmesi PR #31 ve T43 CI kapsam ratchet güçlendirmesi; hesap formülleri değişmedi), Rev. 104 (6 aşamalı güvenlik denetimi bulguları ve derinlemesine savunma sertleştirmesi: hakediş/fiyat istihbaratı/CDE maker-checker ve rol sınırları, Academy super-admin kapısı, IFC/PDF ayrıştırıcı bellek/döngü sınırları, alt süreç env izolasyonu ve DB rol ACL daraltması; hesap formülleri değişmedi), Rev. 103 (/admin/pricing-sources otomatik katalog tohumlama, yetki kanıtı zinciri, canlı crawler iyileştirmesi ve TÜİK Veri Portalı SDMX 2.1 entegrasyonu; hesap yöntemi değişmedi), Rev. 102 (4 katmanlı Akıllı Müteahhit Excel Adaptörü: düz icmal, katlara göre pivot, TOKİ tekrarlayan poz blokları, hibrit sayfa ve otomatik korpus tarayıcı; birim fiyat/tutar aritmetiği değişmedi), Rev. 101 (canlı üretim dağıtımı 0022..0029 + worker control-plane izolasyonu D12 ve canlı ifc-worker consumeIfcUsage kota tamamlama düzeltmesi D13; hesap yöntemi değişmedi), Rev. 100 (elle teklif satırı firma kataloğundaki onaylı fiyat kaydına bağlanabilir; tutar hesabı değişmedi), Rev. 99 (kamuya açık SmartCheck demosu yeniden sıralandı; hesap yöntemi değişmedi), Rev. 98 (arsa fizibilitesi ayrı ekranda, boş formda hata yok; hesap yöntemi değişmedi), Rev. 97 (teklif tablosu görünümü ve dosya bölünmesi; hesap yöntemi değişmedi), Rev. 96 (araç ve görünüm düzeni; hesap yöntemi değişmedi) ve Rev. 95; marka.md incelemesinden çıkan Faz 0 güven düzeltmelerini ve Faz 1 Excel önce / fiyat eksikliği / dışa aktarım dilimlerini kapsar. Hesap yöntemi değişiklikleri: teklif toplamlarına teklif düzeyinde müteahhitlik kârı ve genel gider payı (release 0029; satır neti üzerinden, KDV pay dahil matrah üzerinden), kârlılık hesabında bu payın gelir sayılması, IFC maliyet sekmesinde fiyatı eksik kalemin 0 TL yerine 'fiyat bekliyor' olarak toplam dışında tutulması ve icmal dışa aktarımında satır tutarının tam lira yerine kuruşa yuvarlanması. Doğrulama: 1515 testte 1500 PASS / 0 FAIL / 15 SKIP, kapsam kapısı geçti; gerçek tarayıcı smoke'ları scripts/faz0-trust-ui-smoke.ts, faz1-excel-flow-smoke.ts ve faz1-price-gap-smoke.ts. ÇŞB birim fiyatlarına %25 yüklenici kârı ve genel giderin dahil olduğu ÇŞB analizlerinden doğrulandı. Bu kayıt bağımsız uzman onayı veya L3 değildir; Faz 9 T50–T52 dış kabulleri açıktır.",
+  implementationBaseline: "f653d5876399951bf3571134e420ceae8536e56d",
+  approvalStatus: "Rev. 112 geliştirme kaydı f653d58 temel commit üzerindedir; değişiklik ve dağıtım durumu Git geçmişi ile canlı sistemden ayrıca doğrulanır, bu ifade uzman onayı değildir. KİK ön proje istisnasındaki ilan ve ihale kaynağı kullanıcı beyanıdır; sistem tarafından doğrulanmaz. Rev. 111 (Kaynak IFC · 3B İnceleme panelinde Retina tuval taşmasının giderilmesi, en-boy duyarlı model merkezleme, Döndür/Kaydır Pan modu, Üst/Ön/Sağ/İzometrik kamera açıları, Seçime Odakla, Kat Kesiti Z-Clipping sürgüsü, Tel Kafes ve Tam Ekran/Geniş/Daralt kontrolleri; metraj ve maliyet formülleri değişmedi), Rev. 110 (Kaynak IFC · 3B İnceleme WebGL görüntüleyicisinin web-ifc.wasm WebAssembly modülünü derleyebilmesi için Content-Security-Policy script-src direktifine W3C CSP Level 3 'wasm-unsafe-eval' izninin eklenmesi ve JavaScript 'unsafe-eval' engelinin korunması; hesap formülleri değişmedi), Rev. 109 (Firma Profili /admin/tenants/:companyId içindeki Firma Kullanıcıları tablosuna Şirket Rolü seçicisi + Super Admin kontrollü UZMAN Önizleme Yetkisi anahtarı eklenmesi, Uzman Önizlemesi /app/uzman-onizleme ve CalculationFeedback doğrulama kartlarının yalnız UZMAN yetkililere sınırlandırılması ve 4 hesaplayıcının standart araç olarak tüm kullanıcılara açık tutulması; hesap formülleri değişmedi), Rev. 108 (Yeni Teklif ekranında Excel/CSV araç çubuğunun tablo üstüne taşınması, Seçenek C hibrit piyasa rayiç düzeni ve YAMBİS ile Kat Karşılığı/KDV hesaplayıcılarının L2 Pilot statüsüyle son kullanıcı sınamasına açılması; hesap formülleri değişmedi), Rev. 107 (Yeni Teklif ekranında generateWithAi !res.ok koruması, Excel/Demo kalemlerinin ezilmemesi, sunucu AI yapılandırma şeffaflığı, satır içi + Hızlı Müşteri Ekleme ve 3 adımlı QuoteNextStepsBanner rehberi; hesap formülleri değişmedi), Rev. 106 (Müşteriler /app/clients, Müşteriler & Fırsatlar /app/crm, 6 aşamalı müşteri görüşme zaman tüneli /app/clients/:id, /api/crm/leads Zod v4 integerQuery düzeltmesi ve 3 katmanlı Akıllı Müşteri Excel/CSV Adaptörü; hesap formülleri değişmedi), Rev. 105 (CalmIfcWorkspace 2.004 satırdan 795 satıra modüler bölünmesi PR #31 ve T43 CI kapsam ratchet güçlendirmesi; hesap formülleri değişmedi), Rev. 104 (6 aşamalı güvenlik denetimi bulguları ve derinlemesine savunma sertleştirmesi: hakediş/fiyat istihbaratı/CDE maker-checker ve rol sınırları, Academy super-admin kapısı, IFC/PDF ayrıştırıcı bellek/döngü sınırları, alt süreç env izolasyonu ve DB rol ACL daraltması; hesap formülleri değişmedi), Rev. 103 (/admin/pricing-sources otomatik katalog tohumlama, yetki kanıtı zinciri, canlı crawler iyileştirmesi ve TÜİK Veri Portalı SDMX 2.1 entegrasyonu; hesap yöntemi değişmedi), Rev. 102 (4 katmanlı Akıllı Müteahhit Excel Adaptörü: düz icmal, katlara göre pivot, TOKİ tekrarlayan poz blokları, hibrit sayfa ve otomatik korpus tarayıcı; birim fiyat/tutar aritmetiği değişmedi), Rev. 101 (canlı üretim dağıtımı 0022..0029 + worker control-plane izolasyonu D12 ve canlı ifc-worker consumeIfcUsage kota tamamlama düzeltmesi D13; hesap yöntemi değişmedi), Rev. 100 (elle teklif satırı firma kataloğundaki onaylı fiyat kaydına bağlanabilir; tutar hesabı değişmedi), Rev. 99 (kamuya açık SmartCheck demosu yeniden sıralandı; hesap yöntemi değişmedi), Rev. 98 (arsa fizibilitesi ayrı ekranda, boş formda hata yok; hesap yöntemi değişmedi), Rev. 97 (teklif tablosu görünümü ve dosya bölünmesi; hesap yöntemi değişmedi), Rev. 96 (araç ve görünüm düzeni; hesap yöntemi değişmedi) ve Rev. 95; marka.md incelemesinden çıkan Faz 0 güven düzeltmelerini ve Faz 1 Excel önce / fiyat eksikliği / dışa aktarım dilimlerini kapsar. Hesap yöntemi değişiklikleri: teklif toplamlarına teklif düzeyinde müteahhitlik kârı ve genel gider payı (release 0029; satır neti üzerinden, KDV pay dahil matrah üzerinden), kârlılık hesabında bu payın gelir sayılması, IFC maliyet sekmesinde fiyatı eksik kalemin 0 TL yerine 'fiyat bekliyor' olarak toplam dışında tutulması ve icmal dışa aktarımında satır tutarının tam lira yerine kuruşa yuvarlanması. Doğrulama: 1515 testte 1500 PASS / 0 FAIL / 15 SKIP, kapsam kapısı geçti; gerçek tarayıcı smoke'ları scripts/faz0-trust-ui-smoke.ts, faz1-excel-flow-smoke.ts ve faz1-price-gap-smoke.ts. ÇŞB birim fiyatlarına %25 yüklenici kârı ve genel giderin dahil olduğu ÇŞB analizlerinden doğrulandı. Bu kayıt bağımsız uzman onayı veya L3 değildir; Faz 9 T50–T52 dış kabulleri açıktır.",
 };
 
 export interface ModuleRevisionNote {
@@ -2298,11 +2298,11 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
     },
   },
   {
-    revision: "Rev. 101",
+    revision: "Rev. 107",
     version: "BIM-CALC-2026-10-28.101",
     date: "28 Ekim 2026",
     commit: "9b118619b8967fc5e965c89de278c79b2c5e5ef9",
-    trigger: "Yeni Teklif (CreateQuote) AI Hata Koruması, Excel/Demo Kalemlerini Koruma Kalkanı, Satır İçi Hızlı Müşteri Ekleme ve 3 Adımlı Sonraki İşlem Rehberi (Paket B)",
+    trigger: "Yeni Teklif (CreateQuote) AI Hata Koruması, Excel/Demo Kalemlerini Koruma Kalkanı, Satır İçi Hızlı Müşteri Ekleme ve 3 Adımlı Sonraki İşlem Rehberi (Paket B) (eski etiket: Rev. 101)",
     beforeSummary:
       "CreateQuote.tsx içindeki generateWithAi fonksiyonu !res.ok kontrolü yapmadığı için sunucuda AI anahtarı olmadığında (500) kullanıcının yüklediği Excel kalemlerini silip yanıltıcı başarı mesajı gösteriyordu; Demo Şablon Yükle geçersiz 'demo-client-id' atıyordu.",
     afterSummary:
@@ -2317,11 +2317,11 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
     },
   },
   {
-    revision: "Rev. 102",
+    revision: "Rev. 108",
     version: "BIM-CALC-2026-10-28.102",
     date: "28 Ekim 2026",
     commit: "9b118619b8967fc5e965c89de278c79b2c5e5ef9",
-    trigger: "Yeni Teklif Görsel Hiyerarşi Düzenlemesi (Seçenek C Hibrit Rayiç Düzeni & Tablo Üstü Excel Barı) ve YAMBİS / Kat Karşılığı Hesaplayıcılarının Son Kullanıcıya Açılması",
+    trigger: "Yeni Teklif Görsel Hiyerarşi Düzenlemesi (Seçenek C Hibrit Rayiç Düzeni & Tablo Üstü Excel Barı) ve YAMBİS / Kat Karşılığı Hesaplayıcılarının Son Kullanıcıya Açılması (eski etiket: Rev. 102)",
     beforeSummary:
       "/app/quotes/new?clientId=... ekranında AI Sihirbazı, Firma Kataloğu ve Piyasa Rayiçleri 3 kaynak kartı + yasal uyarı kutusu ilk ekranı tamamen doldurarak Teklif Kalemleri tablosunu ve altbilgideki Excel yükleme butonunu ekran dışına itiyordu. Ayrıca /app/uzman-onizleme üzerindeki YAMBİS ve Kat Karşılığı/KDV hesaplayıcıları 'Yayında Değil' etiketi taşıyor ve /hesaplayicilar dizininde listelenmiyordu.",
     afterSummary:
@@ -2346,11 +2346,11 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
     },
   },
   {
-    revision: "Rev. 103",
+    revision: "Rev. 109",
     version: "BIM-CALC-2026-10-28.103",
     date: "28 Ekim 2026",
     commit: "f207f916efd896a6e637cb2d9015c433e1c18943",
-    trigger: "Firma Kullanıcıları Rol Yönetimi & Super Admin Kontrollü UZMAN Önizleme Yetki Katmanı (Seçenek A İkili Rol Mimarisi)",
+    trigger: "Firma Kullanıcıları Rol Yönetimi & Super Admin Kontrollü UZMAN Önizleme Yetki Katmanı (Seçenek A İkili Rol Mimarisi) (eski etiket: Rev. 103)",
     beforeSummary:
       "Standart müşteri hesapları (/app) sol menüde 'Uzman Önizlemesi' (/app/uzman-onizleme) sekmesini, üst çubukta 'Geri Bildirim' butonunu ve hesaplayıcıların altında 'Bu sonuç sizin hesabınızla tutuyor mu?' doğrulama kutularını görüyordu; /admin/tenants/:companyId içindeki 'Firma Kullanıcıları' tablosunda ise kullanıcıların şirket içi rolü ve uzman önizleme yetkisi Super Admin tarafından yönetilemiyordu.",
     afterSummary:
@@ -2370,11 +2370,11 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
     },
   },
   {
-    revision: "Rev. 104",
+    revision: "Rev. 110",
     version: "BIM-CALC-2026-10-28.104",
     date: "28 Ekim 2026",
     commit: "35d58ddfcce8bd408f92b8e3a24dc0ddcad14781",
-    trigger: "Kaynak IFC · 3B İnceleme WebGL/WebAssembly CSP 'wasm-unsafe-eval' Düzeltmesi",
+    trigger: "Kaynak IFC · 3B İnceleme WebGL/WebAssembly CSP 'wasm-unsafe-eval' Düzeltmesi (eski etiket: Rev. 104)",
     beforeSummary:
       "SmartCheck içinde IFC dosyası yüklendiğinde 'Kaynak IFC · 3B İnceleme' (IfcReviewViewer -> web-ifc.wasm) WebAssembly modülünü derlerken Content-Security-Policy script-src direktifinde 'wasm-unsafe-eval' bulunmadığı için tarayıcı 'CompileError: WebAssembly.instantiate()' hatası vererek 3B görünümü durduruyordu.",
     afterSummary:
@@ -2389,11 +2389,11 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
     },
   },
   {
-    revision: "Rev. 105",
+    revision: "Rev. 111",
     version: "BIM-CALC-2026-10-28.105",
     date: "28 Ekim 2026",
     commit: "621e9ac67b8dfad7a591d41fe77e78fde95dd45f",
-    trigger: "Kaynak IFC · 3B İnceleme Retina Tuval Taşması Düzeltmesi & 3B Uzay Kontrolleri (Pan, Kamera Açıları, Kat Kesiti, Tel Kafes, Seçime Odakla)",
+    trigger: "Kaynak IFC · 3B İnceleme Retina Tuval Taşması Düzeltmesi & 3B Uzay Kontrolleri (Pan, Kamera Açıları, Kat Kesiti, Tel Kafes, Seçime Odakla) (eski etiket: Rev. 105)",
     beforeSummary:
       "engine.ts içinde renderer.setPixelRatio(2) ile birlikte renderer.setSize(width, height, false) çağrıldığı ve kapsayıcıda overflow-hidden bulunmadığı için Retina ekranlarda <canvas> elemanı 2 kat fiziksel boyutta taşarak altındaki İmalat Cetveli ve Hesap Kanıtı kartlarıyla üst üste biniyor, bina modeli sağ alt köşede yarım kalıyordu; ayrıca 3B uzayda Pan, hazır kamera açıları ve kat kesiti bulunmuyordu.",
     afterSummary:
@@ -2404,6 +2404,29 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
         before: "Retina ekranda 3B WebGL tuvali kapsayıcıdan taşarak altındaki İmalat Cetveli ve Hesap Kanıtı kartlarıyla çakışıyor, kullanıcı 3B modeli kaydıramıyor veya kat kesiti alamıyordu.",
         after: "Retina tuval boyutlandırması ve taşma koruması düzeltildi; Pan, hazır bakış açıları, kat kesiti sürgüsü, tel kafes ve seçili elemana odaklanma kontrolleri eklendi.",
         basis: "src/ifc/viewer/model.ts, src/ifc/viewer/model.test.ts, src/ifc/viewer/engine.ts & src/components/smartcheck/viewer/IfcReviewViewer.tsx",
+      },
+    },
+  },
+
+  {
+    revision: "Rev. 112",
+    version: "BIM-CALC-2026-10-28.106",
+    date: "28 Ekim 2026",
+    commit: "Temel f653d58; Rev. 112 değişiklikleri için Git geçmişine bakın",
+    trigger: "Faz 0 — yönetim ve fiyat yüzeyleri tutarlılığı, ödeme verisi güvenliği, KİK N ön proje istisnası",
+    beforeSummary: "Başarılı kuyruk durumu, kota ve rapor alanları API/UI sözleşmesinde ayrışıyordu; yayınlı planlar statik fiyat metinleriyle tutarsız olabiliyor, IBAN yalnız biçim kontrolünden geçiyor ve koşullu N=0,90–0,99 girdisi reddediliyordu.",
+    afterSummary: "Yönetici ekranları sunucu alanlarını kullanır; ödeme hesabı IBAN checksum ile doğrulanır ve geçersiz yapılandırma fail-closed ele alınır; yayımlanan planlar kamuya açık fiyat yüzeylerinin kaynağıdır. KİK ön proje istisnası yalnız kullanıcı beyanı ve gerekli referans alanlarıyla değerlendirilir. Sınır değer formülü değişmedi; bağımsız uzman kabulü ve dağıtım yoktur.",
+    affectedModules: ["kik-adt", "fiyat-eslestirme"],
+    moduleDetails: {
+      "kik-adt": {
+        before: "İdarenin N katsayısı yalnız 1,00–1,20 arasında kabul edilirdi; Tebliğ 45.1.1.2 ön proje üstyapı istisnası seçilemiyordu.",
+        after: "0,90–0,99 arası yalnız üstyapı, ön proje beyanı ve yetkili bakanlık, Resmî Gazete ve ihale referansı girildiğinde kabul edilir. Beyan ve referanslar sistemce doğrulanmaz; 1,00–1,20 genel aralığı korunur. SD = max(0,40 × YM; K × Tort2 / (C × N)) değişmez.",
+        basis: "Kamu İhale Genel Tebliği m.45.1.1.2–3 (Aksaray Üniversitesi: https://donersermaye.aksaray.edu.tr/dosya/fa543d7b-db1c-4908-81de-74a01f211b3c.pdf); src/lib/kik-adt.test.ts ve src/lib/calculators/calculators-forms.test.ts; güncellik, ihaleye uygulanabilirlik ve bağımsız uzman onayı ayrıca doğrulanmalıdır.",
+      },
+      "fiyat-eslestirme": {
+        before: "Kamuya açık plan kaynakları statik katalog ve veri tabanı yayın durumunu ayrı ele alabiliyordu; ödeme hesaplarında checksum yoktu.",
+        after: "Kamuya sunulan fiyat metni ve yapılandırılmış veri yayınlı plan kaynağını izler; banka hesapları checksum ile sınanır ve geçersiz yapılandırma fail-closed kabul edilir. Teklif poz/fiyat eşleştirme formülü değişmedi.",
+        basis: "src/server/security/public-plan-consistency.test.ts; src/services/billing/bank-transfer.test.ts; üretim veya ticari kaynak yetkisi kanıtı değildir.",
       },
     },
   },
@@ -2518,7 +2541,7 @@ export const CALC_REVIEW_EVIDENCE: Record<string, CalculationEvidence> = {
     pending: "ISO 19650 lisanslı metninin yetkili nüshasıyla madde eşlemesi, güvenli elektronik imza, bağımsız BIM koordinatörü kararı ve gerçek çok disiplinli saha kabulü. Hash bağı kanıt kapsamını sabitler; uzman içerik doğrulaması değildir.",
   },
   "kik-adt": {
-    scope: "4734 KİK m.38 & Kamu İhale Genel Tebliği m.45.1.1 yapım işleri Sınır Değer (SD = K × Tort2 / (C × N), %40–%120 YM bandı, Üstyapı N=1,00 / Diğer Yapım N=1,20, %40 YM alt sınır güvencesi, kullanıcı girdili), %80 Pareto açıklama istenecek sıralı iş kalemleri ve yambis-classification.ts müteahhitlik yeterlik/kapasite motoru aktif.",
+    scope: "4734 KİK m.38 & Kamu İhale Genel Tebliği m.45.1.1 yapım işleri Sınır Değer (SD = K × Tort2 / (C × N), %40–%120 YM bandı, Üstyapı N=1,00 / Diğer Yapım N=1,20, istisnai ön proje üstyapıda beyanlı N=0,90–0,99, %40 YM alt sınır güvencesi, kullanıcı girdili), %80 Pareto açıklama istenecek sıralı iş kalemleri ve yambis-classification.ts müteahhitlik yeterlik/kapasite motoru aktif.",
     testFiles: ["src/lib/kik-adt.test.ts", "src/lib/kik-adt.golden.test.ts", "src/lib/calculators/calculators-forms.test.ts", "src/lib/yambis-classification.test.ts"],
     pending: "EKAP ihale açılış tutanağı XML/PDF içe aktarımı (Yol Haritasında · 2026 Q4 — Faz 3). Halka açık ücretsiz hesaplayıcı sayfası bağımsız bir uzman tarafından doğrulanmadı.",
   },

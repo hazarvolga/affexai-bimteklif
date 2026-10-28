@@ -59,31 +59,22 @@ export interface PaymentRequestRecord {
   adminDecisionNote: string | null;
 }
 
-const DEFAULT_BANK_ACCOUNTS: readonly BankAccount[] = [
-  {
-    id: "bank-garanti-try",
-    bankName: "Garanti BBVA",
-    branchName: "Kurumsal / Ticari Şube",
-    accountHolder: "BIMPlan Teknoloji ve Mühendislik Yazılımları",
-    iban: "TR330006200012300006299010",
-    currency: "TRY",
-    descriptionNote: "Havale / FAST açıklama alanına Sipariş Referans Kodunuzu yazınız.",
-    isActive: true,
-  },
-  {
-    id: "bank-isbank-try",
-    bankName: "Türkiye İş Bankası",
-    branchName: "Ticari Şube",
-    accountHolder: "BIMPlan Teknoloji ve Mühendislik Yazılımları",
-    iban: "TR560006400000112345678901",
-    currency: "TRY",
-    descriptionNote: "EFT / Havale açıklamasına Sipariş Referans Kodunuzu ve Firma Ünvanınızı ekleyiniz.",
-    isActive: true,
-  },
-];
-
 export function normalizeIban(raw: string): string {
   return raw.replace(/[\s-]+/g, "").toUpperCase();
+}
+
+/** ISO 13616 checksum; validation establishes format/integrity, not account ownership. */
+export function isValidIban(raw: string): boolean {
+  const iban = normalizeIban(raw);
+  if (!/^[A-Z]{2}\d{2}[A-Z0-9]{11,30}$/.test(iban)) return false;
+  if (iban.startsWith("TR") && !/^TR\d{24}$/.test(iban)) return false;
+  const rearranged = iban.slice(4) + iban.slice(0, 4);
+  let remainder = 0;
+  for (const character of rearranged) {
+    const digits = character >= "A" && character <= "Z" ? String(character.charCodeAt(0) - 55) : character;
+    for (const digit of digits) remainder = (remainder * 10 + Number(digit)) % 97;
+  }
+  return remainder === 1;
 }
 
 export function formatIban(raw: string): string {
@@ -97,7 +88,8 @@ export function normalizePaymentReceipt(raw: string): string {
 
 const paymentReceiptPattern = /^[A-Z0-9][A-Z0-9._/-]{2,119}$/;
 
-const singleBankAccountSchema = z
+// Legacy records must remain visible to administrators so invalid accounts can be repaired.
+const legacyBankAccountSchema = z
   .object({
     id: z.string().trim().min(1).max(80).optional(),
     bankName: z.string().trim().min(2).max(120),
@@ -127,30 +119,28 @@ const singleBankAccountSchema = z
   }));
 
 const bankAccountsEnvelopeSchema = z.object({
-  accounts: z.array(singleBankAccountSchema).min(1).max(20),
+  accounts: z.array(legacyBankAccountSchema).max(20),
 });
 
 export function parseBankAccountsInput(input: unknown): BankAccount[] | null {
   const parsed = bankAccountsEnvelopeSchema.safeParse(input);
-  if (!parsed.success) return null;
+  if (!parsed.success || parsed.data.accounts.some((account) => account.isActive && !isValidIban(account.iban))) return null;
   return parsed.data.accounts;
 }
 
 export function parseEnvBankAccounts(envJson = process.env.PAYMENT_BANK_ACCOUNTS_JSON): BankAccount[] {
   if (!envJson || !envJson.trim()) {
-    return DEFAULT_BANK_ACCOUNTS.map((item) => ({ ...item }));
+    return [];
   }
   try {
     const raw = JSON.parse(envJson);
     const list = Array.isArray(raw) ? raw : raw?.accounts;
-    const parsed = z.array(singleBankAccountSchema).min(1).safeParse(list);
-    if (parsed.success) {
-      return parsed.data;
-    }
+    const parsed = parseBankAccountsInput({ accounts: list });
+    if (parsed) return parsed;
   } catch {
-    // Fallback to default bank accounts when env JSON is malformed
+    // A malformed configuration must not expose placeholder bank details.
   }
-  return DEFAULT_BANK_ACCOUNTS.map((item) => ({ ...item }));
+  return [];
 }
 
 export function generatePaymentReferenceCode(
@@ -316,13 +306,16 @@ export async function getAllBankAccountsForAdmin(
       .limit(1);
 
     if (latest?.details) {
-      const parsed = parseBankAccountsInput(latest.details);
-      if (parsed && parsed.length > 0) {
-        return parsed;
+      const parsed = bankAccountsEnvelopeSchema.safeParse(latest.details);
+      if (parsed.success) {
+        return parsed.data.accounts;
       }
+      // A saved but malformed configuration is authoritative: never resurrect env defaults.
+      return [];
     }
   } catch (error) {
-    console.error("[bank-transfer] Failed to read bank accounts from DB, using env fallback:", error);
+    // An unavailable authoritative store must not resurrect a superseded env account.
+    throw error;
   }
   return parseEnvBankAccounts();
 }
@@ -331,7 +324,15 @@ export async function getActiveBankAccounts(
   runner: typeof db | BillingTransaction = db,
 ): Promise<BankAccount[]> {
   const all = await getAllBankAccountsForAdmin(runner);
-  return all.filter((account) => account.isActive);
+  return all.filter((account) => account.isActive && isValidIban(account.iban));
+}
+
+/** An unavailable explicit selection must never be replaced by a different account. */
+export function selectBankAccount(accounts: readonly BankAccount[], id: string | null | undefined): BankAccount | null {
+  if (!id) return null;
+  const selected = accounts.find((account) => account.id === id);
+  if (!selected) throw new Error("BANK_ACCOUNT_UNAVAILABLE");
+  return selected;
 }
 
 export async function saveBankAccountsByAdmin(adminId: string, accounts: BankAccount[]): Promise<BankAccount[]> {
@@ -525,8 +526,7 @@ export async function submitBankTransferNotification(input: {
   }
 
   const accounts = await getActiveBankAccounts(runner);
-  const chosenBank =
-    accounts.find((a) => a.id === input.payload.bankAccountId) ?? accounts[0] ?? null;
+  const chosenBank = selectBankAccount(accounts, input.payload.bankAccountId);
   const receiptNumber = normalizePaymentReceipt(input.payload.receiptNumber ?? "");
   if (!paymentReceiptPattern.test(receiptNumber)) throw new Error("PAYMENT_RECEIPT_INVALID");
   await runner.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`billing-payment-receipt:${receiptNumber}`}, 0))`);

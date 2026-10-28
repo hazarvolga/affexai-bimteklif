@@ -282,6 +282,11 @@ test("receipt replay is serialized globally and inactive plans fail closed at re
     { name: "Race B", monthlyPrice: 2000, monthlyQuoteLimit: 20 },
     { name: "Inactive after submit", monthlyPrice: 3000, monthlyQuoteLimit: 30 },
   ]).returning();
+  // Explicitly configure valid test accounts: production must never rely on placeholders.
+  await billing.saveBankAccountsByAdmin(admin.id, [
+    { id: "bank-garanti-try", bankName: "Test Bank A", branchName: null, accountHolder: "Test Company", iban: "TR330006100519786457841326", currency: "TRY", descriptionNote: null, isActive: true },
+    { id: "bank-isbank-try", bankName: "Test Bank B", branchName: null, accountHolder: "Test Company", iban: "GB82WEST12345698765432", currency: "TRY", descriptionNote: null, isActive: true },
+  ]);
   const create = async (planId: string) => {
     const order = await billing.createInitialPaymentOrder({ companyId: company.id, companyName: company.name, userId: owner.id, userEmail: owner.email, planId, billingCycle: "monthly" });
     assert.ok(order);

@@ -8,7 +8,7 @@ export const ROADMAP_META = {
   status: "Çalışma belgesi — resmî görüş değildir. Resmî yönetmelik metinleri (#1.pdf, #2.pdf), ekler (EK-1..EK-9; Tablo 7.1–7.9 ve Tablo 9.1/9.2 dahil), ÇŞB 2026 birim fiyat/rayiç katalogları ve 33 gerçek/uluslararası IFC saha doğrulama seti makine-okunur olarak mühürlenmiştir.",
 };
 
-export const ROADMAP_SECTIONS: DocSection[] = [
+export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
   {
     id: "ozet",
     title: "Yönetici özeti",
@@ -185,8 +185,9 @@ export const ROADMAP_SECTIONS: DocSection[] = [
   },
   {
     id: "durum",
-    title: "Uygulama durumu (27 Ekim 2026 · Rev. 106 canlıda)",
+    title: "Uygulama durumu (28 Ekim 2026 · Rev. 112 geliştirme kaydı)",
     blocks: [
+      { type: "callout", tone: "info", title: "Rev. 112 · Faz 0 geliştirme kaydı", text: "Yönetici kuyruk, rapor ve kota sözleşmeleri; yayınlı plan fiyatları, banka checksum ve KİK ön proje istisnası için değişiklik kaydıdır. Commit ve dağıtım durumu Git ve canlı sistemden ayrıca doğrulanır; bu kayıt bağımsız uzman onayı değildir." },
       { type: "table", columns: ["Yetenek", "Durum", "Not"], rows: [
         ["RG 33331 IFC ön kontrolü (EK-1/2/3/5/6/7/9)", "Hazır (Tam Kapsam)", "EK-1 6 haneli proje kodu–dosya adı eşleşmesi, EK-2 Tablo 2.1–2.14, EK-3 Tablo 3.1–3.2 (~130 mahal), EK-5 (69 zorunlu + 67 isteğe bağlı sınıf), EK-6 (Tablo 6.1–6.68) ve EK-7 Tablo 7.1–7.9 (IfcAnnotation SURVEY dahil) sunucuda çalışır; gerçek yüklenen dosya adı (dosya_adi) ve iç içe IfcComplexProperty kümeleri de denetlenir"],
         ["EK-9 Tablo 9.1 (21 satır) & Tablo 9.2 (16 satır) kararları", "Hazır", "Mimari disiplin (MM) için Tablo 9.1 (21 satır), diğer disiplinler (ST, MK, EE vb.) için Tablo 9.2 (16 satır) otomatik seçilir; standart dışı dosya adlarında bile ST/STR/MK/MEP/EL/MM ipuçlarından doğru disiplin formu seçilir"],
@@ -243,6 +244,7 @@ export const ROADMAP_SECTIONS: DocSection[] = [
     id: "adimlar",
     title: "Sıradaki geliştirmeler ve kabul ölçütleri",
     blocks: [
+      { type: "p", text: "Rev. 112 sonrası: IFC kaynak türü ve review bulgusu, eksik fiyat, kimlik/tenant izolasyonu, yönetici operasyon görünürlüğü, restore ve bağımsız mühendis kabulü açık kalır. Bu geliştirmeler ve canlı kabul tamamlanmış sayılmaz." },
       { type: "p", text: "Aşağıdaki tablo teknik borç ve geliştirme adımlarının güncel durumunu gösterir. Kod ve otomatik testleri tamamlanan maddeler işaretlenmiş olup, saha/uzman kabulü gerektiren maddeler açık tutulmuştur." },
       { type: "table", columns: ["Sıra / İş", "Durum", "Uygulama ve tamamlanma ölçütü"], rows: [
         ["1 — Runtime DB rolü (P1-1 / T40)", "Kısmi / yerel cutover hazırlığı kanıtlı (24 Ekim 2026 · Rev. 51)", "Rev. 47 owner/migrator/app/worker/backup sözleşmesini kurdu. Rev. 51 yerel compose bağlantılarını app, worker/ifc-worker, migrator ve backup credentiallarına ayırdı; migrationın doğrulanmış migrator oturumundan SET LOCAL ROLE owner ile çalışmasını, migration öncesi zorunlu worker-drain kapısını ve parola doğrulamalı PG16 üzerinde A→B→A credential rollback'ini kanıtladı. Production secret cutover, canary, restore/parity ve deploy yapılmadan T40 kapanmaz."],
@@ -281,17 +283,17 @@ export const ROADMAP_SECTIONS: DocSection[] = [
   },
   {
     id: "revizyon-gunlugu",
-    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 106 · 13–27 Ekim 2026)",
+    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 112 · 13–28 Ekim 2026)",
     blocks: [
       {
         type: "callout",
         tone: "info",
-        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 106)",
-        text: "Bu bölüm, BIMMetraj'ın teknik evrimini Rev. 0'dan 27 Ekim 2026 Rev. 106 · BIM-CALC-2026-10-27.100 sürümüne kadar katı kronolojik sırayla kaydeder. Rev. 91–100, marka.md ürün incelemesinden çıkan uzman önizlemesi, Faz 0 güven düzeltmeleri ve Faz 1 Excel önce / fiyat eksikliği / dışa aktarım dilimleridir; Rev. 101 ile tüm 0022..0029 migration'ları, D12 worker başlangıç düzeltmesi ve D13 canlı ifc-worker consumeIfcUsage kota tamamlama düzeltmesi canlı üretime (https://bimmetraj.com) dağıtılmıştır. Rev. 102 ile 4 katmanlı müteahhit Excel adaptörü, Rev. 103 ile /admin/pricing-sources otomatik tohumlama ve TÜİK SDMX 2.1 adaptörü, Rev. 104 ile 6 aşamalı güvenlik denetimi bulgularının ve derinlemesine sertleştirme adımlarının tamamı kapatılmıştır. Rev. 105 ile CalmIfcWorkspace 795 satıra ayrıştırılmış, Rev. 106 ile Müşteriler (/app/clients), Müşteriler & Fırsatlar (/app/crm), 6 aşamalı müşteri zaman tüneli (/app/clients/:id) ve 3 katmanlı Akıllı Müşteri Excel/CSV Adaptörü devreye alınmıştır. Rev. 90 ile T43 ≥%80 proje kapsam hedefi (%82,58) ve T56 nihai izlenebilirlik matrisi tamamlanarak dış girdi gerektirmeyen tüm teknik adımlar kapatılmıştır. Harici fixture lisansı, T45 izinli gerçek büyük müşteri dosyası/VPS post-deploy kanıtı, T50–T52 uzman/müşteri/canlı kabulü ve T55 hukuk incelemesi açık olduğundan Faz 7, Faz 9, Faz 10 ve Faz 11 dış kabuller tamamlanana dek PARTIAL kalır.",
+        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 112)",
+        text: "Bu bölüm, BIMMetraj'ın teknik evrimini Rev. 0'dan 28 Ekim 2026 Rev. 112 · BIM-CALC-2026-10-28.106 geliştirme kaydına kadar kronolojik sırayla listeler; Git geçmişi ve canlı sürüm ayrı doğrulanır, bağımsız uzman onayı bu kayıtla verilmez. Rev. 91–100, marka.md ürün incelemesinden çıkan uzman önizlemesi, Faz 0 güven düzeltmeleri ve Faz 1 Excel önce / fiyat eksikliği / dışa aktarım dilimleridir; Rev. 101 ile tüm 0022..0029 migration'ları, D12 worker başlangıç düzeltmesi ve D13 canlı ifc-worker consumeIfcUsage kota tamamlama düzeltmesi canlı üretime (https://bimmetraj.com) dağıtılmıştır. Rev. 102 ile 4 katmanlı müteahhit Excel adaptörü, Rev. 103 ile /admin/pricing-sources otomatik tohumlama ve TÜİK SDMX 2.1 adaptörü, Rev. 104 ile 6 aşamalı güvenlik denetimi bulgularının ve derinlemesine sertleştirme adımlarının tamamı kapatılmıştır. Rev. 105 ile CalmIfcWorkspace 795 satıra ayrıştırılmış, Rev. 106 ile Müşteriler (/app/clients), Müşteriler & Fırsatlar (/app/crm), 6 aşamalı müşteri zaman tüneli (/app/clients/:id) ve 3 katmanlı Akıllı Müşteri Excel/CSV Adaptörü devreye alınmıştır. Rev. 90 ile T43 ≥%80 proje kapsam hedefi (%82,58) ve T56 nihai izlenebilirlik matrisi tamamlanarak dış girdi gerektirmeyen tüm teknik adımlar kapatılmıştır. Harici fixture lisansı, T45 izinli gerçek büyük müşteri dosyası/VPS post-deploy kanıtı, T50–T52 uzman/müşteri/canlı kabulü ve T55 hukuk incelemesi açık olduğundan Faz 7, Faz 9, Faz 10 ve Faz 11 dış kabuller tamamlanana dek PARTIAL kalır.",
       },
       {
         type: "p",
-        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 106):",
+        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 112):",
       },
       {
         type: "table",
@@ -965,16 +967,22 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "1) SmartCheck 'Kaynak IFC · 3B İnceleme' (IfcReviewViewer.tsx / src/ifc/viewer/engine.ts) bileşeninin tarayıcı içinde öz-barındırılan web-ifc.wasm (WebAssembly.instantiate) modülünü derlerken Content-Security-Policy (script-src) tarafından engellenmesi ('CompileError: WebAssembly.instantiate() violates Content Security Policy') giderildi. 2) src/server/security/web-hardening.ts içindeki script-src direktifine W3C CSP Level 3 standardındaki dar kapsamlı 'wasm-unsafe-eval' anahtarı eklendi; böylece JavaScript eval() / new Function() ('unsafe-eval') tamamen kapalı tutulmaya devam edilirken tarayıcı içi 3B WebGL IFC geometri görüntüleyicisinin çalışması sağlandı.",
           ],
           [
-            "Rev. 111 (Canlı Sürüm — Aktif)",
+            "Rev. 111 (Önceki canlı sürüm)",
             "28 Ekim 2026 (Kaynak IFC 3B İnceleme — Retina Tuval Taşması Düzeltmesi, Pan/Zoom/Kamera Açıları, Kat Kesiti Sürgüsü & Tel Kafes Kontrolleri)",
             "BIM-CALC-2026-10-28.105",
             "1) Retina (devicePixelRatio=2) ekranlarda renderer.setSize(width, height, false) nedeniyle WebGL <canvas> elemanının kapsayıcı yüksekliğini ikiye katlayarak altındaki İmalat Cetveli ve Hesap Kanıtı kartlarının üstüne taşması ve bina modelini sağ alt köşede yarım göstermesi giderildi (renderer.setSize(width, height, true) + overflow-hidden + en-boy oranına duyarlı computeFitCameraDistance merkezlemesi). 2) Kullanıcıya 3B uzayda tam kontrol sağlayan araç çubuğu eklendi: Döndür (Orbit) / Kaydır (Pan) fare modu anahtarı (sağ tık ve Shift+sol tık her zaman kaydırır), Yakınlaştır (+), Uzaklaştır (-), Modele Sığdır, Seçime Odakla, hazır kamera bakış açıları (İzometrik, Üst/Plan, Ön, Sağ, Sol), çatı ve üst katları sıyırarak iç mahalleri/kaplamaları incelemeye yarayan Kat Kesiti (Z-Clipping Plane) sürgüsü, Tel Kafes (X-Ray) görünümü ve Standart / Geniş (680px) / Tam Ekran / Daralt panel boyut kontrolleri devreye alındı.",
+          ],
+          [
+            "Rev. 112",
+            "28 Ekim 2026 · Faz 0 güven ve ticari doğruluk",
+            "BIM-CALC-2026-10-28.106 · temel f653d58; Rev. 112 değişiklikleri için Git geçmişine bakın",
+            "Kuyruk/rapor/kota alan uyuşmazlıkları ve yayınlı fiyat yüzeyleri düzeltildi; banka checksum fail-closed; KİK ön proje N=0,90–0,99 kullanıcı beyanıyla şartlıdır. Bağımsız uzman onayı ve canlı kabul bu kayıtla gösterilmez.",
           ],
         ],
       },
       {
         type: "p",
-        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 111 · Önceki Durum → Yeni Durum):",
+        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 112 · Önceki Durum → Yeni Durum):",
       },
       {
         type: "table",
@@ -1861,12 +1869,37 @@ export const ROADMAP_SECTIONS: DocSection[] = [
             "1) renderer.setSize(width, height, true), canvas CSS boyutu (100%x100%) ve overflow-hidden ile Retina tuval taşması tamamen giderildi; computeFitCameraDistance ile model her ekran oranında tam merkeze sığdırıldı. 2) IfcReviewViewer.tsx ve engine.ts içine Döndür/Kaydır (Orbit/Pan) modu, sağ tık / Shift+sol tık Pan, Yakınlaş/Uzaklaş/Modele Sığdır/Seçime Odakla, İzometrik/Üst (Plan)/Ön/Sağ/Sol kamera açıları, Z-ekseni Kat Kesiti sürgüsü (Three.js Plane clipping), Tel Kafes görünümü ve Standart/Geniş/Tam Ekran/Daralt kontrolleri eklendi.",
             "src/ifc/viewer/model.ts, src/ifc/viewer/model.test.ts, src/ifc/viewer/engine.ts, src/components/smartcheck/viewer/IfcReviewViewer.tsx",
           ],
+          [
+            "Rev. 112 · 28 Ekim 2026 (Faz 0 güven ve ticari doğruluk)",
+            "Kamu İhale Genel Tebliği m.45.1.1.2; IBAN mod-97; yayınlı plan ve API/UI sözleşmesi",
+            "Yönetici kuyruk ve rapor alanları API ile ayrışıyor, kota sınırsız görünebiliyor, fiyat yüzeyleri yayın durumuyla uyumsuz olabiliyor ve N=0,90–0,99 istisnası reddediliyordu.",
+            "Kuyruk/rapor/kota gösterimi API verisine bağlandı; yayınlı fiyat yüzeyleri ve banka checksum koruması uygulandı; ön proje istisnası yetkili bakanlık, Resmî Gazete ve ihale dayanakları için kullanıcı beyanıyla şartlıdır. Bağımsız uzman onayı ve canlı doğrulama bekler.",
+            "src/pages/admin/AdminQueue.tsx, AdminReports.tsx, TenantDetail.tsx, src/pages/Settings.tsx, src/services/billing/bank-transfer.ts, src/server/security/, src/lib/kik-adt.ts, src/lib/calculators/kik-form.ts",
+          ],
         ],
       },
 
     ],
   },
 ];
+
+/** Tarihsel teknik matrisin satırlarını bozmadan, eşit revizyonları kaynak sırasıyla koru. */
+export const ROADMAP_SECTIONS: DocSection[] = ROADMAP_SOURCE_SECTIONS.map((section) => {
+  if (section.id !== "revizyon-gunlugu") return section;
+  let tableIndex = 0;
+  const blocks = section.blocks.map((block) => {
+    if (block.type !== "table") return block;
+    tableIndex += 1;
+    if (tableIndex !== 2) return block;
+    const numbered = block.rows.map((row, index) => {
+      const revision = Number(row[0].match(/Rev\. (\d+)/)?.[1]);
+      if (!Number.isFinite(revision)) throw new Error("Revizyon matrisi numarası eksik");
+      return { row, index, revision };
+    });
+    return { ...block, rows: numbered.sort((a, b) => a.revision - b.revision || a.index - b.index).map(({ row }) => row) };
+  });
+  return { ...section, blocks };
+});
 
 export const ROADMAP_SOURCES: DocSource[] = [
   { label: "OSKA HakedişPlus Kullanım Kılavuzu — açık vendor iş akışı referansı, native uyumluluk kanıtı değildir", url: "https://www.oska.com.tr/pdfdokumanlar/hakedispluskullanim-kilavuzu.pdf" },

@@ -24,6 +24,7 @@ import { fetchWithAuth } from '../../lib/api';
 import { Button } from '../../components/ui/button';
 import { toast } from 'sonner';
 import { adminPlansSchema, readAdminResponse } from './admin-data';
+import { removeBankAt } from './bank-account-list';
 import {
   formatBillingCycleLabel,
   type BillingCycleId,
@@ -286,11 +287,7 @@ export function PlansList() {
   };
 
   const handleRemoveBankAccount = (index: number) => {
-    if (bankAccounts.length <= 1) {
-      toast.error('En az bir banka hesabı bulunmalıdır.');
-      return;
-    }
-    setBankAccounts((prev) => prev.filter((_, idx) => idx !== index));
+    setBankAccounts((prev) => removeBankAt(prev, index));
   };
 
   const handleSaveBankAccounts = async () => {
@@ -817,6 +814,10 @@ export function PlansList() {
 
         {loadingBanks ? (
           <p className="text-xs text-muted-foreground">Banka hesapları yükleniyor...</p>
+        ) : bankAccounts.length === 0 ? (
+          <p className="rounded-lg border border-amber-500/40 bg-amber-500/10 p-4 text-xs text-foreground">
+            Banka hesabı yok. Kaydettiğinizde müşterilere hesap gösterilmez; daha önce ödeme yapanları destek üzerinden yönlendirin.
+          </p>
         ) : (
           <div className="grid gap-4 lg:grid-cols-2">
             {bankAccounts.map((acc, idx) => (

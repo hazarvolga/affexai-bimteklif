@@ -134,3 +134,17 @@ test("KİK formu: idarenin N değeri uygulanır; 1,00–1,20 dışı reddedilir"
   const bad = evaluateKikForm({ ym: "100000000", category: "ust_yapi", bids: "70000000", ourBid: "", items: "", nOverride: "1,5" });
   assert.equal(bad.status, "error");
 });
+
+test("KİK formu: ön proje istisnası yalnız kapsam ve kullanıcı kaynak beyanıyla hesaplanır", () => {
+  const base = { ym: "100000", category: "ust_yapi" as const, bids: "50000;60000;70000", ourBid: "", items: "", nOverride: "0,90" };
+  assert.equal(evaluateKikForm(base).status, "error");
+  const exception = { preliminaryProject: true, issuingAuthority: "Bakanlık", officialGazetteReference: "RG 12345", tenderReference: "İhale 2026/1" };
+  const result = evaluateKikForm({ ...base, nCoefficientException: exception });
+  assert.equal(result.status, "ok");
+  if (result.status === "ok") {
+    assert.equal(result.result.nCoefficient, 0.9);
+    assert.ok(result.warnings.some((warning) => /beyan|doğrulanmadı/i.test(warning)));
+  }
+  assert.equal(evaluateKikForm({ ...base, category: "alt_yapi", nCoefficientException: exception }).status, "error");
+  assert.equal(evaluateKikForm({ ...base, nCoefficientException: { ...exception, tenderReference: "" } }).status, "error");
+});

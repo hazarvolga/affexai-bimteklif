@@ -158,7 +158,7 @@ test('SEO-05: rota JSON-LD yalnız uygun genel sayfalarda, bir kez ve kaçışla
 test('T46: /pricing sunucu metni plan kataloğu ve fatura dönemleriyle aynı fiyat ve iskontoları gösterir', async () => {
   const { canonicalPlans } = await import('../../services/billing/plan-catalog');
   const { BILLING_PERIOD_OPTIONS } = await import('../../services/billing/billing-periods');
-  const html = injectRouteMeta(SHELL, { pathname: '/pricing', origin: 'https://bimmetraj.com' });
+  const html = injectRouteMeta(SHELL, { pathname: '/pricing', origin: 'https://bimmetraj.com', publicPlans: canonicalPlans });
   for (const plan of canonicalPlans.filter(p => p.isActive && p.isPublished)) {
     assert.ok(html.includes(`(${plan.monthlyPrice.toLocaleString('tr-TR')} TL/ay)`), plan.name);
   }
@@ -176,7 +176,7 @@ test('T46/GEO-03: site JSON-LD yetenek kaydı ve plan kataloğundan üretilir; r
   const { getLiveCapabilities, getPilotCapabilities, getRoadmapCapabilities } = await import('../../capabilities/registry');
   const shell = SHELL.replace('</head>', '<script id="site-jsonld" type="application/ld+json">{"stale":true}</script></head>');
   for (const pathname of ['/', '/pricing', '/yok']) {
-    const html = injectRouteMeta(shell, { pathname, origin: 'https://bimmetraj.com', notFound: pathname === '/yok' });
+    const html = injectRouteMeta(shell, { pathname, origin: 'https://bimmetraj.com', notFound: pathname === '/yok', publicPlans: canonicalPlans });
     const match = html.match(/<script id="site-jsonld" type="application\/ld\+json">([\s\S]*?)<\/script>/);
     assert.ok(match, pathname);
     const graph = JSON.parse(match[1])['@graph'];

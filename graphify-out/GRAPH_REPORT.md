@@ -1,23 +1,23 @@
 # Graph Report - TeklifPro-repo  (2026-10-28)
 
 ## Corpus Check
-- 1574 files · ~3,216,063 words
+- 1586 files · ~3,220,780 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 13431 nodes · 21938 edges · 997 communities (927 shown, 70 thin omitted)
+- 13475 nodes · 22040 edges · 1016 communities (944 shown, 72 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 240 edges (avg confidence: 0.73)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `621e9ac6`
+- Built from commit: `f653d587`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
 - Clients.tsx
 - routes/auth.ts
-- api.ts
+- fetchWithAuth
 - evaluator.ts
 - inspect.ts
 - verapdf-runner.ts
@@ -28,7 +28,7 @@
 - 3. Bulgular
 - src/server/middleware/usage.ts
 - src/lib/plugins/definitions.ts
-- runEvaluationCli
+- evaluation/cli.ts
 - cn
 - TeklifPro-repo/components/ui/select.tsx
 - AuthService
@@ -42,9 +42,9 @@
 - cli-process.test.ts
 - authoring-software-diagnostics.ts
 - Security Checklist
-- browser-quota.ts
-- tr-pset-csb-extractor.ts
-- matching.ts
+- BimIfcParser.tsx
+- source-intelligence.ts
+- sha256Payload
 - progress-payments.ts
 - CRMIntelligenceService
 - RegulatoryIntelligenceService
@@ -52,9 +52,9 @@
 - ScrollArea
 - pilot-smoke.ts
 - readiness.ts
-- admin-logs.ts
+- app.ts
 - CalmIcmalItem
-- three-by-three.ts
+- smartcheck-evidence.ts
 - TeklifPro / BIMPlan Academy - Güncel Durum ve GAP Raporu
 - cn
 - cn
@@ -64,7 +64,7 @@
 - cn
 - App.tsx
 - governance.ts
-- evaluation/cli.ts
+- CandidateProvider
 - Listening Sources — Template
 - fixture-loader.ts
 - test_kurallar.py
@@ -76,7 +76,7 @@
 - PublicAcademyDetail.tsx
 - Customer Research — Source Guides
 - Free Tool Strategy (Engineering as Marketing)
-- catalog-audit.ts
+- audit-csb-2026-catalog.ts
 - veri.py
 - Schema Markup Examples
 - SMS Marketing
@@ -119,7 +119,7 @@
 - Documentation & Codemap Specialist
 - Analytics Tracking
 - prisma-shadow-parity.ts
-- progress-payment-tenant-rls.pgtest.ts
+- parser/contract.ts
 - Build Error Resolver
 - tdd-guide.md
 - Backend Development Patterns
@@ -133,7 +133,7 @@
 - Frontend Development Patterns
 - Funding-Stage Capability Unlocks
 - 2. Kesin Tablo Listesi, Alanlar ve Veri Tipleri
-- SmartCheckDemo.tsx
+- LessonViewerPage.tsx
 - spreadsheet-parser.ts
 - Understanding Buyers & Human Psychology
 - SMS Sequence Templates
@@ -234,7 +234,7 @@
 - BIMPlan Academy — Allplan Pro Track Yol Haritası
 - **Teklif ve Metraj Hesaplamalarında İleri Düzey Doğruluk Raporu: Ulusal ve Uluslararası Standartlar Bağlamında Analiz ve Revizyon**
 - routes/smartcheck.ts
-- file-security.ts
+- processor.ts
 - LinkedIn B2B Playbook
 - Google Play Store — Official Specs & Guidelines
 - Competitor Profiling
@@ -275,7 +275,7 @@
 - Sample Size Guide
 - Paid Ads
 - Citations vs. Recommendations: The AI Visibility Ladder
-- Generative Engine Optimization (GEO) Patterns
+- AEO and GEO Content Patterns
 - ASO Benchmarks & Conversion Data
 - AI Image Prompting Guide
 - Design & Delivery Models
@@ -294,7 +294,7 @@
 - 3. Decision Log (Mimari Kararlar Logu)
 - Uygulama sırası
 - TeklifPro Pilot Production Hardening Implementation Plan
-- official-document.ts
+- CreateQuote.tsx
 - release-migrations/runner.ts
 - ABM Playbook (Paid)
 - Apple App Store — Official Specs & Guidelines
@@ -310,7 +310,7 @@
 - Loop Guardrails & Compliance
 - Section 12 — Tactical idea bank
 - Paywall Experiment Ideas
-- CreateQuote.tsx
+- market-intelligence.ts
 - Platform Limits Reference
 - Video
 - Phase 3 — Protected Learning Experience
@@ -338,7 +338,7 @@
 - Architecture Decisions
 - code-reviewer.md
 - Faz 0: Güvenlik Ağı ve UI Envanteri
-- processor.ts
+- storage.ts
 - Baglam
 - Local PostgreSQL with Docker
 - Follow-Up Sequences
@@ -403,7 +403,7 @@
 - Section 11 — Marketing operations stack
 - Popup Types
 - Trigger Strategies
-- GeminiProvider
+- client-excel-import.ts
 - Zapier Cross-Tool Patterns
 - Discovery Call Script
 - First Demo Script
@@ -442,8 +442,8 @@
 - Post-Purchase Flow
 - Video Generation
 - postgres-restore-drill.ts
-- HowItWorks.tsx
-- AEO and GEO Content Patterns
+- Settings.tsx
+- Domain-Specific GEO Tactics
 - AI SEO by Content Type
 - Data Layer Patterns
 - Cancel Flow Design
@@ -478,21 +478,21 @@
 - Pricing Psychology
 - Design Best Practices
 - Experiment Ideas
-- BimIfcParser.tsx
+- crm-lead-tenant-rls.pgtest.ts
 - What Makes a Response Get Selected
 - International SEO & Localization
 - Common Issues by Site Type
 - Output Format
 - Attentive
-- capabilities/registry.ts
+- DeveloperRoadmap.tsx
 - Klaviyo SMS
 - test_pdf_preflight.py
-- company-industry-tenant-rls.pgtest.ts
+- progress-payment-tenant-rls.pgtest.ts
 - Plivo
 - Customer.io
 - Geçmiş commitler ve canlı ürün paritesi — 11 Ekim 2026
 - Resmi Mühendislik Kabul & Test Kanıt Paketi (`MM`, `ST` ve `PDF/A` Referans Koşuları)
-- Billing.tsx
+- bank-transfer.ts
 - dependency-audit-policy.mjs
 - Columns - Allplan 2026 Official Source Pack
 - Phase 10 — Ücretsiz Öğrenci Kaydı ve Kullanıcı Edinme
@@ -518,9 +518,9 @@
 - Metrics Selection
 - contracts/smartcheck.ts
 - Working State: BIMMetraj
-- AIService
-- crm-lead-tenant-rls.pgtest.ts
-- artifacts.test.ts
+- IndustryRegistry
+- MarketIntelligence.tsx
+- release-migrations/generate.ts
 - package.json
 - AI BIM Director
 - AI Visibility Audit
@@ -570,9 +570,9 @@
 - Common Popup Strategies
 - Copy Formulas
 - release-migrations/tsconfig.json
-- src/services/ai/providers/openaiProvider.ts
+- OpenAIProvider
 - pricing-file-import.ts
-- Creative Best Practices
+- pricing.ts
 - Voice and Structure
 - Before Starting
 - Referral Program Design
@@ -587,7 +587,7 @@
 - Page Hierarchy Design
 - Navigation Design
 - Internal Linking Strategy
-- parser/contract.ts
+- test-db-reachability.ts
 - bulgu.py
 - renderer.ts
 - Release Migration Lineage (Step 07)
@@ -617,7 +617,7 @@
 - Running the Test
 - Container App And Worker Preparation
 - BIMMetraj (TeklifPro) — Bütüncül Teknik Analiz, Hesaplama Motoru Doğrulaması, GAP / BUG / SEO / GEO Denetimi ve Rakip Karşılaştırma Raporu
-- fetchWithAuth
+- SmartCheckImportWorkspace.tsx
 - SMS Copy Guidelines
 - Product/App Events
 - Configuration
@@ -642,7 +642,7 @@
 - Error Handling
 - Output Format
 - Multi-Step Forms
-- Advanced Patterns
+- BIMMetraj Ürün & Paket Planlaması Analizi (Salt Okunur)
 - Before Starting
 - AI Image Generation
 - Design Tools
@@ -670,11 +670,11 @@
 - Measurement
 - Output Format
 - Lead Lifecycle Framework
-- pilot-evidence/service.ts
+- pilot-evidence.ts
 - Tools & Platforms
 - Program Optimization
 - Launch Checklist
-- UTM Parameter Strategy
+- email-delivery.ts
 - Lead Scoring
 - Süper Admin (Platform Sahibi) Paneli PRD
 - TS 500:2000 — Betonarme Tasarım Özeti (madde numaralı)
@@ -713,11 +713,11 @@
 - yambis-classification.ts
 - tender-defense.ts
 - Brevo (formerly Sendinblue)
-- connect
+- catalogTarget
 - Affiliate Recruitment
 - Measuring Success
 - TeklifPro Agent Memory
-- impact.ts
+- content.test.ts
 - 10. Riskler ve stop koşulları
 - 2. Kaynak belgelerden çıkan gerçek ihtiyaç
 - System Environment & Workspace Architecture Guide
@@ -728,7 +728,7 @@
 - Mimari: İmar, Yangın, Erişilebilirlik, Enerji, Maliyet Sınıfı
 - evaluate-session.sh
 - suggest-compact.sh
-- quotation-transfer.ts
+- tuik-sdmx-adapter.ts
 - quantity-contract.ts
 - CLAUDE.md
 - drizzle-release/manifest.json
@@ -753,7 +753,8 @@
 - Output Formats
 - Shared Framework (all branches)
 - mahal.py
-- spreadsheet-templates.test.ts
+- cde/service.ts
+- authorization.ts
 - Yükler (TS 498 ve pratik değerler)
 - 1. Ses Kaydından Çıkarılan 6 Temel Saha Tespiti (Kayıp Olmaması İçin Tam Kayıt)
 - db
@@ -765,43 +766,47 @@
 - OpenAIProvider
 - dependency-compat.test.ts
 - e-PYS Entegrasyonu - 3 Yönlü Uygulama Planı
-- src/services/ai/aiService.ts
+- impact.ts
 - Meta Ads Setup
-- cde/service.ts
+- icmal-export-xlsx.ts
 - LinkedIn Ads Setup
 - Maliyet, Birim Fiyat ve Teklif
 - Generating Ad Copy
-- Postscript
+- catalog-audit.ts
 - How This Skill Works
 - Iterating from Performance Data
 - Discovery Sources (SaaS branch)
 - TeklifPro / BIMMetraj Repo Haritası (mühendislik açısından)
-- smartcheck-evidence.ts
-- test-db-reachability.ts
+- price-catalog-ui.test.ts
+- pdfa-fixture-matrix.ts
+- templates.ts
 - createTestIsolation
 - GeminiProvider
-- source-intelligence.ts
+- how-it-works-data.ts
 - poz-resolver.ts
-- priceSchedulerService.ts
+- priceCrawlerService.ts
 - Kaynaklar ve doğrulama durumu
 - price-escalation.ts
-- csb-pdf-parser.ts
-- Dış Kaynak: "Türkiye Geneli İnşaat Müteahhitleri Süreç Analizi" (17 Ekim 2026)
-- Page-Specific Guidance
-- Phase Progress
 - security-audit-remediation.test.ts
+- Dış Kaynak: "Türkiye Geneli İnşaat Müteahhitleri Süreç Analizi" (17 Ekim 2026)
+- kik-form.ts
+- fixture-candidate-provider.ts
+- Phase Progress
+- subGuidesData.ts
 - Dış Kaynak İncelemesi: İnşaatpanel (17 Ekim 2026)
 - usage-report.integration.test.ts
 - Pipeline Stage Management
-- app.ts
+- src/server/routes/crm.ts
+- licensed-csv.ts
 - Historical parity remediation acceptance
 - Pitch Templates by Angle
 - fixture.ts
 - e2e-a11y-smoke.ts
 - cde-tenant-rls.pgtest.ts
-- market-intelligence.ts
+- cli.test.ts
+- price-memory.ts
 - Twilio
-- CalculationFeedback.tsx
+- expert-feedback-ui.test.ts
 - spreadsheet-templates.ts
 - Per-Platform Notes
 - Audience Understanding & Targeting
@@ -809,48 +814,52 @@
 - react
 - enum
 - backup-docker.ts
-- Core Principles
-- Anti-Patterns to Avoid
+- allplan-structural-audit.mjs
+- Billing.tsx
+- file-security.ts
+- companion.ts
+- releaseGate.ts
 - App
 - src/components/ui/sonner.tsx
-- One-Pagers / Leave-Behinds
+- route-jsonld.ts
 - Demo Scripts & Talk Tracks
 - Tarihsel Kayıt: CI düzeltmesi ve üretim rol cutover provası (2026-10-24)
 - Examples by business type
 - Deal Desk Processes
 - Honest scarcity formats
 - migrate-design-tokens.mjs
-- PriceSchedulerService
+- sinif.py
 - MELIH_DINEKLI_BEKLEYEN_SORULAR_2026-10-17.md
 - Vendored: ifc-ruhsat
 - Kapsanan tablolar (72/72: 67 FORCE RLS + 5 Exact-ACL)
 - calm-transfer.ts
-- BIMMetraj — tüm GAP'leri kapatma ve iddia kanıtlama yol haritası
 - 4. Ayrıntılı To-Do listesi
+- allplan/types.ts
 - Footer Navigation
 - vite
-- BIMMetraj — tüm GAP'leri kapatma ve iddia kanıtlama yol haritası
+- 4. Ayrıntılı To-Do listesi
 - Resmî Veri Araştırması — KİK, 4735, Müteahhit Sınıflandırma, KDV ve Ön-render
 - Active Bimmetraj production preparation
 - Historical Next Recommended Work (superseded by the 2026-07-24 rebaseline)
-- 4. Ayrıntılı To-Do listesi
+- validate-allplan-content-review.mjs
 - BIMMetraj — Marka Konumlandırması, Ürün Stratejisi, Paketleme ve UI/UX Değerlendirme Raporu
 - role-model-smoke.ts
 - result-summary.ts
 - tailwind-merge
+- PublicPricingSection.tsx
 - ekler/__init__.py
 - Usage-Value Correlation Analysis
 - a11y-audit.test.ts
 - MaxDiff Analysis (Best-Worst Scaling)
 - Before Starting
 - Content / Blog Site
-- admin-queue.integration.test.ts
+- db/index.ts
 - 3. Bu Repolardan Başka Hangi Noktalarda Fayda Sağlayabiliriz? (Sıradaki 5 Somut Fırsat)
 - Course (async, cohort-based, live)
 - Freemium vs. Free Trial
 - Value Metrics
-- smartcheck-calm-transfer-route.integration.test.ts
-- T32 — Gerçek veraPDF çalışma ortamı ve fixture matrisi
+- smartcheck-pilot-tenant-rls.pgtest.ts
+- constants.ts
 - firebase
 - 7. Mevcut paketlerin ayrıntılı değerlendirmesi
 - database-role-provision.pgtest.ts
@@ -859,21 +868,22 @@
 - Pricing Research
 - Pricing Fundamentals
 - service.integration.test.ts
-- sinif.py
+- Postscript
 - nodemailer
 - prisma
 - @google/generative-ai
-- BIMMetraj — mevcut kod ve GAP raporu bağımsız doğrulaması
+- 3. Raporda kaçırılan öncelikli bulgular
 - Voice & Audio Generation
-- AI SOFTWARE ENGINEERING / GITHUB / DEVOPS MASTER WORKFLOW
+- official-document.ts
 - @tailwindcss/vite
 - 4. ABD ve Global Pazar İçin Tamamlanması Gereken 4 Somut Mühendislik Köprüsü
-- 3. Raporda kaçırılan öncelikli bulgular
+- quotation-audit.ts
 - pdfa-matrix/manifest.json
 - NEXT_AGENT_PROMPT_2026-10-17.md
 - 13. SmartCheck yükleme ve sonuç ekranı
-- price-catalog-ui.test.ts
+- text-provider.ts
 - t56-final-evidence-matrix.test.ts
+- Reporting & Analysis
 - require-green-ci.sh
 - Handoff Raporu: IFC Kapsam, Veri Tutarlılığı ve Metraj Bütünlüğü Kapısı (2026-10-19)
 - Görev: IFC metraj tutarlılık kapısı ve kapsama kartı
@@ -892,8 +902,12 @@
 - Faz 7 / T43 — kapsam ölçümü, kritik alan takibi ve gerçek tarayıcı E2E
 - 11. Son kullanıcı ana paneli
 - 12. Yeni teklif ekranı
-- licensed-csv.ts
 - kot.py
+- pre-bim-xlsx.ts
+- Before Creating Content
+- ExpertReview.tsx
+- phase-0-evidence-validator.test.ts
+- Proposal Templates
 - Handoff: Çalışmaya Ara (2026-10-19)
 - Handoff & Uygulama Planı: Canlı Sürüm (`Rev. 105`), CRM / Müşteriler Yeniden Kurgusu ve Son Kullanıcı Deneyimi Notları
 - Faz 2 — IFC Kapsamı ve Metraj Bütünlüğü
@@ -907,19 +921,22 @@
 - 10. Kamuya açık SmartCheck demosu
 - 19. Kârlılık ve yardım ekranları
 - 5. Kamuya açık ana sayfa değerlendirmesi
+- Advanced Patterns
+- Objection Handling Docs
 - Carousel Frameworks
-- 7. Onay ve yürütme kaydı
+- UTM Parameter Strategy
 - Vendor IFC referans araştırması
 - Faz 10 — T53 & T54 Kaynaklı Pazar Envanteri ve Karşılaştırılabilir Yetenek Kanıtı
 - ÇŞİDB 2026 katalog yapısal ve kaynak denetimi
 - Faz 7 / T40 — PostgreSQL görev ayrımı kanıt raporu
 - Faz 7 / T41 — CDE tenant RLS kanıt raporu
 - Faz 8 / T46 — Tek Kaynaklı Ürün Doğruluğu Kanıt Dosyası
-- 7. Onay ve yürütme kaydı
+- Anti-Patterns to Avoid
 - 14. Maliyet ve teklife aktarım
 - 18. Uygulama içi kullanım ve paket ekranı
 - 20. Önerilen ana ürün deneyimi
 - 23. Ölçüm ve doğrulama planı
+- admin-queue.integration.test.ts
 - company-catalog-picker-ui.test.ts
 - Third-party notices
 - Görev: Rev. 37 bağımsız kontrolü (kod yazma, yalnız incele ve raporla)
@@ -935,6 +952,7 @@
 - 8. Önerilen paket mimarisi
 - 9. Kayıt ve ödeme deneyimi
 - rule-manifest.ts
+- smartcheck-calm-transfer-route.integration.test.ts
 - Content Repurposing System
 - Handoff: Çalışmaya Ara & Kapsamlı Denetim Kaydı (2026-10-21)
 - Düzeltme görevi: IFC tutarlılık kapısı (feat/ifc-consistency-gate @ afb92f0)
@@ -944,7 +962,7 @@
 - 24. Kaynaklar ve izlenebilirlik
 - release-preflight.sh
 - pre-bim-feasibility-ui.test.ts
-- Before Creating Content
+- integration-contract.test.ts
 - pilot-evidence.integration.test.ts
 - Testing and Optimization
 - bcryptjs
@@ -990,43 +1008,43 @@
 ## Import Cycles
 - None detected.
 
-## Communities (997 total, 70 thin omitted)
+## Communities (1016 total, 72 thin omitted)
 
 ### Community 0 - "Clients.tsx"
 Cohesion: 0.06
-Nodes (82): ProtectedRoute(), ProtectedRoute(), ClientImportModal(), ClientImportModalProps, triggerDownload(), ClientQuickDrawer(), ClientQuickDrawerProps, Dialog() (+74 more)
+Nodes (73): ProtectedRoute(), ProtectedRoute(), ClientImportModalProps, ClientQuickDrawer(), ClientQuickDrawerProps, AiQuoteDraftResult, INDUSTRY_FALLBACK_LABELS, QuoteAiWizard() (+65 more)
 
 ### Community 1 - "routes/auth.ts"
 Cohesion: 0.03
-Nodes (119): seed(), connectionTimeoutMillis, db, idleTimeoutMillis, maxConnections, statementTimeout, academyLearnerProfiles, authActionTokens (+111 more)
+Nodes (104): academyLearnerProfiles, authActionTokens, companies, invitations, memberships, users, stageAndDeliverAuthAction(), StagedAuthAction (+96 more)
 
-### Community 2 - "api.ts"
+### Community 2 - "fetchWithAuth"
 Cohesion: 0.04
-Nodes (61): maxWidthMap, PageContainer(), PageContainerProps, AuthContext, AuthContextType, AuthProvider(), DEFAULT_DEMO_COMPANY, DEFAULT_DEMO_USER (+53 more)
+Nodes (71): analyzeDeal(), fetchData(), fetchAlerts(), handleSync(), safeAcademyReturnPath(), getCompletedAllplanLessons(), isAllplanLessonCompleted(), ProgressStore (+63 more)
 
 ### Community 3 - "evaluator.ts"
-Cohesion: 0.13
-Nodes (18): calculateRawPayloadHash(), canonicalJsonStringify(), evaluateFixture(), EvaluateFixtureOptions, getZodIssues(), isPlainObject(), CustomClass, defaultCandidate (+10 more)
+Cohesion: 0.12
+Nodes (23): calculateRawPayloadHash(), canonicalJsonStringify(), evaluateFixture(), getZodIssues(), isPlainObject(), CustomClass, defaultCandidate, defaultExpectedRule (+15 more)
 
 ### Community 4 - "inspect.ts"
 Cohesion: 0.05
-Nodes (55): DATABASE_AUTHORITY_AUDIT_COMPANY_TABLES, DATABASE_CDE_RLS_TABLES, DATABASE_COMPANY_INDUSTRY_RLS_TABLES, DATABASE_CRM_LEAD_RLS_TABLES, DATABASE_SCHEMA_SPECS, DATABASE_VENDOR_FUNCTION_PROVENANCE, acl, aclTables (+47 more)
+Nodes (56): DATABASE_ACADEMY_CONTROL_RLS_TABLES, DATABASE_ALLPLAN_LEARNER_RLS_TABLES, DATABASE_AUTHORITY_AUDIT_COMPANY_TABLES, DATABASE_CDE_RLS_TABLES, DATABASE_COMPANY_INDUSTRY_RLS_TABLES, DATABASE_CRM_LEAD_RLS_TABLES, DATABASE_PRICING_REGULATIONS_RLS_TABLES, DATABASE_QUOTATION_CORE_RLS_TABLES (+48 more)
 
 ### Community 5 - "verapdf-runner.ts"
-Cohesion: 0.05
-Nodes (52): main(), buildPdfProcessingArtifacts(), PdfArtifactType, PdfProcessingArtifact, PdfProcessingDependencies, sha256(), Finding, LegacyPdfPreflightReportSchema (+44 more)
+Cohesion: 0.07
+Nodes (36): buildPdfProcessingArtifacts(), PdfArtifactType, PdfProcessingDependencies, sha256(), Finding, LegacyPdfPreflightReportSchema, PdfPreflightReport, PdfPreflightReportSchema (+28 more)
 
 ### Community 6 - "database-roles/provision.ts"
 Cohesion: 0.07
-Nodes (50): credentials, roleNames, target, credentials, main(), required(), DATABASE_CONTROL_APP_TABLE_ACL, DATABASE_CONTROL_TABLE_ACL (+42 more)
+Nodes (53): credentials, roleNames, target, credentials, main(), required(), DATABASE_CONTROL_APP_TABLE_ACL, DATABASE_CONTROL_TABLE_ACL (+45 more)
 
 ### Community 7 - "src/components/ui/button.tsx"
 Cohesion: 0.06
-Nodes (64): QuotationCardProps, TourWelcomeBanner(), colorMap, StatCard(), StatCardProps, ErrorBoundary, ErrorBoundaryProps, ErrorBoundaryState (+56 more)
+Nodes (66): QuotationCardProps, TourWelcomeBanner(), colorMap, StatCard(), StatCardProps, maxWidthMap, PageContainer(), PageContainerProps (+58 more)
 
 ### Community 9 - "QuoteDetail.tsx"
-Cohesion: 0.07
-Nodes (41): Badge(), ProfitabilityBadge(), ProfitabilityBadgeProps, StatusBadge(), StatusBadgeProps, statusMap, COST_CATEGORIES, formatMoney() (+33 more)
+Cohesion: 0.08
+Nodes (34): Badge(), ProfitabilityBadge(), ProfitabilityBadgeProps, StatusBadge(), StatusBadgeProps, statusMap, COST_CATEGORIES, formatMoney() (+26 more)
 
 ### Community 10 - "3. Bulgular"
 Cohesion: 0.08
@@ -1034,19 +1052,19 @@ Nodes (25): 1. Yönetici özeti, 2. Eksen matrisi, 3.10 Test ve kod kalitesi —
 
 ### Community 11 - "src/server/middleware/usage.ts"
 Cohesion: 0.08
-Nodes (52): plans, subscriptions, usageLogs, usageRecords, readAdminTenants(), TenantRow, tenantStats(), createUsageTracker() (+44 more)
+Nodes (51): plans, subscriptions, usageLogs, TenantRow, tenantStats(), createUsageTracker(), createUsageTrackerWith(), defaultUsageDependencies (+43 more)
 
 ### Community 12 - "src/lib/plugins/definitions.ts"
 Cohesion: 0.19
 Nodes (9): electricalPlugin, INITIAL_PLUGINS, mechanicalPlugin, renovationPlugin, residentialPlugin, IndustryRegistry, registry, CalculationModel (+1 more)
 
-### Community 13 - "runEvaluationCli"
-Cohesion: 0.14
-Nodes (11): EvaluationCliEntryDependencies, EvaluationCliProcessRuntime, runEvaluationCliEntry(), runCliMock(), EvaluationCliIo, setExitCode(), writeStderr(), writeStdout() (+3 more)
+### Community 13 - "evaluation/cli.ts"
+Cohesion: 0.12
+Nodes (15): defaultDependencies, EvaluationCliEntryDependencies, EvaluationCliProcessRuntime, runEvaluationCliEntry(), runCliMock(), EvaluationCliDependencies, EvaluationCliExecution, EvaluationCliIo (+7 more)
 
 ### Community 14 - "cn"
 Cohesion: 0.03
-Nodes (107): Button(), buttonVariants, Card(), CardAction(), CardContent(), CardDescription(), CardFooter(), CardHeader() (+99 more)
+Nodes (72): Button(), buttonVariants, Card(), CardAction(), CardContent(), CardDescription(), CardFooter(), CardHeader() (+64 more)
 
 ### Community 15 - "TeklifPro-repo/components/ui/select.tsx"
 Cohesion: 0.33
@@ -1070,31 +1088,31 @@ Nodes (5): cn(), DropdownMenu(), DropdownMenuCheckboxItem(), DropdownMenuPortal(
 
 ### Community 21 - "web-hardening.ts"
 Cohesion: 0.13
-Nodes (22): registerProductionFrontend(), ACADEMY_PAGES, AI_SEARCH_CRAWLERS, AI_TRAINING_CRAWLERS, AiTrainingPolicy, aiTrainingPolicyFromEnv(), CALCULATOR_PAGES, canonicalHostRedirect() (+14 more)
+Nodes (20): registerProductionFrontend(), createBoundedCatalogReader(), ACADEMY_PAGES, AI_SEARCH_CRAWLERS, AI_TRAINING_CRAWLERS, AiTrainingPolicy, aiTrainingPolicyFromEnv(), CALCULATOR_PAGES (+12 more)
 
 ### Community 23 - "TeklifPro-repo/components/ui/table.tsx"
 Cohesion: 0.53
 Nodes (4): cn(), Table(), TableBody(), TableHeader()
 
 ### Community 25 - "authoring-software-diagnostics.ts"
-Cohesion: 0.15
-Nodes (17): AuthoringAdvisoryBanner(), fmt(), parseOptional(), RevitChecklistCards(), AdvisoryTone, AuthoringAdvisory, AuthoringSoftwareFamily, classify() (+9 more)
+Cohesion: 0.13
+Nodes (19): AuthoringAdvisoryBanner(), fmt(), parseOptional(), RevitChecklistCards(), RevitPreUploadChecklistPanel(), AdvisoryTone, AuthoringSoftwareDetection, AuthoringSoftwareFamily (+11 more)
 
 ### Community 26 - "Security Checklist"
 Cohesion: 0.04
 Nodes (48): 10. Dependency Security, 1. Secrets Management, 2. Input Validation, 3. SQL Injection Prevention, 4. Authentication & Authorization, 5. XSS Prevention, 6. CSRF Protection, 7. Rate Limiting (+40 more)
 
-### Community 27 - "browser-quota.ts"
-Cohesion: 0.18
-Nodes (13): IfcQuotaDenialAlert(), IfcQuotaDenialAlertProps, RESEND_STATUS, ResendState, render(), BrowserQuotaAction, browserQuotaDenial, DENIAL_BY_CODE (+5 more)
+### Community 27 - "BimIfcParser.tsx"
+Cohesion: 0.08
+Nodes (31): BimIfcParser(), BimIfcParserProps, DEMO_IFC_DATASETS, generateSyntheticIfcDataset(), IFC_TYPE_LABELS, BrowserPreviewNotice(), html, IfcQuotaDenialAlert() (+23 more)
 
-### Community 28 - "tr-pset-csb-extractor.ts"
-Cohesion: 0.15
-Nodes (15): ElementPozNo, ElementPozNoExtraction, IfcPropertyRelation, IfcPropertySet, IfcRealProperty, IfcTextProperty, isParcelPset(), isPozPset() (+7 more)
+### Community 28 - "source-intelligence.ts"
+Cohesion: 0.10
+Nodes (35): regulationAlerts, regulationVersions, smartcheckAuditLogs, sourceIngestionArtifacts, sourceIngestionRuns, sourceIntelligenceAdapters, sourceReviewItems, audit() (+27 more)
 
-### Community 29 - "matching.ts"
-Cohesion: 0.19
-Nodes (16): clampScore(), compareCapturedAt(), jaccard(), normalizePositionCode(), PriceMatchRowInput, PriceSnapshotMatchCandidate, PriceSnapshotMatchInput, PriceSnapshotSuggestion (+8 more)
+### Community 29 - "sha256Payload"
+Cohesion: 0.11
+Nodes (28): LockablePriceSnapshot, LockableQuotationItem, normalizedDescription(), normalizedReference(), priceSnapshotMatchesQuotationItem(), verifiedPayloadHash(), clampScore(), compareCapturedAt() (+20 more)
 
 ### Community 30 - "progress-payments.ts"
 Cohesion: 0.08
@@ -1108,17 +1126,17 @@ Nodes (5): expectUnauthorized(), HttpMethod, JsonRequestOptions, main(), request
 Cohesion: 0.14
 Nodes (17): args, asOfArgument, jsonOutput, manifestPath, isMepDiscipline(), MEP_DISCIPLINES, parseIsoDate(), PilotAdmission (+9 more)
 
-### Community 37 - "admin-logs.ts"
-Cohesion: 0.20
-Nodes (10): AuditItem, AuditPage, AuditQuery, AuditRow, detailFields, parseAuditQuery(), positionSchema, registerAdminLogRoutes() (+2 more)
+### Community 37 - "app.ts"
+Cohesion: 0.06
+Nodes (49): app, registerBillingRoutes(), registerClientRoutes(), registerCrmRoutes(), seed(), registerRegulationRoutes(), tenantOf(), canMutate (+41 more)
 
 ### Community 38 - "CalmIcmalItem"
 Cohesion: 0.08
-Nodes (48): CalculationTraceSection(), CalculationTraceSectionProps, ExpertLineVerification(), ExpertLineVerificationProps, parseExpertValue(), ExpertVerificationBar(), ExpertVerificationBarProps, MetrajCetveliSheet() (+40 more)
+Nodes (52): CalculationTraceSection(), CalculationTraceSectionProps, CalmIcmalEvidenceCard(), CalmIcmalEvidenceCardProps, ExpertLineVerification(), ExpertLineVerificationProps, parseExpertValue(), ExpertVerificationBar() (+44 more)
 
-### Community 39 - "three-by-three.ts"
-Cohesion: 0.11
-Nodes (27): EpysValidationResult, validateEpysRules(), evaluateIfcRulePacks(), IfcRuleEvaluations, artifact(), row(), threeByThreeItems(), Iso19650ValidationResult (+19 more)
+### Community 39 - "smartcheck-evidence.ts"
+Cohesion: 0.05
+Nodes (61): ElementPozNoExtraction, hasDirectIfcRebarMassEvidence(), blockElement(), buildFindings(), buildIfcSmartCheckEvidenceArtifact(), buildParsedQuantityRow(), formatQuantity(), IfcBlockedEvidenceElement (+53 more)
 
 ### Community 40 - "TeklifPro / BIMPlan Academy - Güncel Durum ve GAP Raporu"
 Cohesion: 0.10
@@ -1136,17 +1154,17 @@ Nodes (67): Academy, AcademyActivation, AcademyCADPage, AcademyCertificatesPage,
 Cohesion: 0.38
 Nodes (5): defaultGovernanceStatus(), requiredApprovedFields, restrictedTurkishRules, RuleGovernanceInput, validateRuleGovernance()
 
-### Community 50 - "evaluation/cli.ts"
-Cohesion: 0.06
-Nodes (21): defaultDependencies, EvaluationCliDependencies, EvaluationCliExecution, EvaluationCliUsageError, EvaluationCliUsageErrorCode, defaultCandidate, checkSymlink(), FixtureCandidateProvider (+13 more)
+### Community 50 - "CandidateProvider"
+Cohesion: 0.12
+Nodes (13): EvaluateFixtureOptions, runDiscoveredEvaluationSuite(), RunDiscoveredEvaluationSuiteOptions, defaultCandidate, compareStrings(), runEvaluationSuite(), RunEvaluationSuiteOptions, defaultCandidate (+5 more)
 
 ### Community 51 - "Listening Sources — Template"
 Cohesion: 0.09
 Nodes (22): Blogs / Newsletters (RSS), Bluesky, Brand mentions, Competitor mentions (monitor for switching language), Do Not Engage, High-intent (someone shopping or switching), ICP (for scoring), Keywords (intent signals) (+14 more)
 
 ### Community 52 - "fixture-loader.ts"
-Cohesion: 0.22
-Nodes (11): checkSymlink(), discoverEvaluationFixtures(), FixtureLocator, isPathInside(), isPathInsideOrEqual(), loadEvaluationFixture(), defaultExpectedRules, defaultManifest (+3 more)
+Cohesion: 0.21
+Nodes (12): checkSymlink(), discoverEvaluationFixtures(), FixtureLocator, isPathInside(), isPathInsideOrEqual(), loadEvaluationFixture(), defaultExpectedRules, defaultManifest (+4 more)
 
 ### Community 53 - "test_kurallar.py"
 Cohesion: 0.10
@@ -1158,23 +1176,23 @@ Nodes (46): 1. Minimize Required Fields, 2. Show Value Before Asking for Commitm
 
 ### Community 55 - "CalmIfcWorkspace.tsx"
 Cohesion: 0.09
-Nodes (47): formatGross(), formatTrCurrency(), formatTrNumber(), buildCalmTransferSelection(), CalmTransferAttemptRecord, calmTransferAttemptScope(), CalmTransferSelection, CalmTransferTarget (+39 more)
+Nodes (39): formatGross(), formatTrCurrency(), formatTrNumber(), CalmTransferTarget, CalmTransferUiItem, CalmApartmentsStep(), CalmApartmentsStepProps, CalmCostTools() (+31 more)
 
 ### Community 56 - "The 12 Programmatic SEO Playbooks"
 Cohesion: 0.04
 Nodes (43): 10. Translations, 11. Directory, 12. Profiles, 1. Templates, 2. Curation, 3. Conversions, 4. Comparisons, 5. Examples (+35 more)
 
 ### Community 57 - "app-tenant.ts"
-Cohesion: 0.05
-Nodes (66): TenantTransaction, withAppTenant(), withAppTenantTransaction(), clients, currencyEnum, deals, industries, quotationItemEvidence (+58 more)
+Cohesion: 0.06
+Nodes (60): TenantTransaction, withAppTenant(), withAppTenantTransaction(), clients, currencyEnum, deals, industries, quotationItemEvidence (+52 more)
 
 ### Community 58 - "pre-bim-feasibility.ts"
-Cohesion: 0.07
-Nodes (45): download(), downloadParcelXlsxTemplate(), fmt(), fmtTry(), num(), ParcelRow, PLAN_STATUS_LABEL, PreBimFeasibilityPanel() (+37 more)
+Cohesion: 0.06
+Nodes (50): download(), downloadParcelXlsxTemplate(), fmt(), fmtTry(), num(), ParcelRow, PLAN_STATUS_LABEL, PreBimFeasibilityPanel() (+42 more)
 
 ### Community 59 - "PublicAcademyDetail.tsx"
-Cohesion: 0.06
-Nodes (32): arcRuleData, careerMatrixData, loaData, clashData, curriculumDetailData, data4D, data6D, dataCdeStates (+24 more)
+Cohesion: 0.07
+Nodes (26): arcRuleData, careerMatrixData, loaData, clashData, curriculumDetailData, data4D, data6D, dataCdeStates (+18 more)
 
 ### Community 61 - "Customer Research — Source Guides"
 Cohesion: 0.05
@@ -1184,9 +1202,9 @@ Nodes (43): Amazon Reviews (for physical products or software with Amazon presen
 Cohesion: 0.05
 Nodes (41): Agency/Services, Analyzers/Auditors, Calculators, Contents, Developer Tools, E-commerce, Finance, Free Tool Types Reference (+33 more)
 
-### Community 65 - "catalog-audit.ts"
-Cohesion: 0.08
-Nodes (47): checkOnly, createReport(), JSON_OUTPUT, markdown, MARKDOWN_OUTPUT, OUTPUT_DIR, readSourceEvidence(), reparseArtifact() (+39 more)
+### Community 65 - "audit-csb-2026-catalog.ts"
+Cohesion: 0.10
+Nodes (25): checkOnly, createReport(), JSON_OUTPUT, markdown, MARKDOWN_OUTPUT, OUTPUT_DIR, readSourceEvidence(), reparseArtifact() (+17 more)
 
 ### Community 66 - "veri.py"
 Cohesion: 0.09
@@ -1205,8 +1223,8 @@ Cohesion: 0.50
 Nodes (3): EnrollmentWindow, isEnrollmentActive(), now
 
 ### Community 71 - "legacy-parser.ts"
-Cohesion: 0.06
-Nodes (53): main(), EProjeManifest, manifest, manifestPath, samplePath, buildConsistencyReportFromElements(), calculateSummary(), createFailedIfcParseResult() (+45 more)
+Cohesion: 0.05
+Nodes (63): compareIfcParsers(), formatBytes(), generateSynthetic100MbIfc(), main(), runSyntheticMemoryBenchmark(), main(), EProjeManifest, manifest (+55 more)
 
 ### Community 72 - "BIMMetraj (TeklifPro) — Kapsamlı Gap Analizi ve Çoklu-Uzman Denetim Raporu"
 Cohesion: 0.11
@@ -1225,20 +1243,20 @@ Cohesion: 0.05
 Nodes (41): 1. Alternative pages (highest ROI), 2. Use-case / ICP pages, 3. Template / asset gallery (if applicable), 3-week prep timeline, 4. "Best of" listicles you wrote yourself, 5. Integration pages (when integrations ship), Badges and paid plans, Before Starting (+33 more)
 
 ### Community 79 - "price-catalog-import.ts"
-Cohesion: 0.10
-Nodes (35): formatAmount(), loadCatalogFile(), LoadedFile, PriceCatalogWizard(), PriceCatalogWizardProps, STEPS, Cell, cellValue() (+27 more)
+Cohesion: 0.12
+Nodes (31): formatAmount(), loadCatalogFile(), LoadedFile, PriceCatalogWizard(), PriceCatalogWizardProps, STEPS, Cell, cellValue() (+23 more)
 
 ### Community 80 - "reviewValidator.test.ts"
 Cohesion: 0.22
 Nodes (7): repo, run(), script, validator, main(), taskList, healthcheck()
 
 ### Community 82 - "calculations.ts"
-Cohesion: 0.07
-Nodes (46): calculateLineBreakdown(), calculateQuotationTotals(), fromCents(), LineBreakdown, LineItem, NormalizedLineItem, normalizeLineItem(), normalizeOverheadProfitPercent() (+38 more)
+Cohesion: 0.19
+Nodes (22): calculateLineBreakdown(), calculateQuotationTotals(), fromCents(), LineBreakdown, LineItem, NormalizedLineItem, normalizeLineItem(), normalizeOverheadProfitPercent() (+14 more)
 
 ### Community 83 - "calm-icmal.ts"
 Cohesion: 0.09
-Nodes (32): buildAuthoringAdvisory(), buildCalibrated202645Dataset(), buildApartmentScheduleFromElements(), buildCalmIfcDatasetFromArtifact(), buildCalmIfcDatasetFromElements(), CALM_ICMAL_RULE_VERSION, CalmIcmalGroup, CalmIcmalGroupKey (+24 more)
+Nodes (35): AuthoringAdvisory, buildAuthoringAdvisory(), buildCalibrated202645Dataset(), buildApartmentScheduleFromElements(), buildCalmIfcDatasetFromArtifact(), buildCalmIfcDatasetFromElements(), CalmIcmalGroup, CalmIcmalGroupKey (+27 more)
 
 ### Community 84 - "Coding Standards & Best Practices"
 Cohesion: 0.05
@@ -1253,16 +1271,16 @@ Cohesion: 0.05
 Nodes (35): Audience-Specific (137-139), Competitor & Comparison (11-13), Content Formats (97-109), Content & SEO (1-10), Contents, Developer & Technical (133-136), Email Marketing (45-53), Events & Speaking (65-72) (+27 more)
 
 ### Community 87 - "t43-ui-pages-and-components.test.ts"
-Cohesion: 0.02
-Nodes (103): BIMFAQViewer(), FAQItem, TOPICS, CertificatesViewer(), CertificatesViewerProps, ExamInterface(), ExamInterfaceProps, QUESTIONS (+95 more)
+Cohesion: 0.03
+Nodes (79): CertificatesViewer(), ExamInterface(), questions, ShortcutTrainer(), BimDashboard(), AuditQuestion, BimGapAnalysis(), loadStoredGapAnalysisState() (+71 more)
 
 ### Community 91 - "acquireCrawlerScheduleLock"
 Cohesion: 0.39
 Nodes (3): acquireCrawlerScheduleLock(), LockClient, LockPool
 
 ### Community 92 - "ifc/types.ts"
-Cohesion: 0.10
-Nodes (32): BimIfcParserProps, CoverageFilterMode, CoverageMetricsGrid(), filterFindingsByMode(), FINDING_CODE_LABELS, formatMetricValue(), formatRatioPercent(), IfcCoverageCard() (+24 more)
+Cohesion: 0.11
+Nodes (27): CoverageFilterMode, CoverageMetricsGrid(), filterFindingsByMode(), FINDING_CODE_LABELS, formatMetricValue(), formatRatioPercent(), IfcCoverageCard(), IfcCoverageCardProps (+19 more)
 
 ### Community 93 - "generate.py"
 Cohesion: 0.27
@@ -1302,7 +1320,7 @@ Nodes (30): Announcement Tactics, Before Starting, Borrowed Channels, Case Studi
 
 ### Community 103 - "schema.ts"
 Cohesion: 0.02
-Nodes (110): AcademyActivationCounts, academyActivationSummary(), isAcademyAnalyticsAdmin(), rate(), ALLPLAN_ASSESSMENT, CertificationEligibility, CertificationProgress, evaluateCertificationEligibility() (+102 more)
+Nodes (97): AcademyActivationCounts, academyActivationSummary(), isAcademyAnalyticsAdmin(), rate(), ALLPLAN_ASSESSMENT, CertificationEligibility, CertificationProgress, evaluateCertificationEligibility() (+89 more)
 
 ### Community 104 - "Directory List — Full Reference"
 Cohesion: 0.07
@@ -1333,8 +1351,8 @@ Cohesion: 0.04
 Nodes (46): scripts, academy:parity, allplan:import, allplan:inventory, allplan:review-validate, allplan:structural-audit, build, clean (+38 more)
 
 ### Community 111 - "minha.ts"
-Cohesion: 0.09
-Nodes (32): OpeningsMinhaStatus, OpeningsMinhaSummary, parseThresholdInput(), round2(), summarizeOpeningsMinha(), openings, ParsedOpening, applyMinhaToTargetLines() (+24 more)
+Cohesion: 0.10
+Nodes (31): OpeningsMinhaStatus, OpeningsMinhaSummary, parseThresholdInput(), round2(), summarizeOpeningsMinha(), openings, applyMinhaToTargetLines(), ApplyMinhaToTargetLinesInput (+23 more)
 
 ### Community 112 - "architect.md"
 Cohesion: 0.07
@@ -1352,9 +1370,9 @@ Nodes (28): Analytics Tracking, Best Practices, Best Practices, Considerations, 
 Cohesion: 0.13
 Nodes (24): ActualColumn, buildReport(), databaseExists(), databaseHasUserTables(), DatabaseTarget, DEFAULT_REPORT_PATH, dumpDatabaseSchema(), ensureTargetDatabase() (+16 more)
 
-### Community 116 - "progress-payment-tenant-rls.pgtest.ts"
-Cohesion: 0.08
-Nodes (9): Credentials, ids, roles, Credentials, ids, loginRoles, assertTenantContext(), tenantBeginStatement() (+1 more)
+### Community 116 - "parser/contract.ts"
+Cohesion: 0.11
+Nodes (21): assertIdentityPart(), buildIfcElementIdentity(), evaluateIfcQualityGate(), IFC_PARSER_CAPABILITIES, IfcElementIdentity, IfcElementIdentityInput, IfcParserCapabilitySet, IfcParserEngine (+13 more)
 
 ### Community 117 - "Build Error Resolver"
 Cohesion: 0.08
@@ -1381,8 +1399,8 @@ Cohesion: 0.08
 Nodes (25): 1:1 vs group, Agency retainer, Choosing your format, Coaching (1:1, group, mastermind), Default format, Default format, Default format, Default format (+17 more)
 
 ### Community 123 - "phase-0-evidence-validator.ts"
-Cohesion: 0.11
-Nodes (44): assert(), containedEvidencePath(), ENGINE_EXPERT_DISCIPLINES, expandTodoCell(), EXPECTED_FINDINGS, FINDING_DECISIONS, JsonRecord, LICENSED_SOURCE_IDS (+36 more)
+Cohesion: 0.14
+Nodes (39): assert(), containedEvidencePath(), ENGINE_EXPERT_DISCIPLINES, expandTodoCell(), EXPECTED_FINDINGS, FINDING_DECISIONS, JsonRecord, LICENSED_SOURCE_IDS (+31 more)
 
 ### Community 124 - "Refactor & Dead Code Cleaner"
 Cohesion: 0.08
@@ -1408,13 +1426,13 @@ Nodes (23): Adjustments by client category, B2B SaaS, Consumer apps (D2C), Deep-
 Cohesion: 0.08
 Nodes (23): 10. `assistance_resources` (Bağlamsal Yardım Kaynakları), 10. Uygulama Seviyesi İşlem Bütünlüğü Kuralları (Application Invariants), 11. Rollback Stratejisi, 11. `rule_assistance_resources` (Çoklu İlişki Eşleme Tablosu), 1. `documents` (Yüklenen BIM/Standart Dokümanları), 1. Veri Tabanı Enum Tanımları, 2. `document_processing_runs` (Asenkron Pipeline Çalışmaları), 2. Kesin Tablo Listesi, Alanlar ve Veri Tipleri (+15 more)
 
-### Community 130 - "SmartCheckDemo.tsx"
-Cohesion: 0.05
-Nodes (41): Ec2DemoLapInput, ec2DemoLapLength(), Ts500LapInput, ts500LapLength(), AIBIMCompanion(), AIBIMCompanionProps, Message, CADDiagramViewer() (+33 more)
+### Community 130 - "LessonViewerPage.tsx"
+Cohesion: 0.07
+Nodes (24): Ec2DemoLapInput, ec2DemoLapLength(), Ts500LapInput, ts500LapLength(), AIBIMCompanion(), AIBIMCompanionProps, Message, CADDiagramViewer() (+16 more)
 
 ### Community 131 - "spreadsheet-parser.ts"
-Cohesion: 0.15
-Nodes (33): DEFAULT_CORPUS_DIR, main(), validateXlsxArchive(), cleanTurkishHeader(), parseLocalizedNumber(), SpreadsheetArchetype, SpreadsheetTableMode, suggestMapping() (+25 more)
+Cohesion: 0.13
+Nodes (36): DEFAULT_CORPUS_DIR, main(), parseQuoteXlsx(), sanitizeSpreadsheetText(), validateXlsxArchive(), cleanTurkishHeader(), ColumnMapping, parseLocalizedNumber() (+28 more)
 
 ### Community 132 - "Understanding Buyers & Human Psychology"
 Cohesion: 0.09
@@ -1469,8 +1487,8 @@ Cohesion: 0.10
 Nodes (20): 10. Brand Voice, 11. Proof Points, 12. Goals, 1. Product Overview, 2. Target Audience, 3. Personas (B2B only), 4. Problems & Pain Points, 5. Competitive Landscape (+12 more)
 
 ### Community 157 - "Sales Enablement"
-Cohesion: 0.10
-Nodes (21): 10-12 Slide Framework, Before Starting, Buyer Persona Cards, Card Structure, Common Mistakes, Customization by Buyer Type, Customization Guidance, Deck Principles (+13 more)
+Cohesion: 0.09
+Nodes (22): 10-12 Slide Framework, Before Starting, Buyer Persona Cards, Card Structure, Core Principles, Customization by Buyer Type, Deck Principles, Design Principles (+14 more)
 
 ### Community 158 - "properties"
 Cohesion: 0.11
@@ -1565,8 +1583,8 @@ Cohesion: 0.15
 Nodes (9): A2P 10DLC: what your platform should handle, Compliance, Integration paths, Key features, Pricing, Quick selection table, SimpleTexting, SMS Platform Reference (+1 more)
 
 ### Community 181 - "evaluation/types.ts"
-Cohesion: 0.09
-Nodes (30): computeEvidenceMetrics(), EvidenceMetricsResult, getEvidenceLocationKey(), MatchResult, computeMetrics(), ComputeMetricsInput, mockMatchResultEmpty, CandidateProviderFailureSchema (+22 more)
+Cohesion: 0.11
+Nodes (18): CandidateProviderFailureSchema, CandidateProviderSuccessSchema, ErrorCategorySchema, EvaluationErrorCode, EvaluationSuiteErrorCode, EvaluationSuiteSummary, ExpectedRuleList, ExpectedRuleListSchema (+10 more)
 
 ### Community 182 - "A/B Test Setup"
 Cohesion: 0.11
@@ -1669,15 +1687,15 @@ Cohesion: 0.12
 Nodes (13): 1. Current Churn Situation, 2. Billing & Platform, 3. Product & Usage Data, 4. Constraints, Before Starting, Churn Prediction & Proactive Retention, Churn Prevention, Common Mistakes (+5 more)
 
 ### Community 207 - "Copywriting"
-Cohesion: 0.15
-Nodes (10): Above the Fold, Copywriting, Core Principles, Core Sections, CTA Copy Guidelines, Page Structure Framework, Quick Quality Check, Related Skills (+2 more)
+Cohesion: 0.12
+Nodes (16): About Page, Above the Fold, Copywriting, Core Principles, Core Sections, CTA Copy Guidelines, Feature Page, Homepage (+8 more)
 
 ### Community 208 - "Form CRO"
 Cohesion: 0.12
 Nodes (16): 1. Every Field Has a Cost, 2. Value Must Exceed Effort, 3. Reduce Cognitive Load, Button Copy, Button Placement, Core Principles, Form CRO, Initial Assessment (+8 more)
 
 ### Community 209 - "Lead Scoring Models"
-Cohesion: 0.13
+Cohesion: 0.12
 Nodes (15): Company Attributes, Contact Attributes, Example Scoring Models, Explicit Scoring Template (Fit), High-Intent Signals, Implicit Scoring Template (Engagement), Lead Scoring Models, Low-Intent Signals (+7 more)
 
 ### Community 210 - "Site Type Templates"
@@ -1737,7 +1755,7 @@ Cohesion: 0.13
 Nodes (15): Before Starting, "Build my press page", Common Workflows, Core Philosophy, "Find journalists who cover [beat]", "Help me newsjack [trending story]", Measurement, Owned: Press Page + Media Kit (+7 more)
 
 ### Community 224 - "Lead Routing Rules"
-Cohesion: 0.12
+Cohesion: 0.13
 Nodes (15): ABM Routing Rules, Basic Round-Robin Rules, HubSpot Round-Robin Setup, Implementing Speed-to-Lead, Lead Routing Rules, Measuring Speed-to-Lead, Multi-Contact Handling, Named Account / ABM Routing (+7 more)
 
 ### Community 225 - "SEO Audit"
@@ -1750,7 +1768,7 @@ Nodes (14): 1. Mimarisi ve Entegrasyon İlkeleri, 2. Taşınacak 6 Eksik Modül�
 
 ### Community 227 - "expert-feedback.test.ts"
 Cohesion: 0.08
-Nodes (28): LESSONS_CONTENT, Message, DEFAULT_EMAIL_TEMPLATES, EmailDetailRow, EmailRenderContext, EmailTemplateDefinition, EmailTemplateId, escapeHtml() (+20 more)
+Nodes (23): CalculationFeedbackProps, ExpertFeedback, ExpertFeedbackEngine, expertFeedbackEngines, ExpertFeedbackSnapshot, ExpertFeedbackVerdict, expertFeedbackVerdicts, snapshot (+15 more)
 
 ### Community 228 - "The Hook System"
 Cohesion: 0.16
@@ -1810,11 +1828,11 @@ Nodes (13): **1\. Disiplinlerarası Perspektif: Mimari Boşluk (Void) ve Mühend
 
 ### Community 242 - "routes/smartcheck.ts"
 Cohesion: 0.04
-Nodes (57): acquireViewerContent, acquireViewerContext, createViewerAdmissionMiddleware(), createViewerRateLimit(), RateLimitConsumer, withViewerAdmission(), createVerifiedIfcStream(), checksum (+49 more)
+Nodes (59): acquireViewerContent, acquireViewerContext, createViewerAdmissionMiddleware(), createViewerRateLimit(), RateLimitConsumer, withViewerAdmission(), createVerifiedIfcStream(), checksum (+51 more)
 
-### Community 243 - "file-security.ts"
-Cohesion: 0.22
-Nodes (11): CSV_MIMES, detectAndValidateFile(), IFC_MIMES, maxBytesForSmartCheckFileName(), PDF_MIMES, sanitizeSpreadsheetText(), SmartCheckFileKind, XLSX_MIMES (+3 more)
+### Community 243 - "processor.ts"
+Cohesion: 0.16
+Nodes (20): PERFORMANCE_BUDGETS, sha256(), fixtureRoot, assertRunLease(), chunkedInsert(), claimSmartCheckRun(), isSmartCheckLeaseExpired(), processClaimedSmartCheckDocument() (+12 more)
 
 ### Community 244 - "LinkedIn B2B Playbook"
 Cohesion: 0.15
@@ -1857,8 +1875,8 @@ Cohesion: 0.15
 Nodes (12): 1. Genel Bakış ve Mimarinin Amacı, 2. Sürüm Karşılaştırması & Temel Sıçramalar, 3. Müfredat Ders Gövdeleri ve Görsel Varlık (Asset) Listesi, 4. OSKA e-Hakediş CAD Entegrasyon Şeması, 5. Projeye İçe Aktarma (Import Pipeline), ALLPLAN Master Müfredat & Sürüm Karşılaştırmalı Entegrasyon Şartnamesi (2026 - 2021), Modül 1.1: ALLPLAN 2026/2025 Arayüzü, WPF Çerçevesi & Dark Mode, Modül 1.2: Proje Strüktürü, IFC 4.3 Uyumlu Hiyerarşi & 10Duke Lisanslama (+4 more)
 
 ### Community 254 - "quote-excel-import.ts"
-Cohesion: 0.24
-Nodes (18): CellSpan, cleanHeader(), ColumnSpans, expandSpanIndices(), findAllMatchingIndices(), findHeaderRow(), findRepeatingBlockStarts(), getRowSpans() (+10 more)
+Cohesion: 0.15
+Nodes (26): QuoteItemsTableProps, PreBimQuoteDraft, buildQuoteCsvTemplate(), CellSpan, cleanHeader(), ColumnSpans, expandSpanIndices(), findAllMatchingIndices() (+18 more)
 
 ### Community 255 - "SMS Sequence Types"
 Cohesion: 0.25
@@ -1954,7 +1972,7 @@ Nodes (40): 10. Disiplinler arası ortak örneklem, 11. Koordinatörün uzmanlar
 
 ### Community 278 - "kat-karsiligi.ts"
 Cohesion: 0.10
-Nodes (34): arsaPayiTeslimiKdv(), assertPositive(), calculateKatKarsiligi(), EMSAL_ILAVE_ORANI, emsalBedel(), EmsalSatisTuru, evaluateKatKarsiligiTax(), EvidenceBackedKatKarsiligiTaxInput (+26 more)
+Nodes (36): arsaPayiTeslimiKdv(), assertPositive(), calculateKatKarsiligi(), EMSAL_ILAVE_ORANI, emsalBedel(), EmsalSatisTuru, evaluateKatKarsiligiTax(), EvidenceBackedKatKarsiligiTaxInput (+28 more)
 
 ### Community 279 - "source-evidence.schema.ts"
 Cohesion: 0.21
@@ -1970,15 +1988,15 @@ Nodes (11): Adjusting for Multiple Variants, Can I run this test?, Contents, Onl
 
 ### Community 282 - "Paid Ads"
 Cohesion: 0.06
-Nodes (36): 1. Campaign Goals, 2. Product & Offer, 3. Audience, 4. Current State, Account Organization, Ad Copy Frameworks, Attribution Considerations, Before Starting (+28 more)
+Nodes (36): 1. Campaign Goals, 2. Product & Offer, 3. Audience, 4. Current State, Account Organization, Ad Copy Frameworks, Before Starting, Bid Strategy Progression (+28 more)
 
 ### Community 283 - "Citations vs. Recommendations: The AI Visibility Ladder"
-Cohesion: 0.33
+Cohesion: 0.22
 Nodes (6): Applying This, Citations vs. Recommendations: The AI Visibility Ladder, The Self-Promotional Listicle Risk, The Visibility Ladder, What a Recommendation Is Worth, What Earns Recommendations
 
-### Community 284 - "Generative Engine Optimization (GEO) Patterns"
-Cohesion: 0.33
-Nodes (6): Authoritative Claim Block, Evidence Sandwich Block, Expert Quote Block, Generative Engine Optimization (GEO) Patterns, Self-Contained Answer Block, Statistic Citation Block
+### Community 284 - "AEO and GEO Content Patterns"
+Cohesion: 0.18
+Nodes (11): AEO and GEO Content Patterns, Authoritative Claim Block, Contents, Evidence Sandwich Block, Expert Quote Block, Generative Engine Optimization (GEO) Patterns, Question Formats for Voice, Self-Contained Answer Block (+3 more)
 
 ### Community 285 - "ASO Benchmarks & Conversion Data"
 Cohesion: 0.18
@@ -2052,13 +2070,13 @@ Nodes (10): 1. İzole operasyon alanı oluştur, 2. Dosya kanıtını üret, 3. 
 Cohesion: 0.18
 Nodes (10): File Structure, Phase 0: Roadmap, Agent Memory, And Baseline, Phase 1: Backend Modularization Without Behavior Change, Phase 2: Tenant, Auth, RBAC, And Usage Hardening, Phase 3: Quote Engine And PDF Reliability, Phase 4: Multi AI Provider Layer, Phase 5: Observability, Security Scan, And Pilot Readiness Report, Phase Commit Protocol (+2 more)
 
-### Community 303 - "official-document.ts"
-Cohesion: 0.57
-Nodes (5): decodeEntities(), fetchOfficialRegulation(), parseOfficialRegulation(), plainText(), validateOfficialDocumentUrl()
+### Community 303 - "CreateQuote.tsx"
+Cohesion: 0.09
+Nodes (29): BenchmarkData, BenchmarkItem, BenchmarkPanel(), BenchmarkPanelProps, CompanyCatalogPicker(), CompanyCatalogPickerProps, money(), QuoteNextStepsBanner() (+21 more)
 
 ### Community 304 - "release-migrations/runner.ts"
-Cohesion: 0.15
-Nodes (27): assertLegacyIdx8Catalog(), catalog(), sha256(), main(), provision(), cases, verifyQuotaMigration(), adoptBaseline() (+19 more)
+Cohesion: 0.12
+Nodes (32): assertLegacyIdx8Catalog(), catalog(), sha256(), main(), baselineSource, releaseDirectory, root, provision() (+24 more)
 
 ### Community 305 - "ABM Playbook (Paid)"
 Cohesion: 0.20
@@ -2116,9 +2134,9 @@ Nodes (10): 12.1 Acquisition ideas, 12.2 Activation ideas, 12.3 Retention ideas,
 Cohesion: 0.20
 Nodes (8): Contents, Paywall Experiment Ideas, Personalization Experiments, Segment-Specific, Trigger & Timing Experiments, Trigger Type, Usage-Based, When to Show
 
-### Community 319 - "CreateQuote.tsx"
-Cohesion: 0.12
-Nodes (21): BenchmarkData, BenchmarkItem, BenchmarkPanel(), BenchmarkPanelProps, CompanyCatalogPicker(), CompanyCatalogPickerProps, money(), QuoteAiWizard() (+13 more)
+### Community 319 - "market-intelligence.ts"
+Cohesion: 0.08
+Nodes (30): documentProcessingRuns, documents, normalizedQuantityRows, smartcheckPilotCases, smartcheckPilotMeasurements, supplierQuoteEntries, supplierQuoteSubmissions, approvedSamples() (+22 more)
 
 ### Community 320 - "Platform Limits Reference"
 Cohesion: 0.20
@@ -2228,9 +2246,9 @@ Nodes (7): Approval Criteria, Best Practices (MEDIUM), Code Quality (HIGH), Perf
 Cohesion: 0.22
 Nodes (8): 1. Rota ve Sayfa Envanteri, 2. Temel Kullanıcı Akışları (User Journeys), 3. Güvenlik Ağı: Mevcut Test ve Derleme Kanıtları, 4. Ekran Görüntüsü Tabanı (Baseline Screenshots), A. Herkese Açık Yüzeyler (Public Routes), B. Tenant Çalışma Alanı (Korumalı `/app/*` Rotaları), C. Süper Admin Platform Yönetimi (`/admin/*`), Faz 0: Güvenlik Ağı ve UI Envanteri
 
-### Community 347 - "processor.ts"
-Cohesion: 0.03
-Nodes (82): environment, storage, documentProcessingRuns, documents, placeholder(), validateAuthEmailEnvironment(), Environment, integer() (+74 more)
+### Community 347 - "storage.ts"
+Cohesion: 0.05
+Nodes (49): environment, storage, placeholder(), validateAuthEmailEnvironment(), Environment, integer(), readIfcEnvironmentLimits(), assertProductionEnvironment() (+41 more)
 
 ### Community 348 - "Baglam"
 Cohesion: 0.18
@@ -2341,8 +2359,8 @@ Cohesion: 0.12
 Nodes (15): 1. Teşhis: neden karmaşık hissettiriyor?, 2. Design System görsel denetimi (10 boyut), 3.1 Menü: 15 öğeden 6 öğeye, 3.2 "Dosyadan Teklif" sihirbazı (en yüksek etkili değişiklik), 3.3 Akademi: tek merkez, tek ders rotası, 3. Önerilen bilgi mimarisi, 4.1 Renk rolleri (token), 4.2 Tip ölçeği (+7 more)
 
 ### Community 376 - "kik-adt.ts"
-Cohesion: 0.12
-Nodes (26): CalmKikPanelProps, evaluateEscalationForm(), evaluateKikForm(), KikFormOutcome, KikFormState, parseKikLineItems(), compareText(), computeKikKFactor() (+18 more)
+Cohesion: 0.19
+Nodes (16): compareText(), computeKikKFactor(), computeKikKFactorExact(), deterministicItemOrder(), evaluateKikAbnormallyLowBid(), VERIFIED_ADMIN_SOURCE, isValidLineItem(), KikAdtInput (+8 more)
 
 ### Community 377 - "Story Angle Library"
 Cohesion: 0.25
@@ -2402,7 +2420,7 @@ Nodes (7): Amaç, API, Kabul kanıtı, SmartCheck Faz 7 — Pilot Evidence Contr
 
 ### Community 391 - "missing-price.ts"
 Cohesion: 0.13
-Nodes (28): CalmPriceTableProps, ACCEPTABLE_WARNINGS, buildItemPricePayload(), matchableCandidate(), missingPriceAction, MissingPriceItem, parseTurkishAmount(), PriceSuggestionCandidate (+20 more)
+Nodes (29): CalmPriceTable(), CalmPriceTableProps, ACCEPTABLE_WARNINGS, buildItemPricePayload(), matchableCandidate(), missingPriceAction, MissingPriceItem, parseTurkishAmount() (+21 more)
 
 ### Community 392 - "1. GENEL SİSTEM MİMARİSİ"
 Cohesion: 0.25
@@ -2421,8 +2439,8 @@ Cohesion: 0.29
 Nodes (7): Experiment Cadence, Experiment Velocity, Growth Experimentation Program, Hypothesis Generation, ICE Prioritization, The Experiment Loop, The Experiment Playbook
 
 ### Community 396 - "YambisCalculatorPage.tsx"
-Cohesion: 0.17
-Nodes (18): CalcField(), CalculatorShell(), CalculatorSource, fmtNum(), fmtTry(), CALCULATORS, CalculatorsIndexPage(), KatKarsiligiCalculatorPage() (+10 more)
+Cohesion: 0.20
+Nodes (16): CalcField(), CalculatorShell(), CalculatorSource, fmtNum(), fmtTry(), CALCULATORS, CalculatorsIndexPage(), KikAdtCalculatorPage() (+8 more)
 
 ### Community 397 - "ads/SKILL.md"
 Cohesion: 0.22
@@ -2487,6 +2505,10 @@ Nodes (7): Announcement Banner, Discount/Promotion Popup, Email Capture Popup, E
 ### Community 412 - "Trigger Strategies"
 Cohesion: 0.29
 Nodes (7): Behavior-Based, Click-Triggered, Exit Intent, Page Count / Session-Based, Scroll-Based, Time-Based, Trigger Strategies
+
+### Community 413 - "client-excel-import.ts"
+Cohesion: 0.12
+Nodes (37): ClientImportModal(), triggerDownload(), ADDRESS_HEADERS, buildClientCsvTemplate(), buildColumnHeaders(), classifyHeaderCell(), cleanClientHeader(), ClientColumnHeader (+29 more)
 
 ### Community 414 - "Zapier Cross-Tool Patterns"
 Cohesion: 0.29
@@ -2640,16 +2662,16 @@ Nodes (8): Google Veo, Higgsfield, Kling (Kuaishou), Runway, Seedance 2.0 (ByteD
 Cohesion: 0.19
 Nodes (19): dumpSchema(), ensureTarget(), envFor(), exists(), hasObjects(), main(), maintenance(), parseArgs() (+11 more)
 
-### Community 452 - "HowItWorks.tsx"
-Cohesion: 0.09
-Nodes (24): NavGroup, navGroupOrder, navigationConfig, NavItem, CODE_PATH, EXPERT_MODULES, feedbackHref(), forReaders() (+16 more)
+### Community 452 - "Settings.tsx"
+Cohesion: 0.12
+Nodes (18): SectionWrapper(), SectionWrapperProps, Separator(), Tabs(), TabsContent(), TabsList(), tabsListVariants, TabsTrigger() (+10 more)
 
-### Community 453 - "AEO and GEO Content Patterns"
-Cohesion: 0.18
-Nodes (11): AEO and GEO Content Patterns, Business/Marketing Content, Contents, Domain-Specific GEO Tactics, Financial Content, Health/Medical Content, Legal Content, Question Formats for Voice (+3 more)
+### Community 453 - "Domain-Specific GEO Tactics"
+Cohesion: 0.33
+Nodes (6): Business/Marketing Content, Domain-Specific GEO Tactics, Financial Content, Health/Medical Content, Legal Content, Technology Content
 
 ### Community 454 - "AI SEO by Content Type"
-Cohesion: 0.22
+Cohesion: 0.33
 Nodes (6): AI SEO by Content Type, Blog Content, Comparison / Alternative Pages, Documentation / Help Content, Local Business / Ecom (Google emphasis), SaaS Product Pages
 
 ### Community 455 - "Data Layer Patterns"
@@ -2784,9 +2806,9 @@ Nodes (6): Close Button, Design Best Practices, Imagery, Mobile Considerations, 
 Cohesion: 0.33
 Nodes (6): Experiment Ideas, Frequency & Rules Experiments, Messaging & Content Experiments, Personalization Experiments, Placement & Format Experiments, Trigger Experiments
 
-### Community 488 - "BimIfcParser.tsx"
-Cohesion: 0.14
-Nodes (15): BimIfcParser(), DEMO_IFC_DATASETS, generateSyntheticIfcDataset(), IFC_TYPE_LABELS, BrowserPreviewNotice(), html, RevitPreUploadChecklistPanel(), canPreviewIfcInBrowser() (+7 more)
+### Community 488 - "crm-lead-tenant-rls.pgtest.ts"
+Cohesion: 0.20
+Nodes (3): Credentials, ids, roles
 
 ### Community 489 - "What Makes a Response Get Selected"
 Cohesion: 0.33
@@ -2808,9 +2830,9 @@ Nodes (6): 1. Page Hierarchy (ASCII Tree), 2. Visual Sitemap (Mermaid), 3. URL M
 Cohesion: 0.33
 Nodes (6): Attentive, Compliance, Integration paths, Key features, Pricing, Watch out for
 
-### Community 494 - "capabilities/registry.ts"
-Cohesion: 0.11
-Nodes (31): CAPABILITY_REGISTRY, CapabilityEvidence, CapabilityLevel, CapabilityOfficialSource, CapabilityRecord, CapabilityReviewerSignOff, CapabilityStatus, getLiveCapabilities() (+23 more)
+### Community 494 - "DeveloperRoadmap.tsx"
+Cohesion: 0.14
+Nodes (24): CAPABILITY_REGISTRY, CapabilityEvidence, CapabilityLevel, CapabilityOfficialSource, CapabilityRecord, CapabilityReviewerSignOff, CapabilityStatus, getLiveCapabilities() (+16 more)
 
 ### Community 495 - "Klaviyo SMS"
 Cohesion: 0.33
@@ -2820,9 +2842,9 @@ Nodes (6): Compliance, Integration paths, Key features, Klaviyo SMS, Pricing, Wa
 Cohesion: 0.14
 Nodes (36): DictionaryObject, PdfReader, PdfWriter, build_report(), _finding(), _is_a4_or_multiple_mm(), main(), _page_has_images() (+28 more)
 
-### Community 497 - "company-industry-tenant-rls.pgtest.ts"
-Cohesion: 0.08
-Nodes (16): assertDisposableRoleContract(), bootstrapDisposableRoles(), expectedEdges, identifier(), main(), matchesEdge(), names, Queryable (+8 more)
+### Community 497 - "progress-payment-tenant-rls.pgtest.ts"
+Cohesion: 0.06
+Nodes (20): assertDisposableRoleContract(), bootstrapDisposableRoles(), expectedEdges, identifier(), main(), matchesEdge(), names, Queryable (+12 more)
 
 ### Community 498 - "Plivo"
 Cohesion: 0.33
@@ -2840,9 +2862,9 @@ Nodes (12): Canlıya geçişte gerçekten doğrulananlar, Geçmiş commitler ve 
 Cohesion: 0.13
 Nodes (14): 1. Yönetici Özeti, 2. Referans Koşular ve Kriptografik Özetler (`SHA-256`), 3.1 Model Girdileri ve EK-7 Özellikleri, 3.2 QTO ve Minha Çıkarım Sonuçları (`workers/ifc/ifc_extract.py`), 3.3 EK-9 `Tablo 9.1` (Mimari · 21 Satır) Denetim Özeti, 3. Koşu 1 — Mimari (`MM`) Referans Modeli (`Tablo 9.1` · 21 Satır + Minha + `IfcCovering`), 4.1 Model Girdileri ve EK-7 Özellikleri, 4.2 QTO ve `3×3` Çıkarım Sonuçları (`workers/ifc/ifc_extract.py`) (+6 more)
 
-### Community 502 - "Billing.tsx"
-Cohesion: 0.10
-Nodes (32): pricingLayout(), publicPlansForDisplay(), PublicPlanVisibility, formatQuantity(), PlanCard(), PublicPlan, publicPlanSchema, PublicPricingSection() (+24 more)
+### Community 502 - "bank-transfer.ts"
+Cohesion: 0.12
+Nodes (39): deliverTransactionalEmail(), smtpOptions(), webhook(), canManageBilling, registerBillingRoutes(), adminReviewPaymentInputSchema, AuditLogPaymentEvent, BankAccount (+31 more)
 
 ### Community 503 - "dependency-audit-policy.mjs"
 Cohesion: 0.29
@@ -2897,8 +2919,8 @@ Cohesion: 0.33
 Nodes (5): 23 Temmuz 2026 local kanıtı, Faz 9 — Browser Acceptance ve Kullanıcı Akışı Kanıtı, Kapsam, Production güvenlik sınırları, Tekrarlanabilir komut sırası
 
 ### Community 516 - "Shell.tsx"
-Cohesion: 0.08
-Nodes (40): adminNavigation, AdminShell(), isNavItemActive(), NavList(), Shell(), MetrajCetveliSheetProps, ADMIN_TOUR_STEPS, findTarget() (+32 more)
+Cohesion: 0.06
+Nodes (53): adminNavigation, AdminShell(), isNavItemActive(), NavList(), Shell(), ADMIN_TOUR_STEPS, findTarget(), GuidedTour() (+45 more)
 
 ### Community 517 - "import-allplan-source.mjs"
 Cohesion: 0.33
@@ -2909,8 +2931,8 @@ Cohesion: 0.33
 Nodes (5): blocks, errors, requiredModels, schemaPath, source
 
 ### Community 519 - "route-meta.ts"
-Cohesion: 0.11
-Nodes (29): PUBLIC_GLOSSARY_TERMS, PublicGlossaryTerm, absolute(), breadcrumbList(), BREADCRUMBS, CALCULATOR_ROUTES, calculatorApplication(), CALCULATORS (+21 more)
+Cohesion: 0.14
+Nodes (21): PUBLIC_GLOSSARY_TERMS, PublicGlossaryTerm, escapeAttr(), getRouteMeta(), InjectOptions, injectRouteMeta(), NAV_LINKS, normalize() (+13 more)
 
 ### Community 520 - "Git Workflow"
 Cohesion: 0.40
@@ -2944,13 +2966,13 @@ Nodes (33): openApi, outputDir, paths, requestSchemaByOperation, rootDir, schema
 Cohesion: 0.06
 Nodes (32): 2026-10-14 GAP / BUG / UI-UX Closure (`GAP_BUG_UI_UX_ANALIZ_RAPORU_2026-10-14.md`), 2026-10-24 CI dependency patch and verified idx8 cutover rehearsal, 2026-10-24 deploy verification and production rehearsal (CI/deploy still open), 2026-10-24 deployment gate repair in progress, 2026-10-24 local full-suite environment audit, 2026-10-24 operator role-admin deploy-path closure (CI green, cutover pending), 2026-10-24 restricted-role CI and test isolation repair (pending release), 2026-10-24 Rev. 62 test isolation control/app split (+24 more)
 
-### Community 529 - "crm-lead-tenant-rls.pgtest.ts"
-Cohesion: 0.20
-Nodes (3): Credentials, ids, roles
-
-### Community 530 - "artifacts.test.ts"
+### Community 529 - "MarketIntelligence.tsx"
 Cohesion: 0.08
-Nodes (26): DATABASE_ACADEMY_CONTROL_RLS_TABLES, DATABASE_ALLPLAN_LEARNER_RLS_TABLES, DATABASE_PRICING_REGULATIONS_RLS_TABLES, DATABASE_QUOTATION_CORE_RLS_TABLES, DATABASE_SMARTCHECK_PIPELINE_RLS_TABLES, DATABASE_TENANT_BUSINESS_RLS_TABLES, baselineSource, releaseDirectory (+18 more)
+Nodes (31): DemoFindingDetail(), DemoFindingDetailProps, RULE_TYPE_LABEL, DemoStatusBadge(), STATUS, labelOf(), OUTLIER_STATUS_LABEL, REVIEW_STATUS_LABEL (+23 more)
+
+### Community 530 - "release-migrations/generate.ts"
+Cohesion: 0.10
+Nodes (17): cdeEvidenceLockTriggers, injectDataTransitions(), progressEvidenceMutationTriggers, progressSourceMutationTriggers, quotationTransferAppendOnlyTriggers, quotationTransferSourceMutationTriggers, [argument, ...extra], current (+9 more)
 
 ### Community 531 - "package.json"
 Cohesion: 0.22
@@ -3148,17 +3170,13 @@ Nodes (5): Copy Formulas, CTA Buttons, Decline Options, Headlines, Subheadlines
 Cohesion: 0.25
 Nodes (7): ../../src/server/routes/test-isolation.test.ts, ../../src/server/routes/test-isolation.ts, ./*.ts, ../../tsconfig.json, exclude, extends, include
 
-### Community 581 - "src/services/ai/providers/openaiProvider.ts"
-Cohesion: 0.27
-Nodes (3): OpenAIChatCompletion, OpenAIProvider, readAIResponse()
-
 ### Community 582 - "pricing-file-import.ts"
-Cohesion: 0.13
-Nodes (32): response(), getOfficialCatalogCoverageReport(), getOfficialCsbCatalogById(), listOfficialCsbCatalogs(), parseCsbPdfDocument(), ParsedPriceRow, parseLicensedPriceCsv(), checkedDnsLookup() (+24 more)
+Cohesion: 0.16
+Nodes (23): CATALOGS, dateSchema, extractPdfTextPureNode(), extractTextFromPdfBuffer(), getOfficialCatalogCoverageReport(), getOfficialCsbCatalogById(), listOfficialCsbCatalogs(), normalizeUnit() (+15 more)
 
-### Community 583 - "Creative Best Practices"
-Cohesion: 0.50
-Nodes (4): Creative Best Practices, Creative Testing Hierarchy, Image Ads, Video Ads Structure (15-30 sec)
+### Community 583 - "pricing.ts"
+Cohesion: 0.09
+Nodes (32): audit(), authorizationStatuses, canApprove, canReview, catalogImportSourceTypes, currencies, licenseStatuses, mutateStack (+24 more)
 
 ### Community 585 - "Voice and Structure"
 Cohesion: 0.40
@@ -3216,17 +3234,13 @@ Nodes (5): Breadcrumb Format, Footer Organization, Header Navigation Rules, Navi
 Cohesion: 0.40
 Nodes (5): Hub-and-Spoke Model, Internal Linking Rules, Internal Linking Strategy, Link Audit Checklist, Link Types
 
-### Community 599 - "parser/contract.ts"
-Cohesion: 0.18
-Nodes (15): assertIdentityPart(), buildIfcElementIdentity(), evaluateIfcQualityGate(), IFC_PARSER_CAPABILITIES, IfcElementIdentity, IfcElementIdentityInput, IfcParserCapabilitySet, IfcParserEngine (+7 more)
-
 ### Community 600 - "bulgu.py"
 Cohesion: 0.18
 Nodes (9): _kimlik(), Rapor, Bir kontrolün sonucu. Her bulgu yönetmeliğin hangi maddesine dayandığını ve…, _hucre(), markdown(), EK-9 Model Kalite Kontrol Formu: - Tablo 9.1 (Mimari disiplin - MM): 21 satır…, Form, Markdown tablo olarak — imzalı PDF/A'ya dönüştürmek proje müellifinin işi., satirlar() (+1 more)
 
 ### Community 601 - "renderer.ts"
-Cohesion: 0.11
-Nodes (16): escapeHtml(), aborted(), closeBrowser(), limit(), PdfRenderError, RenderOptions, renderPage(), renderPdf() (+8 more)
+Cohesion: 0.18
+Nodes (9): aborted(), closeBrowser(), limit(), PdfRenderError, RenderOptions, renderPage(), renderPdf(), renderSemaphore (+1 more)
 
 ### Community 602 - "Release Migration Lineage (Step 07)"
 Cohesion: 0.25
@@ -3310,7 +3324,7 @@ Nodes (4): HTTP sözleşmesi, Kabul kanıtı, SmartCheck Faz 3 — Fiyat kanıt�
 
 ### Community 622 - "model.ts"
 Cohesion: 0.09
-Nodes (28): IfcReviewViewer(), IfcReviewViewerProps, ViewportSizeMode, createIfcViewer(), disposeIfcRuntime(), IfcViewerController, IfcViewerInteractionMode, initializeIfcRuntime() (+20 more)
+Nodes (29): IfcReviewViewer(), IfcReviewViewerProps, ViewportSizeMode, IfcSourceIdentity, createIfcViewer(), disposeIfcRuntime(), IfcViewerController, IfcViewerInteractionMode (+21 more)
 
 ### Community 623 - "vercel.json"
 Cohesion: 0.40
@@ -3336,9 +3350,9 @@ Nodes (9): Chromium Sandbox, CI And Remaining Acceptance, Compose PostgreSQL Log
 Cohesion: 0.06
 Nodes (30): 1.1 Sistem Mimarisi ve Bilgi Akışı, 1.2 Otomatik Doğrulama ve Test Sağlığı, 1. Projenin Mevcut Durumu ve Mimari Analiz, 2.1 4734 KİK m.38 & Kamu İhale Genel Tebliği m.45.1.1 Aşırı Düşük Teklif (ADT) Motoru, 2.2 4735 Sayılı Kanun m.8 Yapım İşleri Fiyat Farkı Motoru, 2.3 Kat Karşılığı Arsa Payı, Müteahhit Kârı ve 6306 KDV Motoru, 2.4 YAMBİS Yetki Belgesi Sınıflandırma Motoru (RG 30702 / 31301 / 32330), 2.5 Pre-BIM İmar Fizibilite & 2026 Villa Maliyet Dağılım Motoru (+22 more)
 
-### Community 629 - "fetchWithAuth"
-Cohesion: 0.04
-Nodes (77): analyzeDeal(), fetchData(), fetchAlerts(), handleSync(), safeAcademyReturnPath(), getCompletedAllplanLessons(), isAllplanLessonCompleted(), ProgressStore (+69 more)
+### Community 629 - "SmartCheckImportWorkspace.tsx"
+Cohesion: 0.07
+Nodes (42): buildCalmTransferSelection(), CalmTransferAttemptRecord, calmTransferAttemptScope(), CalmTransferSelection, calmTransferTargetHint(), getOrCreateCalmTransferAttempt(), isCalmTransferTargetReady(), StorageLike (+34 more)
 
 ### Community 630 - "SMS Copy Guidelines"
 Cohesion: 0.40
@@ -3436,9 +3450,9 @@ Nodes (4): Form Audit, Output Format, Recommended Form Design, Test Hypotheses
 Cohesion: 0.50
 Nodes (4): Multi-Step Best Practices, Multi-Step Forms, Progressive Commitment Pattern, When to Use Multi-Step
 
-### Community 655 - "Advanced Patterns"
-Cohesion: 0.50
-Nodes (4): Advanced Patterns, Custom JavaScript Variables, Exception Handling, Tag Sequencing
+### Community 655 - "BIMMetraj Ürün & Paket Planlaması Analizi (Salt Okunur)"
+Cohesion: 0.07
+Nodes (29): 0–2 hafta (tutarlılık ve güven), 10. Ek: incelenen dosya ve URL listesi, 1–2 ay (kanıt üret), 1. Yönetici özeti, 2. Yetenek gerçeklik envanteri, 3–6 ay (ölçekle), 3. Paket–özellik–limit matrisi: "sitede yazan" vs "kodda uygulanan", 4.1 Mevcut yapı (+21 more)
 
 ### Community 656 - "Before Starting"
 Cohesion: 0.50
@@ -3548,9 +3562,9 @@ Nodes (4): Multiple Popup Strategy, Output Format, Popup Design, Test Hypotheses
 Cohesion: 0.50
 Nodes (4): Lead Lifecycle Framework, MQL Definition, MQL-to-SQL Handoff SLA, Stage Definitions
 
-### Community 683 - "pilot-evidence/service.ts"
-Cohesion: 0.08
-Nodes (32): normalizedQuantityRows, smartcheckPilotCases, smartcheckPilotMeasurements, actor(), canOperatePilot, handled(), integerValue(), parseDate() (+24 more)
+### Community 683 - "pilot-evidence.ts"
+Cohesion: 0.11
+Nodes (21): actor(), canOperatePilot, handled(), integerValue(), parseDate(), PilotEvidenceRateLimiter, registerPilotEvidenceRoutes(), sendServiceError() (+13 more)
 
 ### Community 684 - "Tools & Platforms"
 Cohesion: 0.50
@@ -3564,9 +3578,9 @@ Nodes (4): A/B Tests to Run, Common Problems & Fixes, Improving Referral Rate, P
 Cohesion: 0.50
 Nodes (4): Before Launch, Launch, Launch Checklist, Post-Launch (First 30 Days)
 
-### Community 687 - "UTM Parameter Strategy"
-Cohesion: 0.67
-Nodes (3): Naming Conventions, Standard Parameters, UTM Parameter Strategy
+### Community 687 - "email-delivery.ts"
+Cohesion: 0.13
+Nodes (18): createSmtpFactory(), defaultSmtpSocketFactory, Delivery, Env, Message, SmtpFactory, SmtpSocketFactory, SmtpTransportCreator (+10 more)
 
 ### Community 688 - "Lead Scoring"
 Cohesion: 0.50
@@ -3597,8 +3611,8 @@ Cohesion: 0.50
 Nodes (4): Keeping It Living, Sales Playbooks, What Goes in a Playbook, When to Build
 
 ### Community 696 - "AIProvider"
-Cohesion: 0.21
-Nodes (3): AIProviderRouter, provider(), AIProvider
+Cohesion: 0.15
+Nodes (9): OpenAIChatCompletion, AIProviderRouter, input, quotation, provider(), AIProvider, AIQuotationInput, AIQuotationResult (+1 more)
 
 ### Community 697 - "Retargeting Strategies"
 Cohesion: 0.33
@@ -3625,8 +3639,8 @@ Cohesion: 0.16
 Nodes (10): build_report(), main(), mask_personal_data(), _mask_text(), Any, BIMMetraj e-PYS pre-check (RG 33331) on top of the vendored ifc-ruhsat engine.…, Returns a copy with TC/VKN numbers, e-mails and phone numbers masked (KVKK)., run_cli() (+2 more)
 
 ### Community 703 - "track.ts"
-Cohesion: 0.06
-Nodes (39): componentEvidence, constants, evaluateEvidenceFiles(), evidenceRoot, lessonKeys, lessons, missingModules, modules (+31 more)
+Cohesion: 0.22
+Nodes (9): LessonDetail, LESSONS_CONTENT, ALLPLAN_NODES, ALLPLAN_TRACK, getAllplanCoverageReport(), normalizeLesson(), normalizeNode(), parseMinutes() (+1 more)
 
 ### Community 704 - "Before Starting"
 Cohesion: 0.50
@@ -3712,9 +3726,9 @@ Nodes (17): buildTenderDefenseManifest(), businessKey(), canonical(), Classified
 Cohesion: 0.33
 Nodes (6): Brevo (formerly Sendinblue), Compliance, Integration paths, Key features, Pricing, Watch out for
 
-### Community 726 - "connect"
-Cohesion: 0.13
-Nodes (17): main(), main(), main(), connect(), bootstrapAcademyCatalog(), bootstrapPlanCatalog(), writeLimits(), catalogTarget() (+9 more)
+### Community 726 - "catalogTarget"
+Cohesion: 0.16
+Nodes (14): main(), main(), main(), bootstrapAcademyCatalog(), bootstrapPlanCatalog(), writeLimits(), catalogTarget(), Environment (+6 more)
 
 ### Community 727 - "Affiliate Recruitment"
 Cohesion: 0.67
@@ -3728,9 +3742,9 @@ Nodes (3): Key Metrics, Measuring Success, Typical Findings
 Cohesion: 0.50
 Nodes (3): graphify, Mandatory Chronological Roadmap & Expert Calculation Review Rule (No Reminder Needed), TeklifPro Agent Memory
 
-### Community 730 - "impact.ts"
-Cohesion: 0.19
-Nodes (12): effectiveStatus(), findRegulationQuotationImpact(), ImpactQuotation, ImpactQuotationItem, includesTerm(), laborTerms, materialTerms, normalized() (+4 more)
+### Community 730 - "content.test.ts"
+Cohesion: 0.15
+Nodes (13): calculateTaxAdvisory(), CALC_REVIEW_CHANGELOG, CALC_REVIEW_EVIDENCE, CALC_REVIEW_META, CalcReviewRevisionEntry, CalculationEvidence, ModuleRevisionNote, moduleText() (+5 more)
 
 ### Community 731 - "10. Riskler ve stop koşulları"
 Cohesion: 0.67
@@ -3756,9 +3770,9 @@ Nodes (20): ApartmentSubcontractorShieldCard(), ClaimBadge(), fmt(), parseOption
 Cohesion: 0.22
 Nodes (8): 1. PAİY, 2. Yangın (BYKHY), 3. Merdiven, rampa, erişilebilirlik, 4. Enerji, 5. Yapı sınıfları ve 2026 yaklaşık birim maliyetler (RG 03.02.2026), 6. e-PYS / BIM, İçindekiler, Mimari: İmar, Yangın, Erişilebilirlik, Enerji, Maliyet Sınıfı
 
-### Community 741 - "quotation-transfer.ts"
-Cohesion: 0.12
-Nodes (18): QuoteItemsTableProps, applyIfcTransferredUnitPrices(), buildIfcEstimateQuoteItems(), BuildIfcEstimateQuoteItemsOptions, IfcQuoteTransferResult, IfcSkippedTransferItem, IfcTransferredUnitPrices, LegacyIfcTransferSummary (+10 more)
+### Community 741 - "tuik-sdmx-adapter.ts"
+Cohesion: 0.18
+Nodes (20): response(), checkedDnsLookup(), decodeContentStream(), fetchCrawlerHtml(), isPublicAddress(), readCrawlerBody(), ResolvedAddress, validateCrawlerUrl() (+12 more)
 
 ### Community 742 - "quantity-contract.ts"
 Cohesion: 0.10
@@ -3785,8 +3799,8 @@ Cohesion: 0.07
 Nodes (26): 0. Kararlar (Hazar, 26 Ekim 2026), 10. Korunacaklar (regresyon testiyle güvenceye alınır), 11. Claude incelemesinden ek maddeler, 12. İzlenebilirlik: marka.md'nin tamamı, 1. Çalışma kuralları, 2. Faz 0 — Güven: sonuç ekranı doğru konuşsun (en yüksek öncelik), 3. Faz 1 — Excel önce ve ana iş akışı, 4. Faz 2 — Panel, gezinme, yardım, okunabilirlik (+18 more)
 
 ### Community 755 - "admin.ts"
-Cohesion: 0.06
-Nodes (63): withSuperAdminQueueRead(), closeControlDatabase(), connectControlDatabase(), getControlDatabase(), validateControlDatabaseUrls(), adminAuditLogs, AdminChangeError, createPlan() (+55 more)
+Cohesion: 0.05
+Nodes (60): withSuperAdminQueueRead(), closeControlDatabase(), connectControlDatabase(), getControlDatabase(), validateControlDatabaseUrls(), adminAuditLogs, priceFeedStaging, pricingDataSources (+52 more)
 
 ### Community 756 - "The Creative Strategy Loop"
 Cohesion: 0.29
@@ -3802,7 +3816,7 @@ Nodes (6): 1. Ürün Vizyonu ve Hedef Kitle, 2. Alınan UX/UI Kararları (Buzda�
 
 ### Community 760 - "iso19650.ts"
 Cohesion: 0.08
-Nodes (42): CalmIsoCdePanel(), CalmIsoCdePanelProps, actionLabels, CdeWorkflowPanel(), CdeWorkflowPanelProps, displayDate(), roleLabels, canSubmitCdeDecision() (+34 more)
+Nodes (43): CalmIsoCdePanel(), CalmIsoCdePanelProps, actionLabels, CdeWorkflowPanel(), CdeWorkflowPanelProps, displayDate(), roleLabels, canSubmitCdeDecision() (+35 more)
 
 ### Community 761 - "Before Starting"
 Cohesion: 0.33
@@ -3817,8 +3831,8 @@ Cohesion: 0.50
 Nodes (4): Send 1 — 60-90 days after last purchase, Send 2 — 14 days later (if no purchase), Send 3 — 14 days after Send 2 (final, if no purchase), Win-Back (Lapsed Customers)
 
 ### Community 764 - "CalculationMethods.tsx"
-Cohesion: 0.10
-Nodes (27): CalculationMethods(), STATUS_CLASS, CALC_INTRO, CALC_MODULES, SIGN_OFF_COLUMNS, CALC_REVIEW_CHANGELOG, CALC_REVIEW_EVIDENCE, CALC_REVIEW_META (+19 more)
+Cohesion: 0.11
+Nodes (21): CalculationMethods(), STATUS_CLASS, CALC_INTRO, CALC_MODULES, SIGN_OFF_COLUMNS, CALC_STATUS_LABEL, CalcModule, CalcStatus (+13 more)
 
 ### Community 765 - "Output Formats"
 Cohesion: 0.33
@@ -3832,9 +3846,13 @@ Nodes (6): Phase 1 — Define the ICP, Phase 2 — Build the candidate list (dis
 Cohesion: 0.26
 Nodes (13): Kutu, hacim(), kesisim(), Any, Geometri yardımcıları: IfcOpenShell ile dünya koordinatlarında sınır kutuları…, {ifc id: (xmin, ymin, zmin, xmax, ymax, zmax)}; geometri motoru yoksa None., sinir_kutulari(), _geometri() (+5 more)
 
-### Community 769 - "spreadsheet-templates.test.ts"
-Cohesion: 0.15
-Nodes (14): ParcelCsvParseResult, SheetCell, cellToValue(), parseParcelXlsx(), parseQuoteXlsx(), SheetCell, cellToValue(), parseQuoteXlsx() (+6 more)
+### Community 768 - "cde/service.ts"
+Cohesion: 0.07
+Nodes (43): assignCdeMemberSchema, canonicalCdeScopeHash(), canonicalCdeTransitionRequestHash(), CdeDiscipline, cdeDisciplineSchema, CdeProjectRole, cdeProjectRoleSchema, CdeRevisionScope (+35 more)
+
+### Community 769 - "authorization.ts"
+Cohesion: 0.13
+Nodes (21): resolvePg16ExecutionMode(), snapshotIsEligible(), COMMERCIAL_QUOTATION_AUTHORIZATION_SCOPE, evaluateManualSnapshotApproval(), hasCommercialQuotationCapability(), licensePermitsCommercialQuotation(), ManualSnapshotApprovalInput, ManualSnapshotApprovalReason (+13 more)
 
 ### Community 770 - "Yükler (TS 498 ve pratik değerler)"
 Cohesion: 0.29
@@ -3849,8 +3867,8 @@ Cohesion: 0.11
 Nodes (21): Counter, CoverageSummary, CoverageThresholds, evaluateCoverage(), Floors, GateResult, measure(), Metric (+13 more)
 
 ### Community 783 - "firebase.ts"
-Cohesion: 0.19
-Nodes (24): addBookmark(), addDiscussionComment(), addNote(), app, deleteBookmark(), deleteNote(), deleteTrainee(), DiscussionComment (+16 more)
+Cohesion: 0.07
+Nodes (51): BIMFAQViewer(), FAQItem, TOPICS, CertificatesViewerProps, ExamInterfaceProps, QUESTIONS, StudentProfile(), StudentProfileProps (+43 more)
 
 ### Community 784 - "vendor-interop.ts"
 Cohesion: 0.13
@@ -3858,7 +3876,7 @@ Nodes (22): BlockedExchange, CandidateExchange, CanonicalVendorRow, ExchangeMani
 
 ### Community 785 - "ifc-python-runner.ts"
 Cohesion: 0.09
-Nodes (29): compareIfcParsers(), formatBytes(), generateSynthetic100MbIfc(), main(), runSyntheticMemoryBenchmark(), CLI, PYTHON, PYTHON_AVAILABLE (+21 more)
+Nodes (29): Ek9RowSchema, Ek9TableSchema, EpysPreflightError, EpysPreflightReport, EpysPreflightReportSchema, FindingSchema, runEpysPreflight(), summarizeEpysPreflight() (+21 more)
 
 ### Community 787 - "2. 16–17 Ekim 2026 Oturumlarında Tamamlanan Tüm İşler (`Rev. 6` → `Rev. 8.2`)"
 Cohesion: 0.06
@@ -3868,17 +3886,17 @@ Nodes (33): 1.1 macOS Node / NPM / Python Ortamı, 1.2 Coolify Canlı Dağıtım
 Cohesion: 0.29
 Nodes (6): 1. BIM Knowledge Engineer (BIM Bilgi Mühendisi), 2. AI BIM Director (Stratejik BIM Yöneticisi), 3. BIM Software Architect (Yazılım Mimarı), 4. Uygulama Durumu (14 Ekim 2026 — Tamamlandı & Canlıda), 5. 15 Ekim 2026 — Bakanlık Nihai PDF Paketi (`#1.pdf`, `#2.pdf`, `EKLER.pdf`) Tam Senkronizasyonu, e-PYS Entegrasyonu - 3 Yönlü Uygulama Planı
 
-### Community 791 - "src/services/ai/aiService.ts"
-Cohesion: 0.35
-Nodes (5): input, quotation, AIQuotationInput, AIQuotationResult, buildQuotationPrompt()
+### Community 791 - "impact.ts"
+Cohesion: 0.19
+Nodes (12): effectiveStatus(), findRegulationQuotationImpact(), ImpactQuotation, ImpactQuotationItem, includesTerm(), laborTerms, materialTerms, normalized() (+4 more)
 
 ### Community 792 - "Meta Ads Setup"
 Cohesion: 0.25
 Nodes (8): Audience Setup, Business Manager Foundation, Catalog (E-commerce), Compliance, Creative Assets, Domain & Aggregated Events, Meta Ads Setup, Pixel & Tracking
 
-### Community 794 - "cde/service.ts"
-Cohesion: 0.07
-Nodes (44): assignCdeMemberSchema, canonicalCdeScopeHash(), canonicalCdeTransitionRequestHash(), CdeDiscipline, cdeDisciplineSchema, CdeProjectRole, cdeProjectRoleSchema, CdeRevisionScope (+36 more)
+### Community 794 - "icmal-export-xlsx.ts"
+Cohesion: 0.12
+Nodes (18): QUOTE, buildIcmalXlsx(), HEADER_FILL, IcmalExportApartment, icmalExportFileName(), IcmalExportInput, IcmalExportLine, IcmalExportSource (+10 more)
 
 ### Community 795 - "LinkedIn Ads Setup"
 Cohesion: 0.25
@@ -3892,9 +3910,9 @@ Nodes (5): Birim fiyat analizi (ÇŞB mantığı), Maliyet, Birim Fiyat ve Tekli
 Cohesion: 0.40
 Nodes (5): Generating Ad Copy, Step 1: Define Your Angles, Step 2: Generate Variations per Angle, Step 3: Validate Against Specs, Step 4: Organize for Upload
 
-### Community 800 - "Postscript"
-Cohesion: 0.33
-Nodes (6): Compliance, Integration paths, Key features, Postscript, Pricing, Watch out for
+### Community 800 - "catalog-audit.ts"
+Cohesion: 0.16
+Nodes (22): ALLOWED_NORMALIZED_UNIT_SET, ALLOWED_NORMALIZED_UNITS, AuditableCatalog, auditCsbCatalogs(), CatalogAuditResult, CatalogAuditRow, CatalogBookAudit, CatalogKind (+14 more)
 
 ### Community 801 - "How This Skill Works"
 Cohesion: 0.40
@@ -3912,49 +3930,61 @@ Nodes (5): Discovery Sources (SaaS branch), GitHub prospecting pattern (when aud
 Cohesion: 0.33
 Nodes (5): Bu skill repo içinde nasıl kullanılır, Hesap motorları, Kaynak dokümanlar (repo içi), TeklifPro / BIMMetraj Repo Haritası (mühendislik açısından), Ürün ilkeleri (PRODUCT.md) — mühendislik çıktısını bunlara uydur
 
-### Community 805 - "smartcheck-evidence.ts"
-Cohesion: 0.10
-Nodes (28): AuthoringSoftwareDetection, AuthoringSoftwareRaw, hasDirectIfcRebarMassEvidence(), blockElement(), buildFindings(), buildIfcSmartCheckEvidenceArtifact(), buildParsedQuantityRow(), formatQuantity() (+20 more)
+### Community 805 - "price-catalog-ui.test.ts"
+Cohesion: 0.24
+Nodes (6): click(), dom, FetchCall, flush(), globals, mount()
+
+### Community 807 - "pdfa-fixture-matrix.ts"
+Cohesion: 0.18
+Nodes (16): main(), PdfProcessingArtifact, artifactOf(), compareWithExpectation(), ManifestCase, ManifestCaseSchema, observePdfaArtifacts(), PdfaMatrixCaseResult (+8 more)
+
+### Community 808 - "templates.ts"
+Cohesion: 0.27
+Nodes (7): escapeHtml(), evidenceSummaryHtml(), overheadProfitRow(), PdfData, PdfTemplate, templates, fixture
 
 ### Community 809 - "createTestIsolation"
 Cohesion: 0.16
 Nodes (6): catalogueWorkbook(), cloneTables(), createTestIsolation(), isolatedDatabaseUrl(), quote(), readLocalForeignKeys()
 
-### Community 811 - "source-intelligence.ts"
-Cohesion: 0.10
-Nodes (36): regulationAlerts, regulationVersions, smartcheckAuditLogs, sourceIngestionArtifacts, sourceIngestionRuns, sourceIntelligenceAdapters, sourceReviewItems, audit() (+28 more)
+### Community 811 - "how-it-works-data.ts"
+Cohesion: 0.15
+Nodes (15): CODE_PATH, EXPERT_MODULES, feedbackHref(), forReaders(), HIDDEN, HIDDEN_MODULE_IDS, PARENTHESISED_CODE_PATH, appRoutes (+7 more)
 
 ### Community 812 - "poz-resolver.ts"
 Cohesion: 0.17
 Nodes (17): defineManufacturingProfile(), ManufacturingProfile, nonEmpty(), terms(), loadOfficialCsbPozCatalog(), normalizeText(), normalizeUnit(), OfficialCatalog (+9 more)
 
-### Community 813 - "priceSchedulerService.ts"
-Cohesion: 0.13
-Nodes (16): priceFeedStaging, pricingDataSources, inferCrawledItemUnit(), parseTurkishPrice(), parseHtmlPrices(), PARSER_SOURCE, CrawledPriceItem, CrawlerSourceInput (+8 more)
+### Community 813 - "priceCrawlerService.ts"
+Cohesion: 0.29
+Nodes (7): parseTurkishPrice(), parseHtmlPrices(), PARSER_SOURCE, CrawledPriceItem, CrawlerSourceInput, CrawlResult, unsupportedOfficialSource()
 
 ### Community 815 - "Kaynaklar ve doğrulama durumu"
 Cohesion: 0.22
 Nodes (8): Birincil metin, Doğrulama yöntemi ve sınırı, EK-6: kodlanmış tablolar, Kaynaklar ve doğrulama durumu, Kodlanmış / kapsam dışı ekler, Metindeki tutarsızlıklar (araç ne yapıyor), Veri dosyaları (`src/ifc_ruhsat/ekler/`), Yönetmelik listesinin gerçek modellerle sınandığı yerler
 
 ### Community 816 - "price-escalation.ts"
-Cohesion: 0.11
-Nodes (33): CalmCostTools(), CalmCostToolsProps, CalmEscalationPanelProps, useCalmSessionInputs(), TuikEscalation, useTuikEscalation(), EscalationFormOutcome, EscalationFormState (+25 more)
-
-### Community 820 - "csb-pdf-parser.ts"
-Cohesion: 0.23
-Nodes (11): CATALOGS, dateSchema, extractPdfTextPureNode(), extractTextFromPdfBuffer(), normalizeUnit(), OfficialCatalogCoverageItem, OfficialCsbCatalog, parseCsbPdfText() (+3 more)
+Cohesion: 0.13
+Nodes (29): TuikEscalationInput, useTuikEscalation(), EscalationFormOutcome, EscalationFormState, EscalationRowState, computeContractPriceEscalation4735(), ContractEscalation4735Input, ContractEscalation4735Result (+21 more)
 
 ### Community 821 - "Dış Kaynak: "Türkiye Geneli İnşaat Müteahhitleri Süreç Analizi" (17 Ekim 2026)"
 Cohesion: 0.29
 Nodes (6): 1. Kodla tutarlı bulunanlar, 2. Rapordan çıkan ve **uygulanan** düzeltme, 3. Yeni bilgi / ürün fırsatı (henüz kodlanmadı), 4. Ürüne **alınmayan** (doğrulanamayan veya piyasa aktarımı) iddialar, 5. Bekleyen sorularla ilişki, Dış Kaynak: "Türkiye Geneli İnşaat Müteahhitleri Süreç Analizi" (17 Ekim 2026)
 
-### Community 823 - "Page-Specific Guidance"
-Cohesion: 0.33
-Nodes (6): About Page, Feature Page, Homepage, Landing Page, Page-Specific Guidance, Pricing Page
+### Community 822 - "kik-form.ts"
+Cohesion: 0.30
+Nodes (10): evaluateEscalationForm(), evaluateKikForm(), KikFormOutcome, KikFormState, parseKikLineItems(), KikAdtResult, KikNCoefficientException, validateKikNCoefficient() (+2 more)
+
+### Community 823 - "fixture-candidate-provider.ts"
+Cohesion: 0.23
+Nodes (8): checkSymlink(), FixtureCandidateProvider, isPathInsideOrEqual(), FixtureInfrastructureError, FixtureInfrastructureErrorCode, CandidateProviderResult, CandidateProviderResultSchema, EvaluationFixture
 
 ### Community 824 - "Phase Progress"
 Cohesion: 0.25
 Nodes (8): Phase 0 - Agent Memory And Pilot Roadmap, Phase 1 - Backend Modularization, First Pass, Phase 2 - Tenant/Auth/RBAC Hardening, First Pass, Phase 3 - Quote Engine And PDF Reliability, First Pass, Phase 4 - Multi AI Provider Layer, First Pass, Phase 5 - Pilot Deploy/Security/Observability Readiness, Phase 6 - Remaining Domain Route Modularization, Phase Progress
+
+### Community 825 - "subGuidesData.ts"
+Cohesion: 0.32
+Nodes (6): SubGuide, SubGuideQuestion, subGuidesData, SubGuideTable, SubGuideDrawer(), SubGuideDrawerProps
 
 ### Community 826 - "Dış Kaynak İncelemesi: İnşaatpanel (17 Ekim 2026)"
 Cohesion: 0.29
@@ -3964,9 +3994,13 @@ Nodes (6): Bekleyen soruyla ilişki, Bizim farkımız, Dikkat: makalede doğrula
 Cohesion: 0.50
 Nodes (4): Pipeline Metrics, Pipeline Stage Management, Pipeline Stages, Stage Hygiene
 
-### Community 829 - "app.ts"
-Cohesion: 0.03
-Nodes (83): app, registerBillingRoutes(), registerClientRoutes(), registerCrmRoutes(), IndustryRegistry, registerRegulationRoutes(), client(), tenantOf() (+75 more)
+### Community 829 - "src/server/routes/crm.ts"
+Cohesion: 0.07
+Nodes (28): client(), pool, activities, leads, quotationFinancials, CrmTenantAccess, defaultTenantAccess, actor (+20 more)
+
+### Community 830 - "licensed-csv.ts"
+Cohesion: 0.25
+Nodes (6): date, request, row, request, text, unitText
 
 ### Community 832 - "Pitch Templates by Angle"
 Cohesion: 0.29
@@ -3984,21 +4018,21 @@ Nodes (5): axePath, axeSource, MOCK_PLANS, require, ROUTES
 Cohesion: 0.12
 Nodes (9): allRoles, cdeTables, Credentials, ids, LoginRole, loginRoles, Queryable, quoteIdentifier() (+1 more)
 
-### Community 837 - "market-intelligence.ts"
-Cohesion: 0.13
-Nodes (24): supplierQuoteEntries, supplierQuoteSubmissions, evaluateSupplierPrice(), matchesSample(), median(), normalized(), PriceMemorySample, summarizePriceMemory() (+16 more)
+### Community 837 - "price-memory.ts"
+Cohesion: 0.42
+Nodes (7): evaluateSupplierPrice(), matchesSample(), median(), normalized(), PriceMemorySample, summarizePriceMemory(), SupplierPriceEvaluation
 
 ### Community 838 - "Twilio"
 Cohesion: 0.33
 Nodes (6): Compliance, Integration paths, Key features, Pricing, Twilio, Watch out for
 
-### Community 839 - "CalculationFeedback.tsx"
-Cohesion: 0.08
-Nodes (25): CALCULATION_VERDICT_LABELS, CalculationFeedback(), CalculationFeedbackProps, readError(), SubmitState, VERDICT_ORDER, ExpertFeedback, ExpertFeedbackEngine (+17 more)
+### Community 839 - "expert-feedback-ui.test.ts"
+Cohesion: 0.16
+Nodes (10): expertFeedbackInput, dom, FetchCall, globals, cleanText(), collect(), Entry, scalar() (+2 more)
 
 ### Community 840 - "spreadsheet-templates.ts"
-Cohesion: 0.28
-Nodes (14): addDataSheet(), addExampleSheet(), addTextSheet(), buildParcelXlsxTemplate(), buildPriceCatalogXlsxTemplate(), buildQuoteXlsxTemplate(), ColumnSpec, HEADER_FILL (+6 more)
+Cohesion: 0.16
+Nodes (20): hasOleSignature(), isLegacyXls(), OLE_SIGNATURE, spreadsheetKind, addDataSheet(), addExampleSheet(), addTextSheet(), buildParcelXlsxTemplate() (+12 more)
 
 ### Community 841 - "Per-Platform Notes"
 Cohesion: 0.33
@@ -4014,27 +4048,39 @@ Nodes (6): Completed and committed this session, First-customer simulation — c
 
 ### Community 844 - "react"
 Cohesion: 0.13
-Nodes (10): react, react, dom, globals, ITEMS, mount(), Field(), dom (+2 more)
+Nodes (10): react, react, dom, globals, ITEMS, mount(), dom, globals (+2 more)
 
 ### Community 845 - "enum"
 Cohesion: 0.33
 Nodes (6): reviewerDiscipline, enum, type, ARC, MEP, STR
 
 ### Community 846 - "backup-docker.ts"
-Cohesion: 0.28
-Nodes (12): binary(), connectionArgs(), Container, dockerPrefix(), exec, restoreViaVerifiedContainer(), container, verifiedContainerId() (+4 more)
+Cohesion: 0.30
+Nodes (11): binary(), connectionArgs(), Container, dockerPrefix(), exec, restoreViaVerifiedContainer(), container, verifiedContainerId() (+3 more)
 
-### Community 849 - "Core Principles"
-Cohesion: 0.40
-Nodes (5): Core Principles, Sales Uses What Sales Trusts, Scannable Over Comprehensive, Situation-Specific, Not Generic, Tie Back to Business Outcomes
+### Community 847 - "allplan-structural-audit.mjs"
+Cohesion: 0.17
+Nodes (10): componentEvidence, constants, evidenceRoot, lessonKeys, lessons, missingModules, modules, releaseGate (+2 more)
 
-### Community 851 - "Anti-Patterns to Avoid"
-Cohesion: 0.67
-Nodes (3): Anti-Patterns to Avoid, Conversion Killers, Dark Patterns
+### Community 848 - "Billing.tsx"
+Cohesion: 0.10
+Nodes (25): adminDashboardSchema, adminPlansSchema, count, readAdminResponse(), AdminDashboard(), removeBankAt(), PLAN_PRESETS, PlanEditor() (+17 more)
 
-### Community 854 - "One-Pagers / Leave-Behinds"
-Cohesion: 0.50
-Nodes (4): Design Principles, One-Pagers / Leave-Behinds, Structure, When to Use
+### Community 849 - "file-security.ts"
+Cohesion: 0.22
+Nodes (10): CSV_MIMES, detectAndValidateFile(), IFC_MIMES, maxBytesForSmartCheckFileName(), PDF_MIMES, SmartCheckFileKind, XLSX_MIMES, ParsedQuantityRow (+2 more)
+
+### Community 850 - "companion.ts"
+Cohesion: 0.29
+Nodes (8): answerFromAllplanLessons(), CompanionAnswer, CompanionCitation, excerpt(), stopWords, lessons, tokens(), AllplanLesson
+
+### Community 851 - "releaseGate.ts"
+Cohesion: 0.39
+Nodes (7): AllplanContentReviewRecord, canReleaseAllplanLesson(), evaluateAllplanContentReview(), localEvidence(), present(), ReleaseGateResult, approvedRecord
+
+### Community 854 - "route-jsonld.ts"
+Cohesion: 0.24
+Nodes (12): absolute(), breadcrumbList(), BREADCRUMBS, CALCULATOR_ROUTES, calculatorApplication(), CALCULATORS, Crumb, definedTermSet() (+4 more)
 
 ### Community 855 - "Demo Scripts & Talk Tracks"
 Cohesion: 0.50
@@ -4060,9 +4106,9 @@ Nodes (8): Bonus expiry, Capacity-based scarcity, Cohort scarcity, Founding-memb
 Cohesion: 0.22
 Nodes (8): args, compiled, dry, files, migrateSource(), rules, textWhite, run()
 
-### Community 861 - "PriceSchedulerService"
+### Community 861 - "sinif.py"
 Cohesion: 0.20
-Nodes (8): auditSummary(), PriceSchedulerService, crawlerDayStart(), crawlerScheduleDue(), formatter, instant(), nextCrawlerRun(), parts()
+Nodes (7): ifc-ruhsat — yapı ruhsatı IFC modelini yönetmeliğe göre kontrol eder., kontrol(), _listedeki_alt_siniflar(), _on_tanimli_tip(), IFC sınıfı kuralları: her varlık EK-5'teki zorunlu ya da isteğe bağlı listeden…, PredefinedType olan her sınıfta değer atanmış ve NOTDEFINED değil; USERDEFINED…, Bu sınıfın EK-5 listesinde yer alan (dolaylı) alt sınıfları — öneri için.
 
 ### Community 863 - "Vendored: ifc-ruhsat"
 Cohesion: 0.50
@@ -4073,16 +4119,16 @@ Cohesion: 0.14
 Nodes (13): 0022 request-path taşıması, 0023 (S1 — Teklif çekirdeği) request-path taşıması, 0024 (S2 — Fiyat, kaynak zekâsı ve mevzuat) request-path taşıması, 0025 (S4a — Allplan öğrenci verisi) request-path taşıması, 0026 (S4b — Academy control-plane ve halka açık sertifika doğrulama) request-path taşıması, 0027 (S3 — SmartCheck doküman ve worker hattı) request-path taşıması, Açık sınırlar, Faz 7 / T41 — `company_id` taşıyan tabloların envanteri ve 0022–0027 + S5 dilimleri (+5 more)
 
 ### Community 865 - "calm-transfer.ts"
-Cohesion: 0.04
-Nodes (98): resolvePg16ExecutionMode(), priceSnapshots, priceSources, quotationTransferLedgers, quotationTransferSourceRows, audit(), authorizationStatuses, canApprove (+90 more)
+Cohesion: 0.08
+Nodes (43): priceSnapshots, priceSources, quotationTransferLedgers, quotationTransferSourceRows, CALM_ICMAL_RULE_VERSION, assertNoPriorSourceTransfer(), assertQuotationItemCalculationSafe(), buildCalmNewQuotationRequestHash() (+35 more)
 
-### Community 866 - "BIMMetraj — tüm GAP'leri kapatma ve iddia kanıtlama yol haritası"
-Cohesion: 0.15
-Nodes (13): 1.1. 24 Ekim 2026 itibarıyla kaldığımız yer, 1. Onaylanan sonuç, 2. Çalışma ve onay sınırları, 3. Fazlar ve bağımlılıklar, 5. Bulgu → To-Do izlenebilirlik matrisi, 6. Her geliştirmede zorunlu proje kayıtları, 8.1 Canlı ve `main`, 8.2 Birleştirilen paralel PR'lar ve merge sonrası kalanlar (+5 more)
+### Community 866 - "4. Ayrıntılı To-Do listesi"
+Cohesion: 0.05
+Nodes (40): 1.1. 24 Ekim 2026 itibarıyla kaldığımız yer, 1. Onaylanan sonuç, 2. Çalışma ve onay sınırları, 3. Fazlar ve bağımlılıklar, 4. Ayrıntılı To-Do listesi, 5. Bulgu → To-Do izlenebilirlik matrisi, 6. Her geliştirmede zorunlu proje kayıtları, 7. Onay ve yürütme kaydı (+32 more)
 
-### Community 867 - "4. Ayrıntılı To-Do listesi"
-Cohesion: 0.15
-Nodes (13): 4. Ayrıntılı To-Do listesi, Faz 0 — Kapsam ve kanıt sözleşmesi, Faz 10 — “Türkiye'de tek” iddiasının araştırılması, Faz 11 — Nihai kapanış, Faz 1 — Poz, birim ve fiyat kaynağı, Faz 2 — IFC kapsam ve metraj bütünlüğü, Faz 3 — Mevzuat ve hesap motorları, Faz 4 — Gerçek CDE onay akışı (+5 more)
+### Community 867 - "allplan/types.ts"
+Cohesion: 0.25
+Nodes (7): AllplanContentStatus, AllplanCoverageReport, AllplanCurriculumNode, AllplanLessonStep, AllplanLessonSummary, AllplanModuleNode, AllplanTrack
 
 ### Community 868 - "Footer Navigation"
 Cohesion: 0.50
@@ -4092,17 +4138,17 @@ Nodes (4): Column-Based Footer (Standard), Expanded Footer, Footer Navigation, M
 Cohesion: 0.67
 Nodes (3): vite, vite, vite
 
-### Community 870 - "BIMMetraj — tüm GAP'leri kapatma ve iddia kanıtlama yol haritası"
-Cohesion: 0.15
-Nodes (13): 1.1. 24 Ekim 2026 itibarıyla kaldığımız yer, 1. Onaylanan sonuç, 2. Çalışma ve onay sınırları, 3. Fazlar ve bağımlılıklar, 5. Bulgu → To-Do izlenebilirlik matrisi, 6. Her geliştirmede zorunlu proje kayıtları, 8.1 Canlı ve `main`, 8.2 Birleştirilen paralel PR'lar ve merge sonrası kalanlar (+5 more)
+### Community 870 - "4. Ayrıntılı To-Do listesi"
+Cohesion: 0.06
+Nodes (32): 1.1. 24 Ekim 2026 itibarıyla kaldığımız yer, 1. Onaylanan sonuç, 2. Çalışma ve onay sınırları, 3. Fazlar ve bağımlılıklar, 4. Ayrıntılı To-Do listesi, 5. Bulgu → To-Do izlenebilirlik matrisi, 6. Her geliştirmede zorunlu proje kayıtları, 7. Onay ve yürütme kaydı (+24 more)
 
 ### Community 871 - "Resmî Veri Araştırması — KİK, 4735, Müteahhit Sınıflandırma, KDV ve Ön-render"
 Cohesion: 0.25
 Nodes (7): 1. KİK sınır değer (4734 m.38, Kamu İhale Genel Tebliği m.45.1.1) — Güven: **Yüksek**, 2. 4735 sayılı Kanun fiyat farkı — Güven: **Orta–Yüksek** (formül ve B yüksek; sayısal resmî örnek yok), 3. Yapı Müteahhitlerinin Sınıflandırılması Yönetmeliği — Güven: **Yüksek**, 4. Konut KDV oranları ve kat karşılığı — Güven: **Orta**, 5. Ön-render ve yapay zekâ tarayıcıları — Güven: **Orta**, 6. Bu araştırmanın doğrulamadıkları, Resmî Veri Araştırması — KİK, 4735, Müteahhit Sınıflandırma, KDV ve Ön-render
 
-### Community 874 - "4. Ayrıntılı To-Do listesi"
-Cohesion: 0.15
-Nodes (13): 4. Ayrıntılı To-Do listesi, Faz 0 — Kapsam ve kanıt sözleşmesi, Faz 10 — “Türkiye'de tek” iddiasının araştırılması, Faz 11 — Nihai kapanış, Faz 1 — Poz, birim ve fiyat kaynağı, Faz 2 — IFC kapsam ve metraj bütünlüğü, Faz 3 — Mevzuat ve hesap motorları, Faz 4 — Gerçek CDE onay akışı (+5 more)
+### Community 874 - "validate-allplan-content-review.mjs"
+Cohesion: 0.29
+Nodes (7): evaluateEvidenceFiles(), absolutePath, cliArgs, evidenceRoot, parsed, resolveEvidenceFile(), validateRecord()
 
 ### Community 875 - "BIMMetraj — Marka Konumlandırması, Ürün Stratejisi, Paketleme ve UI/UX Değerlendirme Raporu"
 Cohesion: 0.15
@@ -4115,6 +4161,10 @@ Nodes (9): adminChecks(), base, Check, main(), required(), results, runChecks(),
 ### Community 877 - "result-summary.ts"
 Cohesion: 0.17
 Nodes (13): ResultSummaryPanel(), ResultSummaryPanelProps, TONE, buildResultSummary(), countLine(), NEXT_STEP_TEXT, NextStepAction, ResultLine (+5 more)
+
+### Community 879 - "PublicPricingSection.tsx"
+Cohesion: 0.31
+Nodes (8): pricingLayout(), publicPlansForDisplay(), PublicPlanVisibility, formatQuantity(), PlanCard(), PublicPlan, publicPlanSchema, PublicPricingSection()
 
 ### Community 881 - "Usage-Value Correlation Analysis"
 Cohesion: 0.40
@@ -4132,6 +4182,10 @@ Nodes (5): 1. Business Context, 2. Value & Competition, 3. Current Performance, 
 Cohesion: 0.50
 Nodes (4): Content / Blog Site, Navigation, Page Hierarchy, URL Map
 
+### Community 886 - "db/index.ts"
+Cohesion: 0.07
+Nodes (16): connectionTimeoutMillis, db, idleTimeoutMillis, maxConnections, statementTimeout, pilotApplications, mutate(), routes() (+8 more)
+
 ### Community 887 - "3. Bu Repolardan Başka Hangi Noktalarda Fayda Sağlayabiliriz? (Sıradaki 5 Somut Fırsat)"
 Cohesion: 0.17
 Nodes (11): 1. Son Durum Özeti (`Rev. 36` — `feat/ifc-consistency-gate`), 2. Bahsi Geçen Açık Kaynak Repolardan Şu Ana Kadar Hangi Konularda Yararlandık?, 3. Bu Repolardan Başka Hangi Noktalarda Fayda Sağlayabiliriz? (Sıradaki 5 Somut Fırsat), 4. Özet Öncelik Matrisi, 5. Rev. 37 Durumu (19 Ekim 2026) — Hangi Fırsatlar Uygulandı, Hangileri Bilinçli Olarak Bekletildi, Açık Kaynak Repolardan Kazanımlar (`Rev. 36`) ve Sıradaki Geliştirme Fırsatları Raporu, 🎯 Fırsat 1: `aec-platform/qto` → Çoklu Ülke / Standart Deklaratif Poz Sınıflandırma Motoru (`Classification Packs`), 🎯 Fırsat 2: `aec-platform/qto` → Kapsam Dışı (`out_of_scope`) Sınıfların (`IfcStair`, `IfcCurtainWall`, `IfcRailing`) Kontrollü Metrajı ve `2026_45` Astar/Macun Katmanları (+3 more)
@@ -4148,9 +4202,13 @@ Nodes (4): Freemium vs. Free Trial, Hybrid Approaches, When to Use Free Trial, W
 Cohesion: 0.50
 Nodes (4): Choosing Your Value Metric, Common Value Metrics, Value Metrics, What is a Value Metric?
 
-### Community 892 - "T32 — Gerçek veraPDF çalışma ortamı ve fixture matrisi"
-Cohesion: 0.17
-Nodes (8): 1. Çalışma ortamı (pin), 2. Saklanan rapor artifact'ları, 3. Fixture matrisi (PDF/A-2b), 4. Çalıştırma, 5. Kapanmayan kapılar, 6. Açık karar — PDF/A dönüşümü (Hazar), Lisans (resmî kaynaktan doğrulandı, 25 Ekim 2026), T32 — Gerçek veraPDF çalışma ortamı ve fixture matrisi
+### Community 891 - "smartcheck-pilot-tenant-rls.pgtest.ts"
+Cohesion: 0.20
+Nodes (3): Credentials, ids, loginRoles
+
+### Community 892 - "constants.ts"
+Cohesion: 0.33
+Nodes (5): COURSE_TREE, LessonNode, NAV_ITEMS, NavItem, ScreenType
 
 ### Community 894 - "7. Mevcut paketlerin ayrıntılı değerlendirmesi"
 Cohesion: 0.17
@@ -4176,29 +4234,29 @@ Nodes (3): MaxDiff Analysis, Pricing Research, Van Westendorp Method
 Cohesion: 0.67
 Nodes (3): Pricing Fundamentals, The Three Pricing Axes, Value-Based Pricing
 
-### Community 901 - "sinif.py"
-Cohesion: 0.20
-Nodes (7): ifc-ruhsat — yapı ruhsatı IFC modelini yönetmeliğe göre kontrol eder., kontrol(), _listedeki_alt_siniflar(), _on_tanimli_tip(), IFC sınıfı kuralları: her varlık EK-5'teki zorunlu ya da isteğe bağlı listeden…, PredefinedType olan her sınıfta değer atanmış ve NOTDEFINED değil; USERDEFINED…, Bu sınıfın EK-5 listesinde yer alan (dolaylı) alt sınıfları — öneri için.
+### Community 901 - "Postscript"
+Cohesion: 0.33
+Nodes (6): Compliance, Integration paths, Key features, Postscript, Pricing, Watch out for
 
-### Community 905 - "BIMMetraj — mevcut kod ve GAP raporu bağımsız doğrulaması"
-Cohesion: 0.18
-Nodes (11): 1. Karar, 2. Mevcut durum: kod, Git ve canlı ayrımı, 4. Eski raporun 22 maddesi: tek tek karar, 5. Hesap motorlarının doğruluk sınırı, 6. SEO/GEO ve rakip önerilerinin düzeltilmesi, 7. Doğrulama kayıtları ve sınırlar, 8. Önerilen düzeltme sırası ve kabul ölçütleri, BIMMetraj — mevcut kod ve GAP raporu bağımsız doğrulaması (+3 more)
+### Community 905 - "3. Raporda kaçırılan öncelikli bulgular"
+Cohesion: 0.09
+Nodes (21): 1. Karar, 2. Mevcut durum: kod, Git ve canlı ayrımı, 3. Raporda kaçırılan öncelikli bulgular, 4. Eski raporun 22 maddesi: tek tek karar, 5. Hesap motorlarının doğruluk sınırı, 6. SEO/GEO ve rakip önerilerinin düzeltilmesi, 7. Doğrulama kayıtları ve sınırlar, 8. Önerilen düzeltme sırası ve kabul ölçütleri (+13 more)
 
 ### Community 906 - "Voice & Audio Generation"
 Cohesion: 0.20
 Nodes (10): Cartesia Sonic, Choosing a Voice Tool, ElevenLabs, OpenAI TTS, Other Voice Tools, Voice & Audio Generation, Voice Tool Comparison, Voicebox (Open Source) (+2 more)
 
-### Community 907 - "AI SOFTWARE ENGINEERING / GITHUB / DEVOPS MASTER WORKFLOW"
-Cohesion: 0.20
-Nodes (9): AI SOFTWARE ENGINEERING / GITHUB / DEVOPS MASTER WORKFLOW, Breaking Changes, Changes, Deployment Notes, Problem, Risks, Summary, Testing (+1 more)
+### Community 907 - "official-document.ts"
+Cohesion: 0.47
+Nodes (6): decodeEntities(), fetchOfficialRegulation(), parseOfficialRegulation(), plainText(), validateOfficialDocumentUrl(), NormalizedRegulationChange
 
 ### Community 909 - "4. ABD ve Global Pazar İçin Tamamlanması Gereken 4 Somut Mühendislik Köprüsü"
 Cohesion: 0.20
 Nodes (9): 1. Git Geçmişinde Kurulmuş Olan Çoklu Bölge (Multi-Region) Altyapı Commit’leri, 2. Mevcut Kodda Tanımlı Ülke / Yargı Yetkisi Profilleri (`JURISDICTION_PRESETS`), 3. ABD (`US`) Pazarı İçin Hesap Motorlarının Katman Bazlı Uygunluk Analizi, 4. ABD ve Global Pazar İçin Tamamlanması Gereken 4 Somut Mühendislik Köprüsü, BIMMetraj — Gelecekteki Global Konumlandırma ve Çoklu Ülke (ABD / AB / Körfez) Altyapı Analizi, Köprü 1: Çoklu Standart Poz Sınıflandırma Paketi (`src/ifc/calm-icmal.ts`), Köprü 2: İmperyal (`Imperial`) Birim Gösterim ve Raporlama Katmanı (`src/lib/units.ts`), Köprü 3: `ACI 318-19` Betonarme Paspayı ve Büküm Kuralları (`src/smartcheck/rules/three-by-three.ts`) (+1 more)
 
-### Community 910 - "3. Raporda kaçırılan öncelikli bulgular"
-Cohesion: 0.20
-Nodes (10): 3. Raporda kaçırılan öncelikli bulgular, KOD-01 — P1: İcmal pozları katalogdaki imalat ve birimle uyuşmuyor, KOD-02 — P1: BYOL / ÇŞB fiyat kaynağı seçimi hesaplamaya bağlı değil, KOD-03 — P1: YAMBİS eksik kanıtı uygunluk sayıyor; tarihli istisnayı uygulamıyor, KOD-04 — P1: KİK %80 açıklama kapsamı yanlış veri kaynağından türetiliyor, KOD-05 — P1: CDE geçmiş sırası geçerli ilerlemeyi engelliyor, KOD-06 — P1/P2: İcmal kapsamı bazı verileri sessiz kaybediyor veya yanlış eşliyor, KOD-07 — P2: Minha açıklaması ve gerçek hesap kapsamı ayrışıyor (+2 more)
+### Community 910 - "quotation-audit.ts"
+Cohesion: 0.40
+Nodes (4): AuditSeverity, costGuidance, QuotationAuditIssue, sourceGuidance
 
 ### Community 911 - "pdfa-matrix/manifest.json"
 Cohesion: 0.20
@@ -4208,13 +4266,17 @@ Nodes (9): cases, derivedFrom, generator, profile, schemaVersion, task, validato
 Cohesion: 0.20
 Nodes (10): 13.1. Dosya seçimi ve örnekler olumlu, 13.2. “Resmî İcmal Paftası” ifadesi fazla güçlü, 13.3. Arsa fizibilitesi aynı ekrana fazla yük bindiriyor, 13.4. Kullanıcı başlamadan hata mesajı görülüyor, 13.5. Sonucun en güçlü bölümü: “Bu sayı nasıl oluştu?”, 13.6. Üst başarı ifadesi ile alt açıklama çelişiyor, 13.7. “Boşluk yok” ile “boşluk bilgisi yok” ayrılmalı, 13.8. Yüzde 100 eşleşme, yüzde 100 doğrulama gibi algılanmamalı (+2 more)
 
-### Community 914 - "price-catalog-ui.test.ts"
-Cohesion: 0.24
-Nodes (6): click(), dom, FetchCall, flush(), globals, mount()
+### Community 914 - "text-provider.ts"
+Cohesion: 0.12
+Nodes (10): createTextProvider(), TextProvider, CRMIntelligenceService, DealIntelligence, items, FinancialAnalysis, ProfitService, impactSchema (+2 more)
 
 ### Community 915 - "t56-final-evidence-matrix.test.ts"
 Cohesion: 0.20
 Nodes (9): AuditFindingEntry, CalculationEngineEntry, DefectEntry, FinalEvidenceMatrix, GAP_DOC_PATH, MATRIX_JSON_PATH, MATRIX_MD_PATH, ROOT (+1 more)
+
+### Community 916 - "Reporting & Analysis"
+Cohesion: 0.50
+Nodes (4): Attribution Considerations, Reporting & Analysis, Scaling discipline (net cash > ROAS percentage), Weekly Review
 
 ### Community 918 - "Handoff Raporu: IFC Kapsam, Veri Tutarlılığı ve Metraj Bütünlüğü Kapısı (2026-10-19)"
 Cohesion: 0.22
@@ -4284,13 +4346,29 @@ Nodes (8): 11.1. Panel, günlük iş ekranından çok ürün tanıtımı gibi da
 Cohesion: 0.25
 Nodes (8): 12.1. Excel bağlantısı doğru başlangıç durumunu açmıyor, 12.2. AI fiyat mesajı ürünün kaynak politikasından ayrışıyor, 12.3. İç sistem değerleri kullanıcıya görünüyor, 12.4. İlk teklif için fazla gelişmiş alan var, 12.5. Tablo genişliği ve okunabilirlik, 12.6. Onaylı rayiç bulunmadığında sonraki adım yok, 12.7. Profesyonel ipucunun bağlamı, 12. Yeni teklif ekranı
 
-### Community 938 - "licensed-csv.ts"
-Cohesion: 0.25
-Nodes (6): date, request, row, request, text, unitText
-
-### Community 941 - "kot.py"
+### Community 935 - "kot.py"
 Cohesion: 0.32
 Nodes (7): kontrol(), Any, Elemanların kotu (EK-9 m.15): her yapı elemanının yerleşim noktası, bağlı…, Elemanın yerleşim orijininin dünya kotu (metre); yerleşimi yoksa None., yerlesim_kotu(), kati(), Nesnenin içinde bulunduğu IfcBuildingStorey…
+
+### Community 936 - "pre-bim-xlsx.ts"
+Cohesion: 0.38
+Nodes (4): ParcelCsvParseResult, SheetCell, cellToValue(), parseParcelXlsx()
+
+### Community 938 - "Before Creating Content"
+Cohesion: 0.40
+Nodes (5): 1. Goals, 2. Audience, 3. Brand Voice, 4. Resources, Before Creating Content
+
+### Community 939 - "ExpertReview.tsx"
+Cohesion: 0.33
+Nodes (5): DISCIPLINES, ExpertReview(), GATES, hrefs, html
+
+### Community 940 - "phase-0-evidence-validator.test.ts"
+Cohesion: 0.40
+Nodes (5): loadPhase0Evidence(), Phase0Evidence, readJson(), cloneEvidence(), root
+
+### Community 941 - "Proposal Templates"
+Cohesion: 0.50
+Nodes (4): Common Mistakes, Customization Guidance, Proposal Templates, Structure
 
 ### Community 942 - "Handoff: Çalışmaya Ara (2026-10-19)"
 Cohesion: 0.29
@@ -4344,13 +4422,21 @@ Nodes (7): 19.1. Kârlılık boş durumu olumlu, 19.2. Kârlılık adı ile haci
 Cohesion: 0.29
 Nodes (7): 5.1. Başlık güçlü fakat fazla kesin, 5.2. İlk ekranda teknik yoğunluk fazla, 5.3. Teknik dil kullanıcı diline çevrilmeli, 5.4. En güçlü satın alma gerekçesi geç gösteriliyor, 5.5. Sentetik demo etiketlemesi olumlu, 5.6. Resmîlik çağrıştıran ifadeler gözden geçirilmeli, 5. Kamuya açık ana sayfa değerlendirmesi
 
+### Community 955 - "Advanced Patterns"
+Cohesion: 0.50
+Nodes (4): Advanced Patterns, Custom JavaScript Variables, Exception Handling, Tag Sequencing
+
+### Community 956 - "Objection Handling Docs"
+Cohesion: 0.50
+Nodes (4): Objection Categories, Objection Handling Docs, Response Framework, Two Formats
+
 ### Community 957 - "Carousel Frameworks"
 Cohesion: 0.20
 Nodes (10): Carousel Frameworks, Framework A: Value-Stack (4–14 slides), Framework B: Problem-Proof (6–10 slides), Framework C: Hack List (6–10 slides), Framework D: Rant Callout (4–8 slides), Framework E: Demo Walkthrough (5–11 slides), Measuring What Worked, Picking a Framework (+2 more)
 
-### Community 958 - "7. Onay ve yürütme kaydı"
-Cohesion: 0.33
-Nodes (6): 7. Onay ve yürütme kaydı, Rev. 61 / 8C — Worker company context capability (24 Ekim 2026), Rev. 62 / T41 test izolasyonu (24 Ekim 2026), Rev. 63 / T41 explicit worker credential harness (24 Ekim 2026), Rev. 64 / T41 worker queue RLS mirror (24 Ekim 2026), Yerel doğrulama notu — 24 Ekim 2026
+### Community 958 - "UTM Parameter Strategy"
+Cohesion: 0.67
+Nodes (3): Naming Conventions, Standard Parameters, UTM Parameter Strategy
 
 ### Community 959 - "Vendor IFC referans araştırması"
 Cohesion: 0.33
@@ -4376,9 +4462,9 @@ Nodes (5): Açık sınırlar, Doğrulama, Faz 7 / T41 — CDE tenant RLS kanıt 
 Cohesion: 0.33
 Nodes (5): 1. Kabul Kriteri → Kanıt Eşlemesi, 2. Eski Dış Rapor Teşhislerinin Güncel Kanıtla Düzeltilmesi (Tarihî Kayıtlar Korunarak), 3. Çalıştırılan Doğrulama Komutları, 4. Kalan Sınır, Faz 8 / T46 — Tek Kaynaklı Ürün Doğruluğu Kanıt Dosyası
 
-### Community 965 - "7. Onay ve yürütme kaydı"
-Cohesion: 0.33
-Nodes (6): 7. Onay ve yürütme kaydı, Rev. 61 / 8C — Worker company context capability (24 Ekim 2026), Rev. 62 / T41 test izolasyonu (24 Ekim 2026), Rev. 63 / T41 explicit worker credential harness (24 Ekim 2026), Rev. 64 / T41 worker queue RLS mirror (24 Ekim 2026), Yerel doğrulama notu — 24 Ekim 2026
+### Community 965 - "Anti-Patterns to Avoid"
+Cohesion: 0.67
+Nodes (3): Anti-Patterns to Avoid, Conversion Killers, Dark Patterns
 
 ### Community 966 - "14. Maliyet ve teklife aktarım"
 Cohesion: 0.33
@@ -4488,10 +4574,6 @@ Nodes (4): 24.1. Canlı incelenen yüzeyler, 24.2. Başlıca kod kaynakları, 24
 Cohesion: 0.83
 Nodes (3): fail(), section(), release-preflight.sh script
 
-### Community 1000 - "Before Creating Content"
-Cohesion: 0.40
-Nodes (5): 1. Goals, 2. Audience, 3. Brand Voice, 4. Resources, Before Creating Content
-
 ### Community 1003 - "Testing and Optimization"
 Cohesion: 0.50
 Nodes (4): How to Test, Metrics to Track, Testing and Optimization, What to Test
@@ -4501,24 +4583,24 @@ Cohesion: 0.50
 Nodes (4): Abandoned Cart (highest-ROI flow for ecom), Send 1 — 30 minutes after abandon, Send 2 — 4 hours after abandon (if no purchase), Send 3 — 24 hours after abandon (if no purchase, discount allowed)
 
 ## Knowledge Gaps
-- **7033 isolated node(s):** `evaluate-session.sh script`, `suggest-compact.sh script`, `app`, `$schema`, `style` (+7028 more)
+- **7048 isolated node(s):** `evaluate-session.sh script`, `suggest-compact.sh script`, `app`, `$schema`, `style` (+7043 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **70 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **72 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `react` connect `react` to `price-catalog-ui.test.ts`, `CalculationFeedback.tsx`, `t43-ui-pages-and-components.test.ts`, `dependencies`?**
+- **Why does `react` connect `react` to `Clients.tsx`, `Shell.tsx`, `price-catalog-ui.test.ts`, `t43-ui-pages-and-components.test.ts`, `dependencies`?**
   _High betweenness centrality (0.022) - this node is a cross-community bridge._
 - **Why does `dependencies` connect `dependencies` to `nodemailer`, `prisma`, `@google/generative-ai`, `@tailwindcss/vite`, `package.json`, `react`, `vite`, `bcryptjs`, `tailwind-merge`, `exceljs`, `express`, `@fontsource-variable/manrope`, `jsonwebtoken`, `puppeteer`, `@radix-ui/react-progress`, `tw-animate-css`, `@types/bcryptjs`, `web-ifc`, `firebase`?**
   _High betweenness centrality (0.021) - this node is a cross-community bridge._
-- **Why does `CertificatesViewer()` connect `t43-ui-pages-and-components.test.ts` to `react`?**
+- **Why does `CertificatesViewer()` connect `t43-ui-pages-and-components.test.ts` to `react`, `firebase.ts`?**
   _High betweenness centrality (0.012) - this node is a cross-community bridge._
 - **Are the 19 inferred relationships involving `fetchWithAuth()` (e.g. with `loadPreview()` and `loadQueue()`) actually correct?**
   _`fetchWithAuth()` has 19 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 7 inferred relationships involving `registerSmartCheckRoutes()` (e.g. with `startServer()` and `requireVerifiedEmail()`) actually correct?**
   _`registerSmartCheckRoutes()` has 7 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `evaluate-session.sh script`, `suggest-compact.sh script`, `app` to the rest of the system?**
-  _7033 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _7048 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Clients.tsx` be split into smaller, more focused modules?**
-  _Cohesion score 0.05742574257425743 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.05531914893617021 - nodes in this community are weakly interconnected._
