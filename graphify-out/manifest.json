@@ -1085,8 +1085,8 @@
     "semantic_hash": ""
   },
   "src/components/bimplan/LegislationView.tsx": {
-    "mtime": 1793199034.483283,
-    "ast_hash": "9f46a3d8d479bff7948205ce9cfa475d",
+    "mtime": 1793204765.6899402,
+    "ast_hash": "e6e1a934ec4370ab79edb6a924a001fd",
     "semantic_hash": ""
   },
   "src/components/bimplan/StandardsView.tsx": {
@@ -1470,8 +1470,8 @@
     "semantic_hash": ""
   },
   "src/pages/LandingPage.tsx": {
-    "mtime": 1793199083.8891885,
-    "ast_hash": "5c937d82be1d3da11351649038a6f50e",
+    "mtime": 1793204765.6904056,
+    "ast_hash": "8f392341d0ce17da4ba251d5d56c5cdd",
     "semantic_hash": ""
   },
   "src/pages/LegalPage.tsx": {
@@ -4355,8 +4355,8 @@
     "semantic_hash": ""
   },
   "src/ifc/types.ts": {
-    "mtime": 1793197173.4614108,
-    "ast_hash": "951a0be72be99fa9c0292784e5ed0a9e",
+    "mtime": 1793204517.596839,
+    "ast_hash": "59397d115c7de973ea19f4427e60ebac",
     "semantic_hash": ""
   },
   "src/ifc/parser/legacy-parser.ts": {
@@ -5020,8 +5020,8 @@
     "semantic_hash": ""
   },
   "src/smartcheck/import/ifc-python-runner.ts": {
-    "mtime": 1793197173.5310915,
-    "ast_hash": "6e40c1d916c9d453a5036de992aa752d",
+    "mtime": 1793204517.5966485,
+    "ast_hash": "bf191a173f2132d6c286b14cd733757f",
     "semantic_hash": ""
   },
   "src/smartcheck/import/ifc-worker.ts": {
@@ -5085,13 +5085,13 @@
     "semantic_hash": ""
   },
   "workers/ifc/ifc_extract.py": {
-    "mtime": 1793198562.9805474,
-    "ast_hash": "6ea8e8bdd2b8bb36065e8728d3c0e44d",
+    "mtime": 1793204688.2340143,
+    "ast_hash": "9a0ec165d63601cb863f29d436d8ded9",
     "semantic_hash": ""
   },
   "workers/ifc/test_ifc_extract.py": {
-    "mtime": 1793198656.4553053,
-    "ast_hash": "8c2cc4aca2c6f6838c8995431fd11853",
+    "mtime": 1793204629.0507336,
+    "ast_hash": "5de74bba8dfbe314d98cba691e177031",
     "semantic_hash": ""
   },
   "docs/agent-memory/EPYS_IMPLEMENTATION_PLAN.md": {
@@ -5835,13 +5835,13 @@
     "semantic_hash": ""
   },
   "src/pages/admin/roadmap/calculation-content.ts": {
-    "mtime": 1793203790.5539865,
-    "ast_hash": "bf7591e8d819f20cd53caec5247ec830",
+    "mtime": 1793204811.0041602,
+    "ast_hash": "5a570e8eb2bd497eadb9f22666f6b9fb",
     "semantic_hash": ""
   },
   "src/pages/admin/roadmap/content.test.ts": {
-    "mtime": 1793203807.0645008,
-    "ast_hash": "9064945c2c651f04a58dac2d3863fd61",
+    "mtime": 1793204750.8640678,
+    "ast_hash": "45cf2fa69e565b1f7715dd8ecef96fe9",
     "semantic_hash": ""
   },
   "src/pages/admin/roadmap/doc-types.ts": {
@@ -5850,8 +5850,8 @@
     "semantic_hash": ""
   },
   "src/pages/admin/roadmap/roadmap-content.ts": {
-    "mtime": 1793203807.0642858,
-    "ast_hash": "25ff14f259f5a4938b38f25aa7371260",
+    "mtime": 1793204811.0051363,
+    "ast_hash": "b2eb8f603d66b2f96a1a433236df1e1b",
     "semantic_hash": ""
   },
   "src/server/observability/error-tracking.test.ts": {
@@ -6110,8 +6110,8 @@
     "semantic_hash": ""
   },
   "src/pages/admin/roadmap/calculation-review.ts": {
-    "mtime": 1793203790.5536747,
-    "ast_hash": "4d05273bc4fd643814b7370ce864be91",
+    "mtime": 1793204811.0038774,
+    "ast_hash": "f164c7e033cf9da8905fd8edd352e296",
     "semantic_hash": ""
   },
   "src/smartcheck/rules/minha.test.ts": {
@@ -6385,8 +6385,8 @@
     "semantic_hash": ""
   },
   "src/ifc/server-path.e2e.test.ts": {
-    "mtime": 1793198508.6182222,
-    "ast_hash": "3a0ec17cb3d8e9afad21f871689e1694",
+    "mtime": 1793204510.1120777,
+    "ast_hash": "518b981a3d4ab57c0030f5336ffe31b6",
     "semantic_hash": ""
   },
   "src/lib/calculators/calculators-forms.test.ts": {
@@ -7260,8 +7260,8 @@
     "semantic_hash": ""
   },
   "src/components/smartcheck/IfcCoverageCard.tsx": {
-    "mtime": 1793197173.4419913,
-    "ast_hash": "6411675842d4828aafded6ca2f47253d",
+    "mtime": 1793204547.080104,
+    "ast_hash": "1cabc0e59d69a63914b5fd7850028dc0",
     "semantic_hash": ""
   },
   "src/components/smartcheck/IfcUncoveredItemsView.tsx": {
@@ -8822,6 +8822,16 @@
   "src/pages/quote-demo-replacement.ts": {
     "mtime": 1793203652.5803404,
     "ast_hash": "e24cd9f1541d4e7a38397cc30245eaf8",
+    "semantic_hash": ""
+  },
+  "docs/audits/phase-5/OPEN_IFC_COMPARISON_2026-10-28.md": {
+    "mtime": 1793204811.002724,
+    "ast_hash": "ba7cb33b49dfd66381c3cb3161bb90e4",
+    "semantic_hash": ""
+  },
+  "docs/smartcheck/pilot/FAZ-5-UZMAN-KARSILASTIRMA-VE-PILOT-CALISMA-SABLONU.md": {
+    "mtime": 1793204392.074614,
+    "ast_hash": "8ca9ec7cd9295166ed02ec8746f14f8c",
     "semantic_hash": ""
   }
 }

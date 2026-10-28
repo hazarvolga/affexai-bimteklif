@@ -952,3 +952,110 @@ def test_curtain_wall_and_stair_excluded_from_takeoff_totals_and_formwork():
     assert uncovered_by_guid["CW_PARENT_000000000001"]["quantity"] == {"value": 1.8, "unit": "m³"}
 
 
+
+
+def test_multiple_ifc_contexts_do_not_accept_unscaled_geometry(tmp_path):
+    import ifcopenshell
+    fixture = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'fixtures', 'phase-0', 'open-source', 'buildingsmart', 'ifc4-wall-opening-window.ifc'))
+    model = ifcopenshell.open(fixture)
+    assert len(model.by_type('IfcProject')) == 1
+    assert len(model.by_type('IfcContext')) == 2
+    assert model.by_id(8).Prefix == 'MILLI'
+    out = tmp_path / 'multi.json'
+    result = run_cli(fixture, str(out))
+    assert result.returncode == 0, result.stderr
+    parsed = json.loads(out.read_text())
+    wall = parsed['elements'][0]
+    assert wall['volumeM3'] == 0
+    assert wall['formworkM2'] == 0
+    assert not parsed['summary']['parserContract']['qualityGate']['passed']
+    assert any(f['code'] == 'GEOMETRY_CONTEXT_UNVERIFIED' for f in parsed['summary']['consistencyReport']['findings'])
+
+    # A separately declared QTO remains usable: multiple contexts only block
+    # uncertain geometry fallback, not explicit quantity evidence.
+    qto_model = ifcopenshell.open(fixture)
+    wall_qto = qto_model.by_type('IfcWall')[0]
+    quantity = qto_model.create_entity('IfcQuantityVolume', Name='NetVolume', VolumeValue=1.25)
+    qto = qto_model.create_entity('IfcElementQuantity', GlobalId=ifcopenshell.guid.new(), Name='Qto_WallBaseQuantities', Quantities=[quantity])
+    qto_model.create_entity('IfcRelDefinesByProperties', GlobalId=ifcopenshell.guid.new(), RelatedObjects=[wall_qto], RelatingPropertyDefinition=qto)
+    qto_file = tmp_path / 'explicit.ifc'
+    qto_model.write(str(qto_file))
+    qto_out = tmp_path / 'explicit.json'
+    qto_result = run_cli(str(qto_file), str(qto_out))
+    assert qto_result.returncode == 0, qto_result.stderr
+    qto_output = json.loads(qto_out.read_text())
+    assert qto_output['elements'][0]['volumeM3'] == pytest.approx(1.25)
+    assert qto_output['elements'][0]['quantitySource'] == 'qto'
+    assert qto_output['summary']['parserContract']['qualityGate']['passed']
+
+    # A copied model with only the project context proves normal geometry remains available;
+    # it is not an independent engineering acceptance of the derived quantities.
+    model.remove(model.by_type('IfcProjectLibrary')[0])
+    single = tmp_path / 'single.ifc'
+    model.write(str(single))
+    out_single = tmp_path / 'single.json'
+    result = run_cli(str(single), str(out_single))
+    assert result.returncode == 0, result.stderr
+    single_wall = json.loads(out_single.read_text())['elements'][0]
+    assert single_wall['volumeM3'] == pytest.approx(1.5)
+    assert single_wall['quantitySource'] == 'geometry'
+
+
+def test_multi_context_mixed_explicit_qto_and_unverified_geometry_keeps_global_gate_closed(tmp_path):
+    import ifcopenshell
+    fixture = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'fixtures', 'phase-0', 'open-source', 'buildingsmart', 'ifc4-wall-opening-window.ifc'))
+    model = ifcopenshell.open(fixture)
+    geometry_wall = model.by_type('IfcWall')[0]
+    qto_wall = model.create_entity('IfcWall', GlobalId=ifcopenshell.guid.new(), Name='QTO wall')
+    quantity = model.create_entity('IfcQuantityVolume', Name='NetVolume', VolumeValue=1.25)
+    qto = model.create_entity('IfcElementQuantity', GlobalId=ifcopenshell.guid.new(), Name='Qto_WallBaseQuantities', Quantities=[quantity])
+    model.create_entity('IfcRelDefinesByProperties', GlobalId=ifcopenshell.guid.new(), RelatedObjects=[qto_wall], RelatingPropertyDefinition=qto)
+    path = tmp_path / 'mixed.ifc'
+    out = tmp_path / 'mixed.json'
+    model.write(str(path))
+    result = run_cli(str(path), str(out))
+    assert result.returncode == 0, result.stderr
+    parsed = json.loads(out.read_text())
+    by_guid = {item['guid']: item for item in parsed['elements']}
+    assert by_guid[geometry_wall.GlobalId]['volumeM3'] == 0
+    assert by_guid[qto_wall.GlobalId]['volumeM3'] == pytest.approx(1.25)
+    assert by_guid[qto_wall.GlobalId]['quantitySource'] == 'qto'
+    gate = parsed['summary']['parserContract']['qualityGate']
+    assert gate['passed'] is False
+    assert 'MISSING_NET_QUANTITY' in gate['blockingFindingCodes']
+
+
+def test_open_ifc2x3_project_context_keeps_explicit_qto(tmp_path):
+    import ifcopenshell
+    fixture = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'fixtures', 'phase-0', 'open-source', 'buildingsmart', 'ifc2x3-building-architecture.ifc'))
+    model = ifcopenshell.open(fixture)
+    assert model.schema == 'IFC2X3'
+    assert len(model.by_type('IfcProject')) == 1
+    out = tmp_path / 'ifc2x3.json'
+    result = run_cli(fixture, str(out))
+    assert result.returncode == 0, result.stderr
+    parsed = json.loads(out.read_text())
+    assert len(parsed['elements']) == 7
+    assert all(element['quantitySource'] == 'qto' for element in parsed['elements'])
+    assert parsed['summary']['totalVolumeM3'] == pytest.approx(29.97)
+    assert not any(f['code'] == 'GEOMETRY_CONTEXT_UNVERIFIED' for f in parsed['summary']['consistencyReport']['findings'])
+
+
+def test_multi_context_covering_polyline_uses_separate_scaled_curve_path(tmp_path):
+    import ifcopenshell
+    fixture = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'fixtures', 'phase-0', 'open-source', 'buildingsmart', 'ifc4-wall-opening-window.ifc'))
+    model = ifcopenshell.open(fixture)
+    for wall in list(model.by_type('IfcWall')):
+        model.remove(wall)
+    rep = model.create_entity('IfcProductDefinitionShape', Representations=[model.by_id(66)])
+    covering = model.create_entity('IfcCovering', GlobalId=ifcopenshell.guid.new(), Name='Süpürgelik', Representation=rep, PredefinedType='SKIRTINGBOARD')
+    path, out = tmp_path / 'curve.ifc', tmp_path / 'curve.json'
+    model.write(str(path))
+    result = run_cli(str(path), str(out))
+    assert result.returncode == 0, result.stderr
+    parsed = json.loads(out.read_text())
+    item = next(el for el in parsed['elements'] if el['guid'] == covering.GlobalId)
+    assert item['lengthM'] == pytest.approx(3.0)
+    assert item['quantitySource'] == 'geometry'
+    assert 'DerivedLength' in item['quantitySourcePath']
+    assert not any(f['globalId'] == covering.GlobalId and f['code'] == 'GEOMETRY_CONTEXT_UNVERIFIED' for f in parsed['summary']['consistencyReport']['findings'])

@@ -185,8 +185,9 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
   },
   {
     id: "durum",
-    title: "Uygulama durumu (28 Ekim 2026 · Rev. 117 geliştirme kaydı)",
+    title: "Uygulama durumu (28 Ekim 2026 · Rev. 118 geliştirme kaydı)",
     blocks: [
+      { type: "callout", tone: "warn", title: "Rev. 118 · IFC geometri ve kurtarma sınırı", text: "Birden çok IFC bağlamında iterator geometrisi güvenle ölçeklenemiyorsa kullanılmaz. Açık QTO korunur; karma modelde yüksek miktar bulgusu tüm SmartCheck satırlarının aktarımını durdurur. Ayrı eğri yolu korunur; IfcCovering doğrudan QTO uzunluğu desteklenmez. İzole T44 ve sentetik nesne denemesi canlı, müşteri veya uzman kabulü değildir." },
       { type: "callout", tone: "info", title: "Rev. 117 · Firma iş akışları", text: "Panel en çok 1.000 teklifi/10 sayfa okur; offset eşzamanlı snapshot değildir. SmartCheck boş ve hata durumları ile geç yanıt koruması, örnek teklif için arayüz kayıt engeli ve poz/birim kapsamlı fiyat hafızası geliştirildi. Eksik poz veya birim ile API 400 döner; harici istemciler güncellenmelidir. Sentetik testler canlı dağıtım veya bağımsız uzman kabulü değildir." },
       { type: "callout", tone: "info", title: "Rev. 116 · Operasyon ve yönetici görünürlüğü", text: "0032 worker süreç heartbeat'i, bekleyen en eski iş, liste fiyatı ile onaylanmış havale ayrımı ve sınırlı yönetici audit olay sözlüğü geliştirildi. Yedek/geri yükleme kanıtı doğrulanmadı; canlı dağıtım, OCI kimliği ve bağımsız kabul ayrıca doğrulanmalıdır." },
       { type: "callout", tone: "info", title: "Rev. 115 · Erişim ve firma izolasyonu", text: "Yönetici e-posta doğrulaması, askıda ödeme kurtarma ve başlangıç planı kilidi ile 0030/0031 firma RLS politikaları geliştirildi. Kısıtlı roller izole PostgreSQL'de sınanır; canlı admin ve plan cutover, üretim dağıtımı ve bağımsız kabul ayrıca doğrulanmalıdır." },
@@ -239,7 +240,7 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
     blocks: [
       { type: "list", items: [
         "Köprü TREpys_PozOzellikSeti.PozNo ve aynı IFC dosyasıdır: eleman üzerindeki resmî ÇŞB poz numarası SmartCheck kanıt satırlarına (normalizedPositionCode) doğrudan taşınır.",
-        "Ön kontrol bulguları hiçbir zaman otomatik fiyat kalemine dönüşmez; aktarım yalnızca kaynağı kanıtlı QTO/Pset veya deterministik C++ 3B geometri miktarlarıyla ve 'inceleme gerekli' durumunda yapılır, birim fiyat onaylı katalog eşleşmesiyle tamamlanır.",
+        "Ön kontrol bulguları hiçbir zaman otomatik fiyat kalemine dönüşmez; aktarım yalnızca kaynak yolu kanıtlı ve incelenmiş QTO/Pset miktarlarıyla yapılır; geometri miktarları kanıt satırına alınmaz. Dosya kalite kapısı kapanırsa diğer satırlar da aktarılamaz; birim fiyat onaylı katalog eşleşmesiyle tamamlanır.",
         "Ruhsat modelini mimar, teklifi yüklenici hazırlar; paketler ayrı, ortak hikâye 'aynı model ruhsattan ihaleye' olmalıdır.",
         "ALLPLAN'ın mahal kaplamalarından otonom ürettiği IfcCovering elemanları (Qto_CoveringBaseQuantities.NetArea/GrossArea, Object Layer Attributes IfcComplexProperty veya 3B/2B geometri), çoklu katmanlarına (Şap, Parke, Seramik, Kaba Sıva, Saten Alçı, Boya) ve süpürgelik tülüne (mtül) ayrıştırılarak 3 adımlı Kağıt İcmal arayüzüne aktarılır.",
       ] },
@@ -249,6 +250,7 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
     id: "adimlar",
     title: "Sıradaki geliştirmeler ve kabul ölçütleri",
     blocks: [
+      { type: "callout", tone: "warn", title: "Faz 5 açık kabul adımları", text: "İzinli gerçek IFC/Excel ve bağımsız uzman referansları, canlı yedek ile tutarlı DB ve nesne geri yükleme tatbikatı ayrı yürütülmelidir. İzole T44 ve üç sentetik nesne kopyası canlı RTO/RPO veya müşteri kabulü değildir." },
       { type: "p", text: "Rev. 117 sonrası: panel çok para birimli sayıları ve ayrı tutarları en çok 1.000 teklif üzerinden gösterir; sayfa tavanı ve offset sayfaları arasında değişim riski açıktır, ileride dar alanlı sunucu aggregate ile iyileştirme gerekir. SmartCheck sıfır satır, işlem ve sorgu hatalarını ayırır; eski belge yanıtları yeni seçimi ezmez. Demo kaydı yalnız arayüzde engellenir. Fiyat hafızası API'si poz ve birim ister; uyumsuz harici istemcilere 400 döner. Sentetik tarayıcı testleri canlı veya uzman kabulü değildir." },
       { type: "p", text: "Rev. 116 sonrası: worker ortak rolü süreç kimliğini kanıtlamaz; 90 saniyede 32'den fazla aktif süreç veya hızlı yeniden başlama geçici sinyal reddine yol açabilir. Plan, aktiflik ve abonelik değişiklikleri için önce/sonra önizleme ve maskeli banka farkı gösterilir; aynı adlı planlar kimlikleriyle ayrılır. Anlık görüntü eskimiş olabilir uyarısı vardır; sunucu eşzamanlılık kilidi yoktur. Audit eski zamanlarının saat dilimi bilinmiyor olarak gösterilir ve cursor mikro saniyeyi kayıpsız korur. Banka mutabakatı ve doğrulanmış yedek/geri yükleme kanıtı yoktur; canlı test ve bağımsız kabul açıktır." },
       { type: "p", text: "Rev. 115 sonrası: MFA ve oturum iptali tasarımı, tüm endpointlerde IDOR matrisi ve veri saklama/silme yaşam döngüsü açıktır. Bazı audit işlemleri iş verisiyle atomik değildir. Dağıtım öncesi canlı super admin e-posta doğrulaması ve aktif trial/ücretsiz plan cutover kontrolü gerekir; Academy kaydı da plan yoksa 503 alır. İzole kısıtlı rol testleri canlı kabul değildir." },
@@ -1018,11 +1020,17 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
             "BIM-CALC-2026-10-28.111 · temel c421d99; Git ve canlı durum ayrıca doğrulanır",
             "Çok para birimli firma paneli, SmartCheck boş/hata/yarış koruması, demo için arayüz kayıt engeli ve poz/birim kapsamlı fiyat hafızası. Panel en çok 1.000 teklif okur; offset snapshot değildir. API kapsamı eksikse 400 breaking değişikliğidir; sentetik testler canlı veya uzman kabulü değildir.",
           ],
+          [
+            "Rev. 118",
+            "28 Ekim 2026 · Faz 5 IFC ve izole kurtarma",
+            "BIM-CALC-2026-10-28.112 · temel 840c32e; canlı dağıtım ayrıca doğrulanır",
+            "Çoklu IfcContext iterator geometri koruması; QTO korunur, karma modelde yüksek bulgu tüm SmartCheck satırlarını engeller. Ayrı eğri yolu korunur; IfcCovering doğrudan QTO uzunluğu desteklenmez. İzole T44 ve sentetik nesne denemesi canlı veya uzman kabulü değildir.",
+          ],
         ],
       },
       {
         type: "p",
-        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 117 · Önceki Durum → Yeni Durum):",
+        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 118 · Önceki Durum → Yeni Durum):",
       },
       {
         type: "table",
@@ -1950,6 +1958,13 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
             "Panel ilk 100 teklif ve bazı adetleri varsayılan kurla sınırlıyor; SmartCheck boş ve hatalı durumları karıştırıyor, gecikmiş yanıt yeni seçimi ezebiliyor; demo satırlar kayıtla karışabiliyor ve fiyat hafızası kapsamı belirsiz kalabiliyordu.",
             "Panel en çok 1.000 teklif için 10 sayfa okur; eş timestamp ID ile sıralanır, çift kayıt veya sayfa hatası reddedilir, offset eşzamanlı snapshot garantisi sunmaz. Durum adetleri tüm para birimlerini kapsar; tutarlar ayrı gösterilir. SmartCheck boş, hata ve işleniyor ayrımı, son istek koruması ve yeniden durum sorgusu sağlar. Demo kaydı yalnız arayüzde engellenir; sunucu güvenlik sınırı değildir. Fiyat hafızası için poz ve birim eksikse API 400 PRICE_MEMORY_SCOPE_REQUIRED döner; harici istemciler güncellenmelidir. Sentetik browser ve izole testler canlı veya bağımsız uzman kabulü değildir; formüller değişmedi.",
             "src/pages/{Dashboard,dashboard-summary,CreateQuote,quote-demo-replacement,MarketIntelligence}.tsx/ts; src/components/smartcheck/{SmartCheckImportWorkspace,request-guard,import-progress}.tsx/ts; src/server/routes/{quotations,market-intelligence}.ts",
+          ],
+          [
+            "Rev. 118 · 28 Ekim 2026 (Faz 5 IFC ve izole kurtarma)",
+            "IfcContext birim güvenliği, açık fixture kaynak ve checksum, izole PG16 ve sentetik nesne kontrolü",
+            "Çoklu bağlamlı açık IFC örneğinde iterator geometrisi aşırı ölçekli miktar ve geçen kalite kapısı üretebiliyordu; production restore kanıtı yoktu.",
+            "Çoklu IfcContext altında iterator geometrisi dışlanır; desteklenen açık QTO/özellik ve ayrı eğri yolu korunur; IfcCovering doğrudan QTO uzunluğu desteklenmez. Eksik miktar yüksek bulgusu karma modelde tüm SmartCheck satırlarının aktarımını durdurur. İzole PG16 T44 1/1 kendi özgün nesne dizinini kullandı; bağımsız nesne restore değildir. Üç sentetik nesnenin kaynak→yedek→hedef checksum/bozulma denemesi uygulama depolaması veya tutarlı DB+object snapshot kanıtı değildir. Canlı yedek/RTO/RPO, gerçek müşteri golden ve bağımsız uzman kabulü açık.",
+            "workers/ifc/{ifc_extract,test_ifc_extract}.py; src/ifc/server-path.e2e.test.ts; docs/audits/phase-5/OPEN_IFC_COMPARISON_2026-10-28.md",
           ],
         ],
       },

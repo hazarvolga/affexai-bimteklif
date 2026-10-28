@@ -558,7 +558,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
               <p className="mb-2 text-xs font-mono font-semibold uppercase tracking-wider text-primary">GELİŞMİŞ 5D VE KALİTE ÖZELLİKLERİ</p>
               <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-foreground">Şantiye ve İhale İçin Güçlü Mühendislik Araçları</h2>
               <p className="mt-3 text-base text-muted-foreground">
-                BIMMetraj, IFC model ve pafta yüklemeden 5D teklif çıktısına kadar miktar, mevzuat ve fiyat kaynaklarını kanıt iziyle incelemenize olanak tanır.
+                BIMMetraj, IFC model ve pafta yüklemeden 5D teklif çıktısına kadar miktar, mevzuat ve fiyat kaynaklarını kanıt iziyle incelemenize olanak tanır. Dosyada yüksek önem düzeyinde miktar bulgusu varsa teklif aktarımı inceleme için durdurulur.
               </p>
             </div>
 

@@ -1853,7 +1853,16 @@ def extract_ifc(input_path: str, output_path: str, file_name: str, run_id: str =
             elements_needing_geom.append(elem)
         preliminary_records.append((elem, mapped_type, q_res))
 
-    geom_metrics_by_id = batch_extract_3d_geometry(model, elements_needing_geom, length_scale)
+    # IfcOpenShell's geometry iterator may silently ignore project units when an
+    # IFC4 file contains multiple IfcContext instances (e.g. IfcProjectLibrary).
+    # Do not rescale its output blindly: in ordinary files it is already SI.
+    try:
+        geometry_context_count = len(model.by_type("IfcContext"))
+    except RuntimeError:  # IFC2X3 does not define IfcContext.
+        geometry_context_count = len(model.by_type("IfcProject"))
+    geometry_context_safe = geometry_context_count == 1
+    geom_metrics_by_id = batch_extract_3d_geometry(model, elements_needing_geom, length_scale) if geometry_context_safe else {}
+    geometry_blocked_ids = {elem.id() for elem in elements_needing_geom if getattr(elem, "Representation", None)} if not geometry_context_safe else set()
 
     parsed_elements: List[Dict[str, Any]] = []
     consistency_findings: List[Dict[str, Any]] = []
@@ -1883,7 +1892,6 @@ def extract_ifc(input_path: str, output_path: str, file_name: str, run_id: str =
         name = str(getattr(elem, "Name", "") or "").strip() or f"{mapped_type}_{step_id}"
 
         storey, storey_source, storey_source_path = extract_spatial_storey(elem, length_scale)
-
         (
             volume_m3,
             formwork_m2,
@@ -2048,6 +2056,22 @@ def extract_ifc(input_path: str, output_path: str, file_name: str, run_id: str =
         # Check 3: Evaluate whether element has a valid positive measured net quantity
         cov_area_val = float(rule_metadata.get("areaM2") or 0.0)
         cov_len_val = float(rule_metadata.get("lengthM") or 0.0)
+        # Curve-length fallback uses explicit project scaling, not the 3D iterator.
+        # Do not claim it was blocked when that independent path supplied a quantity.
+        curve_fallback_used = quantity_source == "geometry" and any(
+            suffix in (quantity_source_path or "") for suffix in ("CurveLengthArea", "DerivedLength")
+        )
+        if elem.id() in geometry_blocked_ids and not curve_fallback_used:
+            consistency_findings.append({
+                "code": "GEOMETRY_CONTEXT_UNVERIFIED",
+                "severity": "medium",
+                "globalId": guid,
+                "ifcClass": raw_type,
+                "storey": storey,
+                "elementName": name,
+                "_stepId": step_id,
+                "message": "IFC bağlam sayısı nedeniyle 3B motor birim dönüşümü doğrulanamadı; 3B iterator miktarı kullanılmadı. Açık QTO/özellik korunur; ancak dosyada yüksek önem bulgusu varsa tüm SmartCheck aktarımı engellenir. Eğri yolu ayrı ölçekleme kullanır.",
+            })
         if quantity_anomaly == "NEGATIVE_NET_QUANTITY":
             measured = False
             measurement_status = "ölçülemedi"

@@ -72,8 +72,8 @@ test("roadmap covers the agreed topics, ministry questions and official sources"
 
 
 test("Rev. 112 documents Phase 0 without claiming production or independent expert approval", () => {
-  assert.equal(CALC_REVIEW_META.version, "BIM-CALC-2026-10-28.111");
-  assert.equal(CALC_REVIEW_CHANGELOG.at(-1)?.revision, "Rev. 117");
+  assert.equal(CALC_REVIEW_META.version, "BIM-CALC-2026-10-28.112");
+  assert.equal(CALC_REVIEW_CHANGELOG.at(-1)?.revision, "Rev. 118");
   const revisions = CALC_REVIEW_CHANGELOG.map(item => Number(item.revision.match(/Rev\. (\d+)/)?.[1]));
   assert.ok(revisions.every((value, index) => index === 0 || value > revisions[index - 1]), "calculation revisions must be strictly increasing");
   const kik = CALC_REVIEW_CHANGELOG.find(item => item.revision === "Rev. 112")?.moduleDetails?.["kik-adt"];
@@ -85,7 +85,7 @@ test("Rev. 112 documents Phase 0 without claiming production or independent expe
   for (const [index, table] of tables.entries()) {
     if (table.type !== "table") continue;
     const numbers = table.rows.map(row => Number(row[0].match(/Rev\. (\d+)/)?.[1]));
-    assert.equal(numbers.at(-1), 117);
+    assert.equal(numbers.at(-1), 118);
     assert.ok(numbers.every((value, rowIndex) => rowIndex === 0 || (index === 0 ? value > numbers[rowIndex - 1] : value >= numbers[rowIndex - 1])), "roadmap revisions must be ordered");
   }
 });
@@ -177,4 +177,18 @@ test("Rev. 117 records Phase 4 scope and acceptance limits", () => {
     assert.ok(detail?.before && detail?.after && detail?.basis, module);
   }
   for (const term of [/1\.000/, /offset/, /400/, /sentetik/, /canlı/, /uzman/, /arayüz/]) assert.match(revision.afterSummary, term);
+});
+
+test("Rev. 118 explains unsafe IFC context and global review gate without claiming external acceptance", () => {
+  const rev = CALC_REVIEW_CHANGELOG.find(item => item.revision === "Rev. 118");
+  assert.ok(rev);
+  assert.match(rev.afterSummary, /IfcContext/);
+  assert.match(rev.afterSummary, /tüm SmartCheck satırları/);
+  assert.match(rev.afterSummary, /eğri/i);
+  assert.match(rev.afterSummary, /uzman/);
+  for (const id of ["ifc-metraj", "ifc-teklif-aktarim"]) {
+    const detail = rev.moduleDetails?.[id];
+    assert.ok(detail?.before && detail.after && detail.basis);
+  }
+  assert.match(JSON.stringify(ROADMAP_SECTIONS.find(section => section.id === "revizyon-gunlugu")), /Rev\. 118/);
 });
