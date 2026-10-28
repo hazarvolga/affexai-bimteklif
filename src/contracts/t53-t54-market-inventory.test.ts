@@ -181,8 +181,8 @@ test("T54-1: Comparable capability matrix enforces tri-state evidence and holds 
   // BIMMetraj row must reflect actual CAPABILITY_REGISTRY state (0 live/L3, pilot_l2_unapproved)
   const bimmetraj = products.find((p) => p.id === "bimmetraj")!;
   assert.equal(getLiveCapabilities().length, 0);
-  assert.equal(getPilotCapabilities().length, 15);
-  assert.equal(getRoadmapCapabilities().length, 4);
+  assert.equal(getPilotCapabilities().length, 17);
+  assert.equal(getRoadmapCapabilities().length, 2);
   assert.equal(CAPABILITY_REGISTRY.length, 19);
 
   for (const stageId of REQUIRED_STAGE_IDS) {
