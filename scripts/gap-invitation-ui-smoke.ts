@@ -124,7 +124,7 @@ try {
   assert.ok(link.startsWith(`${base}/accept-invite/`));
   await page.screenshot({ path: `${output}/settings-invitation.png`, fullPage: true });
   if (process.env.GAP_ADMIN_SMOKE === 'true') {
-    const [admin] = await db.insert(schema.users).values({ email: 'ui-admin@example.test', fullName: 'UI Admin', isSuperAdmin: true }).returning();
+    const [admin] = await db.insert(schema.users).values({ email: 'ui-admin@example.test', fullName: 'UI Admin', emailVerified: new Date(), isSuperAdmin: true }).returning();
     const [plan] = await db.insert(schema.plans).values({ name: 'Zero Limit', monthlyQuoteLimit: 0, monthlyPrice: 0 }).returning();
     const adminToken = AuthService.generateToken({ userId: admin.id, companyId: null, role: null });
     await signIn(adminToken, { admin: true });
