@@ -72,8 +72,8 @@ test("roadmap covers the agreed topics, ministry questions and official sources"
 
 
 test("Rev. 112 documents Phase 0 without claiming production or independent expert approval", () => {
-  assert.equal(CALC_REVIEW_META.version, "BIM-CALC-2026-10-28.108");
-  assert.equal(CALC_REVIEW_CHANGELOG.at(-1)?.revision, "Rev. 114");
+  assert.equal(CALC_REVIEW_META.version, "BIM-CALC-2026-10-28.109");
+  assert.equal(CALC_REVIEW_CHANGELOG.at(-1)?.revision, "Rev. 115");
   const revisions = CALC_REVIEW_CHANGELOG.map(item => Number(item.revision.match(/Rev\. (\d+)/)?.[1]));
   assert.ok(revisions.every((value, index) => index === 0 || value > revisions[index - 1]), "calculation revisions must be strictly increasing");
   const kik = CALC_REVIEW_CHANGELOG.find(item => item.revision === "Rev. 112")?.moduleDetails?.["kik-adt"];
@@ -85,9 +85,22 @@ test("Rev. 112 documents Phase 0 without claiming production or independent expe
   for (const [index, table] of tables.entries()) {
     if (table.type !== "table") continue;
     const numbers = table.rows.map(row => Number(row[0].match(/Rev\. (\d+)/)?.[1]));
-    assert.equal(numbers.at(-1), 114);
+    assert.equal(numbers.at(-1), 115);
     assert.ok(numbers.every((value, rowIndex) => rowIndex === 0 || (index === 0 ? value > numbers[rowIndex - 1] : value >= numbers[rowIndex - 1])), "roadmap revisions must be ordered");
   }
+});
+
+test("Rev. 115 records tenant isolation and access boundaries without claiming production acceptance", () => {
+  const revision = CALC_REVIEW_CHANGELOG.find(item => item.revision === "Rev. 115")!;
+  for (const module of ["teklif-satir", "satir-dogrulama", "kota"]) {
+    const detail = revision.moduleDetails?.[module];
+    assert.ok(detail?.before && detail?.after && detail?.basis, module);
+  }
+  assert.match(revision.afterSummary, /0030/);
+  assert.match(revision.afterSummary, /0031/);
+  assert.match(revision.afterSummary, /MFA/);
+  assert.match(revision.afterSummary, /atomik/);
+  assert.match(JSON.stringify(ROADMAP_SECTIONS.find(section => section.id === 'adimlar')), /canlı.*admin/i);
 });
 
 test("Rev. 113 records source, review, transfer and AI scope with explicit outstanding limits", () => {

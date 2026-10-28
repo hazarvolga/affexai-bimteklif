@@ -46,7 +46,7 @@ export const CALC_MODULES: CalcModule[] = [
     title: "Teklif satırı ve teklif toplamları",
     area: "Teklif",
     status: "mevzuat",
-    sourceFiles: ["src/lib/calculations.ts", "src/lib/quote-excel-import.ts", "src/lib/quote-excel-import.test.ts"],
+    sourceFiles: ["src/lib/calculations.ts", "src/lib/quote-excel-import.ts", "src/lib/quote-excel-import.test.ts", "drizzle-release/0031_finance_quotation_tenant_rls.sql"],
     references: ["3065 sayılı KDV Kanunu (matrah: iskonto sonrası bedel)", "VUK — tutarların kuruş hassasiyeti", "ÇŞB inşaat birim fiyat analizleri (2020, 2024, 2025, 2026): birim fiyatlara %25 yüklenici kârı ve genel giderler dahildir"],
     purpose: "Her teklif satırının brüt tutarını, iskontosunu, KDV matrahını, KDV'sini ve toplamını hesaplar; teklif toplamlarını satırlardan türetir. Ekran, sunucu ve PDF aynı fonksiyonu kullanır.",
     formulas: [
@@ -228,7 +228,7 @@ export const CALC_MODULES: CalcModule[] = [
     formulas: [],
     rules: { columns: ["Kod", "Koşul", "Önem"], rows: [["MISSING_POSITION_CODE", "Poz kodu boş", "Yüksek"], ["DUPLICATE_POSITION_CODE", "Aynı poz dosyada birden fazla", "Orta"], ["UNKNOWN_UNIT", "Birim boş veya tanınmıyor", "Yüksek"], ["INVALID_QUANTITY", "Miktar ≤ 0 veya geçersiz", "Yüksek"], ["MISSING_PRICE_SOURCE", "Fiyat boş veya < 0", "Orta"], ["WASTE_LIMIT_EXCEEDED", "Fire > %20 (şirket limiti)", "Orta"]] },
     example: { inputs: [["Satır", "Poz yok, 2 adet, fiyat boş"]], steps: ["MISSING_POSITION_CODE + MISSING_PRICE_SOURCE"], result: "2 bulgu; satır onay için düzeltme veya gerekçeli istisna gerektirir" },
-    assumptions: ["Fire limiti varsayılan %20'dir.", "IFC kaynak bulguları review sırasında korunur; tekil/toplu karar ve audit tenant bağlamındaki işlemle yürütülür. İnsan review yetkinliği ayrıca doğrulanmalıdır."],
+    assumptions: ["Fire limiti varsayılan %20'dir.", "IFC kaynak bulguları review sırasında korunur; tekil/toplu karar ve audit tenant bağlamındaki işlemle yürütülür. İnsan review yetkinliği ayrıca doğrulanmalıdır.", "0030 SmartCheck audit için firma kapsamlı RLS ekler; diğer bazı audit işlemleri iş verisiyle atomik değildir. İzole test canlı güvenlik veya uzman kabulü değildir."],
     questions: ["%20 fire limiti iş kalemleri için makul mü, kalem türüne göre ayrışmalı mı?"],
   },
   {
@@ -611,7 +611,7 @@ export const CALC_MODULES: CalcModule[] = [
       "Toplam Ödenecek (TL) = Etkin Aylık Fiyat × Ay Sayısı   (1 / 6 / 12 / 24 ay → 30 / 180 / 365 / 730 gün abonelik süresi)",
     ],
     example: { inputs: [["Paket", "5D BIM & SmartCheck (5.450 TL/ay), 1 Yıllık (%20 İndirim)"], ["PDF Kotası", "Paket limiti 2, eş zamanlı 6 PDF isteği"]], steps: ["Etkin aylık = 5.450 × 0,80 = 4.360 TL/ay; 12 aylık toplam = 52.320 TL (13.080 TL tasarruf)", "PDF rezervasyonu şirket bazında sıralanır: 2 kabul, 4 ret"], result: "Toplam Ödenecek: 52.320 TL (365 gün) · 2 PDF kabul, 4 ret (PDF_QUOTA_EXCEEDED)" },
-    assumptions: ["Plan sütunu boşsa eski sabit limitler geçerlidir (geçiş dönemi).", "Paket pasife alındığında aktif aboneler seçilen alternatif pakete (replacementPlanId) atomik olarak aktarılır."],
+    assumptions: ["Plan sütunu boşsa eski sabit limitler geçerlidir (geçiş dönemi).", "Paket pasife alındığında aktif aboneler seçilen alternatif pakete (replacementPlanId) atomik olarak aktarılır.", "Yeni workspace ve Academy kaydı için aktif deneme/ücretsiz plan gerekir; plan yoksa kayıt 503 döner. Askıdaki owner/admin yalnız ödeme kurtarma POST'larını kullanabilir. Canlı katalog ve admin doğrulaması dağıtım öncesi kontrol edilmelidir."],
     questions: [],
   },
   {

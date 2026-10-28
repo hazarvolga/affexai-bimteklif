@@ -98,7 +98,7 @@ async function audit(req: Request, action: string, entityType: string, entityId?
     ...metadataJson,
     ...(req.user?.impersonatedBy ? { impersonatedBy: req.user.impersonatedBy } : {}),
   };
-  await db.insert(smartcheckAuditLogs).values({ companyId: req.user.companyId, userId: req.user.userId, action, entityType, entityId, metadataJson: mergedMetadata });
+  await withAppTenant(tenantOf(req.user), tx => tx.insert(smartcheckAuditLogs).values({ companyId: req.user.companyId, userId: req.user.userId, action, entityType, entityId, metadataJson: mergedMetadata }).then(() => undefined));
 }
 
 async function auditBestEffort(req: Request, action: string, entityType: string, entityId?: string, metadataJson: Record<string, unknown> = {}) {

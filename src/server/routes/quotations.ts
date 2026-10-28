@@ -45,14 +45,14 @@ export function registerQuotationRoutes(app: Express, canMutate: any) {
         ...metadataJson,
         ...(req.user?.impersonatedBy ? { impersonatedBy: req.user.impersonatedBy } : {}),
       };
-      await db.insert(smartcheckAuditLogs).values({
+      await withAppTenant(tenantOf(req.user), tx => tx.insert(smartcheckAuditLogs).values({
         companyId: req.user.companyId,
         userId: req.user.userId,
         action,
         entityType: "quotation",
         entityId: quotationId,
         metadataJson: mergedMetadata,
-      });
+      }).then(() => undefined));
     } catch (auditErr) {
       // The business action already succeeded; a lost audit row must still be visible to operators (Sentry), not only stdout.
       console.error("Failed to write quotation audit log:", auditErr);

@@ -153,8 +153,11 @@ test("SmartCheck HTTP + PostgreSQL isolated flow and tenant boundary", { timeout
     assert.equal((await request(`/api/smartcheck/documents/${documentId}/transfer-to-new-quotation`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ clientId: client.id, projectName: "Legacy IFC", rowIds: [rows[0].id] }) })).status, 409);
     await db.update(schema.normalizedQuantityRows).set({ quantitySource: "document", formulaJson: {} }).where(eq(schema.normalizedQuantityRows.id, rows[0].id));
     await db.update(schema.normalizedQuantityRows).set({ findingsJson: [], reviewStatus: "pending_review", reviewerUserId: null, reviewedAt: null, reviewerNotes: null }).where(eq(schema.normalizedQuantityRows.id, rows[0].id));
-    const ownerUrl = new URL(process.env.DATABASE_URL!);
-    ownerUrl.username = "postgres";
+    const runtimeUrl = new URL(process.env.DATABASE_URL!);
+    const ownerUrl = new URL(process.env.TEST_ISOLATION_SOURCE_DATABASE_URL ?? process.env.DATABASE_URL!);
+    const isolatedOptions = runtimeUrl.searchParams.get('options');
+    assert.ok(isolatedOptions?.includes('teklifpro_test_'), 'owner test trigger must target the isolated schema');
+    ownerUrl.searchParams.set('options', isolatedOptions);
     const { Client: PgClient } = await import("pg");
     const ownerDb = new PgClient({ connectionString: ownerUrl.toString() });
     await ownerDb.connect();

@@ -34,7 +34,7 @@ test('audit API uses live super-admin authority and safe bounded responses', asy
   let fail = false;
   const app = express();
   const authenticate = createAuthenticate({
-    async findUser() { return { email: 'reader@example.test', emailVerified: null, passwordChangedAt: null, isSuperAdmin: superAdmin }; },
+    async findUser() { return { email: 'reader@example.test', emailVerified: new Date(), passwordChangedAt: null, isSuperAdmin: superAdmin }; },
     async findMembership() { return { role: 'owner' }; },
   });
   registerAdminLogRoutes(app, { authenticate, read: async ({ limit }) => {

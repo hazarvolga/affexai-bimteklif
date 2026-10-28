@@ -11,6 +11,7 @@ import {
   DATABASE_PUBLIC_RESTRICTED_TABLE_ACL,
   DATABASE_PROGRESS_PAYMENT_RLS_TABLES,
   DATABASE_QUOTATION_CORE_RLS_TABLES,
+  DATABASE_FINANCE_QUOTATION_RLS_TABLES,
   DATABASE_PRICING_REGULATIONS_RLS_TABLES,
   DATABASE_ALLPLAN_LEARNER_RLS_TABLES,
   DATABASE_ACADEMY_CONTROL_RLS_TABLES,
@@ -164,6 +165,25 @@ export const inspectTenantBusinessRlsViolations = (client: Queryable) => inspect
 export const inspectQuotationCoreRlsViolations = (client: Queryable) => inspectProtectedTenantRlsViolations(
   client, DATABASE_QUOTATION_CORE_RLS_TABLES, "0023_quotation_core_rls", "quotation core",
 );
+
+export async function inspectFinanceQuotationRlsViolations(client: Queryable): Promise<string[]> {
+  const tables = DATABASE_FINANCE_QUOTATION_RLS_TABLES;
+  const states = await client.query<{ table_name: string; enabled: boolean; forced: boolean }>(`select c.relname as table_name,c.relrowsecurity as enabled,c.relforcerowsecurity as forced from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relname=any($1::text[]) and c.relkind in ('r','p')`, [tables]);
+  const ledger = await client.query<{ present: boolean; has_tag: boolean }>("select to_regclass('teklifpro_release.migrations') is not null as present, exists(select 1 from information_schema.columns where table_schema='teklifpro_release' and table_name='migrations' and column_name='tag') as has_tag");
+  const applied = ledger.rows[0]?.present && ledger.rows[0]?.has_tag ? (await client.query<{ applied: boolean }>("select exists(select 1 from teklifpro_release.migrations where tag='0031_finance_quotation_tenant_rls') as applied")).rows[0]?.applied : false;
+  if (!applied && states.rows.every(row => !row.enabled && !row.forced)) return [];
+  const violations: string[] = [];
+  if (!applied || states.rowCount !== tables.length) violations.push('public finance quotation: applied 0031 and complete table set required');
+  const policies = await client.query<{ table_name: string; policy_name: string; command: string; role_oids: number[]; permissive: boolean; using_expression: string | null; check_expression: string | null }>(`select c.relname as table_name,p.polname as policy_name,p.polcmd as command,p.polroles::oid[] as role_oids,p.polpermissive as permissive,pg_get_expr(p.polqual,p.polrelid) as using_expression,pg_get_expr(p.polwithcheck,p.polrelid) as check_expression from pg_policy p join pg_class c on c.oid=p.polrelid join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relname=any($1::text[])`, [tables]);
+  for (const table of tables) {
+    const state = states.rows.find(row => row.table_name === table), actual = policies.rows.filter(row => row.table_name === table);
+    const app = actual.find(row => row.policy_name === `${table}_app_tenant`), backup = actual.find(row => row.policy_name === `${table}_backup_read`), owner = actual.find(row => row.policy_name === `${table}_owner_migration`);
+    const tenant = `((CURRENT_USER = 'bimmetraj_app'::name) AND (EXISTS ( SELECT 1\n   FROM quotations\n  WHERE ((quotations.id = ${table}.quotation_id) AND (quotations.company_id = (NULLIF(current_setting('bimmetraj.company_id'::text, true), ''::text))::uuid)))))`;
+    const publicPolicy = (policy: typeof app) => policy?.permissive && JSON.stringify(policy.role_oids) === '[0]';
+    if (!state?.enabled || !state.forced || actual.length !== 3 || !publicPolicy(app) || app?.command !== '*' || app.using_expression !== tenant || app.check_expression !== tenant || !publicPolicy(backup) || backup?.command !== 'r' || backup.using_expression !== "(CURRENT_USER = 'bimmetraj_backup'::name)" || backup.check_expression !== null || !publicPolicy(owner) || owner?.command !== '*' || owner.using_expression !== "((SESSION_USER = 'bimmetraj_migrator'::name) AND (CURRENT_USER = 'bimmetraj_owner'::name))" || owner.check_expression !== owner.using_expression) violations.push(`public.${table}: finance quotation FORCE-RLS policy matrix drift`);
+  }
+  return violations;
+}
 
 export const inspectPricingRegulationsRlsViolations = (client: Queryable) => inspectProtectedTenantRlsViolations(
   client, DATABASE_PRICING_REGULATIONS_RLS_TABLES, "0024_pricing_regulations_rls", "pricing regulations",
@@ -337,17 +357,14 @@ export async function inspectSmartcheckPilotRlsViolations(client: Queryable): Pr
   const auditPolicies = await client.query<{ name: string; command: string; role_oids: number[]; permissive: boolean; using_expression: string | null; check_expression: string | null }>(`select polname name,polcmd command,p.polroles::oid[] role_oids,p.polpermissive permissive,
     pg_get_expr(p.polqual,p.polrelid) using_expression,pg_get_expr(p.polwithcheck,p.polrelid) check_expression
     from pg_policy p join pg_class c on c.oid=p.polrelid join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relname='smartcheck_audit_logs' order by polname`);
-  const appNonPilot = "((CURRENT_USER = 'bimmetraj_app'::name) AND (entity_type <> 'smartcheck_pilot_case'::text))";
-  const workerNonPilot = "((CURRENT_USER = 'bimmetraj_worker'::name) AND (entity_type <> 'smartcheck_pilot_case'::text))";
-  const appAuditRead = "((CURRENT_USER = 'bimmetraj_app'::name) AND ((entity_type <> 'smartcheck_pilot_case'::text) OR (company_id = (NULLIF(current_setting('bimmetraj.company_id'::text, true), ''::text))::uuid)))";
+  const appNonPilot = "((CURRENT_USER = 'bimmetraj_app'::name) AND (company_id = (NULLIF(current_setting('bimmetraj.company_id'::text, true), ''::text))::uuid) AND (entity_type <> 'smartcheck_pilot_case'::text))";
+  const appAuditRead = tenant;
   const auditOwner = "(CURRENT_USER = 'bimmetraj_owner'::name)";
   const expectedAuditPolicies = [
     ["smartcheck_audit_logs_app_insert", "a", null, appNonPilot],
-    ["smartcheck_audit_logs_app_non_pilot_mutation", "*", appNonPilot, appNonPilot],
     ["smartcheck_audit_logs_app_read", "r", appAuditRead, null],
     ["smartcheck_audit_logs_backup_read", "r", backup, null],
     ["smartcheck_audit_logs_owner_migration", "*", auditOwner, auditOwner],
-    ["smartcheck_audit_logs_worker_non_pilot", "*", workerNonPilot, workerNonPilot],
   ] as const;
   const auditMatches = auditPolicies.rowCount === expectedAuditPolicies.length && expectedAuditPolicies.every(([name, command, using, check]) => {
     const policy = auditPolicies.rows.find((row) => row.name === name);
@@ -589,6 +606,7 @@ async function inspectManagedSchemaViolations(
   violations.push(...await inspectCrmLeadRlsViolations(client, options));
   violations.push(...await inspectTenantBusinessRlsViolations(client));
   violations.push(...await inspectQuotationCoreRlsViolations(client));
+  violations.push(...await inspectFinanceQuotationRlsViolations(client));
   violations.push(...await inspectPricingRegulationsRlsViolations(client));
   violations.push(...await inspectAllplanLearnerRlsViolations(client));
   violations.push(...await inspectAcademyControlRlsViolations(client));

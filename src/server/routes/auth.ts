@@ -121,18 +121,19 @@ export function registerAuthRoutes(app: Express) {
           .where(and(eq(academyProducts.code, "allplan-pro"), eq(academyProducts.isActive, true), eq(academyEditions.version, ALLPLAN_PROGRAM_VERSION), eq(academyEditions.accessMode, "free_pilot"), eq(academyEditions.isActive, true)))
           .limit(1) : [];
         if (intent === "academy" && !edition) throw new Error("ACADEMY_EDITION_UNAVAILABLE");
+        const trialPlan = await selectTrialPlan(tx);
+        if (!trialPlan) throw new Error('TRIAL_PLAN_UNAVAILABLE');
         const [company] = await tx.insert(companies).values({ name: companyName, isSmartcheckEnabled: true }).returning();
         const [user] = await tx.insert(users).values({ email, fullName, passwordHash, isSuperAdmin: false }).returning();
         await tx.insert(memberships).values({ userId: user.id, companyId: company.id, role: "owner" });
-        const trialPlan = await selectTrialPlan(tx);
         const now = new Date();
         const trialEnd = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
         await tx.insert(subscriptions).values({
           companyId: company.id,
           plan: "starter",
-          planId: trialPlan ? trialPlan.id : null,
+          planId: trialPlan.id,
           currentPeriodStart: now,
-          currentPeriodEnd: trialPlan ? trialEnd : null,
+          currentPeriodEnd: trialEnd,
         });
         const pendingPaymentOrder = selectedPlanId
           ? await createInitialPaymentOrder({
@@ -215,6 +216,7 @@ export function registerAuthRoutes(app: Express) {
       if (error instanceof EmailDeliveryError) return res.status(error.status).json({ code: error.code, error: error.message });
       console.error("Registration error:", error);
       if (error instanceof Error && error.message === "ACADEMY_EDITION_UNAVAILABLE") return res.status(503).json({ error: "Ücretsiz Academy kaydı şu anda kullanılamıyor." });
+      if (error instanceof Error && error.message === 'TRIAL_PLAN_UNAVAILABLE') return res.status(503).json({ code: 'TRIAL_PLAN_UNAVAILABLE', error: 'Başlangıç paketi geçici olarak kullanılamıyor. Lütfen daha sonra tekrar deneyin.' });
       if ((error as { code?: string })?.code === "23505") return res.status(409).json({ error: "Bu e-posta adresiyle bir hesap zaten mevcut." });
       res.status(500).json({ error: "Registration failed" });
     }
@@ -363,11 +365,12 @@ export function registerAuthRoutes(app: Express) {
         : await getControlDatabase().db.query.academyLearnerProfiles.findFirst({
             where: eq(academyLearnerProfiles.userId, user.id),
           });
-      const isExpertReviewer = await isUserExpertReviewer(user.id, user.isSuperAdmin);
-      setSessionCookies(res, token, { isSuperAdmin: user.isSuperAdmin });
+      const effectiveSuperAdmin = Boolean(user.isSuperAdmin && user.emailVerified);
+      const isExpertReviewer = await isUserExpertReviewer(user.id, effectiveSuperAdmin);
+      setSessionCookies(res, token, { isSuperAdmin: effectiveSuperAdmin });
       res.json({
         token: bodyToken(req, token),
-        user: { ...publicRegisteredUser(user), isExpertReviewer },
+        user: { ...publicRegisteredUser(user), isSuperAdmin: effectiveSuperAdmin, isExpertReviewer },
         company,
         role: membership?.role,
         accountType: learner ? 'academy_learner' : 'workspace',
@@ -398,10 +401,11 @@ export function registerAuthRoutes(app: Express) {
         : await getControlDatabase().db.query.academyLearnerProfiles.findFirst({
             where: eq(academyLearnerProfiles.userId, req.user.userId),
           });
-      const isExpertReviewer = await isUserExpertReviewer(user.id, user.isSuperAdmin);
+      const isExpertReviewer = await isUserExpertReviewer(user.id, req.user.isSuperAdmin);
       res.json({
         user: {
           ...publicRegisteredUser(user),
+          isSuperAdmin: Boolean(req.user.isSuperAdmin),
           isExpertReviewer,
           ...(req.user.impersonatedBy ? { impersonatedBy: req.user.impersonatedBy, readOnly: req.user.readOnly } : {})
         },

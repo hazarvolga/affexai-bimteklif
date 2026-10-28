@@ -1220,5 +1220,8 @@ $function$`,
       ? [...injectDataTransitions('0026_academy_control_rls', statements)]
       : statements;
   }
+  if (tag === '0031_finance_quotation_tenant_rls') {
+    return [...schemaStatements, ...['cost_components', 'quotation_financials'].map((table) => `ALTER TABLE "${table}" FORCE ROW LEVEL SECURITY;`)];
+  }
   return [...schemaStatements];
 }

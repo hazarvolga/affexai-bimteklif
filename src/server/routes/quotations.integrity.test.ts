@@ -14,7 +14,7 @@ useTestIsolation();
 test("quotation integrity against isolated PostgreSQL", { timeout: 30_000 }, async (t) => {
   if (await skipIfDatabaseUnavailable(t)) return;
   const [{ db }, { companies, clients, quotations, quotationItems, quotationItemEvidence, users, memberships, subscriptions,
-    documents, documentProcessingRuns, normalizedQuantityRows, priceSources, priceSnapshots }, { registerQuotationRoutes }] = await Promise.all([
+    documents, documentProcessingRuns, normalizedQuantityRows, priceSources, priceSnapshots, smartcheckAuditLogs }, { registerQuotationRoutes }] = await Promise.all([
     import("../../db"), import("../../db/schema"), import("./quotations"),
   ]);
   const isolation = await db.execute(sql`SELECT current_schema() AS schema`);
@@ -39,8 +39,10 @@ test("quotation integrity against isolated PostgreSQL", { timeout: 30_000 }, asy
     items: [{ description: "Work", unit: "m2", quantity: 2, unitPrice: 100, costUnitPrice: 70, wastePercent: 5,
       costCategory: "labor", discountPercent: 10, vatPercent: 20 }],
   });
-  // Tenant transactions need a UUID actor; policies scope by company only.
-  const actorUserId = crypto.randomUUID();
+  // Route audit records require a real actor membership in the relevant company.
+  const [actor] = await db.insert(users).values({ email: `${crypto.randomUUID()}@example.test`, fullName: 'Quotation actor' }).returning();
+  await db.insert(memberships).values([company, other].map(tenant => ({ companyId: tenant.id, userId: actor.id, role: 'owner' as const })));
+  const actorUserId = actor.id;
   const call = async (route: string, body: unknown = {}, id?: string, companyId = company.id) => {
     const response = { statusCode: 200, body: undefined as any,
       status(code: number) { this.statusCode = code; return this; },
@@ -53,6 +55,14 @@ test("quotation integrity against isolated PostgreSQL", { timeout: 30_000 }, asy
   const itemsFor = (id: string) => db.select().from(quotationItems).where(eq(quotationItems.quotationId, id));
   const series = (id: string) => db.select().from(quotations).where(and(eq(quotations.companyId, company.id), or(eq(quotations.id, id), eq(quotations.parentId, id))));
   const evidenceFor = (id: string) => db.select().from(quotationItemEvidence).where(eq(quotationItemEvidence.quotationId, id));
+  await t.test('quotation creation writes an audit for its tenant member', async () => {
+    const response = await create();
+    assert.equal(response.statusCode, 200);
+    const { withAppTenant } = await import('../../db/app-tenant');
+    const logs = await withAppTenant({ companyId: company.id, userId: actor.id }, tx => tx.select().from(smartcheckAuditLogs).where(and(eq(smartcheckAuditLogs.companyId, company.id), eq(smartcheckAuditLogs.entityId, response.body.id), eq(smartcheckAuditLogs.action, 'quotation.created'))));
+    assert.equal(logs.length, 1);
+    assert.equal(logs[0].userId, actor.id);
+  });
   await t.test('detail exposes only tenant scoped sanitized AI evidence', async () => {
     const quote = (await create()).body;
     const [item] = await itemsFor(quote.id);

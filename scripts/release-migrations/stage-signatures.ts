@@ -124,6 +124,16 @@ const stages = [
     sql: 'ef968e664c6dfd646599ee74efe59b9ed92e6619736399bb6be4f3047311dec6',
     snapshot: '9ca6e567b5a3b2f46e9bc215fb3af48689c1339a20defa13ad1979d72a49ba05',
     catalog: '8b379e909cdb46dbef121c6535cb8fc66ec01575eb5a96a5a3d217ed29ac6580' },
+  // Catalog from a fresh isolated PostgreSQL 16 after applying 0000–0030.
+  { tag: '0030_smartcheck_audit_tenant_rls',
+    sql: 'cbcce4112a23d543edc44b866f5dd11f8290c573f353a6b350b12011cea668b8',
+    snapshot: 'cbfde202ec265145acb6e1ed11f590104e93a2f24927a218eb6be94d5f51f2ba',
+    catalog: 'f461019195aca19a3aec39eec5f845c8a62c88e4b1c8e02ee8c8a997f426fdb1' },
+  // Catalog from a fresh isolated PostgreSQL 16 after applying 0000–0031.
+  { tag: '0031_finance_quotation_tenant_rls',
+    sql: '233b4e532ef221165429e072e498ac5c34934f92c32e8eb4f1a840a01e7195ce',
+    snapshot: 'c4124bf0dfcf73aecb84120ae170a9f7dca7a0e3c5fc54ff8cc4dee1cc5d4a74',
+    catalog: '535eb93d26a0bff7f8afa1326ebf1e569b117e6ead6459c40b23702a27e94c1f' },
 ] as const;
 
 export function pinnedSignature(migration: { idx: number; tag: string; sha256: string; snapshotSha256: string }) {

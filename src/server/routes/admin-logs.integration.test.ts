@@ -12,7 +12,7 @@ test('audit API reads isolated real data with stable microsecond pagination and 
   const [{ db }, schema, { createApiApp }, { AuthService }] = await Promise.all([
     import('../../db'), import('../../db/schema'), import('../app'), import('../../services/auth/authService'),
   ]);
-  const [admin] = await db.insert(schema.users).values({ email: 'audit-reader@example.test', fullName: 'Audit Reader', isSuperAdmin: true }).returning();
+  const [admin] = await db.insert(schema.users).values({ email: 'audit-reader@example.test', fullName: 'Audit Reader', isSuperAdmin: true, emailVerified: new Date() }).returning();
   const token = AuthService.generateToken({ userId: admin.id, companyId: null, role: null });
   const server = createServer(createApiApp());
   await new Promise<void>(resolve => server.listen(0, '127.0.0.1', resolve));

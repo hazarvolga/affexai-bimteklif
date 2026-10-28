@@ -30,6 +30,7 @@ test('Admin /queue/retry and /queue/recover integration tests', async (t) => {
     email: 'queue-admin@example.test',
     fullName: 'Queue Admin',
     isSuperAdmin: true,
+    emailVerified: new Date(),
   }).returning();
 
   const adminToken = AuthService.generateToken({ userId: admin.id, companyId: null, role: null });

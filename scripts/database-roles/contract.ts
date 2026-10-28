@@ -116,6 +116,8 @@ export const DATABASE_QUOTATION_CORE_RLS_TABLES = Object.freeze([
   "quotation_transfer_ledgers",
   "quotation_transfer_source_rows",
 ] as const);
+/** Finance rows inherit their tenant scope from the parent quotation. */
+export const DATABASE_FINANCE_QUOTATION_RLS_TABLES = Object.freeze(['cost_components', 'quotation_financials'] as const);
 /** Pricing, source intelligence, and regulation tables without worker or control-plane access, migrated in 0024 with the CDE policy matrix. */
 export const DATABASE_PRICING_REGULATIONS_RLS_TABLES = Object.freeze([
   "price_sources",

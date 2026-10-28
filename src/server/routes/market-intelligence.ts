@@ -63,7 +63,7 @@ function completeness(submission: typeof supplierQuoteSubmissions.$inferSelect, 
 }
 
 async function audit(req: any, action: string, entityType: string, entityId: string, metadataJson: Record<string, unknown> = {}) {
-  await db.insert(smartcheckAuditLogs).values({ companyId: req.user.companyId, userId: req.user.userId, action, entityType, entityId, metadataJson });
+  await withAppTenant(tenantOf(req.user), tx => tx.insert(smartcheckAuditLogs).values({ companyId: req.user.companyId, userId: req.user.userId, action, entityType, entityId, metadataJson }).then(() => undefined));
 }
 
 async function approvedSamples(actor: { companyId: string; userId: string }, currency: string) {
