@@ -203,6 +203,7 @@ export async function createIfcViewer(
   const resize = () => {
     const width = Math.max(container.clientWidth, 1);
     const height = Math.max(container.clientHeight, 1);
+    renderer.setPixelRatio(Math.min(Math.max(window.devicePixelRatio || 1, 1), 2));
     renderer.setSize(width, height, true);
     camera.aspect = width / height;
     if (!hasUserAdjustedCamera) {
@@ -212,6 +213,7 @@ export async function createIfcViewer(
   };
   const observer = new ResizeObserver(resize);
   observer.observe(container);
+  window.addEventListener("resize", resize);
   resize();
   let animationFrame = 0;
   const draw = () => { renderer.render(scene, camera); animationFrame = requestAnimationFrame(draw); };
@@ -392,6 +394,7 @@ export async function createIfcViewer(
     dispose() {
       cancelAnimationFrame(animationFrame);
       observer.disconnect();
+      window.removeEventListener("resize", resize);
       renderer.domElement.removeEventListener("contextmenu", onContextMenu);
       renderer.domElement.removeEventListener("pointerdown", onPointerDown);
       renderer.domElement.removeEventListener("pointermove", onPointerMove);

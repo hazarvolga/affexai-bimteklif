@@ -149,18 +149,18 @@ export function IfcReviewViewer({
 
   const viewportHeightClass =
     sizeMode === "fullscreen"
-      ? "h-[calc(100vh-210px)] min-h-[480px]"
+      ? "flex-1 min-h-[280px]"
       : sizeMode === "tall"
-        ? "h-[680px] min-h-[480px]"
-        : "h-[480px] min-h-[360px]";
+        ? "h-[460px] sm:h-[580px] lg:h-[680px]"
+        : "h-[340px] sm:h-[420px] lg:h-[480px]";
 
   return (
     <section
       aria-label="IFC 3B mühendislik inceleme görünümü"
       className={
         sizeMode === "fullscreen"
-          ? "fixed inset-4 z-50 flex flex-col border border-border bg-card shadow-2xl"
-          : "relative z-0 mx-6 my-4 overflow-hidden border border-border bg-card"
+          ? "fixed inset-2 sm:inset-4 z-50 flex flex-col overflow-hidden border border-border bg-card shadow-2xl"
+          : "relative z-0 mx-3 sm:mx-6 my-4 overflow-hidden border border-border bg-card"
       }
     >
       {/* ÜST BAŞLIK & PANEL BOYUTU KONTROLLERİ */}
