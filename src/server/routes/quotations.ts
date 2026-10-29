@@ -9,6 +9,7 @@ import { createManualQuotation, createQuotationRevision, QuotationIntegrityError
 import { auditQuotationItems } from "../../lib/quotation-audit";
 import { generateQuotationPdf } from "../../services/pdf/generate";
 import { tenantOf, withAppTenant } from "../../db/app-tenant";
+import type { TenantDatabase } from "../../db/tenant-context";
 import { PdfRenderError } from "../../services/pdf/renderer";
 import { quotationPdfErrorResponse } from './quotation-pdf-error';
 import { authenticate } from "../middleware/auth";
@@ -37,6 +38,17 @@ export function registerQuotationRoutes(app: Express, canMutate: any) {
       return res.status(429).set("Retry-After", String(result.retryAfterSeconds)).json({ error: "PDF üretim limiti aşıldı. Lütfen bir dakika bekleyin." });
     }
     next();
+  };
+
+  const auditQuotationInTransaction = async (tenantDb: TenantDatabase, req: Request, action: string, quotationId: string, metadataJson: Record<string, unknown> = {}) => {
+    await tenantDb.insert(smartcheckAuditLogs).values({
+      companyId: req.user.companyId,
+      userId: req.user.userId,
+      action,
+      entityType: "quotation",
+      entityId: quotationId,
+      metadataJson: { ...metadataJson, ...(req.user.impersonatedBy ? { impersonatedBy: req.user.impersonatedBy } : {}) },
+    });
   };
 
   const auditQuotation = async (req: any, action: string, quotationId: string, metadataJson: Record<string, unknown> = {}) => {
@@ -175,15 +187,19 @@ export function registerQuotationRoutes(app: Express, canMutate: any) {
       if (!parsed.success) return res.status(400).json({ error: "Invalid quotation status" });
       const status = parsed.data;
 
-      const [updated] = await withAppTenant(tenantOf(req.user), (tenantDb) => tenantDb.update(quotations)
-        .set({ status, updatedAt: new Date() })
-        .where(and(eq(quotations.id, id), eq(quotations.companyId, req.user.companyId)))
-        .returning());
+      const updated = await withAppTenant(tenantOf(req.user), async (tenantDb) => {
+        const [row] = await tenantDb.update(quotations)
+          .set({ status, updatedAt: new Date() })
+          .where(and(eq(quotations.id, id), eq(quotations.companyId, req.user.companyId)))
+          .returning();
+        if (row) await auditQuotationInTransaction(tenantDb, req, "quotation.status_updated", row.id, { status });
+        return row;
+      });
 
       if (!updated) return res.status(404).json({ error: "Quotation not found" });
-      await auditQuotation(req, "quotation.status_updated", updated.id, { status });
       res.json(updated);
     } catch (error) {
+      captureError(error, { area: "quotation-audit", action: "quotation.status_updated", quotationId: req.params.id });
       res.status(500).json({ error: "Failed to update status" });
     }
   });
@@ -194,17 +210,21 @@ export function registerQuotationRoutes(app: Express, canMutate: any) {
       const actualDurationMonths = req.body.actualDurationMonths == null || req.body.actualDurationMonths === "" ? null : Number(req.body.actualDurationMonths);
       if (actualCost !== null && (!Number.isFinite(actualCost) || actualCost < 0)) return res.status(400).json({ error: "Gerçekleşen maliyet geçersiz." });
       if (actualDurationMonths !== null && (!Number.isInteger(actualDurationMonths) || actualDurationMonths < 1)) return res.status(400).json({ error: "Gerçekleşen süre geçersiz." });
-      const [updated] = await withAppTenant(tenantOf(req.user), (tenantDb) => tenantDb.update(quotations).set({
-        observedActualCost: actualCost === null ? null : String(actualCost),
-        observedActualDurationMonths: actualDurationMonths,
-        calibrationStatus: actualCost !== null || actualDurationMonths !== null ? "collected" : "not_collected",
-        calibrationNote: typeof req.body.note === "string" ? req.body.note.slice(0, 2000) : null,
-        updatedAt: new Date(),
-      }).where(and(eq(quotations.id, req.params.id), eq(quotations.companyId, req.user.companyId))).returning());
+      const updated = await withAppTenant(tenantOf(req.user), async (tenantDb) => {
+        const [row] = await tenantDb.update(quotations).set({
+          observedActualCost: actualCost === null ? null : String(actualCost),
+          observedActualDurationMonths: actualDurationMonths,
+          calibrationStatus: actualCost !== null || actualDurationMonths !== null ? "collected" : "not_collected",
+          calibrationNote: typeof req.body.note === "string" ? req.body.note.slice(0, 2000) : null,
+          updatedAt: new Date(),
+        }).where(and(eq(quotations.id, req.params.id), eq(quotations.companyId, req.user.companyId))).returning();
+        if (row) await auditQuotationInTransaction(tenantDb, req, "quotation.calibrated", row.id);
+        return row;
+      });
       if (!updated) return res.status(404).json({ error: "Quotation not found" });
-      await auditQuotation(req, "quotation.calibrated", updated.id);
       res.json(updated);
     } catch (error) {
+      captureError(error, { area: "quotation-audit", action: "quotation.calibrated", quotationId: req.params.id });
       res.status(500).json({ error: "Calibration observation could not be saved" });
     }
   });

@@ -180,6 +180,12 @@ jobs:
           CI_DISPOSABLE_DATABASE: 'true'
           PRICE_REVIEW_TEST_URL: postgresql://postgres:ci-local-only@127.0.0.1:5433/teklifpro_bootstrap_test
         run: pnpm exec tsx --test src/server/routes/admin-price-review.pgtest.ts
+      - name: Quotation status and calibration audit atomicity
+        env:
+          NODE_ENV: test
+          CI_DISPOSABLE_DATABASE: 'true'
+          QUOTE_AUDIT_TEST_URL: postgresql://postgres:ci-local-only@127.0.0.1:5433/teklifpro_bootstrap_test
+        run: pnpm exec tsx --test src/server/routes/quotation-audit-atomic.pgtest.ts
       - run: pnpm exec tsc --noEmit -p scripts/release-migrations/tsconfig.json
       - run: pnpm exec tsx --test scripts/release-migrations/artifacts.test.ts scripts/release-migrations/safety.test.ts scripts/release-migrations/runner-role.test.ts scripts/release-migrations/worker-drain-gate.test.ts scripts/release-migrations/backup-docker.test.ts scripts/database-roles/runtime-compose-contract.test.ts
       - run: python3 -m unittest deploy.backup.test_backup

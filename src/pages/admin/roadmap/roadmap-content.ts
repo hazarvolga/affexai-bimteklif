@@ -185,8 +185,9 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
   },
   {
     id: "durum",
-    title: "Uygulama durumu (29 Ekim 2026 · Rev. 125 geliştirme kaydı)",
+    title: "Uygulama durumu (29 Ekim 2026 · Rev. 126 geliştirme kaydı)",
     blocks: [
+      { type: "callout", tone: "info", title: "Rev. 126 · Teklif durum ve kalibrasyon denetim bütünlüğü", text: "Teklif durumu ve kalibrasyon güncellemeleri ile audit kaydı aynı firma transaction içinde yürür; audit hatası iş değişikliğini geri alır. Kısıtlı rollerle izole PostgreSQL testi ve yabancı firma 404 sınırı vardır; diğer teklif işlemleri için aynı garanti yoktur. CI ve canlı kabul açık; hesap formülleri değişmedi." },
       { type: "callout", tone: "info", title: "Rev. 125 · CRM veri durumları ve kullanım dönemi", text: "CRM müşteri, lead ve fırsat hattı verilerini ayrı yükleme/hata durumlarıyla sunar; başarısız koleksiyon yeniden denenebilir ve firma değişiminde eski yanıt korunmaz. Paket ekranı UTC kullanım dönemi başlangıcı ve sonunu gösterir; bu tarih abonelik bitişi değildir. Yerel/mock arayüz kanıtı canlı veya CI kabulü değildir; hesap formülleri değişmedi." },
       { type: "callout", tone: "info", title: "Rev. 124 · Panel gezinme ve paket durumu", text: "Firma panelinde paket bilgisi yükleniyor, alınamadı veya bulunmuyor durumları ayrılır; firma değişiminde önceki yanıt gösterilmez. İçeriğe geç bağlantısı tek main-content hedefine yönelir; /app ve /admin rotaları sayfa başlığı alır, public SEO başlığına müdahale edilmez. CalculatorShell uygulama içi embedded düzenini pilot/önizleme durumundan bağımsız ele alır ve public canonical korunur. Korumalı rotadan public rotaya geçişte eski başlık temizlenir, public metadata yüklenene dek BIMMetraj geri dönüş başlığı kullanılır. Yerel gerçek tarayıcı testlerinde API verileri mocktur; CI ve canlı kabul açık. Hesap formülleri değişmedi." },
       { type: "callout", tone: "info", title: "Rev. 123 · Müşteri veri silme etki önizlemesi", text: "Firma sahibi veya yöneticisi müşteriyle doğrudan ilişkili bazı kayıtların sayısını görüntüleyebilir. Bu ekran salt okunurdur, hiçbir veriyi silmez ve silme talebi oluşturmaz. Tüm kişisel verilerin veya saklama yükümlülüklerinin envanteri değildir; canlı ve CI doğrulaması açıktır. Hesap formülleri değişmedi." },
@@ -257,6 +258,7 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
     id: "adimlar",
     title: "Sıradaki geliştirmeler ve kabul ölçütleri",
     blocks: [
+      { type: "p", text: "Rev. 126 sonrası: teklif oluşturma ve revizyon audit kayıtları iş transactionından ayrıdır; teklif düzenleme için audit kaydı yoktur. Bu geliştirme yalnız durum ve kalibrasyon rotalarını kapsar. İzole kısıtlı PostgreSQL ve firma sınırı testleri canlı kabul değildir; GitHub CI ve production ayrıca doğrulanmalıdır." },
       { type: "p", text: "Rev. 125 sonrası: CRM koleksiyonları ayrı hata ve yeniden deneme durumları gösterir; firma değişiminde eski koleksiyon yanıtı gösterilmez. Kullanım dönemi UTC takvim ayı sınırıdır ve aboneliğin bitiş veya yenileme tarihi olarak kullanılmamalıdır. Gerçek kullanıcı, GitHub CI ve canlı kabulü ayrıca doğrulanmalıdır." },
       { type: "p", text: "Rev. 124 sonrası: yerel mock tarayıcı testleri gerçek kullanıcı, canlı ortam veya tüm cihazlarda erişilebilirlik kabulü değildir. /app ve /admin dışı başlıklar mevcut public SEO işleyişine bırakılır; metadata yüklenirken korumalı başlık yerine BIMMetraj geri dönüşü kullanılır. Uygulama içi CalculatorShell yerleşimi pilot durumunu değiştirmez ve public canonical korunur. CI ve canlı kabul ayrıca doğrulanmalıdır." },
       { type: "p", text: "Rev. 123 sonrası: gerçek silme ve silme talebi yaşam döngüsü ile hukuk ve saklama kararları açık kalır. Önizleme yalnız doğrudan teklif, revizyon, fırsat ve fırsat etkinlikleri sayar; diğer firmalardaki ilişkiler, serbest metinler, doğrudan bağlı olmayan adaylar, dosyalar, denetim kayıtları, yedekler ve dış servislerdeki durum bilinmez. Sayımlar silinebilirlik garantisi değildir; canlı ve GitHub CI kabulü henüz doğrulanmadı." },
@@ -309,17 +311,17 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
   },
   {
     id: "revizyon-gunlugu",
-    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 125 · 13–29 Ekim 2026)",
+    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 126 · 13–29 Ekim 2026)",
     blocks: [
       {
         type: "callout",
         tone: "info",
-        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 125)",
-        text: "Bu bölüm, BIMMetraj'ın teknik evrimini Rev. 0'dan 29 Ekim 2026 Rev. 125 · BIM-CALC-2026-10-29.7 geliştirme kaydına kadar kronolojik sırayla listeler; Git geçmişi ve canlı sürüm ayrı doğrulanır, bağımsız uzman onayı bu kayıtla verilmez. Rev. 91–100, marka.md ürün incelemesinden çıkan uzman önizlemesi, Faz 0 güven düzeltmeleri ve Faz 1 Excel önce / fiyat eksikliği / dışa aktarım dilimleridir; Rev. 101 ile tüm 0022..0029 migration'ları, D12 worker başlangıç düzeltmesi ve D13 canlı ifc-worker consumeIfcUsage kota tamamlama düzeltmesi canlı üretime (https://bimmetraj.com) dağıtılmıştır. Rev. 102 ile 4 katmanlı müteahhit Excel adaptörü, Rev. 103 ile /admin/pricing-sources otomatik tohumlama ve TÜİK SDMX 2.1 adaptörü, Rev. 104 ile 6 aşamalı güvenlik denetimi bulgularının ve derinlemesine sertleştirme adımlarının tamamı kapatılmıştır. Rev. 105 ile CalmIfcWorkspace 795 satıra ayrıştırılmış, Rev. 106 ile Müşteriler (/app/clients), Müşteriler & Fırsatlar (/app/crm), 6 aşamalı müşteri zaman tüneli (/app/clients/:id) ve 3 katmanlı Akıllı Müşteri Excel/CSV Adaptörü devreye alınmıştır. Rev. 90 ile T43 ≥%80 proje kapsam hedefi (%82,58) ve T56 nihai izlenebilirlik matrisi tamamlanarak dış girdi gerektirmeyen tüm teknik adımlar kapatılmıştır. Harici fixture lisansı, T45 izinli gerçek büyük müşteri dosyası/VPS post-deploy kanıtı, T50–T52 uzman/müşteri/canlı kabulü ve T55 hukuk incelemesi açık olduğundan Faz 7, Faz 9, Faz 10 ve Faz 11 dış kabuller tamamlanana dek PARTIAL kalır.",
+        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 126)",
+        text: "Bu bölüm, BIMMetraj'ın teknik evrimini Rev. 0'dan 29 Ekim 2026 Rev. 126 · BIM-CALC-2026-10-29.8 geliştirme kaydına kadar kronolojik sırayla listeler; Git geçmişi ve canlı sürüm ayrı doğrulanır, bağımsız uzman onayı bu kayıtla verilmez. Rev. 91–100, marka.md ürün incelemesinden çıkan uzman önizlemesi, Faz 0 güven düzeltmeleri ve Faz 1 Excel önce / fiyat eksikliği / dışa aktarım dilimleridir; Rev. 101 ile tüm 0022..0029 migration'ları, D12 worker başlangıç düzeltmesi ve D13 canlı ifc-worker consumeIfcUsage kota tamamlama düzeltmesi canlı üretime (https://bimmetraj.com) dağıtılmıştır. Rev. 102 ile 4 katmanlı müteahhit Excel adaptörü, Rev. 103 ile /admin/pricing-sources otomatik tohumlama ve TÜİK SDMX 2.1 adaptörü, Rev. 104 ile 6 aşamalı güvenlik denetimi bulgularının ve derinlemesine sertleştirme adımlarının tamamı kapatılmıştır. Rev. 105 ile CalmIfcWorkspace 795 satıra ayrıştırılmış, Rev. 106 ile Müşteriler (/app/clients), Müşteriler & Fırsatlar (/app/crm), 6 aşamalı müşteri zaman tüneli (/app/clients/:id) ve 3 katmanlı Akıllı Müşteri Excel/CSV Adaptörü devreye alınmıştır. Rev. 90 ile T43 ≥%80 proje kapsam hedefi (%82,58) ve T56 nihai izlenebilirlik matrisi tamamlanarak dış girdi gerektirmeyen tüm teknik adımlar kapatılmıştır. Harici fixture lisansı, T45 izinli gerçek büyük müşteri dosyası/VPS post-deploy kanıtı, T50–T52 uzman/müşteri/canlı kabulü ve T55 hukuk incelemesi açık olduğundan Faz 7, Faz 9, Faz 10 ve Faz 11 dış kabuller tamamlanana dek PARTIAL kalır.",
       },
       {
         type: "p",
-        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 125):",
+        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 126):",
       },
       {
         type: "table",
@@ -1082,11 +1084,17 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
             "BIM-CALC-2026-10-29.7 · temel 42fc4f7; CI ve canlı dağıtım ayrıca doğrulanır",
             "Müşteri/lead/fırsat hattında bağımsız yükleme, hata ve yeniden deneme; firma değişiminde eski yanıt koruması. Paket ekranı UTC kullanım dönemi sınırını gösterir; abonelik bitişi değildir. Yerel/mock UI kanıtı canlı kabul değildir.",
           ],
+          [
+            "Rev. 126",
+            "29 Ekim 2026 · Teklif audit transaction bütünlüğü",
+            "BIM-CALC-2026-10-29.8 · temel f370fba; CI ve canlı dağıtım ayrıca doğrulanır",
+            "Teklif durum/kalibrasyon ve audit aynı firma transaction içinde; audit hatasında geri alma, yabancı firma 404 izole kısıtlı PostgreSQL testinde sınanır. Oluşturma/revizyon audit ayrı, düzenleme audit yok. CI/canlı kabul açık.",
+          ],
         ],
       },
       {
         type: "p",
-        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 125 · Önceki Durum → Yeni Durum):",
+        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 126 · Önceki Durum → Yeni Durum):",
       },
       {
         type: "table",
@@ -2070,6 +2078,13 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
             "Müşteri, lead ve fırsat hattı yükleme hataları birbirini etkileyebiliyor; kullanım dönemi sınırı ile abonelik bitişi yeterince ayrışmayabiliyordu.",
             "CRM müşteri, lead ve fırsat hattını ayrı yükleme/hata durumları ve yeniden deneme ile sunar; başarılı boş liste ile hata ayrılır, firma veya istek değişiminde eski yanıt yeni görünümü doldurmaz. Paket ekranı UTC kullanım dönemi başlangıcı ve sonunu gösterir; bunlar abonelik bitişi değildir. Sayaç hesaplaması değişmedi. Yerel/mock UI doğrulaması gerçek kullanıcı veya canlı kabul değildir; CI ve production ayrıca doğrulanmalıdır.",
             "src/pages/CRM.tsx; src/pages/crm-collection.ts; src/pages/Billing.tsx; src/pages/billing-period-display.ts; scripts/crm-partial-loading-ui-smoke.ts; scripts/billing-period-ui-smoke.ts",
+          ],
+          [
+            "Rev. 126 · 29 Ekim 2026 (Teklif audit transaction bütünlüğü)",
+            "Tenant transaction, durum/kalibrasyon UPDATE ve audit; kısıtlı PostgreSQL ve yabancı firma sınırı",
+            "Teklif durum ve kalibrasyon güncellemeleri tamamlandıktan sonra audit ayrı işlemde yazılıyor; audit hatasında iş değişikliği korunabiliyordu.",
+            "Durum ve kalibrasyon UPDATE ile audit aynı tenant transaction içinde yazılır; audit hatasında iş verisi ve zaman damgası geri alınır. Gerçek kısıtlı PostgreSQL testi başarısız audit rollback ve yabancı firma için 404 durumlarını kapsar. Teklif oluşturma ve revizyon audit kaydı ayrı transactiondadır; düzenleme audit kaydı yoktur. Kapsam bu iki rotayla sınırlıdır; GitHub CI ve canlı kabul açık, hesap formülleri değişmedi.",
+            "src/server/routes/quotations.ts; src/server/routes/quotation-audit-atomic.pgtest.ts; src/contracts/quotation-client-idor.pgtest.ts",
           ],
         ],
       },
