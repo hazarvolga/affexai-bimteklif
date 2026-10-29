@@ -180,6 +180,7 @@ export function registerPricingRoutes(app: Express) {
         .from(priceFeedStaging)
         .innerJoin(pricingDataSources, eq(priceFeedStaging.sourceId, pricingDataSources.id))
         .where(and(eq(priceFeedStaging.status, 'approved'), eq(pricingDataSources.status, 'active'), eq(pricingDataSources.reviewStatus, 'verified'), eq(pricingDataSources.reviewAllowsQuotations, true), sql`${pricingDataSources.authorizationStatus} <> 'restricted'`, eq(pricingDataSources.currency, 'TRY'),
+          sql`${priceFeedStaging.contentHash} ~ '^[a-f0-9]{64}$'`, sql`${priceFeedStaging.sourceIdentity} = jsonb_build_object('code', ${pricingDataSources.code}, 'name', ${pricingDataSources.name}, 'authority', ${pricingDataSources.authority}, 'sourceUrl', ${pricingDataSources.sourceUrl}, 'category', ${pricingDataSources.category}, 'versionTag', ${pricingDataSources.versionTag}, 'currency', ${pricingDataSources.currency}, 'countryCode', ${pricingDataSources.countryCode})`,
           sql`${priceFeedStaging.reviewedAt} IS NOT NULL`, sql`${priceFeedStaging.reviewedByUserId} IS NOT NULL`,
           sql`${priceFeedStaging.crawledPrice} >= 0 AND ${priceFeedStaging.crawledPrice} != 'NaN'::numeric`,
           q ? sql`position(lower(${q}) in lower(${priceFeedStaging.itemCode} || ' ' || ${priceFeedStaging.itemName} || ' ' || ${pricingDataSources.name})) > 0` : undefined,

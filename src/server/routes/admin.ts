@@ -1,4 +1,8 @@
+import { crawlSourceIdentity, priceSourceIdentity, priceObservationMatchesSource } from "../crawler/source-identity";
 import { isSourceReviewHistoryConflict } from "../pricing/source-delete-error";
+import { assertCrawlSourceProof, CrawlSourceProofError, hasIndependentSourceAuthorization, SourceAuthorizationRequiredError } from "../crawler/source-proof";
+import { isDeepStrictEqual } from "node:util";
+import { claimCrawlSource, releaseCrawlSource } from "../crawler/crawl-claim";
 import { Router, type Express } from "express";
 import { authenticate, checkSuperAdmin } from "../middleware/auth";
 import { db } from "../../db";
@@ -1344,7 +1348,7 @@ export function registerAdminRoutes(app: Express) {
         await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtextextended('bimmetraj:admin-price-review:v1', 0))`);
         // Import also locks its source before editing staging. Keep that order
         // to avoid deadlocks against a concurrent import or source deletion.
-        const lockedSources = await tx.select({ id: pricingDataSources.id }).from(pricingDataSources)
+        const lockedSources = await tx.select().from(pricingDataSources)
           .where(parsed.data.sourceId ? eq(pricingDataSources.id, parsed.data.sourceId) : undefined)
           .orderBy(pricingDataSources.id).for("update");
         if (!lockedSources.length) return { success: true, processedCount: 0, skippedCount: 0 };
@@ -1358,13 +1362,17 @@ export function registerAdminRoutes(app: Express) {
           return { success: true, processedCount: 0, skippedCount: 0 };
         }
 
+        if (parsed.data.action === "approve") {
+          const sourceById = new Map(lockedSources.map(source => [source.id, source]));
+          if (pendingRows.some(row => !hasIndependentSourceAuthorization(sourceById.get(row.sourceId)!))) throw new SourceAuthorizationRequiredError();
+        }
+
         const now = new Date();
         let processedCount = 0;
         let skippedCount = 0;
-        const touchedSourceIds = new Set<string>();
 
         for (const row of pendingRows) {
-          if (parsed.data.action === "approve" && !canApproveCrawlerPrice(row)) {
+          if (parsed.data.action === "approve" && (!canApproveCrawlerPrice(row) || !priceObservationMatchesSource(row, lockedSources.find(source => source.id === row.sourceId)!))) {
             skippedCount++;
             continue;
           }
@@ -1402,23 +1410,7 @@ export function registerAdminRoutes(app: Express) {
           // rather than claiming a change that was not persisted.
           if (!updated) throw new Error("Price review row was not updated");
 
-          touchedSourceIds.add(row.sourceId);
           processedCount++;
-        }
-
-        if (parsed.data.action === "approve" && touchedSourceIds.size > 0) {
-          const rollingEnd = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000);
-          for (const sourceId of touchedSourceIds) {
-            await tx
-              .update(pricingDataSources)
-              .set({
-                status: "active",
-                validityStart: sql`COALESCE(${pricingDataSources.validityStart}, ${now})`,
-                validityEnd: sql`COALESCE(${pricingDataSources.validityEnd}, ${rollingEnd})`,
-                updatedAt: now,
-              })
-              .where(eq(pricingDataSources.id, sourceId));
-          }
         }
 
         await tx.insert(adminAuditLogs).values({
@@ -1443,6 +1435,7 @@ export function registerAdminRoutes(app: Express) {
       });
       return res.json(result);
     } catch (error) {
+      if (error instanceof SourceAuthorizationRequiredError) return res.status(409).json({code:error.code,error:error.message});
       console.error("Admin bulk price review error:", error);
       return res.status(500).json({ error: "Toplu inceleme işlemi tamamlanamadı." });
     }
@@ -1465,7 +1458,7 @@ export function registerAdminRoutes(app: Express) {
         const [candidate] = await tx.select({ sourceId: priceFeedStaging.sourceId }).from(priceFeedStaging)
           .where(eq(priceFeedStaging.id, req.params.id));
         if (!candidate) return { status: 404, body: { error: "İncelenecek fiyat kaydı bulunamadı." } };
-        const [source] = await tx.select({ id: pricingDataSources.id }).from(pricingDataSources)
+        const [source] = await tx.select().from(pricingDataSources)
           .where(eq(pricingDataSources.id, candidate.sourceId)).for("update");
         if (!source) return { status: 404, body: { error: "İncelenecek fiyat kaydı bulunamadı." } };
         const [existing] = await tx
@@ -1477,7 +1470,9 @@ export function registerAdminRoutes(app: Express) {
           return { status: 404, body: { error: "İncelenecek fiyat kaydı bulunamadı." } };
         }
 
-        if (parsed.data.action === "approve" && !canApproveCrawlerPrice(existing)) {
+        if (parsed.data.action === "approve" && !hasIndependentSourceAuthorization(source)) throw new SourceAuthorizationRequiredError();
+
+        if (parsed.data.action === "approve" && (!canApproveCrawlerPrice(existing) || !priceObservationMatchesSource(existing, source))) {
           return { status: 409, body: { code: "PRICE_SOURCE_EVIDENCE_REQUIRED", error: "Bu kaydın canlı kaynak kanıtı yok. Kaynağı yeniden tarayın; eski örnek fiyatlar onaylanamaz." } };
         }
 
@@ -1513,19 +1508,6 @@ export function registerAdminRoutes(app: Express) {
 
         if (!updated) throw new Error("Price review row was not updated");
 
-        if (newStatus === "approved") {
-          const rollingEnd = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000);
-          await tx
-            .update(pricingDataSources)
-            .set({
-              status: "active",
-              validityStart: sql`COALESCE(${pricingDataSources.validityStart}, ${now})`,
-              validityEnd: sql`COALESCE(${pricingDataSources.validityEnd}, ${rollingEnd})`,
-              updatedAt: now,
-            })
-            .where(eq(pricingDataSources.id, existing.sourceId));
-        }
-
         // Log review action
         await tx.insert(adminAuditLogs).values({
           adminId: req.user.userId,
@@ -1543,14 +1525,16 @@ export function registerAdminRoutes(app: Express) {
       });
       return res.status(result.status).json(result.body);
     } catch (error) {
+      if (error instanceof SourceAuthorizationRequiredError) return res.status(409).json({code:error.code,error:error.message});
       console.error("Admin price review error:", error);
       return res.status(500).json({ error: "Fiyat inceleme işlemi kaydedilemedi." });
     }
   });
 
   router.post("/pricing-sources/:id/sync", async (req, res) => {
+    let crawlClaim: string | null = null;
     try {
-      const [source] = await db
+      let [source] = await db
         .select()
         .from(pricingDataSources)
         .where(eq(pricingDataSources.id, req.params.id));
@@ -1559,18 +1543,16 @@ export function registerAdminRoutes(app: Express) {
         return res.status(404).json({ error: "Veri kaynağı bulunamadı." });
       }
 
-      if (!isAutomaticPricingSource(source.status)) {
+      if (!isAutomaticPricingSource(source.status) && source.status !== "syncing") {
         return res.status(409).json({
           code: "PRICING_SOURCE_REVIEW_REQUIRED",
           error: "Kaynak doğrulanıp aktif edilmeden tarama başlatılamaz.",
         });
       }
 
-      // 1. Mark as syncing
-      await db
-        .update(pricingDataSources)
-        .set({ status: "syncing", updatedAt: new Date() })
-        .where(eq(pricingDataSources.id, source.id));
+      // Atomically claim only an active source; a concurrent crawl cannot share it.
+      crawlClaim = await claimCrawlSource(source.id);
+      if (!crawlClaim) return res.status(409).json({ error: "Kaynak başka bir işlem tarafından kullanılıyor." });
 
       // 2. Execute real crawler engine
       const crawlResult = await priceCrawlerService.crawlSource({
@@ -1583,165 +1565,143 @@ export function registerAdminRoutes(app: Express) {
       });
 
       if (crawlResult.status === "error") {
-        await db
-          .update(pricingDataSources)
-          .set({ status: "error", updatedAt: new Date() })
-          .where(eq(pricingDataSources.id, source.id));
+        await releaseCrawlSource(source.id, crawlClaim);
+        crawlClaim = null;
 
         return res.status(502).json({
           error: `Canlı tarama başarısız oldu: ${crawlResult.errorMessage || "Kaynağa ulaşılamadı"}`,
         });
       }
 
-      const configObj =
-        source.crawlerConfig && typeof source.crawlerConfig === "object"
-          ? (source.crawlerConfig as Record<string, unknown>)
-          : {};
-      const autoApprove = Boolean(configObj.autoApprove);
-
-      const existingApproved = await db
-        .select()
-        .from(priceFeedStaging)
-        .where(
-          and(
-            eq(priceFeedStaging.sourceId, source.id),
-            eq(priceFeedStaging.status, "approved")
-          )
-        )
-        .orderBy(desc(priceFeedStaging.crawledAt));
-
-      const approvedByCode = new Map<string, typeof existingApproved[number]>();
-      for (const row of existingApproved) {
-        if (!approvedByCode.has(row.itemCode)) {
-          approvedByCode.set(row.itemCode, row);
-        }
-      }
-
       let insertedOrChangedCount = 0;
       let autoApprovedCount = 0;
       let unchangedCount = 0;
-
-      // 3. Clear older pending items for this source and insert fresh/changed crawled items
-      if (crawlResult.items.length > 0) {
-        await db
-          .delete(priceFeedStaging)
+      await db.transaction(async (tx) => {
+        const [lockedSource] = await tx.select().from(pricingDataSources)
+          .where(eq(pricingDataSources.id, source.id)).for("update");
+        if (!lockedSource) throw new Error("PRICING_SOURCE_REMOVED_DURING_CRAWL");
+        if (lockedSource.status !== "syncing" || (lockedSource.crawlLeaseToken !== crawlClaim || !lockedSource.crawlLeaseUntil || lockedSource.crawlLeaseUntil.getTime() <= Date.now()) || !isDeepStrictEqual(crawlSourceIdentity(lockedSource), crawlSourceIdentity(source))) throw new Error("PRICING_SOURCE_CHANGED_DURING_CRAWL");
+        source = lockedSource;
+        const activeRows = await tx
+          .select()
+          .from(priceFeedStaging)
           .where(
             and(
               eq(priceFeedStaging.sourceId, source.id),
-              eq(priceFeedStaging.status, "pending")
+              inArray(priceFeedStaging.status, ["approved", "pending"])
             )
-          );
+          )
+          .orderBy(desc(priceFeedStaging.crawledAt));
 
-        for (const item of crawlResult.items) {
-          const normalizedUnit = inferCrawledItemUnit(
-            item.itemName,
-            source.code,
-            source.name,
-            item.unit
-          );
-          const prev = approvedByCode.get(item.itemCode);
-          const prevPrice = prev ? Number(prev.crawledPrice) : null;
-          const hasPrevPrice =
-            prevPrice !== null && Number.isFinite(prevPrice) && prevPrice > 0;
+        const hasActiveRows = activeRows.length > 0;
+        assertCrawlSourceProof({dataHash: source.dataHash, crawlHash: crawlResult.dataHash, hasActiveRows});
+        const existingApproved = activeRows.filter(row => row.status === "approved");
 
-          if (prev && hasPrevPrice && Math.abs(item.crawledPrice - prevPrice) < 0.005) {
-            await db
-              .update(priceFeedStaging)
-              .set({
-                crawledAt: crawlResult.crawledAt,
-                unit: normalizedUnit,
-              })
-              .where(eq(priceFeedStaging.id, prev.id));
-            unchangedCount++;
-            continue;
+        const approvedByCode = new Map<string, typeof existingApproved[number]>();
+        for (const row of existingApproved) {
+          if (!approvedByCode.has(row.itemCode)) {
+            approvedByCode.set(row.itemCode, row);
           }
-
-          const diffPercent = hasPrevPrice
-            ? String(Math.round(((item.crawledPrice - prevPrice) / prevPrice) * 10000) / 100)
-            : null;
-          const shouldAutoApprove =
-            autoApprove &&
-            canApproveCrawlerPrice({
-              notes: item.notes,
-              sourceUrl: item.sourceUrl,
-              crawledPrice: item.crawledPrice,
-            });
-
-          if (shouldAutoApprove && prev) {
-            await db
-              .update(priceFeedStaging)
-              .set({
-                status: "rejected",
-                notes: sql`COALESCE(${priceFeedStaging.notes}, '') || ' | Yeni canlı tarama ile güncellendi'`,
-              })
-              .where(eq(priceFeedStaging.id, prev.id));
-          }
-
-          await db.insert(priceFeedStaging).values({
-            sourceId: source.id,
-            itemCode: item.itemCode,
-            itemName: item.itemName,
-            unit: normalizedUnit,
-            currentPrice: hasPrevPrice ? prevPrice.toFixed(2) : null,
-            crawledPrice: String(item.crawledPrice),
-            diffPercent,
-            sourceUrl: item.sourceUrl,
-            status: shouldAutoApprove ? "approved" : "pending",
-            reviewedAt: shouldAutoApprove ? crawlResult.crawledAt : null,
-            reviewedByUserId: shouldAutoApprove ? req.user.userId : null,
-            confidenceScore: String(item.confidenceScore),
-            notes: item.notes,
-            crawledAt: crawlResult.crawledAt,
-          });
-          insertedOrChangedCount++;
-          if (shouldAutoApprove) autoApprovedCount++;
         }
-      }
 
-      const rollingValidityEnd = new Date(
-        crawlResult.crawledAt.getTime() + 90 * 24 * 60 * 60 * 1000
-      );
 
-      // 4. Update data source metadata & rolling validity window
-      const nextDataHash = crawlResult.dataHash && /^[a-f0-9]{64}$/.test(crawlResult.dataHash)
-        ? crawlResult.dataHash : source.dataHash;
+        // 3. Clear older pending items for this source and insert fresh/changed crawled items
+        if (crawlResult.items.length > 0) {
+          await tx
+            .delete(priceFeedStaging)
+            .where(
+              and(
+                eq(priceFeedStaging.sourceId, source.id),
+                eq(priceFeedStaging.status, "pending")
+              )
+            );
 
-      await db
-        .update(pricingDataSources)
-        .set({
-          lastSyncAt: crawlResult.crawledAt,
-          status: "active",
-          itemCount: sql`GREATEST(${pricingDataSources.itemCount}, ${crawlResult.itemsCount})`,
-          dataHash: nextDataHash,
-          validityStart: source.validityStart ?? crawlResult.crawledAt,
-          validityEnd:
-            source.validityEnd && source.validityEnd > rollingValidityEnd
-              ? source.validityEnd
-              : rollingValidityEnd,
-          versionTag:
-            source.versionTag === "metadata-only"
-              ? `${crawlResult.crawledAt.getFullYear()}/${crawlResult.crawledAt.getMonth() + 1}`
-              : source.versionTag,
-          updatedAt: new Date(),
-        })
-        .where(eq(pricingDataSources.id, source.id));
+          for (const item of crawlResult.items) {
+            const normalizedUnit = inferCrawledItemUnit(
+              item.itemName,
+              source.code,
+              source.name,
+              item.unit
+            );
+            const prev = approvedByCode.get(item.itemCode);
+            const prevPrice = prev ? Number(prev.crawledPrice) : null;
+            const hasPrevPrice =
+              prevPrice !== null && Number.isFinite(prevPrice) && prevPrice > 0;
 
-      // 5. Audit log
-      await db.insert(adminAuditLogs).values({
-        adminId: req.user.userId,
-        action: "pricing_source_crawled",
-        details: {
-          sourceId: source.id,
-          sourceCode: source.code,
-          itemsCount: crawlResult.itemsCount,
-          insertedOrChangedCount,
-          autoApprovedCount,
-          unchangedCount,
-          durationMs: crawlResult.durationMs,
-          timestamp: crawlResult.crawledAt.toISOString(),
-        },
+            const unitChanged = Boolean(prev && prev.unit !== normalizedUnit);
+            // A crawl cannot refresh a human-reviewed observation in place.
+            if (prev && priceObservationMatchesSource(prev, source) && !unitChanged && hasPrevPrice && Math.abs(item.crawledPrice - prevPrice) < 0.005) {
+              unchangedCount++;
+              continue;
+            }
+
+            const diffPercent = hasPrevPrice && !unitChanged
+              ? String(Math.round(((item.crawledPrice - prevPrice) / prevPrice) * 10000) / 100)
+              : null;
+            await tx.insert(priceFeedStaging).values({
+              sourceId: source.id,
+              contentHash: crawlResult.dataHash,
+              sourceIdentity: priceSourceIdentity(source),
+              itemCode: item.itemCode,
+              itemName: item.itemName,
+              unit: normalizedUnit,
+              currentPrice: hasPrevPrice && !unitChanged ? prevPrice.toFixed(2) : null,
+              crawledPrice: String(item.crawledPrice),
+              diffPercent,
+              sourceUrl: item.sourceUrl,
+              status: "pending",
+              reviewedAt: null,
+              reviewedByUserId: null,
+              confidenceScore: String(item.confidenceScore),
+              notes: item.notes,
+              crawledAt: crawlResult.crawledAt,
+            });
+            insertedOrChangedCount++;
+          }
+        }
+
+        const rollingValidityEnd = new Date(
+          crawlResult.crawledAt.getTime() + 90 * 24 * 60 * 60 * 1000
+        );
+
+        // 4. Update data source metadata & rolling validity window
+        const nextDataHash = crawlResult.dataHash;
+
+        await tx
+          .update(pricingDataSources)
+          .set({
+            lastSyncAt: crawlResult.crawledAt,
+            status: "active",
+            crawlLeaseToken: null, crawlLeaseUntil: null,
+            itemCount: sql`GREATEST(${pricingDataSources.itemCount}, ${crawlResult.itemsCount})`,
+            ...(!hasActiveRows ? {
+              dataHash: nextDataHash,
+              validityStart: crawlResult.crawledAt,
+              validityEnd: rollingValidityEnd,
+            } : {}),
+            updatedAt: new Date(),
+          })
+          .where(eq(pricingDataSources.id, source.id));
+
+        // 5. Audit log
+        await tx.insert(adminAuditLogs).values({
+          adminId: req.user.userId,
+          action: "pricing_source_crawled",
+          details: {
+            sourceId: source.id,
+            sourceCode: source.code,
+            itemsCount: crawlResult.itemsCount,
+            insertedOrChangedCount,
+            autoApprovedCount,
+            unchangedCount,
+            durationMs: crawlResult.durationMs,
+            timestamp: crawlResult.crawledAt.toISOString(),
+          },
+        });
+
       });
 
+      crawlClaim = null;
       const statusNote = autoApprovedCount > 0
         ? `${autoApprovedCount} adet yeni/değişen fiyat otomatik onaylanarak canlı teklif kataloğuna aktarıldı (${unchangedCount} kalem değişmedi).`
         : insertedOrChangedCount > 0
@@ -1760,6 +1720,8 @@ export function registerAdminRoutes(app: Express) {
         },
       });
     } catch (error) {
+      if (crawlClaim) { try { await releaseCrawlSource(req.params.id, crawlClaim); } catch (releaseError) { console.error("Crawler claim release failed:", releaseError); } }
+      if (error instanceof CrawlSourceProofError) return res.status(409).json({ code: error.code, error: error.message });
       console.error("Admin pricing sync error:", error);
       return res.status(500).json({ error: "Tarama sırasında sunucu hatası oluştu." });
     }

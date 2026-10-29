@@ -253,6 +253,13 @@
       "sha256": "ff908d9db61505d9a307566475b1cf74415dc0d348570dc51491109cbec25cc6",
       "snapshotSha256": "0ac2c493f7823d9ea509f7f3b9d57e89976c770a5a684ff87948d3d141f9f8eb",
       "statements": 51
+    },
+    {
+      "idx": 36,
+      "tag": "0036_crawler_lease_evidence",
+      "sha256": "08f98503960bab2ee5cd4c4c1a1145250346994400dd50c30fa780e7e02538d3",
+      "snapshotSha256": "bb55dab4fdcbecf5cd3c5835592eafd63af40afdbf9f13667f8874d6c488d72e",
+      "statements": 4
     }
   ]
 }

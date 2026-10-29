@@ -1,3 +1,5 @@
+import { containsEveryImportedPrice } from '../crawler/catalog-reuse';
+import { priceSourceIdentity, priceObservationMatchesSource } from '../crawler/source-identity';
 import { createHash } from 'node:crypto';
 import express, { type Express } from 'express';
 import { and, eq, inArray, sql } from 'drizzle-orm';
@@ -53,13 +55,11 @@ async function executeCatalogImport(payload: CatalogImportPayload) {
     const now = new Date();
 
     if (parent.dataHash === payload.documentHash && parent.versionTag === versionTag && parent.status === 'active') {
-      return {
-        sourceId: parent.id,
-        insertedCount: 0,
-        autoApprovedCount: 0,
-        documentHash: payload.documentHash,
-        reused: true,
-      };
+      const existing = await tx.select().from(priceFeedStaging).where(and(eq(priceFeedStaging.sourceId, parent.id), inArray(priceFeedStaging.status, ['pending', 'approved'])));
+      const current = existing.filter(row => row.contentHash === payload.documentHash && priceObservationMatchesSource(row, parent));
+      if (containsEveryImportedPrice(payload.rows, current)) {
+        return { sourceId: parent.id, insertedCount: 0, autoApprovedCount: 0, documentHash: payload.documentHash, reused: true };
+      }
     }
 
     const prevConfig =
@@ -74,7 +74,7 @@ async function executeCatalogImport(payload: CatalogImportPayload) {
       fileName: payload.fileName,
       licenseReference: payload.licenseReference,
       importedAt: now.toISOString(),
-      autoApprove: payload.autoApprove,
+      autoApprove: false,
     };
 
     const existingApproved = await tx
@@ -92,22 +92,6 @@ async function executeCatalogImport(payload: CatalogImportPayload) {
       .delete(priceFeedStaging)
       .where(and(eq(priceFeedStaging.sourceId, parent.id), eq(priceFeedStaging.status, 'pending')));
 
-    if (payload.autoApprove && existingApproved.length > 0) {
-      const importedCodes = payload.rows.map((r) => r.itemCode);
-      await tx
-        .update(priceFeedStaging)
-        .set({
-          status: 'rejected',
-          notes: sql`COALESCE(${priceFeedStaging.notes}, '') || ' | Yeni resmi katalog sürümü ile güncellendi'`,
-        })
-        .where(
-          and(
-            eq(priceFeedStaging.sourceId, parent.id),
-            eq(priceFeedStaging.status, 'approved'),
-            inArray(priceFeedStaging.itemCode, importedCodes)
-          )
-        );
-    }
 
     await tx
       .update(pricingDataSources)
@@ -135,15 +119,17 @@ async function executeCatalogImport(payload: CatalogImportPayload) {
             : null;
         return {
           sourceId: parent.id,
+          contentHash: payload.documentHash,
+          sourceIdentity: priceSourceIdentity({ ...parent, versionTag }),
           itemCode: row.itemCode,
           itemName: row.itemName,
           unit: row.unit,
           currentPrice: prevPrice !== null && Number.isFinite(prevPrice) ? prevPrice.toFixed(2) : null,
           crawledPrice: row.price,
           diffPercent,
-          status: payload.autoApprove ? 'approved' : 'pending',
-          reviewedAt: payload.autoApprove ? now : null,
-          reviewedByUserId: payload.autoApprove ? payload.userId : null,
+          status: 'pending',
+          reviewedAt: null,
+          reviewedByUserId: null,
           confidenceScore: '1.00',
           sourceUrl: parent.sourceUrl,
           notes: `[${payload.kind}] ` + JSON.stringify({ ...metadata, row: index + 1 }),
@@ -159,14 +145,14 @@ async function executeCatalogImport(payload: CatalogImportPayload) {
         ...metadata,
         sourceId: parent.id,
         rowCount: payload.rows.length,
-        autoApprove: payload.autoApprove,
+        autoApprove: false,
       },
     });
 
     return {
       sourceId: parent.id,
       insertedCount: payload.rows.length,
-      autoApprovedCount: payload.autoApprove ? payload.rows.length : 0,
+      autoApprovedCount: 0,
       documentHash: payload.documentHash,
       reused: false,
     };

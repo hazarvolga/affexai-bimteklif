@@ -2344,6 +2344,8 @@ export const pricingDataSources = pgTable("pricing_data_sources", {
   authorizationEvidenceHash: text("authorization_evidence_hash"),
   authorizedAt: timestamp("authorized_at", { withTimezone: true }),
   crawlerConfig: jsonb("crawler_config").default({}).notNull(),
+  crawlLeaseToken: uuid("crawl_lease_token"),
+  crawlLeaseUntil: timestamp("crawl_lease_until", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 }, (table) => ({
@@ -2394,6 +2396,8 @@ export const priceFeedStaging = pgTable("price_feed_staging", {
   crawledPrice: numeric("crawled_price", { precision: 20, scale: 2 }).notNull(),
   diffPercent: numeric("diff_percent", { precision: 6, scale: 2 }),
   sourceUrl: text("source_url"),
+  contentHash: text("content_hash"),
+  sourceIdentity: jsonb("source_identity"),
   status: text("status").default("pending").notNull(),
   confidenceScore: numeric("confidence_score", { precision: 4, scale: 2 }).default("0.90").notNull(),
   notes: text("notes"),

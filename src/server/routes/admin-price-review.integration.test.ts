@@ -1,3 +1,4 @@
+import { priceSourceIdentity } from '../crawler/source-identity';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { createServer } from 'node:http';
@@ -18,9 +19,9 @@ test('price review commits audit, source and prices together and serializes comp
   t.after(() => new Promise<void>(resolve => { server.close(() => resolve()); server.closeAllConnections(); }));
   const base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
   const [admin] = await db.insert(schema.users).values({ email: `${randomUUID()}@example.test`, fullName: 'Admin', isSuperAdmin: true, emailVerified: new Date() }).returning();
-  const [source] = await db.insert(schema.pricingDataSources).values({ name: 'Source', code: randomUUID(), category: 'official_gazette', authorizationStatus: 'pending' }).returning();
+  const [source] = await db.insert(schema.pricingDataSources).values({ name: 'Source', code: randomUUID(), category: 'official_gazette', reviewStatus:'verified',reviewEvidenceReference:'https://example.test/permission',reviewScope:'Teklif kullanimi',reviewAllowsQuotations:true,reviewedByUserId:admin.id,reviewedAt:new Date(), authorizationStatus: 'authorized', authorizationEvidenceHash:'b'.repeat(64), authorizedAt:new Date() }).returning();
   const old = randomUUID(), first = randomUUID(), second = randomUUID();
-  await db.insert(schema.priceFeedStaging).values([old, first, second].map((id, i) => ({ id, sourceId: source.id, itemCode: 'A', itemName: 'Fixture', unit: 'm', crawledPrice: '100.00', sourceUrl: 'https://example.test/price', notes: '[live-html-v1] fixture', status: i === 0 ? 'approved' : 'pending' })));
+  await db.insert(schema.priceFeedStaging).values([old, first, second].map((id, i) => ({ id, sourceId: source.id, contentHash:'a'.repeat(64),sourceIdentity:priceSourceIdentity(source), itemCode: 'A', itemName: 'Fixture', unit: 'm', crawledPrice: '100.00', sourceUrl: 'https://example.test/price', notes: '[live-html-v1] fixture', status: i === 0 ? 'approved' : 'pending' })));
   const token = AuthService.generateToken({ userId: admin.id, companyId: null, role: null });
   const post = (path: string, body: unknown) => fetch(`${base}${path}`, { method: 'POST', headers: { authorization: `Bearer ${token}`, 'content-type': 'application/json' }, body: JSON.stringify(body) });
   const path = '/api/admin/pricing-sources/staging';
@@ -32,7 +33,8 @@ test('price review commits audit, source and prices together and serializes comp
     const rows = await db.select().from(schema.priceFeedStaging).where(eq(schema.priceFeedStaging.sourceId, source.id));
     assert.deepEqual(rows.map(row => [row.id, row.status]).sort(), [[old, 'approved'], [first, 'pending'], [second, 'pending']].sort());
     const [unchanged] = await db.select().from(schema.pricingDataSources).where(eq(schema.pricingDataSources.id, source.id));
-    assert.equal(unchanged.authorizationStatus, 'pending');
+    assert.equal(unchanged.authorizationStatus, 'authorized');
+    assert.equal(unchanged.authorizationEvidenceHash, 'b'.repeat(64));
   } finally {
     await db.execute(sql`DROP TRIGGER reject_price_review_audit ON admin_audit_logs`);
     await db.execute(sql`DROP FUNCTION reject_price_review_audit()`);

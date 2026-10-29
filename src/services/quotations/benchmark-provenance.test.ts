@@ -1,3 +1,4 @@
+import { priceSourceIdentity } from '../../server/crawler/source-identity';
 import express from 'express';
 import { createServer } from 'node:http';
 import assert from 'node:assert/strict';
@@ -16,7 +17,7 @@ test('benchmark approval is revalidated atomically and persisted through creatio
  const [client]=await db.insert(s.clients).values({name:'Buyer',type:'company',companyId:company.id}).returning();
  const [reviewer]=await db.insert(s.users).values({email:'benchmark@example.test',fullName:'Reviewer'}).returning();
  const [source]=await db.insert(s.pricingDataSources).values({code:'test',name:'Test source',category:'market_commodity',validityStart:new Date(Date.now()-86400000),validityEnd:new Date(Date.now()+86400000),reviewStatus:'verified',reviewEvidenceReference:'https://example.org/test-permission',reviewScope:'Ticari teklifler',reviewAllowsQuotations:true,reviewedByUserId:reviewer.id,reviewedAt:new Date(),authorizationStatus:'authorized',authorizationScope:'test fixture: tenant-approved benchmark lifecycle',authorizationEvidenceHash:'a'.repeat(64),authorizedAt:new Date()}).returning();
- const [row]=await db.insert(s.priceFeedStaging).values({sourceId:source.id,itemCode:'A',itemName:'Test',unit:'m3',crawledPrice:'100',status:'pending',reviewedAt:new Date(),reviewedByUserId:reviewer.id}).returning();
+ const [row]=await db.insert(s.priceFeedStaging).values({sourceId:source.id,contentHash:'a'.repeat(64),sourceIdentity:priceSourceIdentity(source),itemCode:'A',itemName:'Test',unit:'m3',crawledPrice:'100',status:'pending',reviewedAt:new Date(),reviewedByUserId:reviewer.id}).returning();
  const input=(fields={})=>manualQuotationInput.parse({clientId:client.id,quoteNumber:'T',projectName:'Test',date:'2026-01-01',expiryDate:'2026-12-31',items:[{description:'A - Test',unit:'m3',quantity:1,unitPrice:100,benchmarkStagingId:row.id,...fields}]});
  for(const status of ['pending','rejected']) await t.test(`refuses ${status} at save`,async()=>{
   await db.update(s.priceFeedStaging).set({status}).where(eq(s.priceFeedStaging.id,row.id));

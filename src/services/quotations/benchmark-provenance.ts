@@ -1,3 +1,4 @@
+import { priceObservationMatchesSource } from '../../server/crawler/source-identity';
 import { buildPricePermissionEvidence, sourceReviewEligible } from '../../server/pricing/source-review-policy';
 import { asc, inArray } from 'drizzle-orm';
 import { sha256Payload } from '../../smartcheck/pricing/snapshots';
@@ -33,7 +34,7 @@ export async function resolveBenchmarkProvenance(tx: Transaction, items: ManualQ
   if (!item.benchmarkStagingId) continue;
   const row = rows.get(item.benchmarkStagingId.toLowerCase());
   const source = row ? sources.get(row.sourceId) : undefined;
-  if (!row || !source || !sourceReviewEligible(source) || !benchmarkEligible({...row,sourceStatus:source.status,authorizationStatus:source.authorizationStatus,authorizationEvidenceHash:source.authorizationEvidenceHash,authorizedAt:source.authorizedAt,validityStart:source.validityStart,validityEnd:source.validityEnd})
+  if (!row || !source || !sourceReviewEligible(source) || !priceObservationMatchesSource(row, source) || !benchmarkEligible({...row,sourceStatus:source.status,authorizationStatus:source.authorizationStatus,authorizationEvidenceHash:source.authorizationEvidenceHash,authorizedAt:source.authorizedAt,validityStart:source.validityStart,validityEnd:source.validityEnd})
     || source.currency !== 'TRY' || currency !== 'TRY' || item.unit !== row.unit || item.unitPrice !== Number(row.crawledPrice)) {
    throw failure();
   }
@@ -41,7 +42,7 @@ export async function resolveBenchmarkProvenance(tx: Transaction, items: ManualQ
   resolved.set(row.id, { priceSource:'market', verificationStatus:'needs_review', sourceReference:JSON.stringify({
    kind:'approved_pricing_benchmark',version:1,stagingId:row.id,sourceId:source.id,sourceName:source.name,
    itemCode:row.itemCode,itemName:row.itemName,unit:row.unit,price:row.crawledPrice,currency:'TRY',sourceUrl:row.sourceUrl ?? source.sourceUrl,
-   reviewedAt:row.reviewedAt,reviewedByUserId:row.reviewedByUserId,crawledAt:row.crawledAt,
+   reviewedAt:row.reviewedAt,reviewedByUserId:row.reviewedByUserId,crawledAt:row.crawledAt,contentHash:row.contentHash,
    validityStart:source.validityStart,validityEnd:source.validityEnd,sourceVersion:source.versionTag,
    permissionReview:{ ...publicPermissionReview, scopeHash: scope ? sha256Payload({ scope }) : null },
   }) });

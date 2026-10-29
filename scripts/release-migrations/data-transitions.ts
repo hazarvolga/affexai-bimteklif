@@ -973,7 +973,15 @@ END $function$;`,
 ] as const;
 
 export function injectDataTransitions(tag: string, schemaStatements: readonly string[]): string[] {
-  if (tag === '0035_price_source_review') return [...schemaStatements, ...priceReviewProtection];
+  if (tag === '0035_price_source_review') {
+    const fullSnapshot = schemaStatements.some(statement => statement.startsWith('CREATE TABLE "cde_transition_events"'));
+    const cumulative = fullSnapshot ? injectDataTransitions('0034_admin_mfa', schemaStatements) : [...schemaStatements];
+    return [...cumulative, ...priceReviewProtection];
+  }
+  if (tag === '0036_crawler_lease_evidence') {
+    return schemaStatements.some(statement => statement.startsWith('CREATE TABLE "cde_transition_events"'))
+      ? injectDataTransitions('0035_price_source_review', schemaStatements) : [...schemaStatements];
+  }
   if (tag === '0009_price_source_authorization') {
     const index = schemaStatements.findIndex((statement) => statement.startsWith(currentPriceEvidenceIndex));
     if (index < 0) throw new Error('0009 data transition anchor is missing');

@@ -54,6 +54,9 @@ try {
   role='viewer'; await page.reload({waitUntil:'networkidle0'}); assert.equal(await page.$('[data-testid="source-permission-review"]'),null);
   role='owner'; await page.setViewport({width:1360,height:900}); await page.goto(`${base}/admin/pricing-sources`,{waitUntil:'networkidle0'});
   await page.waitForSelector('[data-testid="source-permission-review"]');
+  const content=await page.evaluate(()=>document.body.textContent ?? '');
+  assert.match(content,/değişen fiyatlar inceleme bekler/i);
+  assert.doesNotMatch(content,/değişen fiyatlar doğrudan canlı kataloğu günceller/i);
   await (await page.waitForSelector('button ::-p-text(Teklif kullanım iznini incele)'))!.click();
   await page.waitForFunction(()=>document.querySelector('[data-testid="source-permission-review"]')?.textContent?.includes('İzin iptal edildi'));
   assert.deepEqual(errors,[]); console.log('source permission UI smoke passed: tenant mobile error/retry verify/revoke, viewer hidden, admin desktop');

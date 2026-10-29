@@ -31,8 +31,10 @@ test('price review uses provisioned runtime role for atomic updates and audit', 
   process.env.DATABASE_URL = appUrl.toString(); process.env.CONTROL_DATABASE_URL = controlUrl.toString();
   const adminId = randomUUID(), sourceId = randomUUID(), old = randomUUID(), first = randomUUID(), second = randomUUID();
   await client.query('INSERT INTO users(id,email,full_name,email_verified,is_super_admin) VALUES ($1,$2,$3,now(),true)', [adminId, `${adminId}@example.test`, 'Atomic review admin']);
-  await client.query("INSERT INTO pricing_data_sources(id,code,name,category,authorization_status) VALUES ($1,$2,'Fixture','official_gazette','pending')", [sourceId, `atomic_${sourceId}`]);
+  await client.query("INSERT INTO pricing_data_sources(id,code,name,category,authorization_status,authorization_evidence_hash,authorized_at) VALUES ($1,$2,'Fixture','official_gazette','authorized',repeat('b',64),now())", [sourceId, `atomic_${sourceId}`]);
   for (const [index, id] of [old, first, second].entries()) await client.query("INSERT INTO price_feed_staging(id,source_id,item_code,item_name,unit,crawled_price,source_url,notes,status) VALUES ($1,$2,'A','Fixture','m',100,'https://example.test/price','[live-html-v1] fixture',$3)", [id, sourceId, index === 0 ? 'approved' : 'pending']);
+  await client.query("UPDATE pricing_data_sources SET review_status='verified',review_evidence_reference='https://example.test/permission',review_scope='Ticari teklif',review_allows_quotations=true,reviewed_by_user_id=$2,reviewed_at=now() WHERE id=$1",[sourceId,adminId]);
+  await client.query(`UPDATE price_feed_staging p SET content_hash=repeat('a',64),source_identity=jsonb_build_object('code',s.code,'name',s.name,'authority',s.authority,'sourceUrl',s.source_url,'category',s.category,'versionTag',s.version_tag,'currency',s.currency,'countryCode',s.country_code) FROM pricing_data_sources s WHERE p.source_id=$1 AND s.id=p.source_id`,[sourceId]);
   const express = (await import('express')).default;
   const { registerAdminRoutes } = await import('./admin');
   const { AuthService } = await import('../../services/auth/authService');
@@ -51,7 +53,7 @@ test('price review uses provisioned runtime role for atomic updates and audit', 
     assert.equal((await post(`${root}/bulk-review`, { action: 'approve', sourceId })).status, 500);
     const before = await client.query('SELECT id,status FROM price_feed_staging WHERE source_id=$1 ORDER BY id', [sourceId]);
     assert.deepEqual(before.rows.map(row => [row.id, row.status]).sort(), [[old, 'approved'], [first, 'pending'], [second, 'pending']].sort());
-    assert.equal((await client.query('SELECT authorization_status FROM pricing_data_sources WHERE id=$1', [sourceId])).rows[0].authorization_status, 'pending');
+    assert.equal((await client.query('SELECT authorization_status FROM pricing_data_sources WHERE id=$1', [sourceId])).rows[0].authorization_status, 'authorized');
     await client.query('DROP TRIGGER reject_price_review_audit_test ON public.admin_audit_logs');
     const responses = await Promise.all([first, second].map(id => post(`${root}/${id}/review`, { action: 'approve' })));
     assert.deepEqual(responses.map(response => response.status).sort(), [200, 200]);

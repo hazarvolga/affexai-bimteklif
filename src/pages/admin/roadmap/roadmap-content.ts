@@ -185,8 +185,9 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
   },
   {
     id: "durum",
-    title: "Uygulama durumu (29 Ekim 2026 · Rev. 129 geliştirme kaydı)",
+    title: "Uygulama durumu (29 Ekim 2026 · Rev. 130 geliştirme kaydı)",
     blocks: [
+      { type: "callout", tone: "info", title: "Rev. 130 · Tarama ve fiyat incelemesi", text: "Yeni veya değişen tarama ve dosya fiyatları inceleme bekler; önceki onaylı gözlem korunur. Eski otomatik onay seçeneği artık uygulanmaz. Gözlem hashleri satır bazında tutulur; süreli rastgele lease eski çalışanı sınırlar. CI, canlı ve uzman kabul açıktır." },
       { type: "callout", tone: "info", title: "Rev. 129 · Fiyat kaynaklarında bağımsız izin incelemesi", text: "Geçmiş kaynak hashleri kullanım izni sayılmaz; eski kayıtlar yeniden incelenene kadar yeni teklif seçiminden çıkarılır. Belge bağlantısı, kapsam, yetkili inceleyen ve açık teklif kullanım izni ayrı kaydedilir. Mevcut teklifler ve revizyonları korunur; belge varlığı hukuki geçerliliği veya fiyat doğruluğunu otomatik ispatlamaz. Crawler WIP, tam CI ve canlı kabul açıktır." },
       { type: "callout", tone: "info", title: "Rev. 128 · Teklif kayıt ve audit bütünlüğü", text: "Teklif oluşturma, revizyon ve düzenlemede iş verisi ile audit aynı tenant transaction içinde yürür; audit hatasında ilgili satır, kanıt ve kota değişiklikleri geri alınır. Düzenleme audit metadatasında kişisel içerik bulunmaz. Firma kimliği string olarak verilen eski revizyon servis çağrısı reddedilir; doğrulanmış aktör gerekir. Yerel testler canlı veya CI kabulü değildir; hesap formülleri değişmedi." },
       { type: "callout", tone: "info", title: "Rev. 127 · Teklif rayiç kilit sırası", text: "Teklif kaynak çözümlemesinde önce kaynaklar, sonra staging satırları deterministik toplu sırayla kilitlenir. Gerçek izole PostgreSQL testinde önceki 40P01 deadlock RED, değişiklik sonrası GREEN görüldü. UUID büyük harfi normalize edilir; kaynak eşleşmesi kaybolursa 409 döner. Bu kayıt gerçek kullanım hakkı veya kaynak doğruluğu kanıtı değildir; CI ve canlı kabul açık. Hesap formülleri değişmedi." },
@@ -261,6 +262,7 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
     id: "adimlar",
     title: "Sıradaki geliştirmeler ve kabul ölçütleri",
     blocks: [
+      { type: "p", text: "Rev. 130 sonrası: crawler ve dosya içe aktarımı fiyat değişiklikleri yetkili kişinin incelemesini bekler; kaynak izni fiyat onayı değildir. Yeni gözlem kanıtı ve süreli lease testleri canlı veya uzman kabulü değildir." },
       { type: "p", text: "Rev. 129 sonrası: firma sahibi/yöneticisi veya süper admin, fiyat doğruluğu onayından ayrı izin incelemesi kaydeder; firma kaynak listesi arama ve sayfalama sunar, yetkisiz rollere belge bağlantısı ve inceleyen bilgisi gösterilmez. İzin iptalinde yeni seçim durur; tarihî teklifler korunur. İzin belgesi HTTP üzerinden otomatik indirilmez; belge ve kullanım hakkı bağımsız değerlendirme gerektirir. CI ve canlı dağıtım ayrıca doğrulanmalıdır." },
       { type: "p", text: "Rev. 128 sonrası: teklif oluşturma, revizyon ve düzenlemede audit artık aynı tenant transaction içindedir; Rev. 126 durum ve kalibrasyon sınırını kapsıyordu. Eski yalnız firma kimliğiyle revizyon servis çağrıları artık reddedilir ve çağıranlar doğrulanmış aktör sağlamalıdır. Fiyat crawler ayrı WIP ve geçmiş yetki kanıtı sorunu açıktır; GitHub CI ve canlı kabul ayrıca doğrulanmalıdır." },
       { type: "p", text: "Rev. 127 sonrası: fiyat crawler değişiklikleri ayrı WIP kapsamındadır; geçmiş sentetik yetki hash kayıtlarının gerçek izin kanıtı ve veri politikası çözülmemiştir. Kilit testi tek başına kaynak ispatı, gerçek kullanım hakkı veya tüm fiyat süreçlerinin kabulü değildir. GitHub CI ve canlı kabul ayrıca doğrulanmalıdır." },
@@ -317,17 +319,17 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
   },
   {
     id: "revizyon-gunlugu",
-    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 129 · 13–29 Ekim 2026)",
+    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 130 · 13–29 Ekim 2026)",
     blocks: [
       {
         type: "callout",
         tone: "info",
-        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 129)",
-        text: "Bu bölüm, BIMMetraj'ın teknik evrimini Rev. 0'dan 29 Ekim 2026 Rev. 129 · BIM-CALC-2026-10-29.11 geliştirme kaydına kadar kronolojik sırayla listeler; Git geçmişi ve canlı sürüm ayrı doğrulanır, bağımsız uzman onayı bu kayıtla verilmez. Rev. 91–100, marka.md ürün incelemesinden çıkan uzman önizlemesi, Faz 0 güven düzeltmeleri ve Faz 1 Excel önce / fiyat eksikliği / dışa aktarım dilimleridir; Rev. 101 ile tüm 0022..0029 migration'ları, D12 worker başlangıç düzeltmesi ve D13 canlı ifc-worker consumeIfcUsage kota tamamlama düzeltmesi canlı üretime (https://bimmetraj.com) dağıtılmıştır. Rev. 102 ile 4 katmanlı müteahhit Excel adaptörü, Rev. 103 ile /admin/pricing-sources otomatik tohumlama ve TÜİK SDMX 2.1 adaptörü, Rev. 104 ile 6 aşamalı güvenlik denetimi bulgularının ve derinlemesine sertleştirme adımlarının tamamı kapatılmıştır. Rev. 105 ile CalmIfcWorkspace 795 satıra ayrıştırılmış, Rev. 106 ile Müşteriler (/app/clients), Müşteriler & Fırsatlar (/app/crm), 6 aşamalı müşteri zaman tüneli (/app/clients/:id) ve 3 katmanlı Akıllı Müşteri Excel/CSV Adaptörü devreye alınmıştır. Rev. 90 ile T43 ≥%80 proje kapsam hedefi (%82,58) ve T56 nihai izlenebilirlik matrisi tamamlanarak dış girdi gerektirmeyen tüm teknik adımlar kapatılmıştır. Harici fixture lisansı, T45 izinli gerçek büyük müşteri dosyası/VPS post-deploy kanıtı, T50–T52 uzman/müşteri/canlı kabulü ve T55 hukuk incelemesi açık olduğundan Faz 7, Faz 9, Faz 10 ve Faz 11 dış kabuller tamamlanana dek PARTIAL kalır.",
+        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 130)",
+        text: "Bu bölüm, BIMMetraj'ın teknik evrimini Rev. 0'dan 29 Ekim 2026 Rev. 130 · BIM-CALC-2026-10-29.12 geliştirme kaydına kadar kronolojik sırayla listeler; Git geçmişi ve canlı sürüm ayrı doğrulanır, bağımsız uzman onayı bu kayıtla verilmez. Rev. 91–100, marka.md ürün incelemesinden çıkan uzman önizlemesi, Faz 0 güven düzeltmeleri ve Faz 1 Excel önce / fiyat eksikliği / dışa aktarım dilimleridir; Rev. 101 ile tüm 0022..0029 migration'ları, D12 worker başlangıç düzeltmesi ve D13 canlı ifc-worker consumeIfcUsage kota tamamlama düzeltmesi canlı üretime (https://bimmetraj.com) dağıtılmıştır. Rev. 102 ile 4 katmanlı müteahhit Excel adaptörü, Rev. 103 ile /admin/pricing-sources otomatik tohumlama ve TÜİK SDMX 2.1 adaptörü, Rev. 104 ile 6 aşamalı güvenlik denetimi bulgularının ve derinlemesine sertleştirme adımlarının tamamı kapatılmıştır. Rev. 105 ile CalmIfcWorkspace 795 satıra ayrıştırılmış, Rev. 106 ile Müşteriler (/app/clients), Müşteriler & Fırsatlar (/app/crm), 6 aşamalı müşteri zaman tüneli (/app/clients/:id) ve 3 katmanlı Akıllı Müşteri Excel/CSV Adaptörü devreye alınmıştır. Rev. 90 ile T43 ≥%80 proje kapsam hedefi (%82,58) ve T56 nihai izlenebilirlik matrisi tamamlanarak dış girdi gerektirmeyen tüm teknik adımlar kapatılmıştır. Harici fixture lisansı, T45 izinli gerçek büyük müşteri dosyası/VPS post-deploy kanıtı, T50–T52 uzman/müşteri/canlı kabulü ve T55 hukuk incelemesi açık olduğundan Faz 7, Faz 9, Faz 10 ve Faz 11 dış kabuller tamamlanana dek PARTIAL kalır.",
       },
       {
         type: "p",
-        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 129):",
+        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 130):",
       },
       {
         type: "table",
@@ -1114,11 +1116,17 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
             "BIM-CALC-2026-10-29.11 · temel eb7fba4; CI ve canlı kabul ayrıca doğrulanır",
             "Eski kaynak hashleri izin sayılmaz; belge, kapsam, inceleyen ve açık teklif izni ile ayrı değerlendirme. Tarihî teklifler korunur; otomatik hukuki doğrulama yapılmaz.",
           ],
+          [
+            "Rev. 130",
+            "29 Ekim 2026 · Tarama ve fiyat inceleme ayrımı",
+            "BIM-CALC-2026-10-29.12 · temel 839844a; CI ve canlı kabul ayrıca doğrulanır",
+            "Yeni tarama ve resmî dosya içe aktarma değerleri insan incelemesi bekler; önceki onaylı fiyat korunur. Kaynak içeriği gözlem bazında hashlenir; süreli rastgele lease eski taramayı sınırlar.",
+          ],
         ],
       },
       {
         type: "p",
-        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 129 · Önceki Durum → Yeni Durum):",
+        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 130 · Önceki Durum → Yeni Durum):",
       },
       {
         type: "table",
@@ -2130,6 +2138,13 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
             "İçerik veya sentetik hashler izin alanlarında yer alabiliyor ve tarihî kaynakların gerçek kullanım yetkisi ayrılamıyordu.",
             "Eski kaynaklar doğrulanmamış başlar. Yetkili kişi belge bağlantısı, kapsam ve açık ticari teklif kullanımını inceleyip kaydeder veya iptal eder; yeni fiyat seçiminde kaynak transaction içinde kontrol edilir. Tarihî teklif ve revizyonlar korunur. Link otomatik açılmaz; hukuki geçerlilik, bağımsız uzman kabulü, crawler WIP, CI ve canlı kabul ayrıdır.",
             "drizzle-release/0035_price_source_review.sql; src/server/pricing/source-review.ts; src/server/routes/price-source-permissions.ts; src/services/quotations/calm-transfer.ts; src/components/pricing/SourcePermissionReview.tsx",
+          ],
+          [
+            "Rev. 130 · 29 Ekim 2026 (Tarama ve insan incelemesi)",
+            "Kaynak izni, içerik kanıtı ve fiyat kararının ayrılması; lease fencing",
+            "Eski hash bağımsız kullanım hakkı gibi değerlendirilebiliyor; otomatik onay ve süresiz tarama kilidiyle geçmiş fiyat kanıtı ve eşzamanlılık riskleri oluşabiliyordu.",
+            "Tarama ve resmî dosya içe aktarımında yeni/değişen her fiyat bekler; onaylı önceki satır korunur. Eski otomatik onay seçeneği artık uygulanmaz. Her yeni gözlem içerik hash'i taşır. Rastgele süreli lease çakışan ve eski işlemleri sınırlar. Hukuki izin ve insanın fiyat değerlendirmesi ayrıdır; CI, canlı ve uzman kabulü ayrıca doğrulanır.",
+            "drizzle-release/0036_crawler_lease_evidence.sql; src/server/crawler/crawl-claim.ts; priceSchedulerService.ts; src/server/routes/admin.ts; crawl-atomic.pgtest.ts; crawl-lease.pgtest.ts",
           ],
         ],
       },
