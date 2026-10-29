@@ -185,8 +185,9 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
   },
   {
     id: "durum",
-    title: "Uygulama durumu (29 Ekim 2026 · Rev. 122 geliştirme kaydı)",
+    title: "Uygulama durumu (29 Ekim 2026 · Rev. 123 geliştirme kaydı)",
     blocks: [
+      { type: "callout", tone: "info", title: "Rev. 123 · Müşteri veri silme etki önizlemesi", text: "Firma sahibi veya yöneticisi müşteriyle doğrudan ilişkili bazı kayıtların sayısını görüntüleyebilir. Bu ekran salt okunurdur, hiçbir veriyi silmez ve silme talebi oluşturmaz. Tüm kişisel verilerin veya saklama yükümlülüklerinin envanteri değildir; canlı ve CI doğrulaması açıktır. Hesap formülleri değişmedi." },
       { type: "callout", tone: "info", title: "Rev. 122 · Firma izolasyonu ve fiyat inceleme bütünlüğü", text: "İki fiyat inceleme rotası kaynak→staging sıralı kilit ve iş/audit transaction kullanır; etkilenen satır kontrol edilir. İki firma arasında 11 yabancı teklif/müşteri HTTP rotası ve yan etkileri izole PostgreSQL ile denendi; tüm endpointlerin izolasyonu kanıtlanmış değildir. Canlı ve GitHub CI doğrulaması açıktır; hesap formülleri değişmedi." },
       { type: "callout", tone: "info", title: "Rev. 121 · Süper yönetici TOTP", text: "Doğrulanmış süper yönetici hesabı isteğe bağlı olarak TOTP kurabilir; kurtarma kodları etkinleştirmeden önce gösterilir. 0034, ayrı MFA_ENCRYPTION_KEY ve merkezi epoch/parola sürümü ile eski ve temsil oturumları denetlenir. MFA yalnız etkinleştirilmiş süper yöneticiler için uygulanır; kimlik avına dayanıklı değildir. Yerel doğrulama ve canlı/CI kabulü ayrıdır; hesap formülleri değişmedi." },
       { type: "callout", tone: "info", title: "Rev. 120 · Sunucu taraflı oturum iptali", text: "Çıkışta doğrulanmış çerez ve Bearer oturumlarının SHA-256 özeti ve bitiş zamanı saklanır; sonraki kimlik kontrollerinde iptal sorgulanır. Yeni oturumlarda benzersiz jti kullanılır; veritabanı hatasında erişim ve çıkış güvenli biçimde reddedilir. Yerel geliştirme kaydıdır; canlı yayın ve dış güvenlik kabulü ayrı doğrulanır. Hesap formülleri değişmedi." },
@@ -254,6 +255,7 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
     id: "adimlar",
     title: "Sıradaki geliştirmeler ve kabul ölçütleri",
     blocks: [
+      { type: "p", text: "Rev. 123 sonrası: gerçek silme ve silme talebi yaşam döngüsü ile hukuk ve saklama kararları açık kalır. Önizleme yalnız doğrudan teklif, revizyon, fırsat ve fırsat etkinlikleri sayar; diğer firmalardaki ilişkiler, serbest metinler, doğrudan bağlı olmayan adaylar, dosyalar, denetim kayıtları, yedekler ve dış servislerdeki durum bilinmez. Sayımlar silinebilirlik garantisi değildir; canlı ve GitHub CI kabulü henüz doğrulanmadı." },
       { type: "p", text: "Rev. 122 sonrası: autoApprove ve scheduler bu iki inceleme rotasının ortak kaynak kilidine katılmaz; bu yollar arasındaki yarış ayrıca çözülmelidir. Staging review canApproveCrawlerPrice biçim doğrulaması yapar ama yükleyen ile onaylayanın ayrımını sağlamaz; maker-checker tüm yollar için tamamlanmış değildir. Toplu inceleme kaynak ve staging kilitleri altında bekleme yaratabilir. İki firma ile test edilen 11 teklif/müşteri rotası dışındaki endpointler için kapsamlı IDOR garantisi yoktur. Canlı, CI ve bağımsız güvenlik kabulü açık kalır." },
       { type: "p", text: "Rev. 121 sonrası: MFA kaydı kullanıcı tarafından etkinleştirilmelidir; tüm yöneticilerde zorunlu değildir. TOTP kimlik avına dayanıklı değildir. MFA_ENCRYPTION_KEY kaybı veya eski imaja dönüş yönetici erişimini bozabilir ya da MFA korumasını kaldırabilir; güvenli anahtar yedeği ve MFA farkında geri dönüş planı gerekir. Canlı yayın, GitHub CI ve bağımsız dış güvenlik kabulü henüz doğrulanmadı." },
       { type: "p", text: "Rev. 120 sonrası: MFA, tüm cihazlardan çıkış, bağımsız dış güvenlik incelemesi ve canlı doğrulama açıktır. 0033 öncesi imaja dönüş iptal kayıtlarını okumayacağından iptal edilmiş jetonları yeniden geçerli kılabilir; revocation destekleyen geri dönüş veya kontrollü anahtar ve oturum geçersizleştirme planı gerekir. Temizlik yalnız ayrıcalıklı işlevle, süresi yedi gün önce dolmuş en çok 500 kayıt için uygulanır; saat farkı toleransı daha büyük sapmaları garanti etmez." },
@@ -303,17 +305,17 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
   },
   {
     id: "revizyon-gunlugu",
-    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 122 · 13–29 Ekim 2026)",
+    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 123 · 13–29 Ekim 2026)",
     blocks: [
       {
         type: "callout",
         tone: "info",
-        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 122)",
-        text: "Bu bölüm, BIMMetraj'ın teknik evrimini Rev. 0'dan 29 Ekim 2026 Rev. 122 · BIM-CALC-2026-10-29.4 geliştirme kaydına kadar kronolojik sırayla listeler; Git geçmişi ve canlı sürüm ayrı doğrulanır, bağımsız uzman onayı bu kayıtla verilmez. Rev. 91–100, marka.md ürün incelemesinden çıkan uzman önizlemesi, Faz 0 güven düzeltmeleri ve Faz 1 Excel önce / fiyat eksikliği / dışa aktarım dilimleridir; Rev. 101 ile tüm 0022..0029 migration'ları, D12 worker başlangıç düzeltmesi ve D13 canlı ifc-worker consumeIfcUsage kota tamamlama düzeltmesi canlı üretime (https://bimmetraj.com) dağıtılmıştır. Rev. 102 ile 4 katmanlı müteahhit Excel adaptörü, Rev. 103 ile /admin/pricing-sources otomatik tohumlama ve TÜİK SDMX 2.1 adaptörü, Rev. 104 ile 6 aşamalı güvenlik denetimi bulgularının ve derinlemesine sertleştirme adımlarının tamamı kapatılmıştır. Rev. 105 ile CalmIfcWorkspace 795 satıra ayrıştırılmış, Rev. 106 ile Müşteriler (/app/clients), Müşteriler & Fırsatlar (/app/crm), 6 aşamalı müşteri zaman tüneli (/app/clients/:id) ve 3 katmanlı Akıllı Müşteri Excel/CSV Adaptörü devreye alınmıştır. Rev. 90 ile T43 ≥%80 proje kapsam hedefi (%82,58) ve T56 nihai izlenebilirlik matrisi tamamlanarak dış girdi gerektirmeyen tüm teknik adımlar kapatılmıştır. Harici fixture lisansı, T45 izinli gerçek büyük müşteri dosyası/VPS post-deploy kanıtı, T50–T52 uzman/müşteri/canlı kabulü ve T55 hukuk incelemesi açık olduğundan Faz 7, Faz 9, Faz 10 ve Faz 11 dış kabuller tamamlanana dek PARTIAL kalır.",
+        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 123)",
+        text: "Bu bölüm, BIMMetraj'ın teknik evrimini Rev. 0'dan 29 Ekim 2026 Rev. 123 · BIM-CALC-2026-10-29.5 geliştirme kaydına kadar kronolojik sırayla listeler; Git geçmişi ve canlı sürüm ayrı doğrulanır, bağımsız uzman onayı bu kayıtla verilmez. Rev. 91–100, marka.md ürün incelemesinden çıkan uzman önizlemesi, Faz 0 güven düzeltmeleri ve Faz 1 Excel önce / fiyat eksikliği / dışa aktarım dilimleridir; Rev. 101 ile tüm 0022..0029 migration'ları, D12 worker başlangıç düzeltmesi ve D13 canlı ifc-worker consumeIfcUsage kota tamamlama düzeltmesi canlı üretime (https://bimmetraj.com) dağıtılmıştır. Rev. 102 ile 4 katmanlı müteahhit Excel adaptörü, Rev. 103 ile /admin/pricing-sources otomatik tohumlama ve TÜİK SDMX 2.1 adaptörü, Rev. 104 ile 6 aşamalı güvenlik denetimi bulgularının ve derinlemesine sertleştirme adımlarının tamamı kapatılmıştır. Rev. 105 ile CalmIfcWorkspace 795 satıra ayrıştırılmış, Rev. 106 ile Müşteriler (/app/clients), Müşteriler & Fırsatlar (/app/crm), 6 aşamalı müşteri zaman tüneli (/app/clients/:id) ve 3 katmanlı Akıllı Müşteri Excel/CSV Adaptörü devreye alınmıştır. Rev. 90 ile T43 ≥%80 proje kapsam hedefi (%82,58) ve T56 nihai izlenebilirlik matrisi tamamlanarak dış girdi gerektirmeyen tüm teknik adımlar kapatılmıştır. Harici fixture lisansı, T45 izinli gerçek büyük müşteri dosyası/VPS post-deploy kanıtı, T50–T52 uzman/müşteri/canlı kabulü ve T55 hukuk incelemesi açık olduğundan Faz 7, Faz 9, Faz 10 ve Faz 11 dış kabuller tamamlanana dek PARTIAL kalır.",
       },
       {
         type: "p",
-        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 122):",
+        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 123):",
       },
       {
         type: "table",
@@ -1058,11 +1060,17 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
             "BIM-CALC-2026-10-29.4 · temel 7e3add1; CI ve canlı dağıtım ayrıca doğrulanır",
             "İki fiyat inceleme rotasında sıralı kilit, atomik iş/audit ve etkilenen satır kontrolü; iki firma arasında 11 yabancı teklif/müşteri HTTP rotası ve yan etkileri denendi. autoApprove ve scheduler ortak kilide katılmaz; staging review yükleyen/onaylayan ayrımını sağlamaz. Toplu kilit beklemesi, diğer rotalar ve canlı/CI kabulü açıktır.",
           ],
+          [
+            "Rev. 123",
+            "29 Ekim 2026 · Müşteri veri silme etki önizlemesi",
+            "BIM-CALC-2026-10-29.5 · temel 4d9cddc; CI ve canlı dağıtım ayrıca doğrulanır",
+            "Yetkili firma sahibi ve yöneticisi için müşteriyle doğrudan ilişkili bazı kayıtları sayan salt okunur önizleme. Silme/talep yoktur; diğer firmalar, serbest metin, dosya, yedek ve dış sistemlerdeki durum bilinmez; hukuk, CI ve canlı kabul açık.",
+          ],
         ],
       },
       {
         type: "p",
-        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 122 · Önceki Durum → Yeni Durum):",
+        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 123 · Önceki Durum → Yeni Durum):",
       },
       {
         type: "table",
@@ -2025,6 +2033,13 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
             "İki fiyat inceleme işleminde iş verisi ve denetim kaydı atomik değildi; eşzamanlı inceleme ve satır değişimi ile yabancı firma nesnelerine erişim sınırları ek kanıt gerektiriyordu.",
             "İki inceleme rotası kaynak→staging sıralı kilit, tek transaction içinde iş ve audit kaydı ve UPDATE RETURNING kontrolü kullanır. Gerçek owner/app/control rolleriyle provision edilmiş izole PostgreSQL üzerinde fiyat review HTTP testi geçti; audit hatasında geri alma, onay yarışı, importer benzeri yarış ve sıfır satır güncellemesi sınandı. İki firmayla 11 yabancı teklif/müşteri HTTP rotası ve yan etkileri test edildi; diğer endpointler için garanti değildir. autoApprove ve scheduler ortak kaynak kilidine katılmaz; staging review yükleyen/onaylayan ayrımını sağlamadığından maker-checker tüm yollar için tamamlanmış değildir. Toplu kilitlerde bekleme mümkündür. CI, canlı ve bağımsız güvenlik kabulü açık; hesap formülleri değişmedi.",
             "src/server/routes/admin.ts; src/server/routes/admin-price-review.integration.test.ts; src/contracts/quotation-client-idor.pgtest.ts; .github/workflows/verify.yml",
+          ],
+          [
+            "Rev. 123 · 29 Ekim 2026 (Müşteri veri silme etki önizlemesi)",
+            "Firma kapsamı, sahibi/yönetici yetkisi, salt okunur repeatable-read ilişki sayımları",
+            "Müşteri kaydının olası silme etkisini sınırlı kapsamıyla gösteren bir önizleme bulunmuyordu.",
+            "Firma sahibi/yöneticisi müşteri detayından doğrudan bağlı teklif, revizyon, fırsat ve fırsat etkinliği sayımlarını okuyabilir; teklif sayısı revizyonları içerir. İşlem salt okunurdur: veri silinmez, silme talebi oluşturulmaz. Diğer firmalar, serbest metinler, doğrudan bağlı olmayan adaylar, dosyalar, audit kayıtları, yedekler ve dış sistemlerdeki durum bilinmez; kapsamlı envanter veya silinebilirlik garantisi değildir. Gerçek silme/talep yaşam döngüsü, hukuk ve saklama kararı ile CI ve canlı kabul açık; hesap formülleri değişmedi.",
+            "src/server/routes/clients.ts; src/components/clients/ClientDeletionImpact.tsx; src/pages/ClientDetail.tsx; src/contracts/quotation-client-idor.pgtest.ts; scripts/client-deletion-impact-ui-smoke.ts",
           ],
         ],
       },

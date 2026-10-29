@@ -231,3 +231,33 @@ test("müşteri rotaları oluşturma, detay, aşama güncelleme, zaman tüneli n
   assert.equal(bulkRes.body.updatedCount, 1);
   assert.equal(bulkRes.body.createdCount, 1);
 });
+
+test("deletion impact is read-only, owner/admin only and returns counts without client data", async () => {
+  const handlers = new Map<string, Function>();
+  const app: any = { get(path: string, ...fns: Function[]) { handlers.set(`GET ${path}`, fns.at(-1)!); }, post() {}, patch() {} };
+  const known = "33333333-3333-4333-8333-333333333333";
+  let calls = 0;
+  let options: unknown;
+  registerClientRoutes(app, () => undefined, { withTenant: async (_ctx, work, opts) => {
+    calls++; options = opts;
+    return work({ execute: async () => ({ rows: [{ client_id: known, quotations: 4, revisions: 2, deals: 3, activities: 5 }] }) } as any);
+  } });
+  const handler = handlers.get("GET /api/clients/:id/deletion-impact");
+  assert.ok(handler);
+  async function invoke(role: string, id = known) {
+    const res: any = { statusCode: 200, status(code: number) { this.statusCode = code; return this; }, json(value: unknown) { this.body = value; return this; } };
+    await handler!({ user: { ...actor, role }, params: { id } }, res);
+    return res;
+  }
+  for (const role of ["manager", "viewer"]) assert.equal((await invoke(role)).statusCode, 403);
+  assert.equal(calls, 0);
+  assert.equal((await invoke("owner", "invalid")).statusCode, 400);
+  const result = await invoke("admin");
+  assert.equal(result.statusCode, 200);
+  assert.deepEqual(result.body.counts, { quotations: 4, revisions: 2, deals: 3, activities: 5 });
+  assert.equal(result.body.clientId, known);
+  assert.ok(result.body.limitations.length >= 1);
+  assert.ok(result.body.limitations.some((text: string) => text.includes("Başka firmalardaki") && text.includes("silinebilirliğini")));
+  assert.deepEqual(options, { readOnly: true, isolationLevel: "repeatable read" });
+  assert.equal(JSON.stringify(result.body).includes("email"), false);
+});

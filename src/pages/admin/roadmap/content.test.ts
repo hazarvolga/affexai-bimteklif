@@ -72,8 +72,8 @@ test("roadmap covers the agreed topics, ministry questions and official sources"
 
 
 test("Rev. 112 documents Phase 0 without claiming production or independent expert approval", () => {
-  assert.equal(CALC_REVIEW_META.version, "BIM-CALC-2026-10-29.4");
-  assert.equal(CALC_REVIEW_CHANGELOG.at(-1)?.revision, "Rev. 122");
+  assert.equal(CALC_REVIEW_META.version, "BIM-CALC-2026-10-29.5");
+  assert.equal(CALC_REVIEW_CHANGELOG.at(-1)?.revision, "Rev. 123");
   const revisions = CALC_REVIEW_CHANGELOG.map(item => Number(item.revision.match(/Rev\. (\d+)/)?.[1]));
   assert.ok(revisions.every((value, index) => index === 0 || value > revisions[index - 1]), "calculation revisions must be strictly increasing");
   const kik = CALC_REVIEW_CHANGELOG.find(item => item.revision === "Rev. 112")?.moduleDetails?.["kik-adt"];
@@ -85,7 +85,7 @@ test("Rev. 112 documents Phase 0 without claiming production or independent expe
   for (const [index, table] of tables.entries()) {
     if (table.type !== "table") continue;
     const numbers = table.rows.map(row => Number(row[0].match(/Rev\. (\d+)/)?.[1]));
-    assert.equal(numbers.at(-1), 122);
+    assert.equal(numbers.at(-1), 123);
     assert.ok(numbers.every((value, rowIndex) => rowIndex === 0 || (index === 0 ? value > numbers[rowIndex - 1] : value >= numbers[rowIndex - 1])), "roadmap revisions must be ordered");
   }
 });
@@ -230,4 +230,13 @@ test("Rev. 122 records bounded tenant isolation and price review atomicity", () 
   for (const term of [/[İi]ki fiyat inceleme/, /transaction/, /11 yabancı/, /tüm rotalar garantisi değildir/, /autoApprove/, /scheduler/, /ortak kilide katılmaz/, /yükleyen\/onaylayan ayrımını sağlamaz/, /owner\/app\/control/, /kilit beklemesi/, /CI/, /canlı/, /formülleri değişmedi/]) assert.match(rev.afterSummary, term);
   assert.deepEqual(rev.affectedModules, []);
   assert.match(JSON.stringify(ROADMAP_SECTIONS.find(section => section.id === "revizyon-gunlugu")), /Rev\. 122/);
+});
+
+
+test("Rev. 123 records the read-only deletion impact preview and boundaries", () => {
+  const rev = CALC_REVIEW_CHANGELOG.find(item => item.revision === "Rev. 123");
+  assert.ok(rev);
+  for (const term of [/salt okunur/, /silme talebi oluşturmaz/, /Diğer firmalar/, /serbest metin/, /dosyalar/, /yedekler/, /dış sistemler/, /hukuk/, /CI/, /canlı/, /formülleri değişmedi/]) assert.match(rev.afterSummary, term);
+  assert.deepEqual(rev.affectedModules, []);
+  assert.match(JSON.stringify(ROADMAP_SECTIONS.find(section => section.id === "revizyon-gunlugu")), /Rev\. 123/);
 });

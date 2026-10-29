@@ -23,7 +23,7 @@ test('real HTTP quotation and client routes isolate tenants and enforce viewer r
   const appUrl = new URL(url); appUrl.username = 'bimmetraj_app'; appUrl.password = credentials.bimmetraj_app;
   const controlUrl = new URL(url); controlUrl.username = 'bimmetraj_control'; controlUrl.password = credentials.bimmetraj_control;
   process.env.DATABASE_URL = appUrl.toString(); process.env.CONTROL_DATABASE_URL = controlUrl.toString();
-  const companyA = randomUUID(), companyB = randomUUID(), userA = randomUUID(), userB = randomUUID(), viewer = randomUUID(), manager = randomUUID(), clientA = randomUUID(), clientB = randomUUID(), quoteA = randomUUID(), quoteB = randomUUID();
+  const companyA = randomUUID(), companyB = randomUUID(), userA = randomUUID(), userB = randomUUID(), viewer = randomUUID(), manager = randomUUID(), admin = randomUUID(), clientA = randomUUID(), clientB = randomUUID(), quoteA = randomUUID(), quoteB = randomUUID(), revisionA = randomUUID(), dealA = randomUUID(), activityA = randomUUID(), foreignDeal = randomUUID(), foreignActivity = randomUUID();
   const { AuthService } = await import('../services/auth/authService');
   const { rateLimitStorageKey } = await import('../server/auth/security');
   const { createApiApp } = await import('../server/app');
@@ -32,13 +32,22 @@ test('real HTTP quotation and client routes isolate tenants and enforce viewer r
   await client.query("INSERT INTO companies(id,name) VALUES ($1,'IDOR A'),($2,'IDOR B')", [companyA, companyB]);
   await client.query("INSERT INTO users(id,email,full_name,email_verified) VALUES ($1,$2,'A owner',now()),($3,$4,'B owner',now()),($5,$6,'B viewer',now()),($7,$8,'B manager',now())", [userA,`${userA}@example.test`,userB,`${userB}@example.test`,viewer,`${viewer}@example.test`,manager,`${manager}@example.test`]);
   await client.query("INSERT INTO memberships(user_id,company_id,role) VALUES ($1,$2,'owner'),($3,$4,'owner'),($5,$4,'viewer'),($6,$4,'manager')", [userA,companyA,userB,companyB,viewer,manager]);
+  await client.query("INSERT INTO users(id,email,full_name,email_verified) VALUES ($1,$2,'B admin',now())", [admin,`${admin}@example.test`]);
+  await client.query("INSERT INTO memberships(user_id,company_id,role) VALUES ($1,$2,'admin')", [admin,companyB]);
   await client.query("INSERT INTO subscriptions(company_id,plan,status) VALUES ($1,'starter','active'),($2,'starter','active')", [companyA,companyB]);
   await client.query("INSERT INTO clients(id,company_id,name,type) VALUES ($1,$2,'IDOR client A','company'),($3,$4,'IDOR client B','company')", [clientA,companyA,clientB,companyB]);
   await client.query("INSERT INTO quotations(id,company_id,client_id,quote_number,project_name,expiry_date,subtotal,discount_total,vat_total,grand_total) VALUES ($1,$2,$3,'IDOR-A','private A',now()+interval '30 days',100,0,20,120),($4,$5,$6,'IDOR-B','private B',now()+interval '30 days',100,0,20,120)", [quoteA,companyA,clientA,quoteB,companyB,clientB]);
+  await client.query("INSERT INTO quotations(id,company_id,client_id,quote_number,project_name,expiry_date,subtotal,discount_total,vat_total,grand_total,parent_id,revision_version) VALUES ($1,$2,$3,'IDOR-A-REV','private A',now()+interval '30 days',100,0,20,120,$4,2)", [revisionA,companyA,clientA,quoteA]);
+  await client.query("INSERT INTO deals(id,company_id,client_id,name) VALUES ($1,$2,$3,'private deal')", [dealA,companyA,clientA]);
+  await client.query("INSERT INTO activities(id,company_id,deal_id,user_id,type,description) VALUES ($1,$2,$3,$4,'note','private activity')", [activityA,companyA,dealA,userA]);
+  // Deliberately malformed legacy cross-tenant links must not inflate another tenant's impact counts.
+  await client.query("INSERT INTO deals(id,company_id,client_id,name) VALUES ($1,$2,$3,'foreign deal')", [foreignDeal,companyB,clientA]);
+  await client.query("INSERT INTO activities(id,company_id,deal_id,user_id,type,description) VALUES ($1,$2,$3,$4,'note','foreign activity')", [foreignActivity,companyB,dealA,userB]);
   const tokenA = AuthService.generateToken({ userId:userA, companyId:companyA, role:'owner' });
   const tokenB = AuthService.generateToken({ userId:userB, companyId:companyB, role:'owner' });
   const tokenManager = AuthService.generateToken({ userId:manager, companyId:companyB, role:'manager' });
   const tokenViewer = AuthService.generateToken({ userId:viewer, companyId:companyB, role:'owner' }); // Claims must not elevate the DB viewer role.
+  const tokenAdmin = AuthService.generateToken({ userId:admin, companyId:companyB, role:'admin' });
   const forgedTenant = AuthService.generateToken({ userId:userB, companyId:companyA, role:'owner' });
   const app = createApiApp();
   const server = app.listen(0, '127.0.0.1'); await new Promise<void>(resolve => server.once('listening', resolve));
@@ -50,6 +59,8 @@ test('real HTTP quotation and client routes isolate tenants and enforce viewer r
     usage: (await client.query('SELECT count(*)::int n FROM usage_logs WHERE company_id IN ($1,$2)',[companyA,companyB])).rows[0].n,
     audit: (await client.query('SELECT count(*)::int n FROM smartcheck_audit_logs WHERE company_id IN ($1,$2)',[companyA,companyB])).rows[0].n,
     quoteCount: (await client.query('SELECT count(*)::int n FROM quotations WHERE company_id IN ($1,$2)',[companyA,companyB])).rows[0].n,
+    deals: (await client.query('SELECT id,company_id,client_id FROM deals WHERE id IN ($1,$2) ORDER BY id',[dealA,foreignDeal])).rows,
+    activities: (await client.query('SELECT id,company_id,deal_id FROM activities WHERE id IN ($1,$2) ORDER BY id',[activityA,foreignActivity])).rows,
   });
   try {
     assert.equal((await request(`/api/quotations/${quoteA}`,tokenA)).status,200, 'A owner must read own quote');
@@ -58,6 +69,21 @@ test('real HTTP quotation and client routes isolate tenants and enforce viewer r
     assert.equal((await request(`/api/clients/${clientB}`,tokenViewer)).status,200, 'viewer can read own client');
     assert.equal((await request(`/api/quotations/${quoteB}/status`,tokenManager,'PATCH',{status:'sent'})).status,200, 'manager can change own quote');
     const before = await snapshots();
+    const ownImpact = await request(`/api/clients/${clientA}/deletion-impact`,tokenA);
+    assert.equal(ownImpact.status,200, await ownImpact.clone().text());
+    const ownBody = await ownImpact.json() as {clientId:string;counts:Record<string,number>;limitations:string[]};
+    assert.equal(ownBody.clientId,clientA);
+    assert.deepEqual(ownBody.counts,{quotations:2,revisions:1,deals:1,activities:1});
+    assert.ok(ownBody.limitations.some(text => text.includes('yedek')));
+    assert.ok(!JSON.stringify(ownBody).includes('private'));
+    const emptyImpact = await request(`/api/clients/${clientB}/deletion-impact`,tokenAdmin);
+    assert.equal(emptyImpact.status,200);
+    assert.deepEqual((await emptyImpact.json() as {counts:Record<string,number>}).counts,{quotations:1,revisions:0,deals:0,activities:0});
+    assert.equal((await request(`/api/clients/${clientA}/deletion-impact`,tokenB)).status,404);
+    assert.equal((await request(`/api/clients/${randomUUID()}/deletion-impact`,tokenA)).status,404);
+    assert.equal((await request(`/api/clients/${clientB}/deletion-impact`,tokenManager)).status,403);
+    assert.equal((await request(`/api/clients/${clientB}/deletion-impact`,tokenViewer)).status,403);
+    assert.equal((await request('/api/clients/not-a-uuid/deletion-impact',tokenA)).status,400);
     const edit = {clientId:clientB,quoteNumber:'B',projectName:'X',date:'2026-10-01',expiryDate:'2026-11-01',updatedAt:new Date().toISOString(),items:[{description:'x',unit:'adet',quantity:1,unitPrice:1}]};
     const cases: [string,string,string,unknown?][] = [
       ['quote detail', `/api/quotations/${quoteA}`, 'GET'],
@@ -96,11 +122,14 @@ test('real HTTP quotation and client routes isolate tenants and enforce viewer r
     await client.query('DELETE FROM rate_limit_buckets WHERE bucket_key = $1', [rateLimitStorageKey(`pdf:${companyB}`)]);
     await client.query('DELETE FROM smartcheck_audit_logs WHERE company_id IN ($1,$2)', [companyA,companyB]);
     await client.query('DELETE FROM usage_logs WHERE company_id IN ($1,$2)', [companyA,companyB]);
+    await client.query('DELETE FROM activities WHERE id IN ($1,$2)', [activityA,foreignActivity]);
+    await client.query('DELETE FROM deals WHERE id IN ($1,$2)', [dealA,foreignDeal]);
+    await client.query('DELETE FROM quotations WHERE id = $1', [revisionA]);
     await client.query('DELETE FROM quotations WHERE id IN ($1,$2)', [quoteA,quoteB]);
     await client.query('DELETE FROM clients WHERE id IN ($1,$2)', [clientA,clientB]);
     await client.query('DELETE FROM subscriptions WHERE company_id IN ($1,$2)', [companyA,companyB]);
     await client.query('DELETE FROM memberships WHERE company_id IN ($1,$2)', [companyA,companyB]);
-    await client.query('DELETE FROM users WHERE id IN ($1,$2,$3,$4)', [userA,userB,viewer,manager]);
+    await client.query('DELETE FROM users WHERE id IN ($1,$2,$3,$4,$5)', [userA,userB,viewer,manager,admin]);
     await client.query('DELETE FROM companies WHERE id IN ($1,$2)', [companyA,companyB]);
     await client.end();
   }

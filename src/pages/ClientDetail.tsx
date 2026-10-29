@@ -13,6 +13,7 @@ import {
 import { toast } from 'sonner';
 import { fetchWithAuth } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
+import { ClientDeletionImpact } from '@/components/clients/ClientDeletionImpact';
 import type { Client } from '@/types';
 import {
   CLIENT_STAGE_LIST, CLIENT_STAGE_MAP, normalizeClientStageKey,
@@ -305,6 +306,8 @@ export function ClientDetail() {
           </Button>
         </div>
       </div>
+
+      {['owner', 'admin'].includes(role ?? '') && <ClientDeletionImpact key={client.id} clientId={client.id} />}
 
       {/* Interactive 6-Stage Pipeline Bar */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
