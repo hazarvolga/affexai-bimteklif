@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Plus, RefreshCw, Target, ChevronRight, Users, UserPlus, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { crmRequest, Deal, money, stages } from './crm-view';
+import { useCrmCollection } from './crm-collection';
 
 interface Lead {
   id: string;
@@ -27,14 +28,16 @@ interface Client {
 }
 
 export function CRM() {
-  const { role } = useAuth();
+  const { role, company, user } = useAuth();
   const canMutate = ['owner', 'admin', 'manager'].includes(role ?? '');
   const navigate = useNavigate();
-  const [deals, setDeals] = useState<Deal[]>([]);
-  const [leads, setLeads] = useState<Lead[]>([]);
-  const [clients, setClients] = useState<Client[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  const scope = company?.id && user?.id ? `${company.id}:${user.id}:${role ?? ''}` : null;
+  const pipeline = useCrmCollection<Deal>('/api/crm/pipeline', scope);
+  const leadData = useCrmCollection<Lead>('/api/crm/leads', scope);
+  const clientData = useCrmCollection<Client>('/api/clients', scope);
+  const deals = pipeline.data;
+  const leads = leadData.data;
+  const clients = clientData.data;
   const [tab, setTab] = useState('pipeline');
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -42,30 +45,18 @@ export function CRM() {
   const [quickClientOpen, setQuickClientOpen] = useState(false);
   const [quickClientSaving, setQuickClientSaving] = useState(false);
   const [quickClient, setQuickClient] = useState({ name: '', email: '', phone: '' });
-
-  async function load() {
-    setLoading(true);
-    setError(false);
-    try {
-      const [pipelineData, leadsData, clientsData] = await Promise.all([
-        crmRequest<Deal[]>('/api/crm/pipeline'),
-        crmRequest<Lead[]>('/api/crm/leads').catch(() => [] as Lead[]),
-        crmRequest<Client[]>('/api/clients').catch(() => [] as Client[]),
-      ]);
-      if (!Array.isArray(pipelineData)) throw new Error('Invalid CRM response');
-      setDeals(pipelineData);
-      setLeads(Array.isArray(leadsData) ? leadsData : []);
-      setClients(Array.isArray(clientsData) ? clientsData : []);
-    } catch {
-      setError(true);
-    } finally {
-      setLoading(false);
-    }
-  }
-
+  const scopeVersion = useRef({ scope, generation: 0 });
+  if (scopeVersion.current.scope !== scope) scopeVersion.current = { scope, generation: scopeVersion.current.generation + 1 };
+  const mutations = useRef(new Set<AbortController>());
   useEffect(() => {
-    void load();
-  }, []);
+    setOpen(false);
+    setQuickClientOpen(false);
+    setDraft({ clientId: '', name: '', value: '', stage: 'lead' });
+    setQuickClient({ name: '', email: '', phone: '' });
+    setSaving(false);
+    setQuickClientSaving(false);
+    return () => { for (const controller of mutations.current) controller.abort(); mutations.current.clear(); };
+  }, [scope]);
 
   function newDeal(stage = 'lead', preselectedClientId = '', preselectedName = '') {
     setDraft({
@@ -82,18 +73,22 @@ export function CRM() {
     event.preventDefault();
     if (saving || !draft.name.trim() || !draft.clientId) return;
     setSaving(true);
+    const generation = scopeVersion.current.generation;
+    const controller = new AbortController(); mutations.current.add(controller);
     try {
       const deal = await crmRequest<Deal>('/api/crm/deals', {
-        method: 'POST',
+        method: 'POST', signal: controller.signal,
         body: JSON.stringify({ ...draft, value: draft.value || undefined }),
       });
+      if (scopeVersion.current.generation !== generation) return;
       toast.success('Fırsat oluşturuldu.');
       setOpen(false);
       navigate(`/app/crm/deals/${deal.id}`);
     } catch (err) {
-      toast.error((err as Error).message);
+      if (scopeVersion.current.generation === generation && !controller.signal.aborted) toast.error((err as Error).message);
     } finally {
-      setSaving(false);
+      mutations.current.delete(controller);
+      if (scopeVersion.current.generation === generation) setSaving(false);
     }
   }
 
@@ -101,9 +96,11 @@ export function CRM() {
     event.preventDefault();
     if (quickClientSaving || !quickClient.name.trim()) return;
     setQuickClientSaving(true);
+    const generation = scopeVersion.current.generation;
+    const controller = new AbortController(); mutations.current.add(controller);
     try {
       const res = await fetchWithAuth('/api/clients', {
-        method: 'POST',
+        method: 'POST', signal: controller.signal,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: quickClient.name.trim(),
@@ -115,7 +112,8 @@ export function CRM() {
       });
       if (!res.ok) throw new Error('Müşteri kaydedilemedi.');
       const created: Client = await res.json();
-      setClients((prev) => [created, ...prev]);
+      if (scopeVersion.current.generation !== generation) return;
+      clientData.append(created);
       setDraft((prev) => ({
         ...prev,
         clientId: created.id,
@@ -125,15 +123,17 @@ export function CRM() {
       setQuickClientOpen(false);
       toast.success('Müşteri eklendi ve fırsat için seçildi.');
     } catch (err) {
-      toast.error((err as Error).message);
+      if (scopeVersion.current.generation === generation && !controller.signal.aborted) toast.error((err as Error).message);
     } finally {
-      setQuickClientSaving(false);
+      mutations.current.delete(controller);
+      if (scopeVersion.current.generation === generation) setQuickClientSaving(false);
     }
   }
 
   const potentialClients = clients.filter(
     (c) => !c.pipelineStage || c.pipelineStage === 'lead' || c.pipelineStage === 'new_lead',
   );
+  const poolReady = leadData.status === 'ready' && clientData.status === 'ready';
   const totalLeadPoolCount = leads.length + potentialClients.length;
 
   return (
@@ -149,7 +149,7 @@ export function CRM() {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Button variant="outline" onClick={() => navigate('/app/clients')}>
-            <Users size={16} /> Müşteriler ({clients.length})
+            <Users size={16} /> Müşteriler{clientData.status === 'ready' ? ` (${clients.length})` : ''}
           </Button>
           {canMutate && (
             <Button onClick={() => newDeal()}>
@@ -172,17 +172,17 @@ export function CRM() {
             variant={tab === value ? 'secondary' : 'ghost'}
             onClick={() => setTab(value)}
           >
-            {value === 'pipeline' ? 'Fırsatlar' : `Lead havuzu (${totalLeadPoolCount})`}
+            {value === 'pipeline' ? 'Fırsatlar' : `Lead havuzu${poolReady ? ` (${totalLeadPoolCount})` : ''}`}
           </Button>
         ))}
       </div>
 
-      {loading ? (
-        <p role="status">CRM yükleniyor…</p>
-      ) : error ? (
+      {tab === 'pipeline' && pipeline.status === 'loading' ? (
+        <p role="status">Fırsatlar yükleniyor…</p>
+      ) : tab === 'pipeline' && pipeline.status === 'error' ? (
         <div role="alert" className="space-y-3">
-          <p>CRM verileri yüklenemedi.</p>
-          <Button variant="outline" onClick={load}>
+          <p>Fırsatlar yüklenemedi.</p>
+          <Button variant="outline" onClick={pipeline.retry}>
             <RefreshCw size={16} /> Tekrar dene
           </Button>
         </div>
@@ -244,7 +244,11 @@ export function CRM() {
         </div>
       ) : (
         <div role="tabpanel" className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {!leads.length && !potentialClients.length && (
+          {clientData.status === 'loading' && <p role="status">Müşteriler yükleniyor…</p>}
+          {clientData.status === 'error' && <div role="alert" className="space-y-2"><p>Müşteriler yüklenemedi; müşteri kaynaklı kayıtlar gösterilemiyor.</p><Button variant="outline" onClick={clientData.retry}>Müşterileri tekrar dene</Button></div>}
+          {leadData.status === 'loading' && <p role="status">Lead kayıtları yükleniyor…</p>}
+          {leadData.status === 'error' && <div role="alert" className="space-y-2"><p>Lead kayıtları yüklenemedi.</p><Button variant="outline" onClick={leadData.retry}>Lead kayıtlarını tekrar dene</Button></div>}
+          {poolReady && !leads.length && !potentialClients.length && (
             <p className="text-muted-foreground">Henüz potansiyel müşteri yok.</p>
           )}
           {potentialClients.map((client) => (
@@ -320,7 +324,11 @@ export function CRM() {
           <DialogHeader>
             <DialogTitle>Yeni fırsat</DialogTitle>
           </DialogHeader>
-          {!clients.length && !quickClientOpen ? (
+          {clientData.status === 'loading' ? (
+            <p role="status">Müşteriler yükleniyor…</p>
+          ) : clientData.status === 'error' ? (
+            <div role="alert" className="space-y-3"><p>Müşteriler yüklenemedi. Fırsat oluşturmak için tekrar deneyin.</p><Button variant="outline" onClick={clientData.retry}>Müşterileri tekrar dene</Button></div>
+          ) : !clients.length && !quickClientOpen ? (
             <div className="space-y-4">
               <p>
                 Müşteri kaydı bulunamadı.{' '}

@@ -57,7 +57,7 @@ export async function fetchWithAuth(url: string, options: RequestInit = {}) {
     credentials: 'same-origin',
   }));
 
-  if (response.status === 401 && hasSessionHint()) handleSessionExpired();
+  if (!options.signal?.aborted && response.status === 401 && hasSessionHint()) handleSessionExpired();
 
   return response;
 }

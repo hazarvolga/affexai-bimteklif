@@ -24,3 +24,24 @@ test('fetchWithAuth keeps null-body statuses and error bodies intact', async t =
   assert.equal(denied.statusText, 'Forbidden');
   assert.deepEqual(await denied.json(), { code: 'X' });
 });
+
+test('an aborted stale 401 cannot expire the current session, while an active 401 does', async t => {
+  const storage = new Map([['bm_authed', '1']]);
+  const originalWindow = Object.getOwnPropertyDescriptor(globalThis, 'window');
+  const originalStorage = Object.getOwnPropertyDescriptor(globalThis, 'localStorage');
+  let destination = '';
+  Object.defineProperty(globalThis, 'window', { configurable: true, value: { location: { pathname: '/app/crm', search: '', assign: (url: string) => { destination = url; } } } });
+  Object.defineProperty(globalThis, 'localStorage', { configurable: true, value: { getItem: (key: string) => storage.get(key) ?? null, removeItem: (key: string) => storage.delete(key) } });
+  t.after(() => {
+    if (originalWindow) Object.defineProperty(globalThis, 'window', originalWindow); else delete (globalThis as { window?: unknown }).window;
+    if (originalStorage) Object.defineProperty(globalThis, 'localStorage', originalStorage); else delete (globalThis as { localStorage?: unknown }).localStorage;
+  });
+  t.mock.method(globalThis, 'fetch', async () => new Response('{}', { status: 401 }));
+  const controller = new AbortController(); controller.abort();
+  assert.equal((await fetchWithAuth('/api/crm/leads', { signal: controller.signal })).status, 401);
+  assert.equal(storage.get('bm_authed'), '1');
+  assert.equal(destination, '');
+  assert.equal((await fetchWithAuth('/api/crm/leads')).status, 401);
+  assert.equal(storage.has('bm_authed'), false);
+  assert.match(destination, /^\/login\?next=/);
+});

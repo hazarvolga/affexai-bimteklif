@@ -28,6 +28,7 @@ import {
 } from '@/services/billing/billing-periods';
 import { UsageStat, usageDisplay, usageHints, usageLabels } from './billing-usage';
 import { hasSelectedBankAccount } from './billing-transfer-state';
+import { formatUsagePeriodUtc } from './billing-period-display';
 
 interface BillingData {
   plan: string;
@@ -356,7 +357,13 @@ export function Billing() {
             <div>
               <h2 className="text-lg font-medium">Kullanım özeti</h2>
               <p className="text-sm text-muted-foreground">
-                Dönem başlangıcı: {new Date(data.period.start).toLocaleDateString('tr-TR', { timeZone: 'UTC' })} (UTC)
+                Kullanım dönemi başlangıcı: {formatUsagePeriodUtc(data.period.start) ?? 'Bilgi alınamadı'}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Kullanım dönemi sonu: {formatUsagePeriodUtc(data.period.end) ?? 'Bilgi alınamadı'}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Kullanım sayaçları UTC takvim ayına göre hesaplanır; aboneliğinizin bitiş tarihi farklı olabilir.
               </p>
             </div>
             <p className="max-w-full break-words text-sm text-foreground dark:text-muted-foreground">
