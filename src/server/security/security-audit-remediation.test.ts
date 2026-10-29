@@ -102,6 +102,7 @@ test("createAuthenticate forces read-only mode on impersonated sessions and bloc
   } as any);
 
   const authMiddleware = createAuthenticate({
+    isSessionRevoked: async () => false,
     async findUser() {
       return {
         email: "target@example.test",

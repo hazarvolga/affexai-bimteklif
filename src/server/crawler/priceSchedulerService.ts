@@ -1,10 +1,13 @@
+import { crawlSourceIdentity, priceSourceIdentity, priceObservationMatchesSource } from "./source-identity";
+import { assertCrawlSourceProof } from "./source-proof";
+import { isDeepStrictEqual } from "node:util";
+import { claimCrawlSource, releaseCrawlSource } from "./crawl-claim";
 import { db, pool } from "../../db";
 import { adminAuditLogs, priceFeedStaging, pricingDataSources, users } from "../../db/schema";
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { acquireCrawlerScheduleLock } from "./scheduler-lock";
 import { priceCrawlerService } from "./priceCrawlerService";
 import { inferCrawledItemUnit } from "./price-parser";
-import { canApproveCrawlerPrice } from "./provenance";
 import { CRAWLER_TIMEZONE, crawlerDayStart, crawlerScheduleDue, nextCrawlerRun } from "./scheduler-time";
 import { isAutomaticPricingSource } from './source-eligibility';
 import { logger } from "../logger";
@@ -150,9 +153,9 @@ export class PriceSchedulerService {
       const sources = await db
         .select()
         .from(pricingDataSources)
-        .where(eq(pricingDataSources.status, 'active'));
+        .where(sql`${pricingDataSources.status} = 'active' OR (${pricingDataSources.status} = 'syncing' AND (${pricingDataSources.crawlLeaseUntil} IS NULL OR ${pricingDataSources.crawlLeaseUntil} < now()))`);
 
-      if (!sources.every(source => isAutomaticPricingSource(source.status))) throw new Error('CRAWLER_SOURCE_STATUS_INVALID');
+      if (!sources.every(source => isAutomaticPricingSource(source.status) || source.status === 'syncing')) throw new Error('CRAWLER_SOURCE_STATUS_INVALID');
 
       summary.totalSources = sources.length;
 
@@ -162,7 +165,8 @@ export class PriceSchedulerService {
 
       // 2. Iterate sequentially with polite delay
       for (let i = 0; i < sources.length; i++) {
-        const source = sources[i];
+        let source = sources[i];
+        let crawlClaim: string | null = null;
 
         try {
           const configObj =
@@ -177,6 +181,12 @@ export class PriceSchedulerService {
             source.code.startsWith("tuik_");
 
           if (isFileBackedOrOfficial) {
+            // Expired leases must recover even when this source is not crawled.
+            if (source.status === "syncing") {
+              const recoveryClaim = await claimCrawlSource(source.id);
+              if (!recoveryClaim) throw new Error("CRAWLER_SOURCE_ALREADY_CLAIMED");
+              await releaseCrawlSource(source.id, recoveryClaim);
+            }
             logger.info(
               `[PriceScheduler] [${i + 1}/${sources.length}] Dosya/Resmi katalog kaynağı korundu (HTML tarama atlandı): ${source.name} (${source.code})`
             );
@@ -195,11 +205,8 @@ export class PriceSchedulerService {
             `[PriceScheduler] [${i + 1}/${sources.length}] Taranıyor: ${source.name} (${source.code})`
           );
 
-          // Mark source as syncing
-          await db
-            .update(pricingDataSources)
-            .set({ status: "syncing", updatedAt: new Date() })
-            .where(eq(pricingDataSources.id, source.id));
+          crawlClaim = await claimCrawlSource(source.id);
+          if (!crawlClaim) throw new Error("CRAWLER_SOURCE_ALREADY_CLAIMED");
 
           // Crawl source
           const crawlResult = await priceCrawlerService.crawlSource({
@@ -213,10 +220,8 @@ export class PriceSchedulerService {
 
           if (crawlResult.status === "error") {
             summary.failedSources++;
-            await db
-              .update(pricingDataSources)
-              .set({ status: "error", updatedAt: new Date() })
-              .where(eq(pricingDataSources.id, source.id));
+            await releaseCrawlSource(source.id, crawlClaim);
+            crawlClaim = null;
 
             summary.results.push({
               sourceCode: source.code,
@@ -227,131 +232,121 @@ export class PriceSchedulerService {
               error: crawlResult.errorMessage,
             });
           } else {
-            summary.successfulSources++;
-
-            const existingApproved = await db
-              .select()
-              .from(priceFeedStaging)
-              .where(
-                and(
-                  eq(priceFeedStaging.sourceId, source.id),
-                  eq(priceFeedStaging.status, "approved")
-                )
-              )
-              .orderBy(desc(priceFeedStaging.crawledAt));
-
-            const approvedByCode = new Map<string, typeof existingApproved[number]>();
-            for (const row of existingApproved) {
-              if (!approvedByCode.has(row.itemCode)) {
-                approvedByCode.set(row.itemCode, row);
-              }
-            }
-
-            const autoApprove = Boolean(configObj.autoApprove);
             let stagedForSource = 0;
-
-            // Clear old pending items for this source to avoid duplicates
-            if (crawlResult.items.length > 0) {
-              await db
-                .delete(priceFeedStaging)
+            await db.transaction(async (tx) => {
+              const [lockedSource] = await tx.select().from(pricingDataSources)
+                .where(eq(pricingDataSources.id, source.id)).for("update");
+              if (!lockedSource) throw new Error("PRICING_SOURCE_REMOVED_DURING_CRAWL");
+              if (lockedSource.status !== "syncing" || (lockedSource.crawlLeaseToken !== crawlClaim || !lockedSource.crawlLeaseUntil || lockedSource.crawlLeaseUntil.getTime() <= Date.now()) || !isDeepStrictEqual(crawlSourceIdentity(lockedSource), crawlSourceIdentity(source))) throw new Error("PRICING_SOURCE_CHANGED_DURING_CRAWL");
+              source = lockedSource;
+              const activeRows = await tx
+                .select()
+                .from(priceFeedStaging)
                 .where(
                   and(
                     eq(priceFeedStaging.sourceId, source.id),
-                    eq(priceFeedStaging.status, "pending")
+                    inArray(priceFeedStaging.status, ["approved", "pending"])
                   )
-                );
+                )
+                .orderBy(desc(priceFeedStaging.crawledAt));
 
-              for (const item of crawlResult.items) {
-                const normalizedUnit = inferCrawledItemUnit(
-                  item.itemName,
-                  source.code,
-                  source.name,
-                  item.unit
-                );
-                const prev = approvedByCode.get(item.itemCode);
-                const prevPrice = prev ? Number(prev.crawledPrice) : null;
-                const hasPrevPrice =
-                  prevPrice !== null && Number.isFinite(prevPrice) && prevPrice > 0;
+              const hasActiveRows = activeRows.length > 0;
+              assertCrawlSourceProof({dataHash: source.dataHash, crawlHash: crawlResult.dataHash, hasActiveRows});
+              const existingApproved = activeRows.filter(row => row.status === "approved");
 
-                // If price is identical to currently approved price, refresh timestamp in place
-                if (prev && hasPrevPrice && Math.abs(item.crawledPrice - prevPrice) < 0.005) {
-                  await db
-                    .update(priceFeedStaging)
-                    .set({
-                      crawledAt: crawlResult.crawledAt,
-                      unit: normalizedUnit,
-                    })
-                    .where(eq(priceFeedStaging.id, prev.id));
-                  continue;
+              const approvedByCode = new Map<string, typeof existingApproved[number]>();
+              for (const row of existingApproved) {
+                if (!approvedByCode.has(row.itemCode)) {
+                  approvedByCode.set(row.itemCode, row);
                 }
-
-                const diffPercent = hasPrevPrice
-                  ? String(Math.round(((item.crawledPrice - prevPrice) / prevPrice) * 10000) / 100)
-                  : null;
-                const notes = `[Gece Otomatik Tarama] ${item.notes}`;
-                const shouldAutoApprove =
-                  autoApprove &&
-                  canApproveCrawlerPrice({
-                    notes,
-                    sourceUrl: item.sourceUrl,
-                    crawledPrice: item.crawledPrice,
-                  });
-
-                if (shouldAutoApprove && prev) {
-                  await db
-                    .update(priceFeedStaging)
-                    .set({
-                      status: "rejected",
-                      notes: sql`COALESCE(${priceFeedStaging.notes}, '') || ' | Yeni gece taraması ile güncellendi'`,
-                    })
-                    .where(eq(priceFeedStaging.id, prev.id));
-                }
-
-                await db.insert(priceFeedStaging).values({
-                  sourceId: source.id,
-                  itemCode: item.itemCode,
-                  itemName: item.itemName,
-                  unit: normalizedUnit,
-                  currentPrice: hasPrevPrice ? prevPrice.toFixed(2) : null,
-                  crawledPrice: String(item.crawledPrice),
-                  diffPercent,
-                  sourceUrl: item.sourceUrl,
-                  status: shouldAutoApprove ? "approved" : "pending",
-                  reviewedAt: shouldAutoApprove ? crawlResult.crawledAt : null,
-                  reviewedByUserId: shouldAutoApprove ? actorAdminId : null,
-                  confidenceScore: String(item.confidenceScore),
-                  notes,
-                  crawledAt: crawlResult.crawledAt,
-                });
-                stagedForSource++;
               }
-            }
 
+              // Clear old pending items for this source to avoid duplicates
+              if (crawlResult.items.length > 0) {
+                await tx
+                  .delete(priceFeedStaging)
+                  .where(
+                    and(
+                      eq(priceFeedStaging.sourceId, source.id),
+                      eq(priceFeedStaging.status, "pending")
+                    )
+                  );
+
+                for (const item of crawlResult.items) {
+                  const normalizedUnit = inferCrawledItemUnit(
+                    item.itemName,
+                    source.code,
+                    source.name,
+                    item.unit
+                  );
+                  const prev = approvedByCode.get(item.itemCode);
+                  const prevPrice = prev ? Number(prev.crawledPrice) : null;
+                  const hasPrevPrice =
+                    prevPrice !== null && Number.isFinite(prevPrice) && prevPrice > 0;
+
+                  const unitChanged = Boolean(prev && prev.unit !== normalizedUnit);
+                  // Keep the human-reviewed observation and its original timestamp intact.
+                  if (prev && priceObservationMatchesSource(prev, source) && !unitChanged && hasPrevPrice && Math.abs(item.crawledPrice - prevPrice) < 0.005) {
+                    continue;
+                  }
+
+                  const diffPercent = hasPrevPrice && !unitChanged
+                    ? String(Math.round(((item.crawledPrice - prevPrice) / prevPrice) * 10000) / 100)
+                    : null;
+                  const notes = `[Gece Otomatik Tarama] ${item.notes}`;
+                  await tx.insert(priceFeedStaging).values({
+                    sourceId: source.id,
+                    contentHash: crawlResult.dataHash,
+              sourceIdentity: priceSourceIdentity(source),
+                    itemCode: item.itemCode,
+                    itemName: item.itemName,
+                    unit: normalizedUnit,
+                    currentPrice: hasPrevPrice && !unitChanged ? prevPrice.toFixed(2) : null,
+                    crawledPrice: String(item.crawledPrice),
+                    diffPercent,
+                    sourceUrl: item.sourceUrl,
+                    status: "pending",
+                    reviewedAt: null,
+                    reviewedByUserId: null,
+                    confidenceScore: String(item.confidenceScore),
+                    notes,
+                    crawledAt: crawlResult.crawledAt,
+                  });
+                  stagedForSource++;
+                }
+              }
+
+              const rollingValidityEnd = new Date(
+                crawlResult.crawledAt.getTime() + 90 * 24 * 60 * 60 * 1000
+              );
+
+              // Update source stats & rolling validity window
+              await tx
+                .update(pricingDataSources)
+                .set({
+                  lastSyncAt: crawlResult.crawledAt,
+                  status: "active",
+                  crawlLeaseToken: null, crawlLeaseUntil: null,
+                  itemCount: sql`GREATEST(${pricingDataSources.itemCount}, ${crawlResult.itemsCount})`,
+                  ...(!hasActiveRows ? {
+                    dataHash: crawlResult.dataHash,
+                    validityStart: crawlResult.crawledAt,
+                    validityEnd: rollingValidityEnd,
+                  } : {}),
+                  updatedAt: new Date(),
+                })
+                .where(eq(pricingDataSources.id, source.id));
+
+              await tx.insert(adminAuditLogs).values({
+                adminId: actorAdminId!, action: "pricing_source_nightly_crawled",
+                details: { sourceId: source.id, sourceCode: source.code, triggeredBy,
+                  actorKind: triggeredBy === "system_nightly_cron" ? "system" : "admin", itemsCount: crawlResult.itemsCount,
+                  stagedForSource, timestamp: crawlResult.crawledAt.toISOString() },
+              });
+            });
+            crawlClaim = null;
+            summary.successfulSources++;
             summary.totalItemsStaged += stagedForSource;
-            const rollingValidityEnd = new Date(
-              crawlResult.crawledAt.getTime() + 90 * 24 * 60 * 60 * 1000
-            );
-
-            // Update source stats & rolling validity window
-            await db
-              .update(pricingDataSources)
-              .set({
-                lastSyncAt: crawlResult.crawledAt,
-                status: "active",
-                itemCount: sql`GREATEST(${pricingDataSources.itemCount}, ${crawlResult.itemsCount})`,
-                dataHash: crawlResult.dataHash || source.dataHash,
-                validityStart: source.validityStart ?? crawlResult.crawledAt,
-                validityEnd:
-                  source.validityEnd && source.validityEnd > rollingValidityEnd
-                    ? source.validityEnd
-                    : rollingValidityEnd,
-                versionTag:
-                  source.versionTag === "metadata-only"
-                    ? `${crawlResult.crawledAt.getFullYear()}/${crawlResult.crawledAt.getMonth() + 1}`
-                    : source.versionTag,
-                updatedAt: new Date(),
-              })
-              .where(eq(pricingDataSources.id, source.id));
 
             summary.results.push({
               sourceCode: source.code,
@@ -362,6 +357,7 @@ export class PriceSchedulerService {
             });
           }
         } catch (sourceError) {
+          if (crawlClaim) { try { await releaseCrawlSource(source.id, crawlClaim); } catch (releaseError) { logger.error("Crawler claim release failed", releaseError); } }
           summary.failedSources++;
           const errStr = sourceError instanceof Error ? sourceError.message : String(sourceError);
           summary.results.push({

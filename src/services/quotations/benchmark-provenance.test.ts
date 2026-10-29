@@ -1,3 +1,4 @@
+import { priceSourceIdentity } from '../../server/crawler/source-identity';
 import express from 'express';
 import { createServer } from 'node:http';
 import assert from 'node:assert/strict';
@@ -15,8 +16,8 @@ test('benchmark approval is revalidated atomically and persisted through creatio
  await db.insert(s.subscriptions).values({companyId:company.id,plan:'starter',status:'active',currentPeriodStart:new Date('2020-01-01T00:00:00Z')});
  const [client]=await db.insert(s.clients).values({name:'Buyer',type:'company',companyId:company.id}).returning();
  const [reviewer]=await db.insert(s.users).values({email:'benchmark@example.test',fullName:'Reviewer'}).returning();
- const [source]=await db.insert(s.pricingDataSources).values({code:'test',name:'Test source',category:'market_commodity',validityStart:new Date(Date.now()-86400000),validityEnd:new Date(Date.now()+86400000),authorizationStatus:'authorized',authorizationScope:'test fixture: tenant-approved benchmark lifecycle',authorizationEvidenceHash:'a'.repeat(64),authorizedAt:new Date()}).returning();
- const [row]=await db.insert(s.priceFeedStaging).values({sourceId:source.id,itemCode:'A',itemName:'Test',unit:'m3',crawledPrice:'100',status:'pending',reviewedAt:new Date(),reviewedByUserId:reviewer.id}).returning();
+ const [source]=await db.insert(s.pricingDataSources).values({code:'test',name:'Test source',category:'market_commodity',validityStart:new Date(Date.now()-86400000),validityEnd:new Date(Date.now()+86400000),reviewStatus:'verified',reviewEvidenceReference:'https://example.org/test-permission',reviewScope:'Ticari teklifler',reviewAllowsQuotations:true,reviewedByUserId:reviewer.id,reviewedAt:new Date(),authorizationStatus:'authorized',authorizationScope:'test fixture: tenant-approved benchmark lifecycle',authorizationEvidenceHash:'a'.repeat(64),authorizedAt:new Date()}).returning();
+ const [row]=await db.insert(s.priceFeedStaging).values({sourceId:source.id,contentHash:'a'.repeat(64),sourceIdentity:priceSourceIdentity(source),itemCode:'A',itemName:'Test',unit:'m3',crawledPrice:'100',status:'pending',reviewedAt:new Date(),reviewedByUserId:reviewer.id}).returning();
  const input=(fields={})=>manualQuotationInput.parse({clientId:client.id,quoteNumber:'T',projectName:'Test',date:'2026-01-01',expiryDate:'2026-12-31',items:[{description:'A - Test',unit:'m3',quantity:1,unitPrice:100,benchmarkStagingId:row.id,...fields}]});
  for(const status of ['pending','rejected']) await t.test(`refuses ${status} at save`,async()=>{
   await db.update(s.priceFeedStaging).set({status}).where(eq(s.priceFeedStaging.id,row.id));
@@ -64,9 +65,24 @@ test('benchmark approval is revalidated atomically and persisted through creatio
   const [item]=await db.select().from(s.quotationItems).where(eq(s.quotationItems.quotationId,quote.id));
   const snapshot=JSON.parse(item.sourceReference!);
   assert.equal(snapshot.stagingId,row.id);assert.equal(snapshot.reviewedByUserId,reviewer.id);assert.equal(snapshot.price,'100.00');
+  assert.equal(snapshot.permissionReview.scope,undefined);assert.equal(snapshot.permissionReview.reviewedByUserId,undefined);
+  assert.match(snapshot.permissionReview.scopeHash,/^[a-f0-9]{64}$/);
+  const [{registerQuotationRoutes},{AuthService}]=await Promise.all([import('../../server/routes/quotations'),import('../auth/authService')]);
+  const [viewer]=await db.insert(s.users).values({email:'benchmark-viewer@example.test',fullName:'Viewer'}).returning();
+  await db.insert(s.memberships).values({companyId:company.id,userId:viewer.id,role:'viewer'});
+  const app=express();registerQuotationRoutes(app,(_req:any,_res:any,next:any)=>next());
+  const server=createServer(app);await new Promise<void>(resolve=>server.listen(0,'127.0.0.1',resolve));
+  const address=server.address();assert.ok(address&&typeof address!=='string');
+  try {
+   const response=await fetch(`http://127.0.0.1:${address.port}/api/quotations/${quote.id}`,{headers:{Authorization:`Bearer ${AuthService.generateToken({userId:viewer.id,companyId:company.id,role:'viewer'})}`}});
+   assert.equal(response.status,200);const body=await response.json();
+   const viewerReview=JSON.parse(body.items[0].sourceReference).permissionReview;
+   assert.equal(viewerReview.scope,undefined);assert.equal(viewerReview.reviewedByUserId,undefined);
+   assert.match(viewerReview.scopeHash,/^[a-f0-9]{64}$/);
+  } finally {server.closeAllConnections();await new Promise<void>(resolve=>server.close(()=>resolve()));}
   assert.equal(item.priceSource,'market');assert.equal(item.costUnitPrice,null);assert.equal(Number(item.wastePercent),0);
   await assert.rejects(loadEditableQuotation(company.id,quote.id),{status:409});
-  const revision=await createQuotationRevision(company.id,quote.id);
+  const revision=await createQuotationRevision({companyId:company.id,userId:reviewer.id},quote.id);
   const [copy]=await db.select().from(s.quotationItems).where(eq(s.quotationItems.quotationId,revision.id));
   assert.equal(copy.sourceReference,item.sourceReference);
  });

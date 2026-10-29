@@ -1,3 +1,4 @@
+import { SourcePermissionReview } from '@/components/pricing/SourcePermissionReview';
 import { useEffect, useState } from 'react';
 import { PageContainer } from '../../components/layout/PageContainer';
 import { PageHeader } from '../../components/layout/PageHeader';
@@ -206,7 +207,7 @@ export function PricingSources() {
     sourceUrl: '',
     syncFrequency: 'daily',
     versionTag: '2026/1',
-    autoApprove: true,
+    autoApprove: false,
   });
 
   // Verify & Auto-Track Modal State
@@ -219,7 +220,7 @@ export function PricingSources() {
     syncFrequency: 'daily',
     validityStart: new Date().toISOString().slice(0, 10),
     validityEnd: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
-    autoApprove: true,
+    autoApprove: false,
   });
 
   // CSV / PDF / Official Catalog Import & Seal Modal State
@@ -235,7 +236,7 @@ export function PricingSources() {
     validityEnd: '2026-12-31',
     csvText: '',
     licenseConfirmed: true,
-    autoApprove: true,
+    autoApprove: false,
   });
 
   const openVerifyModal = (s: PricingDataSource) => {
@@ -277,7 +278,7 @@ export function PricingSources() {
         : `${nowYear}-12-31`,
       csvText: '',
       licenseConfirmed: true,
-      autoApprove: true,
+      autoApprove: false,
     });
     setCsvModalSource(s);
   };
@@ -408,10 +409,6 @@ export function PricingSources() {
       if (res.ok) {
         if (data.reused) {
           toast.info('Bu CSV dosyası (aynı SHA-256 özetiyle) zaten yüklü ve mühürlü.');
-        } else if (data.autoApprovedCount > 0) {
-          toast.success(
-            `${data.insertedCount} poz/fiyat SHA-256 ile mühürlendi, onaylandı ve canlı teklif havuzuna aktarıldı!`
-          );
         } else {
           toast.success(`${data.insertedCount} poz/fiyat SHA-256 ile mühürlendi ve inceleme havuzuna eklendi.`);
         }
@@ -499,7 +496,7 @@ export function PricingSources() {
           sourceUrl: '',
           syncFrequency: 'daily',
           versionTag: '2026/1',
-          autoApprove: true,
+          autoApprove: false,
         });
         loadData();
       } else {
@@ -562,7 +559,7 @@ export function PricingSources() {
     sdmxPayload: '',
     licenseReference:
       'TÜİK Veri Portalı SDMX 2.1 Web Servisi — 4734 S.K. NACE Rev.2 Fiyat Farkı & İnşaat Maliyet Endeksi',
-    autoApprove: true,
+    autoApprove: false,
   });
 
   const handleSyncCatalog = async () => {
@@ -820,9 +817,9 @@ export function PricingSources() {
             </span>
           </div>
           <div className="border-l-2 border-purple-500 pl-3">
-            <span className="font-bold text-foreground block mb-0.5">3. Otomatik veya Manuel Onay</span>
+            <span className="font-bold text-foreground block mb-0.5">3. Fiyat İncelemesi</span>
             <span>
-              Her gün dosya yüklemenize gerek yoktur: <strong>Otomatik Fiyat Takibi</strong> açık kaynaklarda değişen fiyatlar doğrudan canlı kataloğu günceller.
+              Tarama yeni veya değişen fiyatları inceleme havuzuna gönderir; yetkili bir kişinin fiyatı ayrıca onaylaması gerekir.
             </span>
           </div>
           <div className="border-l-2 border-emerald-500 pl-3">
@@ -857,7 +854,7 @@ export function PricingSources() {
               </span>
             </div>
             <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-              Aktif piyasa kaynakları her gece 03:00'te otomatik taranır, fiyat değişiklikleri hesaplanır ve geçerlilik süreleri otomatik uzatılır.
+              Aktif piyasa kaynakları her gece 03:00'te taranır; değişen fiyatlar inceleme bekler ve eski onaylı fiyatın geçerliliği otomatik uzatılmaz.
               {schedulerStatus?.lastRunAt ? (
                 <span className="text-foreground dark:text-muted-foreground ml-1">
                   Son çalışma:{' '}
@@ -1050,8 +1047,6 @@ export function PricingSources() {
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {sources.map((s) => {
                 const isOfficial = isOfficialOrIndexSource(s);
-                const cfg = (s.crawlerConfig || {}) as Record<string, unknown>;
-                const isAutoApprove = Boolean(cfg.autoApprove);
 
                 return (
                   <div
@@ -1110,6 +1105,7 @@ export function PricingSources() {
                       </div>
 
                       <h4 className="text-base font-bold text-foreground mb-1 leading-snug">{s.name}</h4>
+                      <SourcePermissionReview sourceId={s.id} mode="global" />
                       <p className="text-xs text-muted-foreground mb-3">{s.authority}</p>
 
                       {/* Mode / Automation Pill */}
@@ -1119,15 +1115,10 @@ export function PricingSources() {
                             <FileSpreadsheet size={11} className="text-indigo-400" />
                             Resmi Katalog · Yıllık/Dönemlik CSV Mühürleme
                           </span>
-                        ) : isAutoApprove && s.status === 'active' ? (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/25">
-                            <Zap size={11} className="text-emerald-400" />
-                            Sürekli Otomatik Fiyat Takibi Açık (03:00 TSİ)
-                          </span>
                         ) : (
                           <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-300 border border-indigo-500/25">
                             <Globe size={11} className="text-indigo-400" />
-                            Canlı Web Botu {s.status === 'active' ? '(Manuel Onaylı)' : '(Doğrulama Bekliyor)'}
+                            Canlı Web Botu · Fiyat incelemesi gerekli
                           </span>
                         )}
                       </div>
@@ -1295,23 +1286,9 @@ export function PricingSources() {
                 <div className="text-muted-foreground mt-0.5">{verifyModalSource.authority}</div>
               </div>
 
-              {/* Zero-touch Auto-Approve Toggle */}
-              <label className="flex items-start gap-3 rounded-xl border border-emerald-500/30 bg-emerald-950/20 p-3.5 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={verifyForm.autoApprove}
-                  onChange={(e) => setVerifyForm({ ...verifyForm, autoApprove: e.target.checked })}
-                  className="mt-0.5 h-4 w-4 rounded border-border text-emerald-600 focus:ring-emerald-500"
-                />
-                <div>
-                  <span className="font-bold text-emerald-300 block">
-                    Sürekli Otomatik Fiyat Takibi (Her Gece 03:00 TSİ Otomatik Güncelle & Onayla)
-                  </span>
-                  <span className="text-foreground dark:text-muted-foreground text-[11px] leading-relaxed block mt-0.5">
-                    Bu seçenek açık olduğunda her gün manuel dosya yüklemenize veya tek tek onay vermenize gerek kalmaz. Bot her gece 03:00'te ve "Şimdi Tara" dediğinizde güncel fiyatları çeker, değişen fiyatları otomatik onaylar ve Teklif Sihirbazı'ndaki canlı rayiç havuzunu günceller.
-                  </span>
-                </div>
-              </label>
+              <div className="rounded-xl border border-amber-500/30 bg-amber-950/20 p-3.5 text-amber-200">
+                Web taraması fiyatları inceleme havuzuna gönderir. Yeni veya değişen fiyatlar yetkili bir kişi tarafından ayrıca onaylanmalıdır; kaynak kullanım izni fiyat onayı değildir.
+              </div>
 
               <div>
                 <label className="block text-muted-foreground mb-1 font-semibold">Canlı Web Kaynak Adresi (URL)</label>
@@ -1601,17 +1578,7 @@ export function PricingSources() {
               )}
 
               <div className="space-y-2">
-                <label className="flex items-center gap-2 text-foreground dark:text-muted-foreground cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={csvForm.autoApprove}
-                    onChange={(e) => setCsvForm({ ...csvForm, autoApprove: e.target.checked })}
-                    className="rounded border-border"
-                  />
-                  <span className="font-semibold text-emerald-400">
-                    Yüklenen kayıtları otomatik onayla ve doğrudan canlı teklif havuzuna aktar
-                  </span>
-                </label>
+                <p className="text-emerald-400 font-semibold">Yüklenen fiyatlar yetkili kişi incelemesini bekler.</p>
                 <label className="flex items-center gap-2 text-muted-foreground cursor-pointer">
                   <input
                     type="checkbox"
@@ -1763,15 +1730,7 @@ export function PricingSources() {
                 </div>
               </div>
 
-              <label className="flex items-center gap-2 text-foreground dark:text-muted-foreground cursor-pointer pt-1">
-                <input
-                  type="checkbox"
-                  checked={newSource.autoApprove}
-                  onChange={(e) => setNewSource({ ...newSource, autoApprove: e.target.checked })}
-                  className="rounded border-border"
-                />
-                <span>Gece taramalarında yakalanan fiyat değişikliklerini otomatik onayla</span>
-              </label>
+              <p className="text-xs text-muted-foreground">Yeni ve değişen fiyatlar ayrıca insan incelemesini bekler.</p>
 
               <div className="pt-3 border-t border-border flex justify-end gap-2">
                 <Button

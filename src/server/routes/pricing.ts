@@ -1,6 +1,8 @@
+import { captureError } from "../observability/error-tracking";
+import { buildPricePermissionEvidence, sourceReviewEligible } from "../pricing/source-review-policy";
 import { benchmarkEligible } from '../../services/pricing/benchmark-policy';
 import type { Express, RequestHandler } from "express";
-import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "../../db";
 import { tenantOf, withAppTenant, withAppTenantTransaction } from "../../db/app-tenant";
 import {
@@ -15,7 +17,7 @@ import {
 } from "../../db/schema";
 import { buildPriceSnapshotKey, computePricingLockHash, isPriceSnapshotStale, sha256Payload } from "../../smartcheck/pricing/snapshots";
 import { suggestPriceSnapshotsForRow, type PriceMatchRowInput } from "../../smartcheck/pricing/matching";
-import { COMMERCIAL_QUOTATION_AUTHORIZATION_SCOPE, evaluateManualSnapshotApproval, evaluatePriceSourceAuthorization, type PriceAuthorizationStatus } from "../../smartcheck/pricing/authorization";
+import { evaluateManualSnapshotApproval, evaluatePriceSourceAuthorization, type PriceAuthorizationStatus } from "../../smartcheck/pricing/authorization";
 import { priceSnapshotMatchesQuotationItem, verifiedPayloadHash } from "../../smartcheck/pricing/integrity";
 import { defineManufacturingProfile } from "../../ifc/pricing/manufacturing-profile";
 import { resolvePoz } from "../../ifc/pricing/poz-resolver";
@@ -102,15 +104,12 @@ export function resolveAuthorizationInput(input: {
   actorUserId: string;
   allowTenantAuthorization: boolean;
 }) {
-  // Vendor quotes require a separate permission/contract approval flow. Only
-  // tenant-owned actuals and attributable manual overrides may self-authorize.
-  const selfOwned = new Set(["company_actual", "manual_override"]);
-  const tenantAuthorized = input.allowTenantAuthorization && selfOwned.has(input.sourceType);
-  const authorizationStatus: PriceAuthorizationStatus = tenantAuthorized ? "authorized" : "pending";
-  const authorizationScope = tenantAuthorized ? COMMERCIAL_QUOTATION_AUTHORIZATION_SCOPE : null;
-  const authorizationEvidenceHash = tenantAuthorized ? input.sourceDocumentHash : null;
-  const authorizedAt = authorizationStatus === "authorized" ? new Date() : null;
-  const authorizedByUserId = authorizationStatus === "authorized" ? input.actorUserId : null;
+  // Content hashes and ownership declarations are not independently reviewed usage permission.
+  const authorizationStatus: PriceAuthorizationStatus = "pending";
+  const authorizationScope = null;
+  const authorizationEvidenceHash = null;
+  const authorizedAt = null;
+  const authorizedByUserId = null;
   const decision = evaluatePriceSourceAuthorization({ sourceType: input.sourceType, authorizationStatus, authorizationEvidenceHash });
   return { authorizationStatus, authorizationScope, authorizationEvidenceHash, authorizedAt, authorizedByUserId, decision };
 }
@@ -156,6 +155,12 @@ export function registerPricingRoutes(app: Express) {
           authorizationStatus: pricingDataSources.authorizationStatus,
           authorizationEvidenceHash: pricingDataSources.authorizationEvidenceHash,
           authorizedAt: pricingDataSources.authorizedAt,
+          sourceReviewStatus: pricingDataSources.reviewStatus,
+          sourceReviewEvidenceReference: pricingDataSources.reviewEvidenceReference,
+          sourceReviewScope: pricingDataSources.reviewScope,
+          sourceReviewAllowsQuotations: pricingDataSources.reviewAllowsQuotations,
+          sourceReviewedByUserId: pricingDataSources.reviewedByUserId,
+          sourceReviewedAt: pricingDataSources.reviewedAt,
           reviewedAt: priceFeedStaging.reviewedAt,
           reviewedByUserId: priceFeedStaging.reviewedByUserId,
           itemCode: priceFeedStaging.itemCode,
@@ -174,14 +179,15 @@ export function registerPricingRoutes(app: Express) {
         })
         .from(priceFeedStaging)
         .innerJoin(pricingDataSources, eq(priceFeedStaging.sourceId, pricingDataSources.id))
-        .where(and(eq(priceFeedStaging.status, 'approved'), eq(pricingDataSources.status, 'active'), eq(pricingDataSources.authorizationStatus, 'authorized'), sql`${pricingDataSources.authorizationEvidenceHash} IS NOT NULL`, sql`${pricingDataSources.authorizedAt} IS NOT NULL`, eq(pricingDataSources.currency, 'TRY'),
+        .where(and(eq(priceFeedStaging.status, 'approved'), eq(pricingDataSources.status, 'active'), eq(pricingDataSources.reviewStatus, 'verified'), eq(pricingDataSources.reviewAllowsQuotations, true), sql`${pricingDataSources.authorizationStatus} <> 'restricted'`, eq(pricingDataSources.currency, 'TRY'),
+          sql`${priceFeedStaging.contentHash} ~ '^[a-f0-9]{64}$'`, sql`${priceFeedStaging.sourceIdentity} = jsonb_build_object('code', ${pricingDataSources.code}, 'name', ${pricingDataSources.name}, 'authority', ${pricingDataSources.authority}, 'sourceUrl', ${pricingDataSources.sourceUrl}, 'category', ${pricingDataSources.category}, 'versionTag', ${pricingDataSources.versionTag}, 'currency', ${pricingDataSources.currency}, 'countryCode', ${pricingDataSources.countryCode})`,
           sql`${priceFeedStaging.reviewedAt} IS NOT NULL`, sql`${priceFeedStaging.reviewedByUserId} IS NOT NULL`,
           sql`${priceFeedStaging.crawledPrice} >= 0 AND ${priceFeedStaging.crawledPrice} != 'NaN'::numeric`,
           q ? sql`position(lower(${q}) in lower(${priceFeedStaging.itemCode} || ' ' || ${priceFeedStaging.itemName} || ' ' || ${pricingDataSources.name})) > 0` : undefined,
           sql`${pricingDataSources.validityStart} <= CURRENT_TIMESTAMP`, sql`${pricingDataSources.validityEnd} >= CURRENT_TIMESTAMP`))
         .orderBy(desc(priceFeedStaging.crawledAt)).limit(50);
 
-      let items = (await itemsQuery).filter(item => benchmarkEligible(item));
+      let items = (await itemsQuery).filter(item => benchmarkEligible(item) && sourceReviewEligible({ reviewStatus: item.sourceReviewStatus, reviewEvidenceReference: item.sourceReviewEvidenceReference, reviewScope: item.sourceReviewScope, reviewAllowsQuotations: item.sourceReviewAllowsQuotations, reviewedByUserId: item.sourceReviewedByUserId, reviewedAt: item.sourceReviewedAt }));
 
       if (q) {
         const queryLower = q.toLowerCase();
@@ -236,7 +242,8 @@ export function registerPricingRoutes(app: Express) {
     const rows = await withAppTenant(tenantOf(req.user), (tenantDb) =>
       tenantDb.select().from(priceSources).where(eq(priceSources.companyId, req.user.companyId)).orderBy(desc(priceSources.updatedAt)).limit(200)
     , { readOnly: true });
-    res.json(rows);
+    const canSeeEvidence = ["owner", "admin"].includes(req.user.role) && !req.user.impersonatedBy;
+    res.json(rows.map((source) => canSeeEvidence ? source : { ...source, reviewEvidenceReference: null, reviewScope: null, reviewedByUserId: null, reviewedAt: null }));
   });
 
   app.post("/api/pricing/sources", ...mutateStack, async (req, res) => {
@@ -252,7 +259,6 @@ export function registerPricingRoutes(app: Express) {
     const licenseStatus = typeof req.body?.licenseStatus === "string" ? req.body.licenseStatus : "unknown";
     if (!sourceTypes.has(sourceType) || !name || !validHash(sourceDocumentHash) || !licenseStatuses.has(licenseStatus)) return res.status(400).json({ error: "Kaynak tipi, isim, lisans durumu ve kaynak hash zorunludur." });
     const authorization = resolveAuthorizationInput({ sourceType, sourceDocumentHash, actorUserId: req.user.userId, allowTenantAuthorization: false });
-    if (authorization.authorizationStatus === "authorized" && (!authorization.authorizationScope || !authorization.decision.eligible)) return res.status(400).json({ error: "Yetkilendirilmiş fiyat kaynağı için kapsam, kanıt hash'i ve yetkilendirme tarihi zorunludur.", reason: authorization.decision.eligible ? "authorization_scope_missing" : authorization.decision.reason });
     const [source] = await withAppTenant(tenantOf(req.user), (tenantDb) =>
       tenantDb.insert(priceSources).values({
         companyId: req.user.companyId,
@@ -284,9 +290,16 @@ export function registerPricingRoutes(app: Express) {
     const conditions = [eq(priceSnapshots.companyId, req.user.companyId)];
     if (status) conditions.push(eq(priceSnapshots.reviewStatus, status));
     if (positionCode) conditions.push(eq(priceSnapshots.positionCode, positionCode));
-    const rows = await withAppTenant(tenantOf(req.user), (tenantDb) =>
-      tenantDb.select().from(priceSnapshots).where(and(...conditions)).orderBy(desc(priceSnapshots.capturedAt)).limit(Math.min(Math.max(Number(req.query.limit) || 100, 1), 500))
-    , { readOnly: true });
+    const eligibleOnly = req.query.eligibleForQuotation === "true";
+    const limit = Math.min(Math.max(Number(req.query.limit) || 100, 1), 500);
+    const rows = await withAppTenant(tenantOf(req.user), async (tenantDb) => {
+      if (!eligibleOnly) return tenantDb.select().from(priceSnapshots).where(and(...conditions)).orderBy(desc(priceSnapshots.capturedAt)).limit(limit);
+      const joined = await tenantDb.select({snapshot: priceSnapshots, source: priceSources}).from(priceSnapshots)
+        .innerJoin(priceSources, and(eq(priceSnapshots.priceSourceId, priceSources.id), eq(priceSnapshots.companyId, priceSources.companyId)))
+        .where(and(...conditions, eq(priceSources.reviewStatus, "verified"), eq(priceSources.reviewAllowsQuotations, true), eq(priceSnapshots.reviewStatus, "approved")))
+        .orderBy(desc(priceSnapshots.capturedAt)).limit(limit);
+      return joined.filter(({source}) => source.authorizationStatus !== "restricted" && source.licenseStatus !== "restricted" && sourceReviewEligible(source)).map(({snapshot}) => snapshot);
+    }, { readOnly: true });
     const now = new Date();
     res.json(rows.map((row) => ({ ...row, stale: isPriceSnapshotStale(row, now) })));
   });
@@ -314,15 +327,17 @@ export function registerPricingRoutes(app: Express) {
       tenantDb.select({ snapshot: priceSnapshots, source: priceSources })
         .from(priceSnapshots)
         .innerJoin(priceSources, and(eq(priceSnapshots.priceSourceId, priceSources.id), eq(priceSnapshots.companyId, priceSources.companyId)))
-        .where(and(eq(priceSnapshots.companyId, req.user.companyId), eq(priceSources.authorizationStatus, "authorized"), sql`${priceSources.authorizationEvidenceHash} IS NOT NULL`, sql`${priceSources.authorizedAt} IS NOT NULL`, eq(priceSnapshots.reviewStatus, "approved"), sql`${priceSnapshots.reviewedAt} IS NOT NULL`, sql`${priceSnapshots.reviewedByUserId} IS NOT NULL`, sql`(${priceSnapshots.validFrom} IS NULL OR ${priceSnapshots.validFrom} <= ${now})`, sql`(${priceSnapshots.validUntil} IS NULL OR ${priceSnapshots.validUntil} >= ${now})`))
+        .where(and(eq(priceSnapshots.companyId, req.user.companyId), eq(priceSources.reviewStatus, "verified"), eq(priceSources.reviewAllowsQuotations, true), sql`${priceSources.authorizationStatus} <> 'restricted'`, sql`${priceSources.licenseStatus} <> 'restricted'`, eq(priceSnapshots.reviewStatus, "approved"), sql`${priceSnapshots.reviewedAt} IS NOT NULL`, sql`${priceSnapshots.reviewedByUserId} IS NOT NULL`, sql`(${priceSnapshots.validFrom} IS NULL OR ${priceSnapshots.validFrom} <= ${now})`, sql`(${priceSnapshots.validUntil} IS NULL OR ${priceSnapshots.validUntil} >= ${now})`))
         .orderBy(desc(priceSnapshots.capturedAt))
         .limit(500)
     , { readOnly: true });
-    const candidates = authorizedCandidates.filter(({ source }) => mode === "CSB_2026_REFERENCE"
+    const candidates = authorizedCandidates.filter(({ source }) => sourceReviewEligible(source)).filter(({ source }) => mode === "CSB_2026_REFERENCE"
       ? source.sourceType === "official_reference"
       : source.sourceType !== "official_reference");
     const suggestions = requestRows.map((row) => {
-      const matches = suggestPriceSnapshotsForRow(row, candidates, { limit: 3, now });
+      const matches = suggestPriceSnapshotsForRow(row, candidates, { limit: 3, now }).map(({ source, ...match }) => ({
+        ...match, source: { id: source.id, name: source.name, sourceType: source.sourceType, licenseStatus: source.licenseStatus, region: source.region },
+      }));
       const strictResolution = resolvePoz(defineManufacturingProfile({
         profileId: row.rowId,
         title: row.description ?? row.rowId,
@@ -402,7 +417,6 @@ export function registerPricingRoutes(app: Express) {
       return res.status(400).json({ error: "Katalog hash'i gerçek satır manifestiyle eşleşmiyor.", code: error instanceof Error ? error.message : "SOURCE_DOCUMENT_INVALID" });
     }
     const authorization = resolveAuthorizationInput({ sourceType, sourceDocumentHash, actorUserId: req.user.userId, allowTenantAuthorization: true });
-    if (authorization.authorizationStatus === "authorized" && (!authorization.authorizationScope || !authorization.decision.eligible)) return res.status(400).json({ error: "Katalog yetkilendirme kanıtı geçersiz.", reason: authorization.decision.eligible ? "authorization_scope_missing" : authorization.decision.reason });
     const parsedCapturedAt = parseDate(req.body?.capturedAt);
     if (parsedCapturedAt === undefined) return res.status(400).json({ error: "Yakalama tarihi geçersiz." });
     const capturedAt = parsedCapturedAt ?? new Date();
@@ -589,39 +603,32 @@ export function registerPricingRoutes(app: Express) {
     const status = typeof req.body?.status === "string" ? req.body.status : "";
     if (status !== "advisory" && status !== "approved" && status !== "rejected") return res.status(400).json({ error: "Review durumu advisory, approved veya rejected olabilir." });
     const actor = tenantOf(req.user);
-    const [existing] = await withAppTenant(actor, (tenantDb) =>
-      tenantDb.select({ snapshot: priceSnapshots, source: priceSources })
-        .from(priceSnapshots)
-        .innerJoin(priceSources, and(eq(priceSnapshots.priceSourceId, priceSources.id), eq(priceSnapshots.companyId, priceSources.companyId)))
-        .where(and(eq(priceSnapshots.id, req.params.snapshotId), eq(priceSnapshots.companyId, req.user.companyId)))
-    , { readOnly: true });
-    if (!existing) return res.status(404).json({ error: "Fiyat snapshot bulunamadı." });
-    if (status === "approved") {
-      const authorization = evaluatePriceSourceAuthorization({ sourceType: existing.source.sourceType, authorizationStatus: existing.source.authorizationStatus as PriceAuthorizationStatus, authorizationEvidenceHash: existing.source.authorizationEvidenceHash });
-      if (!authorization.eligible) return res.status(409).json({ error: "Yetkilendirilmemiş fiyat kaynağı onaylanamaz.", code: "PRICE_SOURCE_NOT_AUTHORIZED", reason: authorization.reason });
-      if (existing.source.sourceType === "manual_override") {
-        const manualApproval = evaluateManualSnapshotApproval({
-          sourceCreatorUserId: existing.source.createdByUserId,
-          snapshotCreatorUserId: existing.snapshot.createdByUserId,
-          reviewerUserId: req.user.userId,
-          reviewerNotes: trimText(req.body?.notes, 2000),
-        });
-        if (!manualApproval.eligible) {
-          const missingAttribution = manualApproval.reason === "reviewer_notes_missing" || manualApproval.reason === "snapshot_creator_missing";
-          return res.status(missingAttribution ? 400 : 409).json({
-            error: missingAttribution ? "Manuel fiyat onayı için oluşturucu kaydı ve inceleme notu zorunludur." : "Manuel fiyat kaynağını veya snapshot'ını oluşturan kullanıcı aynı kaydı onaylayamaz.",
-            code: missingAttribution ? "MANUAL_ATTRIBUTION_REQUIRED" : "MANUAL_TWO_PERSON_REVIEW_REQUIRED",
-            reason: manualApproval.reason,
-          });
+    try {
+    const outcome = await withAppTenantTransaction(actor, async (tx) => {
+      // Lock order shared with quote transfer: snapshots first, then sources.
+      const [existing] = await tx.select().from(priceSnapshots).where(and(eq(priceSnapshots.id, req.params.snapshotId), eq(priceSnapshots.companyId, actor.companyId))).for("update");
+      if (!existing) return { status: 404, body: { error: "Fiyat snapshot bulunamadı." } } as const;
+      const [source] = await tx.select().from(priceSources).where(and(eq(priceSources.id, existing.priceSourceId), eq(priceSources.companyId, actor.companyId))).for("update");
+      if (!source) return { status: 409, body: { error: "Fiyat kaynağı bulunamadı.", code: "PRICE_SOURCE_NOT_AUTHORIZED" } } as const;
+      if (status === "approved") {
+        if (!sourceReviewEligible(source) || source.authorizationStatus === "restricted" || source.licenseStatus === "restricted") return { status: 409, body: { error: "İzin incelemesi tamamlanmamış fiyat kaynağı onaylanamaz.", code: "PRICE_SOURCE_NOT_AUTHORIZED" } } as const;
+        if (source.sourceType === "manual_override") {
+          const manualApproval = evaluateManualSnapshotApproval({ sourceCreatorUserId: source.createdByUserId, snapshotCreatorUserId: existing.createdByUserId, reviewerUserId: actor.userId, reviewerNotes: trimText(req.body?.notes, 2000) });
+          if (!manualApproval.eligible) {
+            const missing = manualApproval.reason === "reviewer_notes_missing" || manualApproval.reason === "snapshot_creator_missing";
+            return { status: missing ? 400 : 409, body: { error: missing ? "Manuel fiyat onayı için oluşturucu kaydı ve inceleme notu zorunludur." : "Manuel fiyat kaynağını veya snapshot'ını oluşturan kullanıcı aynı kaydı onaylayamaz.", code: missing ? "MANUAL_ATTRIBUTION_REQUIRED" : "MANUAL_TWO_PERSON_REVIEW_REQUIRED", reason: manualApproval.reason } } as const;
+          }
         }
       }
+      const [snapshot] = await tx.update(priceSnapshots).set({ reviewStatus: status, reviewedByUserId: actor.userId, reviewedAt: new Date(), reviewerNotes: typeof req.body?.notes === "string" ? req.body.notes.trim().slice(0, 2000) : null }).where(and(eq(priceSnapshots.id, existing.id), eq(priceSnapshots.companyId, actor.companyId))).returning();
+      await tx.insert(smartcheckAuditLogs).values({ companyId: actor.companyId, userId: actor.userId, action: `price_snapshot_${status}`, entityType: "price_snapshot", entityId: snapshot.id, metadataJson: {} });
+      return { status: 200, body: snapshot } as const;
+    });
+    return res.status(outcome.status).json(outcome.body);
+    } catch (error) {
+      captureError(error, { area: "pricing", action: "snapshot_review" });
+      return res.status(500).json({ error: "Fiyat incelemesi kaydedilemedi." });
     }
-    const [snapshot] = await withAppTenant(actor, (tenantDb) =>
-      tenantDb.update(priceSnapshots).set({ reviewStatus: status, reviewedByUserId: req.user.userId, reviewedAt: new Date(), reviewerNotes: typeof req.body?.notes === "string" ? req.body.notes.trim().slice(0, 2000) : null }).where(and(eq(priceSnapshots.id, req.params.snapshotId), eq(priceSnapshots.companyId, req.user.companyId))).returning()
-    );
-    if (!snapshot) return res.status(409).json({ error: "Fiyat snapshot güncellenemedi." });
-    await audit(req, `price_snapshot_${status}`, "price_snapshot", snapshot.id, {});
-    res.json(snapshot);
   });
 
   app.get("/api/quotations/:id/pricing-snapshot", authenticate, rateLimit, async (req, res) => {
@@ -643,7 +650,7 @@ export function registerPricingRoutes(app: Express) {
     const itemSummaries = items.map((item) => {
       const snapshot = item.priceSnapshotId ? snapshotById.get(item.priceSnapshotId) : undefined;
       const source = snapshot ? sourceById.get(snapshot.priceSourceId) : undefined;
-      const authorized = source ? evaluatePriceSourceAuthorization({ sourceType: source.sourceType, authorizationStatus: source.authorizationStatus as PriceAuthorizationStatus, authorizationEvidenceHash: source.authorizationEvidenceHash }).eligible && Boolean(source.authorizationScope && source.authorizedAt && source.authorizedByUserId) : false;
+      const authorized = Boolean(source && source.authorizationStatus !== "restricted" && source.licenseStatus !== "restricted" && sourceReviewEligible(source));
       const stale = !snapshot || snapshot.reviewStatus !== "approved" || !authorized || isPriceSnapshotStale(snapshot, now);
       return { item, snapshot: snapshot ? { ...snapshot, stale } : null, stale, missing: !snapshot };
     });
@@ -662,13 +669,13 @@ export function registerPricingRoutes(app: Express) {
         if ([...assignments.keys()].some((itemId) => !items.some((item) => item.id === itemId))) throw new Error("UNKNOWN_QUOTATION_ITEM");
         const resolvedSnapshotIds = items.map((item) => assignments.get(item.id) ?? item.priceSnapshotId).filter((id): id is string => Boolean(id));
         if (resolvedSnapshotIds.length !== items.length) throw new Error("MISSING_PRICE_SNAPSHOT");
-        const snapshots = await tx.select().from(priceSnapshots).where(and(eq(priceSnapshots.companyId, req.user.companyId), inArray(priceSnapshots.id, resolvedSnapshotIds))).for("update");
+        const snapshots = await tx.select().from(priceSnapshots).where(and(eq(priceSnapshots.companyId, req.user.companyId), inArray(priceSnapshots.id, resolvedSnapshotIds))).orderBy(asc(priceSnapshots.id)).for("update");
         const snapshotById = new Map(snapshots.map((snapshot) => [snapshot.id, snapshot]));
         if (snapshots.length !== new Set(resolvedSnapshotIds).size || snapshots.some((snapshot) => snapshot.reviewStatus !== "approved" || !snapshot.reviewedAt || !snapshot.reviewedByUserId)) throw new Error("PRICE_SNAPSHOT_NOT_APPROVED");
         const sourceIds = [...new Set(snapshots.map((snapshot) => snapshot.priceSourceId))];
-        const sources = await tx.select().from(priceSources).where(and(eq(priceSources.companyId, req.user.companyId), inArray(priceSources.id, sourceIds))).for("update");
+        const sources = await tx.select().from(priceSources).where(and(eq(priceSources.companyId, req.user.companyId), inArray(priceSources.id, sourceIds))).orderBy(asc(priceSources.id)).for("update");
         const sourceById = new Map(sources.map((source) => [source.id, source]));
-        const unauthorizedSource = sources.find((source) => !evaluatePriceSourceAuthorization({ sourceType: source.sourceType, authorizationStatus: source.authorizationStatus as PriceAuthorizationStatus, authorizationEvidenceHash: source.authorizationEvidenceHash }).eligible || !source.authorizationScope || !source.authorizedAt || !source.authorizedByUserId);
+        const unauthorizedSource = sources.find((source) => source.authorizationStatus === "restricted" || source.licenseStatus === "restricted" || !sourceReviewEligible(source));
         if (sources.length !== sourceIds.length || unauthorizedSource) throw new Error("PRICE_SOURCE_NOT_AUTHORIZED");
         const staleSnapshots = snapshots.filter((snapshot) => isPriceSnapshotStale(snapshot));
         if (staleSnapshots.length) throw new Error("STALE_PRICE_SNAPSHOT");
@@ -688,10 +695,7 @@ export function registerPricingRoutes(app: Express) {
           currency: snapshot.currency,
           unit: snapshot.unit,
           sourceDocumentHash: snapshot.sourceDocumentHash,
-          authorizationEvidenceHash: source.authorizationEvidenceHash,
-          authorizationScope: source.authorizationScope,
-          authorizedAt: source.authorizedAt,
-          authorizedByUserId: source.authorizedByUserId,
+          permissionReview: buildPricePermissionEvidence(source),
           snapshotCreatedByUserId: snapshot.createdByUserId,
           reviewedByUserId: snapshot.reviewedByUserId,
           reviewedAt: snapshot.reviewedAt,
@@ -707,7 +711,7 @@ export function registerPricingRoutes(app: Express) {
           await tx.update(quotationItemEvidence).set({ status: "superseded" }).where(and(eq(quotationItemEvidence.companyId, req.user.companyId), eq(quotationItemEvidence.quotationItemId, item.id), eq(quotationItemEvidence.evidenceType, "price"), eq(quotationItemEvidence.status, "current")));
           await tx.update(quotationItems).set({ priceSnapshotId: snapshot.id, priceSnapshotLockedAt: new Date(), priceSnapshotStatus: lockStatus }).where(and(eq(quotationItems.id, item.id), eq(quotationItems.quotationId, quote.id), eq(quotationItems.companyId, req.user.companyId)));
           const evidenceKey = sha256Payload({ itemId: item.id, snapshotId: snapshot.id, lockHash });
-          const capturedValueJson = { amount: snapshot.amount, currency: snapshot.currency, unit: snapshot.unit, validFrom: snapshot.validFrom, validUntil: snapshot.validUntil, sourceVersion: snapshot.sourceVersion, authorizationEvidenceHash: source.authorizationEvidenceHash, authorizationScope: source.authorizationScope, authorizedAt: source.authorizedAt, authorizedByUserId: source.authorizedByUserId, snapshotCreatedByUserId: snapshot.createdByUserId, reviewedByUserId: snapshot.reviewedByUserId, reviewedAt: snapshot.reviewedAt };
+          const capturedValueJson = { amount: snapshot.amount, currency: snapshot.currency, unit: snapshot.unit, validFrom: snapshot.validFrom, validUntil: snapshot.validUntil, sourceVersion: snapshot.sourceVersion, permissionReview: buildPricePermissionEvidence(source), snapshotCreatedByUserId: snapshot.createdByUserId, reviewedByUserId: snapshot.reviewedByUserId, reviewedAt: snapshot.reviewedAt };
           const revived = await tx.update(quotationItemEvidence).set({ status: "current", priceSnapshotId: snapshot.id, sourceDocumentHash: snapshot.sourceDocumentHash, capturedValueJson, createdByUserId: req.user.userId }).where(and(eq(quotationItemEvidence.companyId, req.user.companyId), eq(quotationItemEvidence.quotationItemId, item.id), eq(quotationItemEvidence.evidenceKey, evidenceKey))).returning({ id: quotationItemEvidence.id });
           if (!revived.length) {
             const inserted = await tx.insert(quotationItemEvidence).values({ companyId: req.user.companyId, quotationId: quote.id, quotationItemId: item.id, evidenceType: "price", evidenceKey, priceSnapshotId: snapshot.id, sourceDocumentHash: snapshot.sourceDocumentHash, capturedValueJson, status: "current", createdByUserId: req.user.userId }).returning({ id: quotationItemEvidence.id });

@@ -134,6 +134,7 @@ describe("T42 — Yetki, kaynak sınırı, sektör varsayılanı ve lease regres
     const companyId = "33333333-3333-4333-8333-333333333333";
 
     const suspendedAuth = createAuthenticate({
+    isSessionRevoked: async () => false,
       async findUser() {
         return { email: "owner@example.test", emailVerified: new Date(), passwordChangedAt: null, isSuperAdmin: false };
       },
@@ -160,6 +161,7 @@ describe("T42 — Yetki, kaynak sınırı, sektör varsayılanı ve lease regres
     // Read-only impersonation token cannot mutate business resources
     const impersonationToken = AuthService.generateToken({ userId, companyId, role: "owner", impersonatedBy: adminId, readOnly: true } as any);
     const impersonationAuth = createAuthenticate({
+    isSessionRevoked: async () => false,
       async findUser(id) {
         return { email: `${id}@example.test`, emailVerified: new Date(), passwordChangedAt: null, isSuperAdmin: id === adminId };
       },

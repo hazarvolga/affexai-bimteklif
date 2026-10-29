@@ -52,7 +52,7 @@
     "test:crm-lead-tenant-rls:pg": "tsx --test src/contracts/crm-lead-tenant-rls.pgtest.ts",
     "test:tenant-business-rls:pg": "tsx --test src/contracts/tenant-business-rls.pgtest.ts",
     "test:t44-recovery:pg": "tsx --test src/contracts/t44-recovery-drill.pgtest.ts",
-    "test:coverage": "c8 tsx --test --test-concurrency=1 \"src/**/*.test.ts\" && tsx scripts/ci/coverage-gate.ts",
+    "test:coverage": "c8 tsx --test --test-concurrency=1 \"src/**/*.test.ts\" && c8 --clean=false tsx --test src/server/auth/mfa-http.pgtest.ts && tsx scripts/ci/coverage-gate.ts",
     "test:e2e": "playwright test"
   },
   "dependencies": {

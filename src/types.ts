@@ -50,6 +50,7 @@ export interface Client {
   address?: string;
   notes?: string;
   pipelineStage: PipelineStage;
+  privacyStatus?: 'active' | 'requested' | 'hold' | 'masked';
   createdAt: number;
 }
 

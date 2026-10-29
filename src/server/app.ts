@@ -40,6 +40,7 @@ import { CrmLeadService } from "../services/crm/lead-service";
 import { AuthService } from "../services/auth/authService";
 import { checkRole } from "./middleware/auth";
 import { registerAuthRoutes } from "./routes/auth";
+import { isMfaReady } from './auth/mfa-readiness';
 import { registerBillingRoutes } from "./routes/billing";
 import { registerCompanyRoutes } from "./routes/company";
 import { registerCrmRoutes } from "./routes/crm";
@@ -47,6 +48,7 @@ import { registerRegulationRoutes } from "./routes/regulations";
 import { registerProfitRoutes } from "./routes/profit";
 import { registerAiRoutes } from "./routes/ai";
 import { registerClientRoutes } from "./routes/clients";
+import { registerClientPrivacyRoutes } from "./routes/client-privacy";
 import { registerQuotationRoutes } from "./routes/quotations";
 import { registerQuotationEditRoutes } from "./routes/quotation-edit";
 import { registerPilotRoutes } from "./routes/pilot";
@@ -62,6 +64,7 @@ import { capabilitySummaryLines } from "./security/web-hardening";
 import { registerIfcBrowserAnalysisRoutes } from "./routes/ifc-browser-analysis";
 import { registerSmartCheckRoutes } from "./routes/smartcheck";
 import { registerPricingRoutes } from "./routes/pricing";
+import { registerPriceSourcePermissionRoutes } from "./routes/price-source-permissions";
 import { registerSourceIntelligenceRoutes } from "./routes/source-intelligence";
 import { registerMarketIntelligenceRoutes } from "./routes/market-intelligence";
 import { registerPilotEvidenceRoutes, type PilotEvidenceRateLimiter } from "./routes/pilot-evidence";
@@ -141,6 +144,7 @@ export function createApiApp(options?: { configureRoutes?: (app: express.Express
       await db.execute(sql`select 1`);
       await db.select({ bucketKey: rateLimitBuckets.bucketKey }).from(rateLimitBuckets).limit(1);
       const storageReadiness = process.env.SMARTCHECK_IMPORT_ENABLED === "true" ? validateSmartcheckStorageEnvironment(process.env).valid : true;
+      if (!(await isMfaReady())) return res.status(503).json({ status: 'error', reason: 'mfa_not_ready' });
       if (storageReadiness === false) {
         return res.status(503).json({ status: "error", reason: "storage_not_ready" });
       }
@@ -166,11 +170,13 @@ export function createApiApp(options?: { configureRoutes?: (app: express.Express
       await db.execute(sql`select 1`);
       await db.select({ bucketKey: rateLimitBuckets.bucketKey }).from(rateLimitBuckets).limit(1);
       const storageReadiness = process.env.SMARTCHECK_IMPORT_ENABLED === "true" ? validateSmartcheckStorageEnvironment(process.env).valid : null;
+      const mfaReady = await isMfaReady();
+      if (!mfaReady) return res.status(503).json({ status: 'error', reason: 'mfa_not_ready' });
       const emailMode = process.env.AUTH_EMAIL_DELIVERY_MODE ?? 'webhook';
       const emailDeliveryConfigured = emailMode !== 'disabled'
         && validateAuthEmailEnvironment(process.env).length === 0
         && (emailMode === 'smtp' || Boolean(process.env.AUTH_EMAIL_WEBHOOK_URL));
-      res.json({ status: "ok", db: "connected", dbCheck: { val: 1 }, readiness: { persistentRateLimit: true, emailDeliveryConfigured, publicUrlConfigured: Boolean(process.env.PUBLIC_APP_URL), smartcheckStorageConfigured: storageReadiness }, ...buildRevision });
+      res.json({ status: "ok", db: "connected", dbCheck: { val: 1 }, readiness: { persistentRateLimit: true, emailDeliveryConfigured, publicUrlConfigured: Boolean(process.env.PUBLIC_APP_URL), smartcheckStorageConfigured: storageReadiness, mfaReady }, ...buildRevision });
     } catch (error) {
       console.error("Health check failed:", error);
       res.status(503).json({ status: "error", db: "failed" });
@@ -185,6 +191,7 @@ export function createApiApp(options?: { configureRoutes?: (app: express.Express
   registerProfitRoutes(app, profitService, canMutate);
   registerAiRoutes(app, aiService, canMutate);
   registerClientRoutes(app, canMutate);
+  registerClientPrivacyRoutes(app);
   registerQuotationRoutes(app, canMutate);
   registerQuotationEditRoutes(app, canMutate);
   registerPilotRoutes(app);
@@ -194,6 +201,7 @@ export function createApiApp(options?: { configureRoutes?: (app: express.Express
   registerSmartCheckRoutes(app);
   registerIfcBrowserAnalysisRoutes(app, canMutate);
   registerPricingRoutes(app);
+  registerPriceSourcePermissionRoutes(app);
   registerPricingFileImportRoutes(app);
   registerSourceIntelligenceRoutes(app);
   registerMarketIntelligenceRoutes(app);

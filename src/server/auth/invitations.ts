@@ -110,7 +110,7 @@ function assertUsableInvitation(invite: typeof invitations.$inferSelect | undefi
   if (!invitationRole.safeParse(invite.role).success) throw new InvitationError('INVITATION_REISSUE_REQUIRED');
 }
 
-export async function acceptInvitation(token: string, value: unknown, actor?: { userId: string }, database = getControlDatabase().db) {
+export async function acceptInvitation(token: string, value: unknown, actor?: { userId: string; impersonatedBy?: string; mfaEpoch?: string; mfaCredentialVersion?: string }, database = getControlDatabase().db) {
   const tokenHash = invitationTokenHash(token);
   const accepted = await database.transaction(async tx => {
     const [invite] = await tx.select().from(invitations).where(eq(invitations.token, tokenHash)).for('update');
@@ -121,6 +121,7 @@ export async function acceptInvitation(token: string, value: unknown, actor?: { 
     let user = existing;
     if (existing) {
       if (!actor) throw new InvitationError('INVITATION_SIGN_IN_REQUIRED', 401);
+      if (actor.impersonatedBy) throw new InvitationError('INVITATION_IDENTITY_MISMATCH', 403);
       if (actor.userId !== existing.id) throw new InvitationError('INVITATION_IDENTITY_MISMATCH', 403);
     } else {
       if (actor) throw new InvitationError('INVITATION_IDENTITY_MISMATCH', 403);
@@ -141,6 +142,6 @@ export async function acceptInvitation(token: string, value: unknown, actor?: { 
     await tx.update(invitations).set({ acceptedAt: new Date() }).where(eq(invitations.id, invite.id));
     return { id: user.id, email: user.email, fullName: user.fullName, accepted: true, user: publicRegisteredUser(user), company, role: membership.role, accountType: learner ? 'academy_learner' as const : 'workspace' as const };
   });
-  const tokenValue = AuthService.generateToken({ userId: accepted.id, companyId: accepted.company.id, role: accepted.role });
+  const tokenValue = AuthService.generateToken({ userId: accepted.id, companyId: accepted.company.id, role: accepted.role, mfaEpoch: actor?.mfaEpoch, mfaCredentialVersion: actor?.mfaCredentialVersion });
   return { ...accepted, token: tokenValue };
 }

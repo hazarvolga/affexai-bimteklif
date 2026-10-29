@@ -13,6 +13,8 @@ import {
 import { toast } from 'sonner';
 import { fetchWithAuth } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
+import { ClientDeletionImpact } from '@/components/clients/ClientDeletionImpact';
+import { ClientPrivacyControl } from '@/components/clients/ClientPrivacyControl';
 import type { Client } from '@/types';
 import {
   CLIENT_STAGE_LIST, CLIENT_STAGE_MAP, normalizeClientStageKey,
@@ -42,9 +44,9 @@ export function ClientDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { role } = useAuth();
-  const canMutate = ['owner', 'admin', 'manager'].includes(role ?? '');
 
   const [client, setClient] = useState<ClientDetailPayload | null>(null);
+  const canMutate = ['owner', 'admin', 'manager'].includes(role ?? '') && client?.privacyStatus !== 'masked';
   const [deals, setDeals] = useState<Deal[]>([]);
   const [quotes, setQuotes] = useState<ClientQuotationSummary[]>([]);
   const [loading, setLoading] = useState(true);
@@ -296,15 +298,17 @@ export function ClientDetail() {
               <Plus size={14} /> Fırsat Aç
             </Button>
           )}
-          <Button
+          {client.privacyStatus !== 'masked' && <Button
             size="sm"
             onClick={() => navigate(`/app/quotes/new?clientId=${client.id}`)}
             className="h-9 bg-orange-600 hover:bg-orange-700 text-white text-xs font-bold gap-1.5"
           >
             <FileText size={14} /> Bu Müşteriye Teklif Hazırla
-          </Button>
+          </Button>}
         </div>
       </div>
+
+      {['owner', 'admin'].includes(role ?? '') && <><ClientDeletionImpact key={client.id} clientId={client.id} /><ClientPrivacyControl key={`privacy-${client.id}`} clientId={client.id} onMasked={() => void loadAll()} /></>}
 
       {/* Interactive 6-Stage Pipeline Bar */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">

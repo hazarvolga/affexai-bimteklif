@@ -73,6 +73,20 @@ test('existing identity must authenticate; acceptance never updates password or 
   assert.equal(existing.passwordHash, 'unchanged');
 });
 
+test('invitation preserves verified MFA claims and rejects impersonated sessions', async () => {
+  const { token } = createActionToken();
+  const existing = { id: 'existing', email: 'a@b.test', fullName: 'Existing', passwordHash: 'unchanged' };
+  const epoch = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+  const actor = { userId: existing.id, mfaEpoch: epoch, mfaCredentialVersion: 'credential-version' };
+  const accepted = await acceptInvitation(token, {}, actor, acceptanceStore(existing).database);
+  const claims = AuthService.verifyToken(accepted.token);
+  assert.equal(claims.mfaEpoch, epoch);
+  assert.equal(claims.mfaCredentialVersion, actor.mfaCredentialVersion);
+  const store = acceptanceStore(existing);
+  await assert.rejects(acceptInvitation(token, {}, { ...actor, impersonatedBy: 'admin' }, store.database), /INVITATION_IDENTITY_MISMATCH/);
+  assert.equal(store.writes.length, 0);
+});
+
 test('membership failure rolls back user creation and token consumption', async () => {
   const store = acceptanceStore(undefined, true);
   await assert.rejects(acceptInvitation(createActionToken().token, { fullName: 'Invitee', password: 'Test-password-42' }, undefined, store.database), /membership failed/);

@@ -72,8 +72,8 @@ test("roadmap covers the agreed topics, ministry questions and official sources"
 
 
 test("Rev. 112 documents Phase 0 without claiming production or independent expert approval", () => {
-  assert.equal(CALC_REVIEW_META.version, "BIM-CALC-2026-10-29.1");
-  assert.equal(CALC_REVIEW_CHANGELOG.at(-1)?.revision, "Rev. 119");
+  assert.equal(CALC_REVIEW_META.version, "BIM-CALC-2026-10-29.13");
+  assert.equal(CALC_REVIEW_CHANGELOG.at(-1)?.revision, "Rev. 131");
   const revisions = CALC_REVIEW_CHANGELOG.map(item => Number(item.revision.match(/Rev\. (\d+)/)?.[1]));
   assert.ok(revisions.every((value, index) => index === 0 || value > revisions[index - 1]), "calculation revisions must be strictly increasing");
   const kik = CALC_REVIEW_CHANGELOG.find(item => item.revision === "Rev. 112")?.moduleDetails?.["kik-adt"];
@@ -85,7 +85,7 @@ test("Rev. 112 documents Phase 0 without claiming production or independent expe
   for (const [index, table] of tables.entries()) {
     if (table.type !== "table") continue;
     const numbers = table.rows.map(row => Number(row[0].match(/Rev\. (\d+)/)?.[1]));
-    assert.equal(numbers.at(-1), 119);
+    assert.equal(numbers.at(-1), 131);
     assert.ok(numbers.every((value, rowIndex) => rowIndex === 0 || (index === 0 ? value > numbers[rowIndex - 1] : value >= numbers[rowIndex - 1])), "roadmap revisions must be ordered");
   }
 });
@@ -201,4 +201,87 @@ test("Rev. 119 documents tenant quick edit preview and concurrency limits", () =
   assert.match(JSON.stringify(rev), /eşzamanlılık/i);
   assert.match(JSON.stringify(rev), /formül/i);
   assert.match(JSON.stringify(ROADMAP_SECTIONS.find(section => section.id === "revizyon-gunlugu")), /Rev\. 119/);
+});
+
+
+test("Rev. 120 records session revocation and rollback limits without claiming live acceptance", () => {
+  const rev = CALC_REVIEW_CHANGELOG.find(item => item.revision === "Rev. 120");
+  assert.ok(rev);
+  for (const term of [/SHA-256/, /0033/, /jti/, /yedi gün/, /rollback/, /MFA/, /canlı/, /formülleri değişmedi/]) assert.match(rev.afterSummary, term);
+  assert.deepEqual(rev.affectedModules, []);
+  const journal = JSON.stringify(ROADMAP_SECTIONS.find(section => section.id === "revizyon-gunlugu"));
+  assert.match(journal, /Rev\. 120/);
+  assert.match(journal, /iptal jetonlarını yeniden geçerli kılabilir/);
+});
+
+
+test("Rev. 121 records optional admin MFA, recovery and operational limits", () => {
+  const rev = CALC_REVIEW_CHANGELOG.find(item => item.revision === "Rev. 121");
+  assert.ok(rev);
+  for (const term of [/0034/, /etkinleştirme öncesi/, /MFA_ENCRYPTION_KEY/, /epoch/, /kimlik avına dayanıklı değildir/, /PostgreSQL/, /anahtar kaybı/, /CI/, /canlı/, /formülleri değişmedi/]) assert.match(rev.afterSummary, term);
+  assert.deepEqual(rev.affectedModules, []);
+  assert.match(JSON.stringify(ROADMAP_SECTIONS.find(section => section.id === "revizyon-gunlugu")), /Rev\. 121/);
+});
+
+
+test("Rev. 122 records bounded tenant isolation and price review atomicity", () => {
+  const rev = CALC_REVIEW_CHANGELOG.find(item => item.revision === "Rev. 122");
+  assert.ok(rev);
+  for (const term of [/[İi]ki fiyat inceleme/, /transaction/, /11 yabancı/, /tüm rotalar garantisi değildir/, /autoApprove/, /scheduler/, /ortak kilide katılmaz/, /yükleyen\/onaylayan ayrımını sağlamaz/, /owner\/app\/control/, /kilit beklemesi/, /CI/, /canlı/, /formülleri değişmedi/]) assert.match(rev.afterSummary, term);
+  assert.deepEqual(rev.affectedModules, []);
+  assert.match(JSON.stringify(ROADMAP_SECTIONS.find(section => section.id === "revizyon-gunlugu")), /Rev\. 122/);
+});
+
+
+test("Rev. 123 records the read-only deletion impact preview and boundaries", () => {
+  const rev = CALC_REVIEW_CHANGELOG.find(item => item.revision === "Rev. 123");
+  assert.ok(rev);
+  for (const term of [/salt okunur/, /silme talebi oluşturmaz/, /Diğer firmalar/, /serbest metin/, /dosyalar/, /yedekler/, /dış sistemler/, /hukuk/, /CI/, /canlı/, /formülleri değişmedi/]) assert.match(rev.afterSummary, term);
+  assert.deepEqual(rev.affectedModules, []);
+  assert.match(JSON.stringify(ROADMAP_SECTIONS.find(section => section.id === "revizyon-gunlugu")), /Rev\. 123/);
+});
+
+
+test("Rev. 124 records route title and workspace plan state boundaries", () => {
+  const rev = CALC_REVIEW_CHANGELOG.find(item => item.revision === "Rev. 124");
+  assert.ok(rev);
+  for (const term of [/yükleniyor/, /hata/, /firma değişiminde/, /main-content/, /\/app/, /\/admin/, /public SEO/, /embedded/, /pilot durumundan ayrıdır/, /canonical/, /geri dönüş başlığı/, /gerçek tarayıcı/, /mocktur/, /CI/, /canlı/, /formülleri değişmedi/]) assert.match(rev.afterSummary, term);
+  assert.deepEqual(rev.affectedModules, []);
+  assert.match(JSON.stringify(ROADMAP_SECTIONS.find(section => section.id === "revizyon-gunlugu")), /Rev\. 124/);
+});
+
+
+test("Rev. 125 records CRM collection states and UTC usage period limits", () => {
+  const rev = CALC_REVIEW_CHANGELOG.find(item => item.revision === "Rev. 125");
+  assert.ok(rev);
+  for (const term of [/Müşteri/, /lead/, /fırsat hattı/, /boş\/hata/, /yeniden deneme/, /firma değişiminde/, /UTC/, /abonelik bitişi değildir/, /hesap formülleri değişmedi/, /CI/, /canlı/]) assert.match(rev.afterSummary, term);
+  assert.ok(rev.moduleDetails?.kota?.before && rev.moduleDetails.kota.after && rev.moduleDetails.kota.basis);
+  assert.match(JSON.stringify(ROADMAP_SECTIONS.find(section => section.id === "revizyon-gunlugu")), /Rev\. 125/);
+});
+
+
+test("Rev. 126 records bounded quotation audit atomicity", () => {
+  const rev = CALC_REVIEW_CHANGELOG.find(item => item.revision === "Rev. 126");
+  assert.ok(rev);
+  for (const term of [/durum ve kalibrasyon/i, /tenant transaction/, /audit hatasında/, /PostgreSQL/, /404/, /revizyon audit ayrı/i, /düzenleme audit yok/, /CI/, /canlı/, /formülleri değişmedi/]) assert.match(rev.afterSummary, term);
+  assert.ok(rev.moduleDetails?.['teklif-satir']?.before && rev.moduleDetails['teklif-satir'].after && rev.moduleDetails['teklif-satir'].basis);
+  assert.match(JSON.stringify(ROADMAP_SECTIONS.find(section => section.id === "revizyon-gunlugu")), /Rev\. 126/);
+});
+
+
+test("Rev. 127 records benchmark lock ordering without claiming source permission", () => {
+  const rev = CALC_REVIEW_CHANGELOG.find(item => item.revision === "Rev. 127");
+  assert.ok(rev);
+  for (const term of [/Kaynaklar sonra staging/, /deterministik/, /UUID/, /409/, /40P01/, /RED/, /GREEN/, /gerçek kullanım hakkı/, /crawler ayrı WIP/, /sentetik yetki hash/, /CI/, /canlı/, /formülleri değişmedi/]) assert.match(rev.afterSummary, term);
+  for (const id of ['fiyat-eslestirme', 'teklif-satir']) assert.ok(rev.moduleDetails?.[id]?.before && rev.moduleDetails[id].after && rev.moduleDetails[id].basis);
+  assert.match(JSON.stringify(ROADMAP_SECTIONS.find(section => section.id === "revizyon-gunlugu")), /Rev\. 127/);
+});
+
+
+test("Rev. 128 records quotation write audit atomicity and legacy caller limit", () => {
+  const rev = CALC_REVIEW_CHANGELOG.find(item => item.revision === "Rev. 128");
+  assert.ok(rev);
+  for (const term of [/Oluşturma, revizyon ve düzenleme/, /tenant transaction/, /audit hatası/, /kota/, /kişisel içerik yoktur/, /telemetrisi arındırılır/, /firma kimliği string/, /reddedilir/, /doğrulanmış aktör/, /uyumluluk değişikliği/, /Crawler WIP/, /CI/, /canlı/, /formülleri değişmedi/]) assert.match(rev.afterSummary, term);
+  assert.ok(rev.moduleDetails?.['teklif-satir']?.before && rev.moduleDetails['teklif-satir'].after && rev.moduleDetails['teklif-satir'].basis);
+  assert.match(JSON.stringify(ROADMAP_SECTIONS.find(section => section.id === "revizyon-gunlugu")), /Rev\. 128/);
 });

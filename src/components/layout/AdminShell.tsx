@@ -1,6 +1,6 @@
 import { Outlet, Navigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { LogOut, LayoutDashboard, Building2, Package, Activity, Menu, Cpu, BarChart3, Database, Map as MapIcon, ClipboardList, Compass } from 'lucide-react';
+import { LogOut, LayoutDashboard, Building2, Package, Activity, Menu, Cpu, BarChart3, Database, Map as MapIcon, ClipboardList, Compass, ShieldCheck } from 'lucide-react';
 import { useState } from 'react';
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
@@ -17,6 +17,7 @@ const adminNavigation = [
   { label: 'Paket Yönetimi', path: '/admin/plans', icon: Package },
   { label: 'Raporlar', path: '/admin/reports', icon: BarChart3 },
   { label: 'Denetim Logları', path: '/admin/logs', icon: Activity },
+  { label: 'Hesap Güvenliği', path: '/admin/security', icon: ShieldCheck },
   { label: 'Geliştirici Yol Haritası', path: '/admin/roadmap', icon: MapIcon },
 ];
 

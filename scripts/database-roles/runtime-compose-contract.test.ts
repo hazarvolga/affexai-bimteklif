@@ -32,25 +32,33 @@ type RenderedService = {
 /** The only services that may carry the bootstrap administrator and role credentials. All exit. */
 const DATABASE_ADMIN_SERVICES = ["role-admin", "db-bootstrap", "db-provision"] as const;
 
-function renderCompose(source: string): Record<string, RenderedService> {
+function renderCompose(source: string, overrides: Record<string, string> = {}): Record<string, RenderedService> {
   const directory = mkdtempSync(path.join(tmpdir(), "bimmetraj-db-runtime-compose-"));
   try {
     const compose = path.join(directory, "compose.yaml");
     copyFileSync(path.resolve(source), compose);
     for (const file of [".env.app", ".env.worker", ".env.migrator", ".env.backup", ".env.postgres"]) {
-      writeFileSync(path.join(directory, file), "RUNTIME_FIXTURE=not-a-secret\nAPP_PROVIDER_SENTINEL=must-not-leak\n", { mode: 0o600 });
+      writeFileSync(path.join(directory, file), "RUNTIME_FIXTURE=not-a-secret\nAPP_PROVIDER_SENTINEL=must-not-leak\nMFA_ENCRYPTION_KEY=example-only-key\n", { mode: 0o600 });
     }
     mkdirSync(path.join(directory, "deploy", "backup"), { recursive: true });
     const output = execFileSync("docker", ["compose", "--profile", "operator", "-f", compose, "config", "--format", "json"], {
       encoding: "utf8",
       timeout: 15_000,
-      env: { ...process.env, ...credentials, DATABASE_ROLE_EXPECTED_SYSTEM_IDENTIFIER: "1234567890123456789", BIMMETRAJ_EMPTY_ENV: "" },
+      env: { ...process.env, ...credentials, DATABASE_ROLE_EXPECTED_SYSTEM_IDENTIFIER: "1234567890123456789", BIMMETRAJ_EMPTY_ENV: "", ...overrides },
     });
     return JSON.parse(output).services;
   } finally {
     rmSync(directory, { recursive: true, force: true });
   }
 }
+
+test("Coolify permits startup before MFA enrollment without injecting the key elsewhere", () => {
+  const services = renderCompose("compose.coolify.yaml", { MFA_ENCRYPTION_KEY: "" });
+  assert.equal(services.app?.environment?.MFA_ENCRYPTION_KEY, "");
+  for (const service of ["worker", "ifc-worker", "migrate", "backup", "postgres", "role-admin", "db-bootstrap", "db-provision"]) {
+    assert.equal(services[service]?.environment?.MFA_ENCRYPTION_KEY, "", `${service} does not inherit the MFA key`);
+  }
+});
 
 function renderWithout(source: string, missing: keyof typeof credentials) {
   const directory = mkdtempSync(path.join(tmpdir(), "bimmetraj-db-runtime-missing-"));
@@ -79,6 +87,12 @@ for (const compose of ["compose.coolify.yaml", "compose.example.yaml"]) {
     assert.doesNotMatch(source, /postgresql:\/\/bimmetraj_owner:/, "NOLOGIN owner must never be a connection identity");
 
     const services = renderCompose(compose);
+    if (compose === "compose.example.yaml") {
+      assert.equal(services.app?.environment?.MFA_ENCRYPTION_KEY, "example-only-key", "app accepts its own env-file MFA key");
+      for (const serviceName of ["worker", "ifc-worker", "migrate", "backup", "postgres"]) {
+        assert.equal(services[serviceName]?.environment?.MFA_ENCRYPTION_KEY, "", `${serviceName} must not inherit an MFA key`);
+      }
+    }
     for (const [serviceName, [key, user]] of Object.entries(expected)) {
       const value = services[serviceName]?.environment?.[key];
       assert.ok(value, `${serviceName}.${key} is required`);

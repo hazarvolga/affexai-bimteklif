@@ -23,6 +23,26 @@ jobs:
         options: >-
           --health-cmd "pg_isready -U postgres -d teklifpro_bootstrap_test"
           --health-interval 5s --health-timeout 5s --health-retries 10
+      postgres-mfa:
+        image: postgres:16
+        env:
+          POSTGRES_DB: teklifpro_bootstrap_test
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 127.0.0.1:5433:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d teklifpro_bootstrap_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+      postgres-session:
+        image: postgres:16
+        env:
+          POSTGRES_DB: teklifpro_upgrade_test
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 127.0.0.1:5434:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d teklifpro_upgrade_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
     env:
       DATABASE_URL: postgresql://postgres@127.0.0.1:5432/teklifpro_bootstrap_test
       RELEASE_DATABASE_URL: postgresql://postgres@127.0.0.1:5432/teklifpro_bootstrap_test
@@ -123,6 +143,81 @@ jobs:
       - run: pnpm exec tsx scripts/release-migrations/cli.ts apply
         env:
           RELEASE_WORKERS_DRAINED: 'true'
+      - name: Session revocation bootstrap ACL contract
+        env:
+          CI_DISPOSABLE_DATABASE: 'true'
+        run: pnpm exec tsx --test scripts/ci/session-bootstrap-contract.test.ts
+      - name: Session revocation isolated PostgreSQL HTTP and cleanup
+        env:
+          NODE_ENV: test
+          CI_DISPOSABLE_DATABASE: 'true'
+          RELEASE_DATABASE_URL: postgresql://postgres@127.0.0.1:5434/teklifpro_upgrade_test
+          SESSION_REVOCATION_TEST_URL: postgresql://postgres:ci-local-only@127.0.0.1:5434/teklifpro_upgrade_test
+          RELEASE_WORKERS_DRAINED: 'true'
+        run: |
+          pnpm exec tsx scripts/ci/disposable-database-roles.ts bootstrap
+          pnpm exec tsx scripts/ci/session-revocation-upgrade.ts
+          pnpm exec tsx --test src/server/auth/session-revocation.pgtest.ts
+      - name: Super administrator MFA provisioned role and HTTP contract
+        env:
+          NODE_ENV: test
+          CI_DISPOSABLE_DATABASE: 'true'
+          MFA_TEST_URL: postgresql://postgres:ci-local-only@127.0.0.1:5433/teklifpro_bootstrap_test
+          RELEASE_WORKERS_DRAINED: 'true'
+        run: |
+          CI_DISPOSABLE_DATABASE=true RELEASE_DATABASE_URL=postgresql://postgres@127.0.0.1:5433/teklifpro_bootstrap_test pnpm exec tsx scripts/ci/disposable-database-roles.ts bootstrap
+          RELEASE_DATABASE_URL=postgresql://postgres@127.0.0.1:5433/teklifpro_bootstrap_test pnpm exec tsx scripts/release-migrations/cli.ts apply
+          pnpm exec tsx --test src/server/auth/mfa-http.pgtest.ts
+      - name: Quotation and client tenant isolation over HTTP
+        env:
+          NODE_ENV: test
+          CI_DISPOSABLE_DATABASE: 'true'
+          IDOR_TEST_URL: postgresql://postgres:ci-local-only@127.0.0.1:5433/teklifpro_bootstrap_test
+        run: pnpm exec tsx --test src/contracts/quotation-client-idor.pgtest.ts
+      - name: Price review atomicity with provisioned runtime roles
+        env:
+          NODE_ENV: test
+          CI_DISPOSABLE_DATABASE: 'true'
+          PRICE_REVIEW_TEST_URL: postgresql://postgres:ci-local-only@127.0.0.1:5433/teklifpro_bootstrap_test
+        run: pnpm exec tsx --test src/server/routes/admin-price-review.pgtest.ts
+      - name: Client privacy isolation and atomicity
+        env:
+          NODE_ENV: test
+          CI_DISPOSABLE_DATABASE: 'true'
+          CLIENT_PRIVACY_TEST_URL: postgresql://postgres:ci-local-only@127.0.0.1:5433/teklifpro_bootstrap_test
+        run: pnpm exec tsx --test src/server/clients/privacy.pgtest.ts
+      - name: Source permission review and CALM restricted-role contract
+        env:
+          NODE_ENV: test
+          CI_DISPOSABLE_DATABASE: 'true'
+          PRICE_REVIEW_TEST_URL: postgresql://postgres:ci-local-only@127.0.0.1:5433/teklifpro_bootstrap_test
+        run: pnpm exec tsx --test src/server/pricing/source-review.pgtest.ts
+      - name: Quotation status and calibration audit atomicity
+        env:
+          NODE_ENV: test
+          CI_DISPOSABLE_DATABASE: 'true'
+          QUOTE_AUDIT_TEST_URL: postgresql://postgres:ci-local-only@127.0.0.1:5433/teklifpro_bootstrap_test
+        run: pnpm exec tsx --test src/server/routes/quotation-audit-atomic.pgtest.ts
+      - name: Quotation create, revision and edit audit atomicity
+        env:
+          NODE_ENV: test
+          CI_DISPOSABLE_DATABASE: 'true'
+          QUOTE_AUDIT_TEST_URL: postgresql://postgres:ci-local-only@127.0.0.1:5433/teklifpro_bootstrap_test
+        run: |
+          pnpm exec tsx --test src/server/routes/quotation-create-revision-audit.pgtest.ts
+          pnpm exec tsx --test src/server/routes/quotation-edit-audit.pgtest.ts
+      - name: Crawler atomicity with provisioned runtime roles
+        env:
+          NODE_ENV: test
+          CI_DISPOSABLE_DATABASE: 'true'
+          CRAWL_ATOMIC_TEST_URL: postgresql://postgres:ci-local-only@127.0.0.1:5433/teklifpro_bootstrap_test
+        run: pnpm exec tsx --test --test-concurrency=1 src/server/crawler/crawl-atomic.pgtest.ts src/server/crawler/crawl-lease.pgtest.ts
+      - name: Benchmark provenance lock ordering
+        env:
+          NODE_ENV: test
+          CI_DISPOSABLE_DATABASE: 'true'
+          BENCHMARK_LOCK_TEST_URL: postgresql://postgres:ci-local-only@127.0.0.1:5433/teklifpro_bootstrap_test
+        run: pnpm exec tsx --test src/services/quotations/benchmark-lock-order.pgtest.ts
       - run: pnpm exec tsc --noEmit -p scripts/release-migrations/tsconfig.json
       - run: pnpm exec tsx --test scripts/release-migrations/artifacts.test.ts scripts/release-migrations/safety.test.ts scripts/release-migrations/runner-role.test.ts scripts/release-migrations/worker-drain-gate.test.ts scripts/release-migrations/backup-docker.test.ts scripts/database-roles/runtime-compose-contract.test.ts
       - run: python3 -m unittest deploy.backup.test_backup
@@ -137,6 +232,8 @@ jobs:
       - name: Full test suite with coverage report and ratchet gate
         env:
           REQUIRE_TEST_DATABASE: 'true'
+          CI_DISPOSABLE_DATABASE: 'true'
+          MFA_TEST_URL: postgresql://postgres:ci-local-only@127.0.0.1:5433/teklifpro_bootstrap_test
         run: pnpm run test:coverage
       - name: Upload coverage report
         if: always()
@@ -155,6 +252,15 @@ jobs:
       - run: pnpm exec tsx scripts/e2e-core-flow-smoke.ts
       - run: pnpm exec tsx scripts/gap-crm-billing-ui-smoke.ts
       - run: pnpm exec tsx scripts/e2e-a11y-smoke.ts
+      - run: pnpm exec tsx scripts/logout-ui-smoke.ts
+      - run: pnpm exec tsx scripts/mfa-ui-smoke.ts
+      - run: pnpm exec tsx scripts/client-deletion-impact-ui-smoke.ts
+      - run: pnpm exec tsx scripts/client-privacy-ui-smoke.ts
+      - run: pnpm exec tsx scripts/shell-plan-ui-smoke.ts
+      - run: pnpm exec tsx scripts/protected-route-title-ui-smoke.ts
+      - run: pnpm exec tsx scripts/crm-partial-loading-ui-smoke.ts
+      - run: pnpm exec tsx scripts/billing-period-ui-smoke.ts
+      - run: pnpm exec tsx scripts/source-permission-ui-smoke.ts
       - run: node scripts/dependency-audit-policy.mjs
       # T45 bundle budget: the job runs with NODE_ENV=test, which ships React's development build, so
       # rebuild in production mode and run the bundle checks that otherwise skip when dist/ is absent.

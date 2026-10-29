@@ -436,7 +436,7 @@ test("T43 R+1 route coverage ratchet: admin, pricing-file-import, academy, billi
   })).status, 404);
   assert.equal((await reqJson("GET", `/api/admin/pricing-sources/staging?status=approved&sourceId=${sourceId}&search=C25&limit=10`, adminToken)).status, 200);
   assert.equal((await reqJson("POST", `/api/admin/pricing-sources/staging/${crypto.randomUUID()}/review`, adminToken, { action: "reject" })).status, 404);
-  assert.equal((await reqJson("POST", "/api/admin/pricing-sources/staging/bulk-review", adminToken, { action: "approve", sourceId })).status, 200);
+  assert.equal((await reqJson("POST", "/api/admin/pricing-sources/staging/bulk-review", adminToken, { action: "approve", sourceId })).status, 409, "source usage permission review is required before approving staged prices");
 
   const deleteSource = await reqJson("DELETE", `/api/admin/pricing-sources/${sourceId}`, adminToken);
   assert.equal(deleteSource.status, 200);

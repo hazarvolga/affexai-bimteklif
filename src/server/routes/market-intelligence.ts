@@ -1,3 +1,4 @@
+import { sourceReviewEligible } from "../pricing/source-review-policy";
 import crypto from "node:crypto";
 import type { Express, RequestHandler } from "express";
 import { and, desc, eq, inArray } from "drizzle-orm";
@@ -68,12 +69,12 @@ async function audit(req: any, action: string, entityType: string, entityId: str
 
 async function approvedSamples(actor: { companyId: string; userId: string }, currency: string) {
   return withAppTenant(actor, (tenantDb) =>
-    tenantDb.select({ snapshot: priceSnapshots, sourceType: priceSources.sourceType })
+    tenantDb.select({ snapshot: priceSnapshots, source: priceSources })
       .from(priceSnapshots)
       .innerJoin(priceSources, and(eq(priceSnapshots.priceSourceId, priceSources.id), eq(priceSnapshots.companyId, priceSources.companyId)))
       .where(and(eq(priceSnapshots.companyId, actor.companyId), eq(priceSnapshots.reviewStatus, "approved"), eq(priceSnapshots.currency, currency as "TRY" | "USD" | "EUR"), inArray(priceSources.sourceType, ["supplier_quote", "company_actual"])))
       .orderBy(desc(priceSnapshots.capturedAt)).limit(2000)
-  , { readOnly: true });
+  , { readOnly: true }).then(rows => rows.filter(({ source }) => source.authorizationStatus !== "restricted" && source.licenseStatus !== "restricted" && sourceReviewEligible(source)).map(({ snapshot, source }) => ({ snapshot, sourceType: source.sourceType })));
 }
 
 export function registerMarketIntelligenceRoutes(app: Express) {
@@ -311,7 +312,8 @@ export function registerMarketIntelligenceRoutes(app: Express) {
     const rows = await withAppTenant(tenantOf(req.user), (tenantDb) =>
       tenantDb.select({ snapshot: priceSnapshots, source: priceSources }).from(priceSnapshots).innerJoin(priceSources, and(eq(priceSnapshots.priceSourceId, priceSources.id), eq(priceSnapshots.companyId, priceSources.companyId))).where(and(...conditions)).orderBy(desc(priceSnapshots.capturedAt)).limit(500)
     , { readOnly: true });
-    const samples: PriceMemorySample[] = rows.map((row) => ({ amount: Number(row.snapshot.amount), positionCode: row.snapshot.positionCode, description: row.snapshot.description, unit: row.snapshot.unit, region: row.snapshot.region }));
-    res.json({ currency, positionCode, unit, region, summary: summarizePriceMemory(samples), samples: rows.map(({ snapshot, source }) => ({ ...snapshot, sourceType: source.sourceType, sourceName: source.name })).slice(0, 100) });
+    const eligibleRows = rows.filter(({ source }) => source.authorizationStatus !== "restricted" && source.licenseStatus !== "restricted" && sourceReviewEligible(source));
+    const samples: PriceMemorySample[] = eligibleRows.map((row) => ({ amount: Number(row.snapshot.amount), positionCode: row.snapshot.positionCode, description: row.snapshot.description, unit: row.snapshot.unit, region: row.snapshot.region }));
+    res.json({ currency, positionCode, unit, region, summary: summarizePriceMemory(samples), samples: eligibleRows.map(({ snapshot, source }) => ({ ...snapshot, sourceType: source.sourceType, sourceName: source.name })).slice(0, 100) });
   });
 }

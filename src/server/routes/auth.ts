@@ -1,9 +1,11 @@
+import { revokePresentedSessions } from "../auth/session-revocation";
+import { createMfaChallenge, registerMfaRoutes } from '../auth/mfa-routes';
 import { deliverTransactionalEmail } from '../auth/email-delivery';
 import { withAppTenant } from "../../db/app-tenant";
 import type { EmailRenderContext } from '../auth/email-templates';
 import { assertAuthEmailAvailable, requireAuthEmailDelivery, EmailDeliveryError } from "../auth/email-policy";
 import { stageAndDeliverAuthAction } from '../auth/action-email';
-import type { Express, Response } from "express";
+import type { Express, Request, Response } from "express";
 import { and, desc, eq, gt, isNull, sql } from "drizzle-orm";
 import { db } from "../../db";
 import { getControlDatabase } from "../../db/control-plane";
@@ -90,7 +92,21 @@ async function guardedRateLimit(res: Response, key: string, limit: number, windo
   }
 }
 
+async function issueLoginSession(req: Request, res: Response, user: typeof users.$inferSelect, mfaEpoch?: string, recoveryCodes?: string[]) {
+  const [membership] = await db.select().from(memberships).where(eq(memberships.userId, user.id)).orderBy(desc(memberships.createdAt));
+  const company = membership ? await withAppTenant({ companyId: membership.companyId, userId: user.id }, tenantDb => tenantDb.query.companies.findFirst({ where: eq(companies.id, membership.companyId) })) : null;
+  const token = AuthService.generateToken({ userId: user.id, companyId: membership?.companyId || null, role: membership?.role || null, mfaEpoch, ...(mfaEpoch && user.passwordHash ? { mfaCredentialVersion: hashActionToken(user.passwordHash) } : {}) });
+  const learner = membership
+    ? await withAppTenant({ companyId: membership.companyId, userId: user.id }, tenantDb => tenantDb.query.academyLearnerProfiles.findFirst({ where: and(eq(academyLearnerProfiles.userId, user.id), eq(academyLearnerProfiles.companyId, membership.companyId)) }))
+    : await getControlDatabase().db.query.academyLearnerProfiles.findFirst({ where: eq(academyLearnerProfiles.userId, user.id) });
+  const effectiveSuperAdmin = Boolean(user.isSuperAdmin && user.emailVerified);
+  const isExpertReviewer = await isUserExpertReviewer(user.id, effectiveSuperAdmin);
+  setSessionCookies(res, token, { isSuperAdmin: effectiveSuperAdmin });
+  return res.json({ token: bodyToken(req, token), user: { ...publicRegisteredUser(user), isSuperAdmin: effectiveSuperAdmin, isExpertReviewer }, company, role: membership?.role, accountType: learner ? 'academy_learner' : 'workspace', ...(recoveryCodes ? { recoveryCodes } : {}) });
+}
+
 export function registerAuthRoutes(app: Express) {
+  registerMfaRoutes(app, issueLoginSession);
   app.post('/api/auth/academy-acquisition', async (req, res) => {
     const acquisitionId = typeof req.body?.acquisitionId === 'string' && /^[a-zA-Z0-9_-]{12,80}$/.test(req.body.acquisitionId) ? req.body.acquisitionId : '';
     const landingPath = typeof req.body?.landingPath === 'string' && /^\/academy(?:\/allplan)?$/.test(req.body.landingPath) ? req.body.landingPath : '';
@@ -345,36 +361,8 @@ export function registerAuthRoutes(app: Express) {
         user.isSuperAdmin = true;
       }
 
-      const [membership] = await db.select().from(memberships).where(eq(memberships.userId, user.id)).orderBy(desc(memberships.createdAt));
-      const company = membership
-        ? await withAppTenant({ companyId: membership.companyId, userId: user.id }, (tenantDb) => tenantDb.query.companies.findFirst({ where: eq(companies.id, membership.companyId) }))
-        : null;
-
-      const token = AuthService.generateToken({
-        userId: user.id,
-        companyId: membership?.companyId || null,
-        role: membership?.role || null
-      });
-
-      const learner = membership
-        ? await withAppTenant({ companyId: membership.companyId, userId: user.id }, (tenantDb) =>
-            tenantDb.query.academyLearnerProfiles.findFirst({
-              where: and(eq(academyLearnerProfiles.userId, user.id), eq(academyLearnerProfiles.companyId, membership.companyId)),
-            }),
-          )
-        : await getControlDatabase().db.query.academyLearnerProfiles.findFirst({
-            where: eq(academyLearnerProfiles.userId, user.id),
-          });
-      const effectiveSuperAdmin = Boolean(user.isSuperAdmin && user.emailVerified);
-      const isExpertReviewer = await isUserExpertReviewer(user.id, effectiveSuperAdmin);
-      setSessionCookies(res, token, { isSuperAdmin: effectiveSuperAdmin });
-      res.json({
-        token: bodyToken(req, token),
-        user: { ...publicRegisteredUser(user), isSuperAdmin: effectiveSuperAdmin, isExpertReviewer },
-        company,
-        role: membership?.role,
-        accountType: learner ? 'academy_learner' : 'workspace',
-      });
+      if (user.isSuperAdmin && user.emailVerified && user.mfaEpoch) return res.set('Cache-Control', 'no-store').status(202).json({ mfaRequired: true, challenge: await createMfaChallenge(user.id, user.passwordHash!) });
+      return await issueLoginSession(req, res, user);
     } catch (error) {
       res.status(500).json({ error: "Login failed" });
     }
@@ -420,11 +408,16 @@ export function registerAuthRoutes(app: Express) {
   });
 
   // Cookies are HttpOnly, so only the server can end a browser session.
-  app.post("/api/auth/logout", (req, res) => {
+  app.post("/api/auth/logout", async (req, res) => {
     // Unauthenticated by design (idempotent), but never cross-site: SameSite=Strict cookies plus the origin proof below.
     if (!isSameOriginMutation(req)) return res.status(403).json({ error: "Geçersiz istek kaynağı.", code: "CSRF_ORIGIN_MISMATCH" });
-    clearSessionCookies(res);
-    res.json({ success: true });
+    try {
+      await revokePresentedSessions(req);
+      clearSessionCookies(res);
+      res.json({ success: true });
+    } catch {
+      res.status(503).json({ error: "Oturum güvenli biçimde sonlandırılamadı.", code: "SESSION_REVOCATION_UNAVAILABLE" });
+    }
   });
 
   app.post("/api/auth/impersonate/exit", authenticate, async (req, res) => {

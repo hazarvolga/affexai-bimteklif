@@ -32,6 +32,7 @@ test("M-12.6: a manual line picked from the company catalogue keeps its approved
 
   const source = async (companyId: string, createdByUserId: string, authorizedByUserId: string) => (await db.insert(schema.priceSources).values({
     companyId, sourceType: "supplier_quote", name: "Firma kataloğu", sourceDocumentHash: "c".repeat(64),
+    reviewStatus: "verified", reviewEvidenceReference: "https://example.org/test-permission", reviewScope: "Ticari teklifler", reviewAllowsQuotations: true, reviewedByUserId: authorizedByUserId, reviewedAt: new Date(),
     licenseStatus: "verified", authorizationStatus: "authorized",
     authorizationScope: JSON.stringify({ version: 1, capabilities: ["commercial_quotation"], tenantScope: "own" }),
     authorizationEvidenceHash: "d".repeat(64), authorizedAt: new Date("2026-10-01T09:00:00Z"), authorizedByUserId, createdByUserId,

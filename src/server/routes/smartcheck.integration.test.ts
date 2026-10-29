@@ -245,7 +245,10 @@ test("SmartCheck HTTP + PostgreSQL isolated flow and tenant boundary", { timeout
     const imported = await importResponse.json() as { source: { id: string; authorizationStatus: string }; snapshots: Array<{ id: string; createdByUserId: string }> };
     priceSourceId = imported.source.id;
     snapshotId = imported.snapshots[0].id;
-    assert.equal(imported.source.authorizationStatus, "authorized");
+    assert.equal(imported.source.authorizationStatus, "pending");
+    const pendingPriceReview = await request(`/api/pricing/snapshots/${snapshotId}/review`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ status: "approved", notes: "İzin henüz incelenmedi." }) }, reviewerTokenA);
+    assert.equal(pendingPriceReview.status, 409);
+    await db.update(schema.priceSources).set({ reviewStatus: "verified", reviewEvidenceReference: "https://example.org/test-permission", reviewScope: "Ticari teklifler", reviewAllowsQuotations: true, reviewedByUserId: userA.id, reviewedAt: new Date() }).where(eq(schema.priceSources.id, priceSourceId));
     assert.equal(imported.snapshots[0].createdByUserId, userA.id);
     const selfReview = await request(`/api/pricing/snapshots/${snapshotId}/review`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ status: "approved", notes: "Kendi manuel fiyatımı onaylıyorum." }) });
     assert.equal(selfReview.status, 409);
@@ -259,6 +262,10 @@ test("SmartCheck HTTP + PostgreSQL isolated flow and tenant boundary", { timeout
     assert.equal(generated.status, 201);
     const generatedBody = await generated.json() as { quotationId: string; clientId: string; transferredCount: number };
     generatedQuoteId = generatedBody.quotationId;
+    const priceEvidence = await db.select().from(schema.quotationItemEvidence).where(and(eq(schema.quotationItemEvidence.quotationId, generatedQuoteId), eq(schema.quotationItemEvidence.evidenceType, "price")));
+    assert.ok(priceEvidence.some(evidence => (evidence.capturedValueJson.permissionReview as {status?:string} | undefined)?.status === "verified"));
+    assert.equal(JSON.stringify(priceEvidence).includes("https://example.org/test-permission"), false);
+
     generatedClientId = generatedBody.clientId;
     assert.equal(generatedBody.transferredCount, 1);
     const [generatedQuote] = await db.select().from(schema.quotations).where(and(eq(schema.quotations.id, generatedQuoteId), eq(schema.quotations.companyId, companyA.id)));

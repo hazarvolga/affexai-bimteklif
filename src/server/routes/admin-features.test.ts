@@ -117,6 +117,7 @@ describe('Super Admin Security & Features Integration', () => {
     });
 
     const customAuth = createAuthenticate({
+    isSessionRevoked: async () => false,
       findUser: authDependencies.findUser,
       findMembership: authDependencies.findMembership,
       // isImpersonationRevoked intentionally omitted

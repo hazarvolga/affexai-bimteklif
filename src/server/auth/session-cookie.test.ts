@@ -87,6 +87,7 @@ test('tarayıcıya jeton gövdede verilmez, API istemcisine verilir', () => {
 
 function authenticateWith(req: Record<string, unknown>) {
   const authenticate = createAuthenticate({
+    isSessionRevoked: async () => false,
     findUser: async () => ({ email: 'o@example.test', emailVerified: new Date(), passwordChangedAt: null, isSuperAdmin: false }),
     findMembership: async () => ({ role: 'owner' as const }),
     isImpersonationRevoked: async () => false,

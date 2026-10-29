@@ -45,7 +45,7 @@ export function LegalPage() {
             <section>
               <h2 className="text-base font-bold text-foreground">3. Veri Saklama, Aktarım ve İlgili Kişi Hakları (KVKK m.11)</h2>
               <p className="mt-2">
-                Verileriniz kiracı (tenant) bazlı erişim kontrolü uygulanmış sunucularda saklanır; yasal zorunluluklar ve altyapı hizmet sağlayıcıları dışında üçüncü taraflara satılmaz veya devredilmez. KVKK m.11 kapsamındaki başvuru ve silme taleplerinizi <a href="mailto:info@bimmetraj.com" className="text-orange-400 underline">info@bimmetraj.com</a> adresine iletebilirsiniz.
+                Verileriniz kiracı (tenant) bazlı erişim kontrolü uygulanmış sunucularda saklanır; yasal zorunluluklar ve altyapı hizmet sağlayıcıları dışında üçüncü taraflara satılmaz veya devredilmez. KVKK m.11 kapsamındaki başvuru ve silme taleplerinizi <a href="mailto:info@bimmetraj.com" className="text-orange-400 underline">info@bimmetraj.com</a> adresine iletebilirsiniz. Firma yetkilisi müşteri detayında ad, telefon, e-posta, adres ve müşteri notları için inceleme ve maskeleme işlemi yapabilir; teklif tutarları korunur. Serbest metinler, ayrı aday kayıtları, önceden indirilmiş PDF’ler, yedekler ve dış hizmetlerdeki kopyalar bu işlemle otomatik silinmez ve ayrıca değerlendirilir.
               </p>
             </section>
           </div>

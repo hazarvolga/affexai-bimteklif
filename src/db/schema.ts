@@ -237,8 +237,29 @@ export const users = pgTable("users", {
   verificationToken: text("verification_token"),
   passwordChangedAt: timestamp("password_changed_at", { withTimezone: true }),
   isSuperAdmin: boolean("is_super_admin").default(false).notNull(),
+  mfaEpoch: uuid("mfa_epoch"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+export const adminMfaAccounts = pgTable("admin_mfa_accounts", {
+  userId: uuid("user_id").primaryKey().references(() => users.id, { onDelete: "cascade" }),
+  secretCiphertext: text("secret_ciphertext"),
+  pendingCiphertext: text("pending_ciphertext"),
+  pendingExpiresAt: timestamp("pending_expires_at", { withTimezone: true }),
+  pendingRecoveryHashes: jsonb("pending_recovery_hashes").$type<string[]>(),
+  pendingPasswordFingerprint: text("pending_password_fingerprint"),
+  lastCounter: integer("last_counter").default(-1).notNull(),
+  recoveryHashes: jsonb("recovery_hashes").$type<string[]>().default([]).notNull(),
+});
+
+export const adminMfaChallenges = pgTable("admin_mfa_challenges", {
+  challengeHash: text("challenge_hash").primaryKey(),
+  userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  passwordFingerprint: text("password_fingerprint").notNull(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  consumedAt: timestamp("consumed_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({ expiresAtIdx: index("admin_mfa_challenges_expires_at_idx").on(table.expiresAt) }));
 
 export const authActionTokens = pgTable("auth_action_tokens", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -252,6 +273,13 @@ export const authActionTokens = pgTable("auth_action_tokens", {
   typeCheck: check("auth_action_tokens_type_check", sql`${table.type} in ('verify_email', 'reset_password')`),
   idxUserActionTokens: index("idx_auth_action_tokens_user_type").on(table.userId, table.type, table.createdAt),
 }));
+
+export const revokedSessions = pgTable("revoked_sessions", {
+  tokenHash: text("token_hash").primaryKey(),
+  userId: uuid("user_id").notNull(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  revokedAt: timestamp("revoked_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({ expiresAtIdx: index("revoked_sessions_expires_at_idx").on(table.expiresAt) }));
 
 export const rateLimitBuckets = pgTable("rate_limit_buckets", {
   bucketKey: text("bucket_key").primaryKey(),
@@ -483,9 +511,13 @@ export const clients = pgTable("clients", {
   email: text("email"),
   address: text("address"),
   notes: text("notes"),
+  privacyStatus: text("privacy_status").default("active").notNull(),
+  privacyMaskedAt: timestamp("privacy_masked_at", { withTimezone: true }),
   pipelineStage: pipelineStageEnum("pipeline_stage").default("lead").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (table) => ({
+  privacyStatusCheck: check("clients_privacy_status_check", sql`${table.privacyStatus} in ('active', 'requested', 'hold', 'masked')`),
+  privacyMaskCheck: check("clients_privacy_mask_check", sql`${table.privacyStatus} <> 'masked' OR (${table.name} = 'Maskelenmiş müşteri' AND ${table.phone} IS NULL AND ${table.email} IS NULL AND ${table.address} IS NULL AND ${table.notes} IS NULL AND ${table.privacyMaskedAt} IS NOT NULL)`),
   appTenantPolicy: appTenantPolicy("clients", table.companyId),
   backupReadPolicy: backupReadPolicy("clients"),
   ownerMigrationPolicy: ownerMigrationPolicy("clients"),
@@ -559,6 +591,12 @@ export const priceSources = pgTable("price_sources", {
   sourceDocumentHash: text("source_document_hash").notNull(),
   licenseStatus: text("license_status").default("unknown").notNull(),
   authorizationStatus: text("authorization_status").default("pending").notNull(),
+  reviewStatus: text("review_status").default("legacy_unverified").notNull(),
+  reviewEvidenceReference: text("review_evidence_reference"),
+  reviewScope: text("review_scope"),
+  reviewAllowsQuotations: boolean("review_allows_quotations").default(false).notNull(),
+  reviewedByUserId: uuid("reviewed_by_user_id"),
+  reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
   authorizationScope: text("authorization_scope"),
   authorizationEvidenceHash: text("authorization_evidence_hash"),
   authorizedAt: timestamp("authorized_at", { withTimezone: true }),
@@ -581,6 +619,8 @@ export const priceSources = pgTable("price_sources", {
   }).onDelete("restrict"),
   sourceTypeCheck: check("price_sources_source_type_check", sql`${table.sourceType} in ('official_reference', 'supplier_quote', 'company_actual', 'index_adjusted', 'manual_override')`),
   licenseStatusCheck: check("price_sources_license_status_check", sql`${table.licenseStatus} in ('unknown', 'verified', 'restricted', 'not_applicable')`),
+  reviewStatusCheck: check("price_sources_review_status_check", sql`${table.reviewStatus} in ('legacy_unverified', 'verified', 'revoked')`),
+  reviewEvidenceCheck: check("price_sources_review_evidence_check", sql`${table.reviewStatus} <> 'verified' OR (${table.reviewEvidenceReference} IS NOT NULL AND length(trim(${table.reviewEvidenceReference})) > 0 AND ${table.reviewScope} IS NOT NULL AND length(trim(${table.reviewScope})) > 0 AND ${table.reviewAllowsQuotations} = true AND ${table.reviewedByUserId} IS NOT NULL AND ${table.reviewedAt} IS NOT NULL)`),
   authorizationStatusCheck: check("price_sources_authorization_status_check", sql`${table.authorizationStatus} in ('pending', 'authorized', 'restricted')`),
   authorizationEvidenceCheck: check("price_sources_authorization_evidence_check", sql`${table.authorizationStatus} <> 'authorized' OR (${table.authorizationEvidenceHash} ~ '^[0-9a-f]{64}$' AND length(${table.authorizationScope}) > 0 AND ${table.authorizedAt} IS NOT NULL AND ${table.authorizedByUserId} IS NOT NULL)`),
   sourceHashCheck: check("price_sources_source_document_hash_check", sql`length(${table.sourceDocumentHash}) >= 16`),
@@ -2298,20 +2338,57 @@ export const pricingDataSources = pgTable("pricing_data_sources", {
   versionTag: text("version_tag").default("2026/1").notNull(),
   dataHash: text("data_hash"),
   authorizationStatus: text("authorization_status").default("pending").notNull(),
+  reviewStatus: text("review_status").default("legacy_unverified").notNull(),
+  reviewEvidenceReference: text("review_evidence_reference"),
+  reviewScope: text("review_scope"),
+  reviewAllowsQuotations: boolean("review_allows_quotations").default(false).notNull(),
+  reviewedByUserId: uuid("reviewed_by_user_id"),
+  reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
   authorizationScope: text("authorization_scope"),
   authorizationEvidenceHash: text("authorization_evidence_hash"),
   authorizedAt: timestamp("authorized_at", { withTimezone: true }),
   crawlerConfig: jsonb("crawler_config").default({}).notNull(),
+  crawlLeaseToken: uuid("crawl_lease_token"),
+  crawlLeaseUntil: timestamp("crawl_lease_until", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 }, (table) => ({
   categoryCheck: check("pricing_data_sources_category_check", sql`${table.category} in ('official_gazette', 'tuik_index', 'market_commodity', 'epys_standard')`),
   statusCheck: check("pricing_data_sources_status_check", sql`${table.status} in ('active', 'syncing', 'error', 'stale')`),
+  reviewStatusCheck: check("pricing_data_sources_review_status_check", sql`${table.reviewStatus} in ('legacy_unverified', 'verified', 'revoked')`),
+  reviewEvidenceCheck: check("pricing_data_sources_review_evidence_check", sql`${table.reviewStatus} <> 'verified' OR (${table.reviewEvidenceReference} IS NOT NULL AND length(trim(${table.reviewEvidenceReference})) > 0 AND ${table.reviewScope} IS NOT NULL AND length(trim(${table.reviewScope})) > 0 AND ${table.reviewAllowsQuotations} = true AND ${table.reviewedByUserId} IS NOT NULL AND ${table.reviewedAt} IS NOT NULL)`),
   authorizationStatusCheck: check("pricing_data_sources_authorization_status_check", sql`${table.authorizationStatus} in ('pending', 'authorized', 'restricted')`),
   authorizationEvidenceCheck: check("pricing_data_sources_authorization_evidence_check", sql`${table.authorizationStatus} <> 'authorized' OR (${table.authorizationEvidenceHash} ~ '^[0-9a-f]{64}$' AND length(${table.authorizationScope}) > 0 AND ${table.authorizedAt} IS NOT NULL)`),
   syncFreqCheck: check("pricing_data_sources_sync_freq_check", sql`${table.syncFrequency} in ('realtime', 'daily', 'weekly', 'monthly', 'annually')`),
   categoryIdx: index("idx_pricing_data_sources_category").on(table.category),
 }));
+
+export const globalPriceSourceReviewEvents = pgTable("global_price_source_review_events", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  sourceId: uuid("source_id").references(() => pricingDataSources.id, { onDelete: "restrict" }).notNull(),
+  actorUserId: uuid("actor_user_id").references(() => users.id, { onDelete: "restrict" }),
+  action: text("action").notNull(),
+  before: jsonb("before").notNull(),
+  after: jsonb("after").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  actionCheck: check("global_price_source_review_events_action_check", sql`${table.action} in ('verify', 'revoke', 'invalidated')`),
+}));
+
+export const tenantPriceSourceReviewInvalidations = pgTable("tenant_price_source_review_invalidations", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id").references(() => companies.id).notNull(),
+  sourceId: uuid("source_id").notNull(),
+  reason: text("reason").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  sourceFk: foreignKey({ columns: [table.sourceId, table.companyId], foreignColumns: [priceSources.id, priceSources.companyId] }).onDelete("restrict"),
+  reasonCheck: check("tenant_price_source_review_invalidations_reason_check", sql`${table.reason} in ('source_identity_or_authorization_changed', 'review_evidence_changed')`),
+  appTenantReadPolicy: appTenantReadPolicy("tenant_price_source_review_invalidations", table.companyId),
+  ownerTriggerInsert: pgPolicy("tenant_price_source_review_invalidations_owner_trigger_insert", { for: "insert", to: "public", withCheck: sql`current_user = 'bimmetraj_owner' AND session_user = 'bimmetraj_app' AND ${table.companyId} = nullif(current_setting('bimmetraj.company_id', true), '')::uuid` }),
+  backupReadPolicy: backupReadPolicy("tenant_price_source_review_invalidations"),
+  ownerMigrationPolicy: ownerMigrationPolicy("tenant_price_source_review_invalidations"),
+})).enableRLS();
 
 export const priceFeedStaging = pgTable("price_feed_staging", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -2323,6 +2400,8 @@ export const priceFeedStaging = pgTable("price_feed_staging", {
   crawledPrice: numeric("crawled_price", { precision: 20, scale: 2 }).notNull(),
   diffPercent: numeric("diff_percent", { precision: 6, scale: 2 }),
   sourceUrl: text("source_url"),
+  contentHash: text("content_hash"),
+  sourceIdentity: jsonb("source_identity"),
   status: text("status").default("pending").notNull(),
   confidenceScore: numeric("confidence_score", { precision: 4, scale: 2 }).default("0.90").notNull(),
   notes: text("notes"),

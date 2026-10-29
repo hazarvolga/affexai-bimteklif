@@ -35,7 +35,7 @@ test("supplier quote market intelligence is review-gated, outlier-aware, and ten
   const [sourceRun] = await db.insert(schema.documentProcessingRuns).values({ companyId: companyA.id, documentId: sourceDocument.id, status: "succeeded", currentStage: "completed", idempotencyKey: `run-${suffix}`, pipelineVersion: 1, progressPercent: 100, progressMessage: "Tamamlandı", completedAt: new Date() }).returning();
   const [sourceRow] = await db.insert(schema.normalizedQuantityRows).values({ companyId: companyA.id, documentId: sourceDocument.id, processingRunId: sourceRun.id, sheetName: "Teklif", sourceRowNumber: 2, sourceCellRange: "A2:F2", rawDescription: "Pompa", rawPositionCode: "M-001", rawUnit: "adet", rawQuantity: "2", rawPrice: "185", normalizedDescription: "Pompa", normalizedPositionCode: "M-001", normalizedUnit: "adet", normalizedQuantity: "2", normalizedPrice: "185", reviewStatus: "approved", reviewerUserId: userA.id, reviewedAt: new Date(), findingsJson: [] }).returning();
   const [pendingSourceRow] = await db.insert(schema.normalizedQuantityRows).values({ companyId: companyA.id, documentId: sourceDocument.id, processingRunId: sourceRun.id, sheetName: "Teklif", sourceRowNumber: 3, sourceCellRange: "A3:F3", rawDescription: "Vana", rawPositionCode: "M-002", rawUnit: "adet", rawQuantity: "1", rawPrice: "45", normalizedDescription: "Vana", normalizedPositionCode: "M-002", normalizedUnit: "adet", normalizedQuantity: "1", normalizedPrice: "45", reviewStatus: "pending_review", findingsJson: [] }).returning();
-  const [baselineSource] = await db.insert(schema.priceSources).values({ companyId: companyA.id, sourceType: "company_actual", name: "Firma gerçekleşenleri", authority: "Market test", sourceDocumentIdentifier: `ACTUAL-${suffix}`, sourceDocumentHash: "b".repeat(64), licenseStatus: "not_applicable", createdByUserId: userA.id }).returning();
+  const [baselineSource] = await db.insert(schema.priceSources).values({ companyId: companyA.id, sourceType: "company_actual", name: "Firma gerçekleşenleri", authority: "Market test", sourceDocumentIdentifier: `ACTUAL-${suffix}`, sourceDocumentHash: "b".repeat(64), licenseStatus: "not_applicable", reviewStatus: "verified", reviewEvidenceReference: "https://example.org/test-permission", reviewScope: "Ticari teklifler", reviewAllowsQuotations: true, reviewedByUserId: reviewerA.id, reviewedAt: new Date(), createdByUserId: userA.id }).returning();
   const baselineSnapshots = [];
   for (const amount of [100, 101, 99, 102]) {
     const capturedAt = new Date(`2026-07-${String(10 + baselineSnapshots.length).padStart(2, "0")}T00:00:00.000Z`);
@@ -128,13 +128,13 @@ test("supplier quote market intelligence is review-gated, outlier-aware, and ten
     }
     const scoped = await request('/api/market-intelligence/price-memory?positionCode=M-001&unit=adet');
     const scopedBody = await scoped.json() as { summary: { count: number; median: number } };
-    assert.equal(scopedBody.summary.count, 5);
-    assert.equal(scopedBody.summary.median, 101);
+    assert.equal(scopedBody.summary.count, 4, "supplier price without source permission stays outside the baseline");
+    assert.equal(scopedBody.summary.median, 100.5);
     const emptyTenant = await request('/api/market-intelligence/price-memory?positionCode=M-001&unit=adet', {}, tokenB);
     assert.equal((await emptyTenant.json() as { summary: { count: number; median: null } }).summary.count, 0);
     const memory = await request("/api/market-intelligence/price-memory?positionCode=M-001&unit=adet&region=%C4%B0stanbul");
     assert.equal(memory.status, 200);
-    assert.equal((await memory.json() as { summary: { count: number; median: number } }).summary.count, 5);
+    assert.equal((await memory.json() as { summary: { count: number; median: number } }).summary.count, 4);
     assert.deepEqual(await (await request("/api/market-intelligence/supplier-quotes", {}, tokenB)).json(), []);
   } finally {
     await new Promise<void>((resolve) => server.close(() => resolve()));

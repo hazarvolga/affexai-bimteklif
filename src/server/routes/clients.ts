@@ -1,8 +1,8 @@
 import type { Express } from "express";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, ne, sql } from "drizzle-orm";
 import { z } from "zod";
 import { tenantOf, withAppTenant } from "../../db/app-tenant";
-import { clients, deals, quotations } from "../../db/schema";
+import { activities, clients, deals, quotations } from "../../db/schema";
 import {
   appendClientStageNote,
   CLIENT_STAGE_MAP,
@@ -119,6 +119,45 @@ export function registerClientRoutes(
       res.json(allClients);
     } catch {
       res.status(500).json({ error: "Failed to fetch clients" });
+    }
+  });
+
+  // This is an impact preview, not a deletion request or a complete personal-data inventory.
+  app.get("/api/clients/:id/deletion-impact", authenticate, async (req, res) => {
+    const companyId = ensureCompanyId(req, res);
+    if (!companyId) return;
+    if (req.user.role !== "owner" && req.user.role !== "admin") {
+      return res.status(403).json({ error: "Bu önizleme yalnızca firma sahibi ve yöneticisine açıktır." });
+    }
+    const parsed = clientIdParamSchema.safeParse(req.params);
+    if (!parsed.success) return res.status(400).json({ error: "Geçersiz müşteri kimliği." });
+    const id = parsed.data.id;
+    try {
+      const result = await tenantAccess.withTenant(tenantOf(req.user), (tenantDb) => tenantDb.execute<{
+        client_id: string; quotations: number; revisions: number; deals: number; activities: number;
+      }>(sql`
+        SELECT ${clients.id} AS client_id,
+          (SELECT COUNT(*)::int FROM ${quotations} q WHERE q.client_id = ${clients.id} AND q.company_id = ${companyId}) AS quotations,
+          (SELECT COUNT(*)::int FROM ${quotations} q WHERE q.client_id = ${clients.id} AND q.company_id = ${companyId} AND q.revision_version > 1) AS revisions,
+          (SELECT COUNT(*)::int FROM ${deals} d WHERE d.client_id = ${clients.id} AND d.company_id = ${companyId}) AS deals,
+          (SELECT COUNT(*)::int FROM ${activities} a JOIN ${deals} d ON d.id = a.deal_id AND d.company_id = a.company_id
+             WHERE d.client_id = ${clients.id} AND d.company_id = ${companyId} AND a.company_id = ${companyId}) AS activities
+        FROM ${clients} WHERE ${clients.id} = ${id} AND ${clients.companyId} = ${companyId}
+      `), { readOnly: true, isolationLevel: "repeatable read" });
+      const row = result.rows[0];
+      if (!row) return res.status(404).json({ error: "Müşteri bulunamadı." });
+      return res.json({
+        clientId: row.client_id,
+        counts: { quotations: row.quotations, revisions: row.revisions, deals: row.deals, activities: row.activities },
+        limitations: [
+          "Bu önizleme silme talebi oluşturmaz ve herhangi bir veriyi silmez.",
+          "Serbest metinler, müşteriyle doğrudan bağlantısı bulunmayan adaylar, dosyalar, denetim kayıtları, yedekler ve dış servislerdeki kopyalar hesaplanmaz.",
+          "Başka firmalardaki olası ilişkiler güvenlik nedeniyle hesaplanmaz; bu sayımlar tüm bağımlılıkları veya kaydın silinebilirliğini garanti etmez.",
+          "Bu sayımlar tüm kişisel verilerin veya yasal saklama yükümlülüklerinin eksiksiz envanteri değildir.",
+        ],
+      });
+    } catch {
+      return res.status(500).json({ error: "Müşteri kayıtlarının önizlemesi yüklenemedi." });
     }
   });
 
@@ -239,8 +278,9 @@ export function registerClientRoutes(
         const [existing] = await tenantDb
           .select()
           .from(clients)
-          .where(and(eq(clients.id, clientId), eq(clients.companyId, req.user.companyId)));
+          .where(and(eq(clients.id, clientId), eq(clients.companyId, req.user.companyId))).for("update");
         if (!existing) return null;
+        if (existing.privacyStatus === "masked") throw new Error("CLIENT_PRIVACY_MASKED");
 
         const nextStage = input.pipelineStage ?? existing.pipelineStage;
         let nextNotes = input.notes !== undefined ? input.notes : existing.notes;
@@ -294,7 +334,8 @@ export function registerClientRoutes(
         return res.status(404).json({ error: "Müşteri bulunamadı." });
       }
       return res.json(updated);
-    } catch {
+    } catch (error) {
+      if (error instanceof Error && error.message === "CLIENT_PRIVACY_MASKED") return res.status(409).json({ error: "Maskelenmiş müşteri değiştirilemez." });
       return res.status(500).json({ error: "Müşteri güncellenemedi." });
     }
   };
@@ -323,8 +364,9 @@ export function registerClientRoutes(
         const [existing] = await tenantDb
           .select()
           .from(clients)
-          .where(and(eq(clients.id, clientId), eq(clients.companyId, req.user.companyId)));
+          .where(and(eq(clients.id, clientId), eq(clients.companyId, req.user.companyId))).for("update");
         if (!existing) return null;
+        if (existing.privacyStatus === "masked") throw new Error("CLIENT_PRIVACY_MASKED");
 
         const nextStage = updatePipelineStage ? stage : existing.pipelineStage;
         const nextNotes = capNotesLength(
@@ -359,7 +401,8 @@ export function registerClientRoutes(
         return res.status(404).json({ error: "Müşteri bulunamadı." });
       }
       return res.status(201).json(updated);
-    } catch {
+    } catch (error) {
+      if (error instanceof Error && error.message === "CLIENT_PRIVACY_MASKED") return res.status(409).json({ error: "Maskelenmiş müşteriye not eklenemez." });
       return res.status(500).json({ error: "Müşteri notu kaydedilemedi." });
     }
   });
@@ -382,6 +425,7 @@ export function registerClientRoutes(
         const byEmail = new Map<string, typeof existingClients[number]>();
         const byName = new Map<string, typeof existingClients[number]>();
         for (const c of existingClients) {
+          if (c.privacyStatus === "masked") continue;
           if (c.email) byEmail.set(c.email.trim().toLowerCase(), c);
           byName.set(c.name.trim().toLocaleLowerCase("tr-TR"), c);
         }
@@ -428,9 +472,10 @@ export function registerClientRoutes(
                 pipelineStage: item.pipelineStage || existing.pipelineStage,
                 notes: mergedNotes,
               })
-              .where(and(eq(clients.id, existing.id), eq(clients.companyId, req.user.companyId)))
+              .where(and(eq(clients.id, existing.id), eq(clients.companyId, req.user.companyId), ne(clients.privacyStatus, "masked")))
               .returning();
 
+            if (!updatedRow) { skippedCount += 1; continue; }
             if (updatedRow) {
               if (updatedRow.email) byEmail.set(updatedRow.email.trim().toLowerCase(), updatedRow);
               byName.set(updatedRow.name.trim().toLocaleLowerCase("tr-TR"), updatedRow);

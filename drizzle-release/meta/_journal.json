@@ -234,6 +234,41 @@
       "when": 1791417600032,
       "tag": "0032_worker_process_heartbeat",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1791417600033,
+      "tag": "0033_revoked_sessions",
+      "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1791417600034,
+      "tag": "0034_admin_mfa",
+      "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1791417600035,
+      "tag": "0035_price_source_review",
+      "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1791417600036,
+      "tag": "0036_crawler_lease_evidence",
+      "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1791417600037,
+      "tag": "0037_client_privacy_mask",
+      "breakpoints": true
     }
   ]
 }

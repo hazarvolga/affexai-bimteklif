@@ -144,6 +144,7 @@ test("Calm transfer is tenant-safe, transactional, replayable and creates exactl
     name: "Authorized Supplier",
     sourceDocumentHash: "c".repeat(64),
     licenseStatus: "verified",
+    reviewStatus: "verified", reviewEvidenceReference: "https://example.org/test-permission", reviewScope: "Ticari teklifler", reviewAllowsQuotations: true, reviewedByUserId: authorizer.id, reviewedAt: new Date(),
     authorizationStatus: "authorized",
     authorizationScope: JSON.stringify({ version: 1, capabilities: ["commercial_quotation"], tenantScope: "own" }),
     authorizationEvidenceHash: "d".repeat(64),
@@ -268,6 +269,12 @@ test("Calm transfer is tenant-safe, transactional, replayable and creates exactl
     (error: unknown) => error instanceof service.CalmTransferError && error.code === "CALM_TRANSFER_PRICE_SNAPSHOT_INVALID",
   );
   await db.update(schema.priceSources).set({ licenseStatus: "verified" }).where(drizzle.eq(schema.priceSources.id, source.id));
+  // The real database invalidates review on license changes; the cloned fixture
+  // schema lacks production triggers. Model a new, explicit reviewer decision.
+  await db.update(schema.priceSources).set({ reviewStatus: "verified", reviewEvidenceReference: "https://example.org/test-permission", reviewScope: "Ticari teklifler", reviewAllowsQuotations: true, reviewedByUserId: authorizer.id, reviewedAt: new Date() }).where(drizzle.eq(schema.priceSources.id, source.id));
+  const [vatSource] = await db.select().from(schema.priceSources).where(drizzle.eq(schema.priceSources.id, source.id));
+  const [vatSnapshot] = await db.select().from(schema.priceSnapshots).where(drizzle.eq(schema.priceSnapshots.id, snapshot.id));
+  assert.equal(service.snapshotIsEligible(vatSnapshot, vatSource, at), true, "VAT cases must reach VAT validation rather than fail the permission gate");
 
   for (const [vatStatus, vatPercent, idempotencyKey] of [
     ["included", "20.00", "vat-included"],

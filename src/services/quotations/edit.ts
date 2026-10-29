@@ -4,7 +4,7 @@ import { and, desc, eq, or } from 'drizzle-orm';
 import { z } from 'zod';
 import { withAppTenantTransaction } from '../../db/app-tenant';
 import type { TenantContext } from '../../db/tenant-context';
-import { clients, industries, quotationFinancials, quotationItemEvidence, quotationItems, quotations } from '../../db/schema';
+import { clients, industries, quotationFinancials, quotationItemEvidence, quotationItems, quotations, smartcheckAuditLogs } from '../../db/schema';
 import { calculateLineItemTotal, calculateQuotationTotals } from '../../lib/calculations';
 import { manualQuotationInput } from './input';
 import { normalizeQuotationTenantActor, QuotationIntegrityError, resolveQuotationIndustryId } from './integrity';
@@ -53,18 +53,17 @@ export async function loadEditableQuotation(actorOrCompanyId: TenantContext | st
   });
 }
 
-export async function editManualQuotation(actorOrCompanyId: TenantContext | string, id: string, input: z.infer<typeof editQuotationInput>) {
+export async function editManualQuotation(actor: TenantContext, id: string, input: z.infer<typeof editQuotationInput>, audit: { impersonatedBy?: string } = {}) {
   if (input.items.some(item => item.aiEvidenceToken)) throw new QuotationIntegrityError(409, 'AI kaynaklı satırlar mevcut taslak düzenleyicisinde kaydedilemez; kanıtı korumak için yeni teklif oluşturun.');
-  const actor = normalizeQuotationTenantActor(actorOrCompanyId);
   const { companyId } = actor;
   return withAppTenantTransaction(actor, async tx => {
     const { quote } = await lockDraft(tx, companyId, id);
     if (quote.updatedAt.getTime() !== new Date(input.updatedAt).getTime()) {
       throw new QuotationIntegrityError(409, 'Teklif başka bir işlemle değişti. Kaydetmeden önce yeniden yükleyin.');
     }
-    const [client] = await tx.select({ id: clients.id }).from(clients)
+    const [client] = await tx.select({ id: clients.id, privacyStatus: clients.privacyStatus }).from(clients)
       .where(and(eq(clients.id, input.clientId), eq(clients.companyId, companyId))).for('share');
-    if (!client) throw new QuotationIntegrityError(400, 'Müşteri bu şirkette bulunamadı.');
+    if (!client || (client.privacyStatus === 'masked' && quote.clientId !== client.id)) throw new QuotationIntegrityError(400, 'Müşteri bu şirkette bulunamadı.');
     const { items, updatedAt: _version, ...fields } = input;
     const resolvedIndustryId = await resolveQuotationIndustryId(
       fields.industryId,
@@ -98,6 +97,8 @@ export async function editManualQuotation(actorOrCompanyId: TenantContext | stri
     const evidence = catalog.evidenceFor(id);
     if (evidence.length) await tx.insert(quotationItemEvidence).values(evidence);
     await tx.delete(quotationFinancials).where(eq(quotationFinancials.quotationId, id));
+    await tx.insert(smartcheckAuditLogs).values({ companyId, userId: actor.userId, action: 'quotation.updated',
+      entityType: 'quotation', entityId: id, metadataJson: audit.impersonatedBy ? { impersonatedBy: audit.impersonatedBy } : {} });
     return saved;
   });
 }

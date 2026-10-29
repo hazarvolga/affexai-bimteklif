@@ -54,9 +54,9 @@ export function registerCrmRoutes(
       const parsed = dealInput.safeParse(req.body);
       if (!parsed.success) return res.status(400).json({ error: 'Invalid deal input' });
       const newDeal = await tenant.transaction(tenantOf(req.user), async tx => {
-        const [client] = await tx.select({ id: clients.id }).from(clients)
+        const [client] = await tx.select({ id: clients.id, privacyStatus: clients.privacyStatus }).from(clients)
           .where(and(eq(clients.id, parsed.data.clientId), eq(clients.companyId, req.user.companyId))).for('share');
-        if (!client) return null;
+        if (!client || client.privacyStatus === "masked") return null;
         const [created] = await tx.insert(deals).values({ ...parsed.data, name: parsed.data.name, clientId: parsed.data.clientId,
           value: String(parsed.data.value), companyId: req.user.companyId }).returning();
         await tx.insert(activities).values({ companyId: created.companyId, dealId: created.id, userId: req.user.userId, type: 'note', description: 'Fırsat oluşturuldu.' });

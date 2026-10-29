@@ -23,8 +23,9 @@ test("generic SmartCheck CSV payload matches the tenant-owned server authorizati
     actorUserId: "tenant-user",
     allowTenantAuthorization: true,
   });
-  assert.equal(authorization.authorizationStatus, "authorized");
-  assert.equal(authorization.decision.eligible, true);
+  assert.equal(authorization.authorizationStatus, "pending");
+  assert.equal(authorization.authorizationEvidenceHash, null);
+  assert.equal(authorization.decision.eligible, false);
 });
 
 test("generic SmartCheck CSV payload requires an explicit tenant ownership declaration", () => {

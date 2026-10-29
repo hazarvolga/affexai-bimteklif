@@ -114,12 +114,12 @@ export function QuoteGeneralSettings({ formData, setFormData, clients, onClientC
                   <Plus size={11} /> Hızlı Müşteri Ekle
                 </button>
               </div>
-              <Select value={formData.clientId} onValueChange={(v) => setFormData({...formData, clientId: v})} items={Object.fromEntries(clients.map(c => [c.id, c.name]))}>
+              <Select value={formData.clientId} onValueChange={(v) => setFormData({...formData, clientId: v})} items={Object.fromEntries(clients.filter(c => c.privacyStatus !== 'masked').map(c => [c.id, c.name]))}>
                 <SelectTrigger id="quote-client" className="bg-background border-border text-foreground focus:ring-primary h-11 text-xs font-semibold">
                   <SelectValue placeholder="Bir müşteri atayın..." />
                 </SelectTrigger>
                 <SelectContent className="bg-card border-border text-foreground">
-                  {clients.map(c => (
+                  {clients.filter(c => c.privacyStatus !== 'masked').map(c => (
                     <SelectItem key={c.id} value={c.id} className="text-xs font-medium">{c.name}</SelectItem>
                   ))}
                 </SelectContent>

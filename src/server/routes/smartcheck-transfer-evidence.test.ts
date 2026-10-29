@@ -95,7 +95,7 @@ test("SmartCheck transfers persist honest review evidence", { timeout: 30_000 },
           });
 
           if (reviewStatus === "accepted_exception") {
-            const revision = await createQuotationRevision(f.company.id, saved.item.quotationId);
+            const revision = await createQuotationRevision({ companyId: f.company.id, userId: f.owner.id }, saved.item.quotationId);
             const cloned = await persisted(f.company.id, revision.id);
             assert.notEqual(cloned.item.id, saved.item.id);
             assert.notEqual(cloned.evidence.id, saved.evidence.id);
