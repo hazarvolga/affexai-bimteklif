@@ -127,11 +127,21 @@ test('MFA enrollment, epoch enforcement, single-use challenge and recovery', { t
     const c1 = (await race1.json() as {challenge:string}).challenge, c2 = (await race2.json() as {challenge:string}).challenge;
     const simultaneous = await Promise.all([post('/api/auth/mfa/verify',{challenge:c1,code:recoveryCodes[2]}),post('/api/auth/mfa/verify',{challenge:c2,code:recoveryCodes[2]})]);
     assert.deepEqual(simultaneous.map(response=>response.status).sort(), [200,401], 'recovery code cannot be raced');
-    await client.query('UPDATE admin_mfa_accounts SET last_counter=$2 WHERE user_id=$1',[id,Math.floor(Date.now()/30000)-1]);
     const t1 = await post('/api/auth/login',{email,password}); const t2 = await post('/api/auth/login',{email,password});
     const tc1 = (await t1.json() as {challenge:string}).challenge, tc2 = (await t2.json() as {challenge:string}).challenge;
-    const otpRace = await Promise.all([post('/api/auth/mfa/verify',{challenge:tc1,code}),post('/api/auth/mfa/verify',{challenge:tc2,code})]);
-    assert.deepEqual(otpRace.map(response=>response.status).sort(), [200,401], 'same TOTP counter cannot be raced');
+    // Both HTTP handlers use the same fixed instant: crossing a real 30-second boundary
+    // must not turn this replay/locking test into an expired-code test.
+    const realNow = Date.now;
+    const fixedNow = realNow();
+    const raceCounter = Math.floor(fixedNow / 30000);
+    const raceCode = totpForCounter(decode(secret), raceCounter);
+    await client.query('UPDATE admin_mfa_accounts SET last_counter=$2 WHERE user_id=$1',[id,raceCounter-1]);
+    Date.now = () => fixedNow;
+    try {
+      const otpRace = await Promise.all([post('/api/auth/mfa/verify',{challenge:tc1,code:raceCode}),post('/api/auth/mfa/verify',{challenge:tc2,code:raceCode})]);
+      assert.deepEqual(otpRace.map(response=>response.status).sort(), [200,401], 'same TOTP counter cannot be raced');
+      assert.equal((await client.query('SELECT last_counter FROM admin_mfa_accounts WHERE user_id=$1',[id])).rows[0].last_counter,raceCounter);
+    } finally { Date.now = realNow; }
     const beforeReset = await post('/api/auth/login',{email,password}); const resetChallenge = (await beforeReset.json() as {challenge:string}).challenge;
     await client.query('UPDATE users SET password_hash=$2,password_changed_at=now() WHERE id=$1',[id,await AuthService.hashPassword('replacement-password')]);
     assert.equal((await post('/api/auth/mfa/verify',{challenge:resetChallenge,code:recoveryCodes[3]})).status,401, 'password reset invalidates earlier challenge');
