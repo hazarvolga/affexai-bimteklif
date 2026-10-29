@@ -180,6 +180,12 @@ jobs:
           CI_DISPOSABLE_DATABASE: 'true'
           PRICE_REVIEW_TEST_URL: postgresql://postgres:ci-local-only@127.0.0.1:5433/teklifpro_bootstrap_test
         run: pnpm exec tsx --test src/server/routes/admin-price-review.pgtest.ts
+      - name: Client privacy isolation and atomicity
+        env:
+          NODE_ENV: test
+          CI_DISPOSABLE_DATABASE: 'true'
+          CLIENT_PRIVACY_TEST_URL: postgresql://postgres:ci-local-only@127.0.0.1:5433/teklifpro_bootstrap_test
+        run: pnpm exec tsx --test src/server/clients/privacy.pgtest.ts
       - name: Source permission review and CALM restricted-role contract
         env:
           NODE_ENV: test
@@ -249,6 +255,7 @@ jobs:
       - run: pnpm exec tsx scripts/logout-ui-smoke.ts
       - run: pnpm exec tsx scripts/mfa-ui-smoke.ts
       - run: pnpm exec tsx scripts/client-deletion-impact-ui-smoke.ts
+      - run: pnpm exec tsx scripts/client-privacy-ui-smoke.ts
       - run: pnpm exec tsx scripts/shell-plan-ui-smoke.ts
       - run: pnpm exec tsx scripts/protected-route-title-ui-smoke.ts
       - run: pnpm exec tsx scripts/crm-partial-loading-ui-smoke.ts

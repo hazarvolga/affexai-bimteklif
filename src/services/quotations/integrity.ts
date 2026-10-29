@@ -44,9 +44,9 @@ export async function createManualQuotation(actor: TenantContext, input: ManualQ
   const { companyId } = actor;
   return withAppTenantTransaction(actor, async tx => {
     await consumeQuotationQuota(tx, companyId);
-    const [client] = await tx.select({ id: clients.id }).from(clients)
+    const [client] = await tx.select({ id: clients.id, privacyStatus: clients.privacyStatus }).from(clients)
       .where(and(eq(clients.id, input.clientId), eq(clients.companyId, companyId))).for("share");
-    if (!client) throw new QuotationIntegrityError(400, "Client not available in this company");
+    if (!client || client.privacyStatus === "masked") throw new QuotationIntegrityError(400, "Client not available in this company");
     const { items, ...fields } = input;
     const aiEvidence = items.map(item => {
       if (!item.aiEvidenceToken) return null;

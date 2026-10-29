@@ -1014,14 +1014,14 @@ export function registerSmartCheckRoutes(app: Express) {
       if (selected.length !== new Set(rowIds).size || selected.some(row => (row.reviewStatus !== "approved" && (row.reviewStatus !== "accepted_exception" || !row.reviewerNotes?.trim())))) throw new Error("TRANSFER_REVIEW_CHANGED");
       if (selected.some(hasUnverifiedIfcQuantity)) throw new Error("INVALID_TRANSFER_VALUES");
       const client = parsedRequest.data.clientId
-        ? (await tx.select().from(clients).where(and(eq(clients.id, parsedRequest.data.clientId), eq(clients.companyId, req.user.companyId)))).at(0)
+        ? (await tx.select().from(clients).where(and(eq(clients.id, parsedRequest.data.clientId), eq(clients.companyId, req.user.companyId))).for("share")).at(0)
         : (await tx.insert(clients).values({
             companyId: req.user.companyId,
             name: parsedRequest.data.clientName!.trim(),
             type: "company",
             notes: `SmartCheck aktarımı için oluşturuldu. Kaynak: ${sourceFileName}`,
           }).returning()).at(0);
-      if (!client) throw new Error("SMARTCHECK_CLIENT_NOT_FOUND");
+      if (!client || client.privacyStatus === "masked") throw new Error("SMARTCHECK_CLIENT_NOT_FOUND");
 
       const now = new Date();
       const expiryDays = parsedRequest.data.expiryDays ?? 30;

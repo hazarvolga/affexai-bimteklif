@@ -978,6 +978,10 @@ export function injectDataTransitions(tag: string, schemaStatements: readonly st
     const cumulative = fullSnapshot ? injectDataTransitions('0034_admin_mfa', schemaStatements) : [...schemaStatements];
     return [...cumulative, ...priceReviewProtection];
   }
+  if (tag === '0037_client_privacy_mask') {
+    return schemaStatements.some(statement => statement.startsWith('CREATE TABLE "cde_transition_events"'))
+      ? injectDataTransitions('0036_crawler_lease_evidence', schemaStatements) : [...schemaStatements];
+  }
   if (tag === '0036_crawler_lease_evidence') {
     return schemaStatements.some(statement => statement.startsWith('CREATE TABLE "cde_transition_events"'))
       ? injectDataTransitions('0035_price_source_review', schemaStatements) : [...schemaStatements];

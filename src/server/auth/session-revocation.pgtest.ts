@@ -36,10 +36,11 @@ test('revocation table denies runtime delete and cleanup removes only expired ha
   const userId = randomUUID();
   try {
     const state = await admin.query<{ count: number }>("SELECT count(*)::int AS count FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public' AND c.relkind='r'");
-    assert.equal(state.rows[0].count, 91, 'complete 0036 migration chain produces 91 public tables');
+    assert.equal(state.rows[0].count, 91, 'complete 0037 migration chain produces 91 public tables');
     assert.equal((await admin.query("SELECT 1 FROM teklifpro_release.migrations WHERE tag='0033_revoked_sessions'")).rowCount, 1);
     assert.equal((await admin.query("SELECT 1 FROM teklifpro_release.migrations WHERE tag='0035_price_source_review'")).rowCount, 1);
     assert.equal((await admin.query("SELECT 1 FROM teklifpro_release.migrations WHERE tag='0036_crawler_lease_evidence'")).rowCount, 1);
+    assert.equal((await admin.query("SELECT 1 FROM teklifpro_release.migrations WHERE tag='0037_client_privacy_mask'")).rowCount, 1);
     for (const table of ['global_price_source_review_events', 'tenant_price_source_review_invalidations']) {
       assert.equal((await admin.query('SELECT to_regclass($1) IS NOT NULL AS present', [`public.${table}`])).rows[0].present, true);
     }
@@ -110,7 +111,7 @@ test('HTTP logout revokes both cookie sessions and bearer while leaving unrelate
   }
 });
 
-test('0033 through 0036 independent snapshots materialize the pinned release catalogs', { timeout: 60_000 }, async () => {
+test('0033 through 0037 independent snapshots materialize the pinned release catalogs', { timeout: 60_000 }, async () => {
   const raw = process.env.SESSION_REVOCATION_TEST_URL;
   assert.ok(raw && process.env.CI_DISPOSABLE_DATABASE === 'true');
   const sourceUrl = new URL(raw);
@@ -134,7 +135,7 @@ test('0033 through 0036 independent snapshots materialize the pinned release cat
       const { catalog } = await import('../../../scripts/release-migrations/catalog');
       const { loadMigrations } = await import('../../../scripts/release-migrations/runner');
       const { pinnedSignature } = await import('../../../scripts/release-migrations/stage-signatures');
-      for (const [tag, file, count] of [['0033_revoked_sessions','0033',87], ['0034_admin_mfa','0034',89], ['0035_price_source_review','0035',91], ['0036_crawler_lease_evidence','0036',91]] as const) {
+      for (const [tag, file, count] of [['0033_revoked_sessions','0033',87], ['0034_admin_mfa','0034',89], ['0035_price_source_review','0035',91], ['0036_crawler_lease_evidence','0036',91], ['0037_client_privacy_mask','0037',91]] as const) {
         const migration = (await loadMigrations()).find(entry => entry.tag === tag);
         assert.ok(migration);
         const snapshot = JSON.parse(await readFile(`drizzle-release/meta/${file}_snapshot.json`, 'utf8'));

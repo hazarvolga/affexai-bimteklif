@@ -48,6 +48,7 @@ function createTestHarness(initialClients: any[] = []) {
             };
           }
           return Object.assign(Promise.resolve(rows), {
+            for: async () => rows,
             orderBy() {
               return {
                 limit() {

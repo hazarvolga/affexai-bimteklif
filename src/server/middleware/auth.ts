@@ -141,7 +141,8 @@ export const createAuthenticate = (dependencies: AuthDependencies = authDependen
       const sub = await dependencies.findSubscription(companyId, userId);
       const path = req.originalUrl?.split('?')[0];
       const billingRecovery = req.method === 'POST' && !req.user.impersonatedBy && ['owner', 'admin'].includes(req.user.role) && (path === '/api/billing/payment-requests/init' || path === '/api/billing/payment-requests');
-      if (sub && sub.status !== "active" && !billingRecovery) {
+      const clientPrivacyRequest = req.method === 'POST' && !req.user.impersonatedBy && Boolean(req.user.emailVerified) && ['owner', 'admin'].includes(req.user.role) && typeof path === 'string' && /^\/api\/clients\/[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\/privacy$/i.test(path);
+      if (sub && sub.status !== "active" && !billingRecovery && !clientPrivacyRequest) {
         return res.status(403).json({
           error: "Aboneliğiniz askıya alınmıştır veya ödeme beklenmektedir. Lütfen aboneliğinizi yenileyiniz.",
           code: "SUBSCRIPTION_SUSPENDED",

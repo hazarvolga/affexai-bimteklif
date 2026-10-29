@@ -1,5 +1,5 @@
 import type { Express } from "express";
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, ne, sql } from "drizzle-orm";
 import { z } from "zod";
 import { tenantOf, withAppTenant } from "../../db/app-tenant";
 import { activities, clients, deals, quotations } from "../../db/schema";
@@ -278,8 +278,9 @@ export function registerClientRoutes(
         const [existing] = await tenantDb
           .select()
           .from(clients)
-          .where(and(eq(clients.id, clientId), eq(clients.companyId, req.user.companyId)));
+          .where(and(eq(clients.id, clientId), eq(clients.companyId, req.user.companyId))).for("update");
         if (!existing) return null;
+        if (existing.privacyStatus === "masked") throw new Error("CLIENT_PRIVACY_MASKED");
 
         const nextStage = input.pipelineStage ?? existing.pipelineStage;
         let nextNotes = input.notes !== undefined ? input.notes : existing.notes;
@@ -333,7 +334,8 @@ export function registerClientRoutes(
         return res.status(404).json({ error: "Müşteri bulunamadı." });
       }
       return res.json(updated);
-    } catch {
+    } catch (error) {
+      if (error instanceof Error && error.message === "CLIENT_PRIVACY_MASKED") return res.status(409).json({ error: "Maskelenmiş müşteri değiştirilemez." });
       return res.status(500).json({ error: "Müşteri güncellenemedi." });
     }
   };
@@ -362,8 +364,9 @@ export function registerClientRoutes(
         const [existing] = await tenantDb
           .select()
           .from(clients)
-          .where(and(eq(clients.id, clientId), eq(clients.companyId, req.user.companyId)));
+          .where(and(eq(clients.id, clientId), eq(clients.companyId, req.user.companyId))).for("update");
         if (!existing) return null;
+        if (existing.privacyStatus === "masked") throw new Error("CLIENT_PRIVACY_MASKED");
 
         const nextStage = updatePipelineStage ? stage : existing.pipelineStage;
         const nextNotes = capNotesLength(
@@ -398,7 +401,8 @@ export function registerClientRoutes(
         return res.status(404).json({ error: "Müşteri bulunamadı." });
       }
       return res.status(201).json(updated);
-    } catch {
+    } catch (error) {
+      if (error instanceof Error && error.message === "CLIENT_PRIVACY_MASKED") return res.status(409).json({ error: "Maskelenmiş müşteriye not eklenemez." });
       return res.status(500).json({ error: "Müşteri notu kaydedilemedi." });
     }
   });
@@ -421,6 +425,7 @@ export function registerClientRoutes(
         const byEmail = new Map<string, typeof existingClients[number]>();
         const byName = new Map<string, typeof existingClients[number]>();
         for (const c of existingClients) {
+          if (c.privacyStatus === "masked") continue;
           if (c.email) byEmail.set(c.email.trim().toLowerCase(), c);
           byName.set(c.name.trim().toLocaleLowerCase("tr-TR"), c);
         }
@@ -467,9 +472,10 @@ export function registerClientRoutes(
                 pipelineStage: item.pipelineStage || existing.pipelineStage,
                 notes: mergedNotes,
               })
-              .where(and(eq(clients.id, existing.id), eq(clients.companyId, req.user.companyId)))
+              .where(and(eq(clients.id, existing.id), eq(clients.companyId, req.user.companyId), ne(clients.privacyStatus, "masked")))
               .returning();
 
+            if (!updatedRow) { skippedCount += 1; continue; }
             if (updatedRow) {
               if (updatedRow.email) byEmail.set(updatedRow.email.trim().toLowerCase(), updatedRow);
               byName.set(updatedRow.name.trim().toLocaleLowerCase("tr-TR"), updatedRow);

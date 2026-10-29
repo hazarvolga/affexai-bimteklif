@@ -511,9 +511,13 @@ export const clients = pgTable("clients", {
   email: text("email"),
   address: text("address"),
   notes: text("notes"),
+  privacyStatus: text("privacy_status").default("active").notNull(),
+  privacyMaskedAt: timestamp("privacy_masked_at", { withTimezone: true }),
   pipelineStage: pipelineStageEnum("pipeline_stage").default("lead").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (table) => ({
+  privacyStatusCheck: check("clients_privacy_status_check", sql`${table.privacyStatus} in ('active', 'requested', 'hold', 'masked')`),
+  privacyMaskCheck: check("clients_privacy_mask_check", sql`${table.privacyStatus} <> 'masked' OR (${table.name} = 'Maskelenmiş müşteri' AND ${table.phone} IS NULL AND ${table.email} IS NULL AND ${table.address} IS NULL AND ${table.notes} IS NULL AND ${table.privacyMaskedAt} IS NOT NULL)`),
   appTenantPolicy: appTenantPolicy("clients", table.companyId),
   backupReadPolicy: backupReadPolicy("clients"),
   ownerMigrationPolicy: ownerMigrationPolicy("clients"),

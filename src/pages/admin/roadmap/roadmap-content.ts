@@ -185,8 +185,9 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
   },
   {
     id: "durum",
-    title: "Uygulama durumu (29 Ekim 2026 · Rev. 130 geliştirme kaydı)",
+    title: "Uygulama durumu (29 Ekim 2026 · Rev. 131 geliştirme kaydı)",
     blocks: [
+      { type: "callout", tone: "info", title: "Rev. 131 · Müşteri kimlik alanları", text: "Yetkili kullanıcı inceleme ve bekleme süreciyle müşteri ad, telefon, e-posta, adres ve not alanlarını maskeler; teklif tutarları korunur. Serbest metin, önceki PDF, yedek ve dış sistem kapsam dışıdır. Hukuki ve canlı kabul açık." },
       { type: "callout", tone: "info", title: "Rev. 130 · Tarama ve fiyat incelemesi", text: "Yeni veya değişen tarama ve dosya fiyatları inceleme bekler; önceki onaylı gözlem korunur. Eski otomatik onay seçeneği artık uygulanmaz. Gözlem hashleri satır bazında tutulur; süreli rastgele lease eski çalışanı sınırlar. CI, canlı ve uzman kabul açıktır." },
       { type: "callout", tone: "info", title: "Rev. 129 · Fiyat kaynaklarında bağımsız izin incelemesi", text: "Geçmiş kaynak hashleri kullanım izni sayılmaz; eski kayıtlar yeniden incelenene kadar yeni teklif seçiminden çıkarılır. Belge bağlantısı, kapsam, yetkili inceleyen ve açık teklif kullanım izni ayrı kaydedilir. Mevcut teklifler ve revizyonları korunur; belge varlığı hukuki geçerliliği veya fiyat doğruluğunu otomatik ispatlamaz. Crawler WIP, tam CI ve canlı kabul açıktır." },
       { type: "callout", tone: "info", title: "Rev. 128 · Teklif kayıt ve audit bütünlüğü", text: "Teklif oluşturma, revizyon ve düzenlemede iş verisi ile audit aynı tenant transaction içinde yürür; audit hatasında ilgili satır, kanıt ve kota değişiklikleri geri alınır. Düzenleme audit metadatasında kişisel içerik bulunmaz. Firma kimliği string olarak verilen eski revizyon servis çağrısı reddedilir; doğrulanmış aktör gerekir. Yerel testler canlı veya CI kabulü değildir; hesap formülleri değişmedi." },
@@ -262,6 +263,7 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
     id: "adimlar",
     title: "Sıradaki geliştirmeler ve kabul ölçütleri",
     blocks: [
+      { type: "p", text: "Rev. 131 sonrası: müşteri maskelemesi yalnız açıkça belirtilen kimlik alanlarıyla sınırlıdır; yedekler, serbest metinler, önceden indirilen PDF ve dış sistemler ayrıca incelenmelidir." },
       { type: "p", text: "Rev. 130 sonrası: crawler ve dosya içe aktarımı fiyat değişiklikleri yetkili kişinin incelemesini bekler; kaynak izni fiyat onayı değildir. Yeni gözlem kanıtı ve süreli lease testleri canlı veya uzman kabulü değildir." },
       { type: "p", text: "Rev. 129 sonrası: firma sahibi/yöneticisi veya süper admin, fiyat doğruluğu onayından ayrı izin incelemesi kaydeder; firma kaynak listesi arama ve sayfalama sunar, yetkisiz rollere belge bağlantısı ve inceleyen bilgisi gösterilmez. İzin iptalinde yeni seçim durur; tarihî teklifler korunur. İzin belgesi HTTP üzerinden otomatik indirilmez; belge ve kullanım hakkı bağımsız değerlendirme gerektirir. CI ve canlı dağıtım ayrıca doğrulanmalıdır." },
       { type: "p", text: "Rev. 128 sonrası: teklif oluşturma, revizyon ve düzenlemede audit artık aynı tenant transaction içindedir; Rev. 126 durum ve kalibrasyon sınırını kapsıyordu. Eski yalnız firma kimliğiyle revizyon servis çağrıları artık reddedilir ve çağıranlar doğrulanmış aktör sağlamalıdır. Fiyat crawler ayrı WIP ve geçmiş yetki kanıtı sorunu açıktır; GitHub CI ve canlı kabul ayrıca doğrulanmalıdır." },
@@ -319,17 +321,17 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
   },
   {
     id: "revizyon-gunlugu",
-    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 130 · 13–29 Ekim 2026)",
+    title: "Kronolojik revizyon ve mevzuat uyum günlüğü (Rev. 0 → Rev. 131 · 13–29 Ekim 2026)",
     blocks: [
       {
         type: "callout",
         tone: "info",
-        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 130)",
+        title: "Uzman mühendisler için kronolojik revizyon izlenebilirliği (Rev. 0 → Rev. 1 → ... → Rev. 131)",
         text: "Bu bölüm, BIMMetraj'ın teknik evrimini Rev. 0'dan 29 Ekim 2026 Rev. 130 · BIM-CALC-2026-10-29.12 geliştirme kaydına kadar kronolojik sırayla listeler; Git geçmişi ve canlı sürüm ayrı doğrulanır, bağımsız uzman onayı bu kayıtla verilmez. Rev. 91–100, marka.md ürün incelemesinden çıkan uzman önizlemesi, Faz 0 güven düzeltmeleri ve Faz 1 Excel önce / fiyat eksikliği / dışa aktarım dilimleridir; Rev. 101 ile tüm 0022..0029 migration'ları, D12 worker başlangıç düzeltmesi ve D13 canlı ifc-worker consumeIfcUsage kota tamamlama düzeltmesi canlı üretime (https://bimmetraj.com) dağıtılmıştır. Rev. 102 ile 4 katmanlı müteahhit Excel adaptörü, Rev. 103 ile /admin/pricing-sources otomatik tohumlama ve TÜİK SDMX 2.1 adaptörü, Rev. 104 ile 6 aşamalı güvenlik denetimi bulgularının ve derinlemesine sertleştirme adımlarının tamamı kapatılmıştır. Rev. 105 ile CalmIfcWorkspace 795 satıra ayrıştırılmış, Rev. 106 ile Müşteriler (/app/clients), Müşteriler & Fırsatlar (/app/crm), 6 aşamalı müşteri zaman tüneli (/app/clients/:id) ve 3 katmanlı Akıllı Müşteri Excel/CSV Adaptörü devreye alınmıştır. Rev. 90 ile T43 ≥%80 proje kapsam hedefi (%82,58) ve T56 nihai izlenebilirlik matrisi tamamlanarak dış girdi gerektirmeyen tüm teknik adımlar kapatılmıştır. Harici fixture lisansı, T45 izinli gerçek büyük müşteri dosyası/VPS post-deploy kanıtı, T50–T52 uzman/müşteri/canlı kabulü ve T55 hukuk incelemesi açık olduğundan Faz 7, Faz 9, Faz 10 ve Faz 11 dış kabuller tamamlanana dek PARTIAL kalır.",
       },
       {
         type: "p",
-        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 130):",
+        text: "Tablo 1 — Kronolojik Ana Sürüm Yolculuğu (Rev. 0 → Rev. 131):",
       },
       {
         type: "table",
@@ -1122,11 +1124,14 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
             "BIM-CALC-2026-10-29.12 · temel 839844a; CI ve canlı kabul ayrıca doğrulanır",
             "Yeni tarama ve resmî dosya içe aktarma değerleri insan incelemesi bekler; önceki onaylı fiyat korunur. Kaynak içeriği gözlem bazında hashlenir; süreli rastgele lease eski taramayı sınırlar.",
           ],
+          [
+            "Rev. 131", "29 Ekim 2026 · Müşteri kimlik alanları maskelemesi", "BIM-CALC-2026-10-29.13 · temel 4e308a2; CI ve canlı kabul ayrı", "Firma sahibi/yöneticisi inceleme sonrası kimlik alanlarını maskeler, teklif tutarları korunur. Serbest metin, yedek ve dış sistemler ayrıca değerlendirilir.",
+          ],
         ],
       },
       {
         type: "p",
-        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 130 · Önceki Durum → Yeni Durum):",
+        text: "Tablo 2 — Revizyon Bazlı Detaylı Teknik Değişiklik Matrisi (Kronolojik: Rev. 1 → Rev. 131 · Önceki Durum → Yeni Durum):",
       },
       {
         type: "table",
@@ -2145,6 +2150,9 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
             "Eski hash bağımsız kullanım hakkı gibi değerlendirilebiliyor; otomatik onay ve süresiz tarama kilidiyle geçmiş fiyat kanıtı ve eşzamanlılık riskleri oluşabiliyordu.",
             "Tarama ve resmî dosya içe aktarımında yeni/değişen her fiyat bekler; onaylı önceki satır korunur. Eski otomatik onay seçeneği artık uygulanmaz. Her yeni gözlem içerik hash'i taşır. Rastgele süreli lease çakışan ve eski işlemleri sınırlar. Hukuki izin ve insanın fiyat değerlendirmesi ayrıdır; CI, canlı ve uzman kabulü ayrıca doğrulanır.",
             "drizzle-release/0036_crawler_lease_evidence.sql; src/server/crawler/crawl-claim.ts; priceSchedulerService.ts; src/server/routes/admin.ts; crawl-atomic.pgtest.ts; crawl-lease.pgtest.ts",
+          ],
+          [
+            "Rev. 131 · 29 Ekim 2026 (Müşteri kimlik alanları)", "Firma izolasyonu, bekleme ve maskeleme", "Müşteri veri etkisi yalnız önizleniyordu.", "Yetkili kullanıcı başvuru, bekleme ve geri alınamayan alan maskesiyle işlemi yönetir; işlem ve kişisel bilgi içermeyen audit birlikte kaydedilir. Müşteri ilişkili finansal geçmiş korunur. Serbest metinler, ayrı adaylar, önceki PDF, yedek ve dış servisler kapsam dışıdır; hukuki ve canlı kabul ayrıdır.", "drizzle-release/0037_client_privacy_mask.sql; src/server/clients/privacy.ts; src/server/routes/client-privacy.ts; src/components/clients/ClientPrivacyControl.tsx",
           ],
         ],
       },

@@ -48,6 +48,7 @@ import { registerRegulationRoutes } from "./routes/regulations";
 import { registerProfitRoutes } from "./routes/profit";
 import { registerAiRoutes } from "./routes/ai";
 import { registerClientRoutes } from "./routes/clients";
+import { registerClientPrivacyRoutes } from "./routes/client-privacy";
 import { registerQuotationRoutes } from "./routes/quotations";
 import { registerQuotationEditRoutes } from "./routes/quotation-edit";
 import { registerPilotRoutes } from "./routes/pilot";
@@ -190,6 +191,7 @@ export function createApiApp(options?: { configureRoutes?: (app: express.Express
   registerProfitRoutes(app, profitService, canMutate);
   registerAiRoutes(app, aiService, canMutate);
   registerClientRoutes(app, canMutate);
+  registerClientPrivacyRoutes(app);
   registerQuotationRoutes(app, canMutate);
   registerQuotationEditRoutes(app, canMutate);
   registerPilotRoutes(app);

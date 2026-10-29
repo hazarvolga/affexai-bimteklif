@@ -6,6 +6,7 @@ import type { CalcModule, DocBlock } from "./doc-types";
  * functions or checked against them (13 Oct 2026); reviewers recompute and sign below.
  */
 export const CALC_INTRO: DocBlock[] = [
+  { type: "callout", tone: "info", title: "Rev. 131 müşteri alanları", text: "Kimlik alanları maskelenirken teklif tutarları ve ilişkileri korunur. Serbest metin, önceki PDF, yedek ve dış sistemler kapsam dışıdır; hesap yöntemi değişmedi." },
   { type: "callout", tone: "info", title: "Rev. 119 firma hızlı düzenleme", text: "Firma planı, abonelik durumu ve bonus kotası kayıttan önce önizlenir; iptal kayıt yapmaz. Snapshot eskimiş olabilir; sunucu eşzamanlılık kilidi yoktur. Hesap formülleri değişmedi, canlı kabul ayrıca doğrulanır." },
   { type: "callout", tone: "warn", title: "Rev. 118 IFC bağlam koruması", text: "Çoklu IfcContext için güvenilir olmayan iterator geometrisi kullanılmaz; açık QTO ve ayrı eğri yolu korunur. Geometriye bağlı yüksek bulgu karma modelde tüm SmartCheck satırlarını bloke eder. İzole T44 ve sentetik nesne kopyası canlı, müşteri veya uzman kabulü değildir." },
   { type: "callout", tone: "info", title: "Rev. 117 firma iş akışları", text: "Panel en çok 1.000 teklif/10 sayfa gösterir; offset snapshot değildir. Para birimleri birleştirilmez. SmartCheck boş/hata/yarış durumları ayrılır. Demo kayıt engeli arayüzdedir. Fiyat hafızası poz ve birim ister; eksik API sorgusu 400 döner. Sentetik testler canlı ve bağımsız uzman kabulü değildir; hesap formülleri değişmedi." },

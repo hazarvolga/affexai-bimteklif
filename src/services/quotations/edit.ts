@@ -61,9 +61,9 @@ export async function editManualQuotation(actor: TenantContext, id: string, inpu
     if (quote.updatedAt.getTime() !== new Date(input.updatedAt).getTime()) {
       throw new QuotationIntegrityError(409, 'Teklif başka bir işlemle değişti. Kaydetmeden önce yeniden yükleyin.');
     }
-    const [client] = await tx.select({ id: clients.id }).from(clients)
+    const [client] = await tx.select({ id: clients.id, privacyStatus: clients.privacyStatus }).from(clients)
       .where(and(eq(clients.id, input.clientId), eq(clients.companyId, companyId))).for('share');
-    if (!client) throw new QuotationIntegrityError(400, 'Müşteri bu şirkette bulunamadı.');
+    if (!client || (client.privacyStatus === 'masked' && quote.clientId !== client.id)) throw new QuotationIntegrityError(400, 'Müşteri bu şirkette bulunamadı.');
     const { items, updatedAt: _version, ...fields } = input;
     const resolvedIndustryId = await resolveQuotationIndustryId(
       fields.industryId,
