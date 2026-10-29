@@ -18,7 +18,7 @@ import {
   usageRecords,
   users,
 } from "../../db/schema";
-import { and, desc, eq, sql, type SQL } from "drizzle-orm";
+import { and, desc, eq, inArray, sql, type SQL } from "drizzle-orm";
 import { z } from "zod";
 import {
   createPlanInput,
@@ -1359,106 +1359,117 @@ export function registerAdminRoutes(app: Express) {
     }
 
     try {
-      const pendingRows = await db
-        .select()
-        .from(priceFeedStaging)
-        .where(
-          parsed.data.sourceId
-            ? and(
-                eq(priceFeedStaging.status, "pending"),
-                eq(priceFeedStaging.sourceId, parsed.data.sourceId)
-              )
-            : eq(priceFeedStaging.status, "pending")
-        );
+      const result = await db.transaction(async tx => {
+        // Serialize these two review endpoints; other price writers have their
+        // own concurrency rules and do not participate in this advisory lock.
+        await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtextextended('bimmetraj:admin-price-review:v1', 0))`);
+        // Import also locks its source before editing staging. Keep that order
+        // to avoid deadlocks against a concurrent import or source deletion.
+        const lockedSources = await tx.select({ id: pricingDataSources.id }).from(pricingDataSources)
+          .where(parsed.data.sourceId ? eq(pricingDataSources.id, parsed.data.sourceId) : undefined)
+          .orderBy(pricingDataSources.id).for("update");
+        if (!lockedSources.length) return { success: true, processedCount: 0, skippedCount: 0 };
+        const pendingRows = await tx
+          .select()
+          .from(priceFeedStaging)
+          .where(and(eq(priceFeedStaging.status, "pending"), inArray(priceFeedStaging.sourceId, lockedSources.map(source => source.id))))
+          .for("update");
 
-      if (pendingRows.length === 0) {
-        return res.json({ success: true, processedCount: 0, skippedCount: 0 });
-      }
-
-      const now = new Date();
-      let processedCount = 0;
-      let skippedCount = 0;
-      const touchedSourceIds = new Set<string>();
-
-      for (const row of pendingRows) {
-        if (parsed.data.action === "approve" && !canApproveCrawlerPrice(row)) {
-          skippedCount++;
-          continue;
+        if (pendingRows.length === 0) {
+          return { success: true, processedCount: 0, skippedCount: 0 };
         }
 
-        if (parsed.data.action === "approve") {
-          await db
+        const now = new Date();
+        let processedCount = 0;
+        let skippedCount = 0;
+        const touchedSourceIds = new Set<string>();
+
+        for (const row of pendingRows) {
+          if (parsed.data.action === "approve" && !canApproveCrawlerPrice(row)) {
+            skippedCount++;
+            continue;
+          }
+
+          if (parsed.data.action === "approve") {
+            await tx
+              .update(priceFeedStaging)
+              .set({
+                status: "rejected",
+                notes: sql`COALESCE(${priceFeedStaging.notes}, '') || ' | Yeni onaylanan fiyat ile güncellendi'`,
+              })
+              .where(
+                and(
+                  eq(priceFeedStaging.sourceId, row.sourceId),
+                  eq(priceFeedStaging.itemCode, row.itemCode),
+                  eq(priceFeedStaging.status, "approved")
+                )
+              );
+          }
+
+          const [updated] = await tx
             .update(priceFeedStaging)
             .set({
-              status: "rejected",
-              notes: sql`COALESCE(${priceFeedStaging.notes}, '') || ' | Yeni onaylanan fiyat ile güncellendi'`,
+              status: parsed.data.action === "approve" ? "approved" : "rejected",
+              reviewedAt: now,
+              reviewedByUserId: req.user.userId,
+              notes: parsed.data.notes
+                ? `${row.notes || ""} | İnceleme: ${parsed.data.notes}`
+                : row.notes,
             })
-            .where(
-              and(
-                eq(priceFeedStaging.sourceId, row.sourceId),
-                eq(priceFeedStaging.itemCode, row.itemCode),
-                eq(priceFeedStaging.status, "approved")
-              )
-            );
+            .where(eq(priceFeedStaging.id, row.id))
+            .returning({ id: priceFeedStaging.id });
+
+          // Roll back the entire review, including any previous rejection,
+          // rather than claiming a change that was not persisted.
+          if (!updated) throw new Error("Price review row was not updated");
+
+          touchedSourceIds.add(row.sourceId);
+          processedCount++;
         }
 
-        await db
-          .update(priceFeedStaging)
-          .set({
-            status: parsed.data.action === "approve" ? "approved" : "rejected",
-            reviewedAt: now,
-            reviewedByUserId: req.user.userId,
-            notes: parsed.data.notes
-              ? `${row.notes || ""} | İnceleme: ${parsed.data.notes}`
-              : row.notes,
-          })
-          .where(eq(priceFeedStaging.id, row.id));
-
-        touchedSourceIds.add(row.sourceId);
-        processedCount++;
-      }
-
-      if (parsed.data.action === "approve" && touchedSourceIds.size > 0) {
-        const rollingEnd = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000);
-        for (const sourceId of touchedSourceIds) {
-          const evidenceHash = createHash("sha256")
-            .update(`bulk_review:${sourceId}:${req.user.userId}:${now.toISOString()}`)
-            .digest("hex");
-          await db
-            .update(pricingDataSources)
-            .set({
-              status: "active",
-              validityStart: sql`COALESCE(${pricingDataSources.validityStart}, ${now})`,
-              validityEnd: sql`COALESCE(${pricingDataSources.validityEnd}, ${rollingEnd})`,
-              authorizationStatus: "authorized",
-              authorizationScope: `superadmin_bulk_approved_staging:${sourceId}`,
-              authorizationEvidenceHash: sql`CASE WHEN ${pricingDataSources.authorizationEvidenceHash} ~ '^[0-9a-f]{64}$' THEN ${pricingDataSources.authorizationEvidenceHash} ELSE ${evidenceHash} END`,
-              authorizedAt: sql`COALESCE(${pricingDataSources.authorizedAt}, ${now})`,
-              updatedAt: now,
-            })
-            .where(eq(pricingDataSources.id, sourceId));
+        if (parsed.data.action === "approve" && touchedSourceIds.size > 0) {
+          const rollingEnd = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000);
+          for (const sourceId of touchedSourceIds) {
+            const evidenceHash = createHash("sha256")
+              .update(`bulk_review:${sourceId}:${req.user.userId}:${now.toISOString()}`)
+              .digest("hex");
+            await tx
+              .update(pricingDataSources)
+              .set({
+                status: "active",
+                validityStart: sql`COALESCE(${pricingDataSources.validityStart}, ${now})`,
+                validityEnd: sql`COALESCE(${pricingDataSources.validityEnd}, ${rollingEnd})`,
+                authorizationStatus: "authorized",
+                authorizationScope: `superadmin_bulk_approved_staging:${sourceId}`,
+                authorizationEvidenceHash: sql`CASE WHEN ${pricingDataSources.authorizationEvidenceHash} ~ '^[0-9a-f]{64}$' THEN ${pricingDataSources.authorizationEvidenceHash} ELSE ${evidenceHash} END`,
+                authorizedAt: sql`COALESCE(${pricingDataSources.authorizedAt}, ${now})`,
+                updatedAt: now,
+              })
+              .where(eq(pricingDataSources.id, sourceId));
+          }
         }
-      }
 
-      await db.insert(adminAuditLogs).values({
-        adminId: req.user.userId,
-        action: `price_feed_bulk_${parsed.data.action}`,
-        details: {
+        await tx.insert(adminAuditLogs).values({
+          adminId: req.user.userId,
+          action: `price_feed_bulk_${parsed.data.action}`,
+          details: {
+            processedCount,
+            skippedCount,
+            sourceId: parsed.data.sourceId ?? null,
+          },
+        });
+
+        return {
+          success: true,
           processedCount,
           skippedCount,
-          sourceId: parsed.data.sourceId ?? null,
-        },
+          message:
+            parsed.data.action === "approve"
+              ? `${processedCount} adet fiyat kaydı onaylandı ve canlı rayiç havuzuna aktarıldı.`
+              : `${processedCount} adet fiyat kaydı reddedildi.`,
+        };
       });
-
-      return res.json({
-        success: true,
-        processedCount,
-        skippedCount,
-        message:
-          parsed.data.action === "approve"
-            ? `${processedCount} adet fiyat kaydı onaylandı ve canlı rayiç havuzuna aktarıldı.`
-            : `${processedCount} adet fiyat kaydı reddedildi.`,
-      });
+      return res.json(result);
     } catch (error) {
       console.error("Admin bulk price review error:", error);
       return res.status(500).json({ error: "Toplu inceleme işlemi tamamlanamadı." });
@@ -1477,83 +1488,95 @@ export function registerAdminRoutes(app: Express) {
     }
 
     try {
-      const [existing] = await db
-        .select()
-        .from(priceFeedStaging)
-        .where(eq(priceFeedStaging.id, req.params.id));
+      const result = await db.transaction(async tx => {
+        await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtextextended('bimmetraj:admin-price-review:v1', 0))`);
+        const [candidate] = await tx.select({ sourceId: priceFeedStaging.sourceId }).from(priceFeedStaging)
+          .where(eq(priceFeedStaging.id, req.params.id));
+        if (!candidate) return { status: 404, body: { error: "İncelenecek fiyat kaydı bulunamadı." } };
+        const [source] = await tx.select({ id: pricingDataSources.id }).from(pricingDataSources)
+          .where(eq(pricingDataSources.id, candidate.sourceId)).for("update");
+        if (!source) return { status: 404, body: { error: "İncelenecek fiyat kaydı bulunamadı." } };
+        const [existing] = await tx
+          .select()
+          .from(priceFeedStaging)
+          .where(eq(priceFeedStaging.id, req.params.id)).for("update");
 
-      if (!existing) {
-        return res.status(404).json({ error: "İncelenecek fiyat kaydı bulunamadı." });
-      }
+        if (!existing) {
+          return { status: 404, body: { error: "İncelenecek fiyat kaydı bulunamadı." } };
+        }
 
-      if (parsed.data.action === "approve" && !canApproveCrawlerPrice(existing)) {
-        return res.status(409).json({ code: "PRICE_SOURCE_EVIDENCE_REQUIRED", error: "Bu kaydın canlı kaynak kanıtı yok. Kaynağı yeniden tarayın; eski örnek fiyatlar onaylanamaz." });
-      }
+        if (parsed.data.action === "approve" && !canApproveCrawlerPrice(existing)) {
+          return { status: 409, body: { code: "PRICE_SOURCE_EVIDENCE_REQUIRED", error: "Bu kaydın canlı kaynak kanıtı yok. Kaynağı yeniden tarayın; eski örnek fiyatlar onaylanamaz." } };
+        }
 
-      const now = new Date();
-      const newStatus = parsed.data.action === "approve" ? "approved" : "rejected";
+        const now = new Date();
+        const newStatus = parsed.data.action === "approve" ? "approved" : "rejected";
 
-      if (newStatus === "approved") {
-        await db
+        if (newStatus === "approved") {
+          await tx
+            .update(priceFeedStaging)
+            .set({
+              status: "rejected",
+              notes: sql`COALESCE(${priceFeedStaging.notes}, '') || ' | Yeni onaylanan fiyat ile güncellendi'`,
+            })
+            .where(
+              and(
+                eq(priceFeedStaging.sourceId, existing.sourceId),
+                eq(priceFeedStaging.itemCode, existing.itemCode),
+                eq(priceFeedStaging.status, "approved")
+              )
+            );
+        }
+
+        const [updated] = await tx
           .update(priceFeedStaging)
           .set({
-            status: "rejected",
-            notes: sql`COALESCE(${priceFeedStaging.notes}, '') || ' | Yeni onaylanan fiyat ile güncellendi'`,
+            status: newStatus,
+            reviewedAt: now,
+            reviewedByUserId: req.user.userId,
+            notes: parsed.data.notes ? `${existing.notes || ""} | İnceleme: ${parsed.data.notes}` : existing.notes,
           })
-          .where(
-            and(
-              eq(priceFeedStaging.sourceId, existing.sourceId),
-              eq(priceFeedStaging.itemCode, existing.itemCode),
-              eq(priceFeedStaging.status, "approved")
-            )
-          );
-      }
+          .where(eq(priceFeedStaging.id, req.params.id))
+          .returning();
 
-      const [updated] = await db
-        .update(priceFeedStaging)
-        .set({
-          status: newStatus,
-          reviewedAt: now,
-          reviewedByUserId: req.user.userId,
-          notes: parsed.data.notes ? `${existing.notes || ""} | İnceleme: ${parsed.data.notes}` : existing.notes,
-        })
-        .where(eq(priceFeedStaging.id, req.params.id))
-        .returning();
+        if (!updated) throw new Error("Price review row was not updated");
 
-      if (newStatus === "approved") {
-        const rollingEnd = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000);
-        const evidenceHash = createHash("sha256")
-          .update(`single_review:${existing.sourceId}:${existing.id}:${req.user.userId}:${now.toISOString()}`)
-          .digest("hex");
-        await db
-          .update(pricingDataSources)
-          .set({
-            status: "active",
-            validityStart: sql`COALESCE(${pricingDataSources.validityStart}, ${now})`,
-            validityEnd: sql`COALESCE(${pricingDataSources.validityEnd}, ${rollingEnd})`,
-            authorizationStatus: "authorized",
-            authorizationScope: `superadmin_approved_staging:${existing.sourceId}`,
-            authorizationEvidenceHash: sql`CASE WHEN ${pricingDataSources.authorizationEvidenceHash} ~ '^[0-9a-f]{64}$' THEN ${pricingDataSources.authorizationEvidenceHash} ELSE ${evidenceHash} END`,
-            authorizedAt: sql`COALESCE(${pricingDataSources.authorizedAt}, ${now})`,
-            updatedAt: now,
-          })
-          .where(eq(pricingDataSources.id, existing.sourceId));
-      }
+        if (newStatus === "approved") {
+          const rollingEnd = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000);
+          const evidenceHash = createHash("sha256")
+            .update(`single_review:${existing.sourceId}:${existing.id}:${req.user.userId}:${now.toISOString()}`)
+            .digest("hex");
+          await tx
+            .update(pricingDataSources)
+            .set({
+              status: "active",
+              validityStart: sql`COALESCE(${pricingDataSources.validityStart}, ${now})`,
+              validityEnd: sql`COALESCE(${pricingDataSources.validityEnd}, ${rollingEnd})`,
+              authorizationStatus: "authorized",
+              authorizationScope: `superadmin_approved_staging:${existing.sourceId}`,
+              authorizationEvidenceHash: sql`CASE WHEN ${pricingDataSources.authorizationEvidenceHash} ~ '^[0-9a-f]{64}$' THEN ${pricingDataSources.authorizationEvidenceHash} ELSE ${evidenceHash} END`,
+              authorizedAt: sql`COALESCE(${pricingDataSources.authorizedAt}, ${now})`,
+              updatedAt: now,
+            })
+            .where(eq(pricingDataSources.id, existing.sourceId));
+        }
 
-      // Log review action
-      await db.insert(adminAuditLogs).values({
-        adminId: req.user.userId,
-        action: `price_feed_${parsed.data.action}`,
-        details: {
-          stagingId: existing.id,
-          itemCode: existing.itemCode,
-          oldPrice: existing.currentPrice,
-          newPrice: existing.crawledPrice,
-          action: parsed.data.action,
-        },
+        // Log review action
+        await tx.insert(adminAuditLogs).values({
+          adminId: req.user.userId,
+          action: `price_feed_${parsed.data.action}`,
+          details: {
+            stagingId: existing.id,
+            itemCode: existing.itemCode,
+            oldPrice: existing.currentPrice,
+            newPrice: existing.crawledPrice,
+            action: parsed.data.action,
+          },
+        });
+
+        return { status: 200, body: { success: true, item: updated } };
       });
-
-      return res.json({ success: true, item: updated });
+      return res.status(result.status).json(result.body);
     } catch (error) {
       console.error("Admin price review error:", error);
       return res.status(500).json({ error: "Fiyat inceleme işlemi kaydedilemedi." });
