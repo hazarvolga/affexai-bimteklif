@@ -24,10 +24,15 @@ test('crawler leases fence stale owners and safely recover expired claims', { ti
   await client.query("UPDATE pricing_data_sources SET status='stale' WHERE id=$1",[id]);
   const actor=randomUUID(),official=randomUUID();await client.query("INSERT INTO users(id,email,full_name,email_verified,is_super_admin) VALUES ($1,$2,'Admin',now(),true)",[actor,`${actor}@example.test`]);
   await client.query("INSERT INTO pricing_data_sources(id,code,name,category,status,crawl_lease_token,crawl_lease_until) VALUES ($1,$2,'Official','official_gazette','syncing',$3,now()-interval '1 minute')",[official,`official_${official}`,randomUUID()]);
+  const {priceCrawlerService}=await import('./priceCrawlerService');
+  const originalCrawl=priceCrawlerService.crawlSource;
+  // This test exercises official-source lease recovery only. Never access a
+  // real network even if a previous CI step left another active fixture.
+  priceCrawlerService.crawlSource=async source => { throw new Error(`Unexpected network crawl for ${source.code}`); };
   try { const {PriceSchedulerService}=await import('./priceSchedulerService');await new PriceSchedulerService().runSequentialBatch('manual_admin',actor);const state=(await client.query('SELECT status,crawl_lease_token FROM pricing_data_sources WHERE id=$1',[official])).rows[0];assert.equal(state.status,'active');assert.equal(state.crawl_lease_token,null);
   const busy=randomUUID();await client.query("INSERT INTO pricing_data_sources(id,code,name,category,status,crawl_lease_token,crawl_lease_until) VALUES ($1,$2,'Busy','official_gazette','syncing',$3,now()-interval '1 minute')",[busy,`official_busy_${busy}`,randomUUID()]);
   await client.query("CREATE FUNCTION public.suppress_busy_crawl_fixture() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF OLD.code LIKE 'official_busy_%' AND NEW.status='syncing' THEN RETURN NULL; END IF; RETURN NEW; END $$");await client.query('CREATE TRIGGER suppress_busy_crawl_fixture BEFORE UPDATE ON public.pricing_data_sources FOR EACH ROW EXECUTE FUNCTION public.suppress_busy_crawl_fixture()');
   try {const summary=await new PriceSchedulerService().runSequentialBatch('manual_admin',actor);const busyResult=summary.results.find(item=>item.sourceCode===`official_busy_${busy}`);assert.equal(busyResult?.status,'error');assert.match(busyResult?.error??'',/CRAWLER_SOURCE_ALREADY_CLAIMED/);} finally {await client.query('DROP TRIGGER suppress_busy_crawl_fixture ON public.pricing_data_sources');await client.query('DROP FUNCTION public.suppress_busy_crawl_fixture()');await client.query('DELETE FROM pricing_data_sources WHERE id=$1',[busy]);}
- } finally {await client.query('DELETE FROM admin_audit_logs WHERE admin_id=$1',[actor]);await client.query('DELETE FROM pricing_data_sources WHERE id=$1',[official]);await client.query('DELETE FROM users WHERE id=$1',[actor]);}
+ } finally {priceCrawlerService.crawlSource=originalCrawl;await client.query('DELETE FROM admin_audit_logs WHERE admin_id=$1',[actor]);await client.query('DELETE FROM pricing_data_sources WHERE id=$1',[official]);await client.query('DELETE FROM users WHERE id=$1',[actor]);}
  } finally {await client.query('DELETE FROM pricing_data_sources WHERE id=$1',[id]);await pool.end();await client.end();}
 });

@@ -49,7 +49,7 @@ test('manual and scheduled crawls roll back staging when audit fails under produ
     assert.equal((await client.query("SELECT status FROM pricing_data_sources WHERE id=$1",[sourceId])).rows[0].status,'active');
     priceCrawlerService.crawlSource = successfulCrawl;
     const result = await new PriceSchedulerService().runSequentialBatch('manual_admin',actor);
-    assert.equal(result.failedSources,1);
+    assert.equal(result.results.find(item=>item.sourceCode===`crawl_${sourceId}`)?.status,'error');
     assert.equal((await client.query("SELECT status FROM pricing_data_sources WHERE id=$1",[sourceId])).rows[0].status,'active');
     rows = await client.query('SELECT id,status,crawled_price FROM price_feed_staging WHERE source_id=$1',[sourceId]);
     assert.deepEqual(rows.rows.map(row=>[row.id,row.status,row.crawled_price]),[[old,'approved','100.00']]);
@@ -73,19 +73,24 @@ test('manual and scheduled crawls roll back staging when audit fails under produ
     const created=await quote.json() as {id:string}; const quoteRows=await client.query('SELECT source_reference FROM quotation_items WHERE quotation_id=$1',[created.id]); const evidence=JSON.parse(quoteRows.rows[0].source_reference); assert.equal(evidence.permissionReview.status,'verified'); assert.equal(new Date(evidence.validityEnd).getTime(),proof.rows[0].validity_end.getTime());
     let unblock!:()=>void; let entered!:()=>void; const waiting=new Promise<void>(resolve=>unblock=resolve), started=new Promise<void>(resolve=>entered=resolve);
     const realCrawl=priceCrawlerService.crawlSource; priceCrawlerService.crawlSource=async (...args)=>{entered();await waiting;return realCrawl(...args)};
-    const staleSync=fetch(`http://127.0.0.1:${(server.address() as {port:number}).port}/api/admin/pricing-sources/${sourceId}/sync`,{method:'POST',headers:{authorization:`Bearer ${token}`}}); await started;
-    await client.query("UPDATE pricing_data_sources SET crawl_lease_until=now()-interval '1 second' WHERE id=$1",[sourceId]);
-    const {claimCrawlSource,releaseCrawlSource}=await import('./crawl-claim');const replacement=await claimCrawlSource(sourceId);assert.ok(replacement);unblock();const staleResponse=await staleSync;assert.equal(staleResponse.status,500);
+    const staleSync=fetch(`http://127.0.0.1:${(server.address() as {port:number}).port}/api/admin/pricing-sources/${sourceId}/sync`,{method:'POST',headers:{authorization:`Bearer ${token}`},signal:AbortSignal.timeout(10_000)});
+    let replacement: string | null = null;
+    const {claimCrawlSource,releaseCrawlSource}=await import('./crawl-claim');
+    try { await Promise.race([started,staleSync.then(response=>{throw new Error(`Crawler did not start; HTTP ${response.status}`);})]); await client.query("UPDATE pricing_data_sources SET crawl_lease_until=now()-interval '1 second' WHERE id=$1",[sourceId]); replacement=await claimCrawlSource(sourceId);assert.ok(replacement); } finally { unblock(); }
+    const staleResponse=await staleSync;assert.equal(staleResponse.status,500);
     const lease=(await client.query('SELECT status,crawl_lease_token FROM pricing_data_sources WHERE id=$1',[sourceId])).rows[0];assert.equal(lease.status,'syncing');assert.equal(lease.crawl_lease_token,replacement);await releaseCrawlSource(sourceId,replacement);
     const finalRows=await client.query('SELECT status,content_hash FROM price_feed_staging WHERE source_id=$1',[sourceId]);assert.equal(finalRows.rows.find(r=>r.status==='pending')?.content_hash,'b'.repeat(64));
     for (const changedField of ['version','permission'] as const) {
       await client.query("UPDATE pricing_data_sources SET review_status='verified',review_evidence_reference='https://example.test/permission',review_scope='Teklif kullanimi',review_allows_quotations=true,reviewed_by_user_id=$2,reviewed_at=now() WHERE id=$1",[sourceId,actor]);
       let release!:()=>void;let begun!:()=>void;const gate=new Promise<void>(r=>release=r), begin=new Promise<void>(r=>begun=r);
       priceCrawlerService.crawlSource=async (...args)=>{begun();await gate;return realCrawl(...args)};
-      const inFlight=fetch(`http://127.0.0.1:${(server.address() as {port:number}).port}/api/admin/pricing-sources/${sourceId}/sync`,{method:'POST',headers:{authorization:`Bearer ${token}`}});await begin;
-      if(changedField==='version') await client.query("UPDATE pricing_data_sources SET version_tag='changed-version' WHERE id=$1",[sourceId]);
-      else await client.query("UPDATE pricing_data_sources SET review_status='revoked' WHERE id=$1",[sourceId]);
-      release();assert.equal((await inFlight).status,500,`${changedField} change rejects in-flight result`);
+      const inFlight=fetch(`http://127.0.0.1:${(server.address() as {port:number}).port}/api/admin/pricing-sources/${sourceId}/sync`,{method:'POST',headers:{authorization:`Bearer ${token}`},signal:AbortSignal.timeout(10_000)});
+      try {
+        await Promise.race([begin,inFlight.then(response=>{throw new Error(`Crawler did not start; HTTP ${response.status}`);})]);
+        if(changedField==='version') await client.query("UPDATE pricing_data_sources SET version_tag='changed-version' WHERE id=$1",[sourceId]);
+        else await client.query("UPDATE pricing_data_sources SET review_status='revoked' WHERE id=$1",[sourceId]);
+      } finally { release(); }
+      assert.equal((await inFlight).status,500,`${changedField} change rejects in-flight result`);
       const retained=await client.query('SELECT status,content_hash FROM price_feed_staging WHERE source_id=$1',[sourceId]);assert.equal(retained.rows.find(r=>r.status==='pending')?.content_hash,'b'.repeat(64));assert.equal(retained.rows.find(r=>r.status==='approved')?.status,'approved');
     }
     await client.query("UPDATE pricing_data_sources SET review_status='verified',review_evidence_reference='https://example.test/permission',review_scope='Teklif kullanimi',review_allows_quotations=true,reviewed_by_user_id=$2,reviewed_at=now() WHERE id=$1",[sourceId,actor]);

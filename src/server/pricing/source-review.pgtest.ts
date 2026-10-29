@@ -299,6 +299,10 @@ test('permission reviews enforce roles, tenants and atomic audit on restricted d
     await client.query('COMMIT'); assert.equal(await globalRace,'denied');
 
   } finally {
+    // This fixture shares the disposable CI database with the later scheduler
+    // tests. Retain its append-only review history, but do not leave its fake
+    // example.test source eligible for a subsequent crawler batch.
+    await client.query("UPDATE pricing_data_sources SET status='stale' WHERE id=$1", [globalSource]);
     await client.query('DROP TRIGGER IF EXISTS reject_snapshot_review_audit_test ON public.smartcheck_audit_logs'); await client.query('DROP FUNCTION IF EXISTS public.reject_snapshot_review_audit_test()');
     await client.query('DROP TRIGGER IF EXISTS reject_global_source_review_audit_test ON public.admin_audit_logs'); await client.query('DROP FUNCTION IF EXISTS public.reject_global_source_review_audit_test()');
     await client.query('DROP TRIGGER IF EXISTS reject_source_review_audit_test ON public.smartcheck_audit_logs'); await client.query('DROP FUNCTION IF EXISTS public.reject_source_review_audit_test()');
