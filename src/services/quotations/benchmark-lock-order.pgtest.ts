@@ -33,10 +33,15 @@ test('quotation provenance and source-first price updates do not deadlock and re
     await writer.query("INSERT INTO pricing_data_sources(id,code,name,category,status,currency,validity_start,validity_end,authorization_status,authorization_evidence_hash,authorized_at) VALUES ($1,$2,'Other','market_commodity','active','TRY',now()-interval '1 day',now()+interval '1 day','authorized',$3,now())", [otherSource, otherSource, 'a'.repeat(64)]);
     await writer.query("INSERT INTO price_feed_staging(id,source_id,item_code,item_name,unit,crawled_price,status,reviewed_at,reviewed_by_user_id) VALUES ($1,$2,'A','Before','m',100,'approved',now(),$3)", [row, source, user]);
     const input = manualQuotationInput.parse({ clientId: client, quoteNumber:'LOCK', projectName:'Fixture', date:'2026-01-01', expiryDate:'2026-12-31', items:[{description:'A',unit:'m',quantity:1,unitPrice:100,benchmarkStagingId:row}] });
+    // Legacy authorization hashes are not independent usage reviews.
+    await assert.rejects(() => db.transaction(tx => resolveBenchmarkProvenance(tx, input.items, 'TRY')), (error: any) => error?.status === 409);
+    await writer.query(`UPDATE pricing_data_sources SET review_status='verified', review_evidence_reference='https://example.test/permission', review_scope='quotation use', review_allows_quotations=true, reviewed_by_user_id=$3, reviewed_at=now() WHERE id IN ($1,$2)`, [source, otherSource, user]);
     assert.equal((await writer.query("SELECT pg_get_userbyid(relowner) owner FROM pg_class WHERE oid='public.price_feed_staging'::regclass")).rows[0].owner, 'bimmetraj_owner');
     await writer.query('SET ROLE bimmetraj_app');
     await writer.query('BEGIN');
-    await writer.query('UPDATE pricing_data_sources SET name=$2 WHERE id=$1', [source, 'After']);
+    // Lock a non-identity field: changing the name legitimately invalidates
+    // the independent source review under migration 0035.
+    await writer.query('UPDATE pricing_data_sources SET updated_at=now() WHERE id=$1', [source]);
     const quote = db.transaction(tx => resolveBenchmarkProvenance(tx, input.items, 'TRY'));
     // Wait until quote has reached a blocked row lock. Under the old ordering it
     // already holds staging FOR SHARE, causing the writer's next UPDATE to deadlock.
@@ -58,7 +63,7 @@ test('quotation provenance and source-first price updates do not deadlock and re
 
     // A source reassignment after discovery must not be trusted as evidence.
     await writer.query('BEGIN');
-    await writer.query('UPDATE pricing_data_sources SET name=$2 WHERE id=$1', [source, 'Locked']);
+    await writer.query('UPDATE pricing_data_sources SET updated_at=now() WHERE id=$1', [source]);
     const reassigned = db.transaction(tx => resolveBenchmarkProvenance(tx, input.items, 'TRY'));
     const observed = reassigned.then(() => null, error => error);
     waiting = false;
@@ -76,7 +81,7 @@ test('quotation provenance and source-first price updates do not deadlock and re
     // The same guarantee applies if the selected staging row disappears.
     await writer.query('UPDATE price_feed_staging SET source_id=$2 WHERE id=$1', [row, source]);
     await writer.query('BEGIN');
-    await writer.query('UPDATE pricing_data_sources SET name=$2 WHERE id=$1', [source, 'Locked again']);
+    await writer.query('UPDATE pricing_data_sources SET updated_at=now() WHERE id=$1', [source]);
     const deleted = db.transaction(tx => resolveBenchmarkProvenance(tx, input.items, 'TRY'));
     const deletedResult = deleted.then(() => null, error => error);
     waiting = false;
