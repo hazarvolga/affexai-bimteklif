@@ -164,7 +164,20 @@ test("tenant business tables enforce FORCE RLS, pool-safe tenant context and CRM
       from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relname=any($1::text[]) order by c.relname`, [allProtectedTables]);
     assert.equal(states.rowCount, allProtectedTables.length);
     for (const state of states.rows) assert.deepEqual(state, { relname: state.relname, rls: true, force_rls: true, owner: "bimmetraj_owner" });
-    // Verify 72/72 company-scoped tables in public are classified (67 FORCE RLS + 5 S5 exact-ACL tables).
+    // The price-review invalidation audit is append-only and has its own
+    // SELECT / trigger / backup policies, not the generic business-table CRUD matrix.
+    const appendOnlyTenantAudit = "tenant_price_source_review_invalidations";
+    const auditState = await admin.query<{ rls: boolean; force_rls: boolean; owner: string }>(`select c.relrowsecurity rls, c.relforcerowsecurity force_rls, pg_get_userbyid(c.relowner) owner
+      from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relname=$1`, [appendOnlyTenantAudit]);
+    assert.deepEqual(auditState.rows, [{ rls: true, force_rls: true, owner: "bimmetraj_owner" }]);
+    const auditPolicies = await admin.query<{ policyname: string }>("select policyname from pg_policies where schemaname='public' and tablename=$1 order by policyname", [appendOnlyTenantAudit]);
+    assert.deepEqual(auditPolicies.rows.map((row) => row.policyname), [
+      "tenant_price_source_review_invalidations_app_tenant_read",
+      "tenant_price_source_review_invalidations_backup_read",
+      "tenant_price_source_review_invalidations_owner_migration",
+      "tenant_price_source_review_invalidations_owner_trigger_insert",
+    ]);
+    // Classify all 73 company-scoped tables: 68 FORCE RLS + 5 S5 exact-ACL tables.
     const allRlsCompanyTables = new Set<string>([
       ...DATABASE_CDE_RLS_TABLES,
       ...DATABASE_PROGRESS_PAYMENT_RLS_TABLES,
@@ -173,14 +186,15 @@ test("tenant business tables enforce FORCE RLS, pool-safe tenant context and CRM
       ...DATABASE_COMPANY_INDUSTRY_RLS_TABLES.filter((table) => table !== "industries"),
       ...DATABASE_CRM_LEAD_RLS_TABLES.filter((table) => table !== "companies"),
       ...allProtectedTables,
+      appendOnlyTenantAudit,
     ]);
-    assert.equal(allRlsCompanyTables.size, 67);
+    assert.equal(allRlsCompanyTables.size, 68);
     assert.equal(DATABASE_AUTHORITY_AUDIT_COMPANY_TABLES.length, 5);
     const catalogCompanyTables = (await admin.query<{ table_name: string }>(`select distinct table_name
       from information_schema.columns
       where table_schema='public' and column_name in ('company_id', 'target_company_id', 'provisioned_company_id')
       order by table_name`)).rows.map((row) => row.table_name);
-    assert.equal(catalogCompanyTables.length, 72);
+    assert.equal(catalogCompanyTables.length, 73);
     assert.deepEqual(
       catalogCompanyTables,
       [...allRlsCompanyTables, ...DATABASE_AUTHORITY_AUDIT_COMPANY_TABLES].sort(),
@@ -197,6 +211,9 @@ test("tenant business tables enforce FORCE RLS, pool-safe tenant context and CRM
       await admin.query(rowSql[table], rowParams(table, ids.companyA, `seed-a-${table}`));
       await admin.query(rowSql[table], rowParams(table, ids.companyB, `seed-b-${table}`));
     }
+    await admin.query(`insert into tenant_price_source_review_invalidations(company_id, source_id, reason)
+      values ($1, gen_random_uuid(), 'source_identity_or_authorization_changed'),
+             ($2, gen_random_uuid(), 'source_identity_or_authorization_changed')`, [ids.companyA, ids.companyB]);
     await admin.query("commit");
 
     const app = new pg.Pool({ connectionString: urlFor(control, databaseName, "bimmetraj_app", credentials.bimmetraj_app), max: 6 });
@@ -205,6 +222,18 @@ test("tenant business tables enforce FORCE RLS, pool-safe tenant context and CRM
     const worker = new pg.Pool({ connectionString: urlFor(control, databaseName, "bimmetraj_worker", credentials.bimmetraj_worker), max: 1 });
     const backup = new pg.Pool({ connectionString: urlFor(control, databaseName, "bimmetraj_backup", credentials.bimmetraj_backup), max: 1 });
     pools.push(app, singleApp, controlPlane, worker, backup);
+    // The append-only price review audit uses a distinct read-only app policy.
+    assert.equal((await app.query(`select count(*)::int count from ${quote(appendOnlyTenantAudit)}`)).rows[0].count, 0);
+    for (const actor of [actorA, actorB]) {
+      const rows = await withTenantTransaction(app, actor, client => client.query<{ company_id: string }>(
+        `select company_id::text company_id from ${quote(appendOnlyTenantAudit)}`));
+      assert.deepEqual(rows.rows.map(row => row.company_id), [actor.companyId]);
+      await denied(() => withTenantTransaction(app, actor, client => client.query(
+        `insert into ${quote(appendOnlyTenantAudit)} (company_id, source_id, reason) values ($1, gen_random_uuid(), 'source_identity_or_authorization_changed')`, [actor.companyId])));
+      await denied(() => withTenantTransaction(app, actor, client => client.query(`update ${quote(appendOnlyTenantAudit)} set reason=reason`)));
+      await denied(() => withTenantTransaction(app, actor, client => client.query(`delete from ${quote(appendOnlyTenantAudit)}`)));
+    }
+    assert.equal((await admin.query(`select count(*)::int count from ${quote(appendOnlyTenantAudit)}`)).rows[0].count, 2);
     // Revocation entries are append-only for the runtime roles. Cleanup is a bounded
     // SECURITY DEFINER operation that retains an extra seven days for clock skew.
     await denied(() => app.query('select token_hash from public.revoked_sessions'));
