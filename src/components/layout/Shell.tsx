@@ -80,7 +80,7 @@ export function Shell() {
   const isLearner = ACADEMY_ENABLED && accountType === 'academy_learner';
   const [verificationSent, setVerificationSent] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
-  const [activePlanName, setActivePlanName] = useState<string | null>(null);
+  const [planState, setPlanState] = useState<{ companyId: string; status: 'loading' | 'unavailable' | 'error' | 'ready'; name?: string } | null>(null);
 
   const isSuperAdmin = Boolean(user?.isSuperAdmin);
   const isExpertReviewer = Boolean(user?.isExpertReviewer || user?.isSuperAdmin);
@@ -90,21 +90,36 @@ export function Shell() {
 
   useEffect(() => {
     if (isSuperAdmin || isLearner || !company?.id) return;
+    const companyId = company.id;
     let cancelled = false;
+    setPlanState({ companyId, status: 'loading' });
     Promise.resolve()
       .then(() => fetchWithAuth('/api/billing/usage-stats'))
       .then(async (res) => {
-        if (cancelled || !res?.ok) return;
-        const body = await res.json();
-        if (!cancelled && typeof body?.plan === 'string' && body.plan !== 'unavailable') {
-          setActivePlanName(body.plan);
+        if (cancelled) return;
+        if (!res?.ok) {
+          setPlanState({ companyId, status: 'error' });
+          return;
         }
+        const body = await res.json();
+        if (cancelled) return;
+        const name = typeof body?.plan === 'string' ? body.plan.trim() : '';
+        setPlanState(name && name !== 'unavailable'
+          ? { companyId, status: 'ready', name }
+          : { companyId, status: 'unavailable' });
       })
-      .catch(() => undefined);
+      .catch(() => { if (!cancelled) setPlanState({ companyId, status: 'error' }); });
     return () => {
       cancelled = true;
     };
   }, [company?.id, isSuperAdmin, isLearner, location.pathname]);
+
+  // State from a previous workspace must never be shown while the new one loads.
+  const planLabel = !company?.id ? 'Paket bilgisi bulunmuyor'
+    : !planState || planState.companyId !== company.id || planState.status === 'loading' ? 'Paket bilgisi yükleniyor'
+      : planState.status === 'error' ? 'Paket bilgisi alınamadı'
+        : planState.status === 'unavailable' ? 'Paket bilgisi bulunmuyor'
+          : planState.name;
 
   const filteredNavItems = navigationConfig.filter(item => {
     if (item.path === '/app/uzman-onizleme') {
@@ -146,8 +161,8 @@ export function Shell() {
         </div>
         {!isLearner && !isSuperAdmin && (
           <div className="border-t border-border pt-2 flex items-center justify-between gap-2">
-            <span className="inline-block truncate border border-primary/40 bg-primary/10 px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider text-primary">
-              {activePlanName || '14 Günlük Deneme'}
+            <span role="status" className="min-w-0 break-words border border-primary/40 bg-primary/10 px-2 py-1 font-mono text-xs font-semibold uppercase text-primary">
+              {planLabel}
             </span>
             <Link
               to="/app/billing"
@@ -208,7 +223,7 @@ export function Shell() {
       </Sheet>
 
       {/* Main Content */}
-      <main id="main-content" tabIndex={-1} className="flex-1 flex flex-col min-w-0 outline-none bg-background">
+      <main className="flex-1 flex flex-col min-w-0 outline-none bg-background">
         {user?.impersonatedBy && (
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-primary bg-primary/10 px-6 py-2 text-xs text-foreground">
             <div className="flex items-center gap-2 font-medium">

@@ -3,8 +3,8 @@
  * Copyright (c) 2026 BIMMetraj ve BIMPlan Academy. Tüm hakları saklıdır. Bkz. LICENSE.
  */
 
-import { lazy, Suspense, type ComponentType } from 'react';
-import { BrowserRouter as Router, Routes, Route, useNavigate, Navigate } from 'react-router-dom';
+import { lazy, Suspense, useEffect, type ComponentType } from 'react';
+import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { AuthProvider } from '@/hooks/useAuth';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { Toaster } from '@/components/ui/sonner';
@@ -13,6 +13,7 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { NotFound } from '@/pages/NotFound';
 
 import { ACADEMY_ENABLED } from '@/config/features';
+import { protectedRouteTitle } from '@/lib/protected-route-title';
 const page = <T extends Record<string, unknown>>(loader: () => Promise<T>, name: keyof T) =>
   lazy(async () => {
     try {
@@ -104,6 +105,17 @@ const ProgressPayments = page(() => import('@/pages/ProgressPayments'), 'Progres
 
 function AppRoutes() {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+  useEffect(() => {
+    const title = protectedRouteTitle(pathname);
+    if (!title) return;
+    document.title = title;
+    return () => {
+      // Clear the previous protected page while public metadata loads; do not
+      // overwrite a title another component has already supplied.
+      if (document.title === title) document.title = 'BIMMetraj';
+    };
+  }, [pathname]);
 
   return (
     <SmartCheckDemoProvider>

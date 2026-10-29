@@ -217,6 +217,8 @@ jobs:
       - run: pnpm exec tsx scripts/logout-ui-smoke.ts
       - run: pnpm exec tsx scripts/mfa-ui-smoke.ts
       - run: pnpm exec tsx scripts/client-deletion-impact-ui-smoke.ts
+      - run: pnpm exec tsx scripts/shell-plan-ui-smoke.ts
+      - run: pnpm exec tsx scripts/protected-route-title-ui-smoke.ts
       - run: node scripts/dependency-audit-policy.mjs
       # T45 bundle budget: the job runs with NODE_ENV=test, which ships React's development build, so
       # rebuild in production mode and run the bundle checks that otherwise skip when dist/ is absent.

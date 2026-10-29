@@ -1,5 +1,5 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { PublicMetadata } from "@/components/PublicMetadata";
 
 export interface CalculatorSource {
@@ -22,12 +22,17 @@ export const CalculatorShell: React.FC<{
   /** Signed-in expert preview inside /app: no public metadata or sign-up prompts, plus an unverified notice. */
   preview?: boolean;
   children: React.ReactNode;
-}> = ({ title, description, canonicalPath, heading, intro, sources, preview = false, children }) => (
-  <main id="main-content" tabIndex={-1} className={preview ? "bg-background text-foreground" : "min-h-screen bg-background px-4 py-10 text-foreground sm:px-6 lg:px-8"}>
-    {!preview && <PublicMetadata title={title} description={description} canonicalPath={canonicalPath} />}
+}> = ({ title, description, canonicalPath, heading, intro, sources, preview: previewProp = false, children }) => {
+  const { pathname } = useLocation();
+  const preview = previewProp;
+  const embedded = pathname.startsWith("/app/");
+  const Container = embedded ? "div" : "main";
+  return (
+  <Container id={embedded ? undefined : "main-content"} tabIndex={embedded ? undefined : -1} className={embedded ? "bg-background text-foreground" : "min-h-screen bg-background px-4 py-10 text-foreground sm:px-6 lg:px-8"}>
+    {!preview && !embedded && <PublicMetadata title={title} description={description} canonicalPath={canonicalPath} />}
     <div className="mx-auto max-w-5xl space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-5">
-        {preview ? (
+        {(preview || embedded) ? (
           <Link to="/app/uzman-onizleme" className="text-sm font-semibold text-primary hover:underline">← Uzman önizlemesi</Link>
         ) : (
           <>
@@ -67,7 +72,7 @@ export const CalculatorShell: React.FC<{
         </ul>
       </section>
 
-      {!preview && (
+      {!preview && !embedded && (
         <aside className="border border-border bg-card p-5 text-sm">
           <p className="font-semibold text-foreground">Rakamlarınızı modelinizden otomatik alın</p>
           <p className="mt-1 text-xs text-muted-foreground">
@@ -79,8 +84,9 @@ export const CalculatorShell: React.FC<{
         </aside>
       )}
     </div>
-  </main>
-);
+  </Container>
+  );
+};
 
 export const calcInputClass =
   "w-full border border-border bg-card px-2 py-1.5 text-sm font-mono text-foreground text-right tabular-nums focus:border-primary focus:outline-none";
