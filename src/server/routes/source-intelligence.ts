@@ -1,3 +1,4 @@
+import { sourceReviewEligible } from "../pricing/source-review-policy";
 import crypto from "node:crypto";
 import type { Express, RequestHandler } from "express";
 import { and, desc, eq } from "drizzle-orm";
@@ -293,7 +294,17 @@ export function registerSourceIntelligenceRoutes(app: Express) {
     }
     const reviewedAt = new Date();
     let updated: typeof item;
+    try {
     await withAppTenantTransaction(actor, async (tx) => {
+      if (item.priceSnapshotId) {
+        // Snapshot before source is the shared order used by SmartCheck and pricing.
+        const [lockedSnapshot] = await tx.select().from(priceSnapshots).where(and(eq(priceSnapshots.id, item.priceSnapshotId), eq(priceSnapshots.companyId, actor.companyId))).for("update");
+        if (!lockedSnapshot) throw new Error("PRICE_SOURCE_NOT_AUTHORIZED");
+        if (status === "approved") {
+          const [lockedSource] = await tx.select().from(priceSources).where(and(eq(priceSources.id, lockedSnapshot.priceSourceId), eq(priceSources.companyId, actor.companyId))).for("update");
+          if (!lockedSource || lockedSource.authorizationStatus === "restricted" || lockedSource.licenseStatus === "restricted" || !sourceReviewEligible(lockedSource)) throw new Error("PRICE_SOURCE_NOT_AUTHORIZED");
+        }
+      }
       [updated] = await tx.update(sourceReviewItems).set({ status, reviewedByUserId: req.user.userId, reviewedAt, reviewerNotes, updatedAt: reviewedAt }).where(and(eq(sourceReviewItems.id, item.id), eq(sourceReviewItems.companyId, req.user.companyId))).returning();
       if (item.priceSnapshotId) await tx.update(priceSnapshots).set({ reviewStatus: status, reviewedByUserId: req.user.userId, reviewedAt, reviewerNotes }).where(and(eq(priceSnapshots.id, item.priceSnapshotId), eq(priceSnapshots.companyId, req.user.companyId)));
       if (status === "approved" && item.itemType === "regulation_diff") {
@@ -339,6 +350,10 @@ export function registerSourceIntelligenceRoutes(app: Express) {
         await tx.update(sourceIngestionRuns).set({ status: runStatus, updatedAt: reviewedAt }).where(and(eq(sourceIngestionRuns.id, item.ingestionRunId), eq(sourceIngestionRuns.companyId, req.user.companyId)));
       }
     });
+    } catch (error) {
+      if (error instanceof Error && error.message === "PRICE_SOURCE_NOT_AUTHORIZED") return res.status(409).json({ error: "Kaynağın teklif kullanım izni henüz doğrulanmadı.", code: "PRICE_SOURCE_NOT_AUTHORIZED" });
+      throw error;
+    }
     await audit(req, `source_review_${status}`, "source_review_item", item.id, { itemType: item.itemType, priceSnapshotId: item.priceSnapshotId, canonicalPromotion: false });
     res.json(updated);
   });

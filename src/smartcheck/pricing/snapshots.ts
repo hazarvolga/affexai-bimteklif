@@ -19,6 +19,7 @@ export type PricingLockItem = {
   currency: string | null;
   unit: string | null;
   sourceDocumentHash?: string | null;
+  permissionReview?: { status: string; referenceHash: string | null; scope: string | null; allowsQuotations: boolean; reviewedByUserId: string | null; reviewedAt: string | null };
   authorizationEvidenceHash?: string | null;
   authorizationScope?: string | null;
   authorizedAt?: Date | string | null;
@@ -79,6 +80,7 @@ export function computePricingLockHash(items: PricingLockItem[]): string {
       currency: item.currency,
       unit: item.unit,
       sourceDocumentHash: item.sourceDocumentHash ?? null,
+      ...(item.permissionReview ? { permissionReview: item.permissionReview } : {}),
       authorizationEvidenceHash: item.authorizationEvidenceHash ?? null,
       authorizationScope: item.authorizationScope ?? null,
       authorizedAt: item.authorizedAt ? new Date(item.authorizedAt).toISOString() : null,

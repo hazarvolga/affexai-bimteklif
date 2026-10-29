@@ -535,7 +535,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
               <div className="rounded-sm border border-border bg-card/60 p-4">
                 <span className="font-mono text-xs uppercase tracking-wider text-primary font-semibold">ÇŞB 2026 & Fiyat Kataloğu</span>
                 <p className="mt-1 text-sm font-medium text-foreground">18.848 Kaynak Satırı · Kullanım Yetkisi Ayrı Kapı</p>
-                <p className="mt-1 text-xs text-muted-foreground">ÇŞB 2026 birim fiyat kitaplarından okunan satırlar ile firmanızın kendi fiyat kataloğu ayrı tutulur. Cetvele yalnız kullanım izni bulunan, firmanıza ait, incelenmiş ve geçerlilik süresi dolmamış fiyatlar bağlanır.</p>
+                <p className="mt-1 text-xs text-muted-foreground">ÇŞB 2026 birim fiyat kitaplarından okunan satırlar ile firmanızın kendi fiyat kataloğu ayrı tutulur. Cetvele yalnız kullanım izni yetkili kişi tarafından incelenmiş, firmanıza ait ve geçerlilik süresi dolmamış fiyatlar bağlanır; kayıt hukuki geçerliliği otomatik doğrulamaz.</p>
               </div>
               <div className="rounded-sm border border-border bg-card/60 p-4">
                 <span className="font-mono text-xs uppercase tracking-wider text-primary font-semibold">IFC 2x3 / 4 / 4X3 · ISO 19650 & PDF/A</span>
@@ -703,7 +703,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
                 title="Poz Eşleştirme & İnceleme"
                 text="Kalemleriniz poz numarası veya denetimli arama ile firmanızın kayıtlı fiyatlarıyla eşleşir. Birim, geçerlilik veya kullanım izni eksikse fiyat otomatik seçilmez; yetkili kişinin incelemesi gerekir."
                 highlights={[
-                  'SHA-256 kaynak izi + kullanım yetkisi kanıtı',
+                  'Kaynak izi + yetkili kişi tarafından kaydedilen kullanım izni incelemesi',
                   'Birim uyuşmazlığı (m² ↔ m³ ↔ ton) kilidi',
                   'Yetkili kullanıcı inceleme izi; uzmanlık ayrıca doğrulanır',
                 ]}

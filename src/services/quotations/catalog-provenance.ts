@@ -1,5 +1,6 @@
+import { buildPricePermissionEvidence } from "../../server/pricing/source-review-policy";
 import { randomUUID } from "node:crypto";
-import { and, eq, inArray } from "drizzle-orm";
+import { and, asc, eq, inArray } from "drizzle-orm";
 import type { withAppTenantTransaction } from "../../db/app-tenant";
 import type { TenantContext } from "../../db/tenant-context";
 import { priceSnapshots, priceSources, quotationItemEvidence } from "../../db/schema";
@@ -54,15 +55,20 @@ export async function resolveCatalogProvenance<T extends CatalogLine>(
 ) {
   const snapshotIds = [...new Set(items.flatMap((item) => item.priceSnapshotId ? [item.priceSnapshotId] : []))].sort();
   const snapshotById = new Map<string, Snapshot>();
+  const permissionBySnapshotId = new Map<string, ReturnType<typeof buildPricePermissionEvidence>>();
   if (snapshotIds.length) {
     const snapshots = await tx.select().from(priceSnapshots)
-      .where(and(eq(priceSnapshots.companyId, actor.companyId), inArray(priceSnapshots.id, snapshotIds))).for("share");
+      .where(and(eq(priceSnapshots.companyId, actor.companyId), inArray(priceSnapshots.id, snapshotIds))).orderBy(asc(priceSnapshots.id)).for("share");
     const sourceIds = [...new Set(snapshots.map((snapshot) => snapshot.priceSourceId))].sort();
     const sources = sourceIds.length ? await tx.select().from(priceSources)
-      .where(and(eq(priceSources.companyId, actor.companyId), inArray(priceSources.id, sourceIds))).for("share") : [];
+      .where(and(eq(priceSources.companyId, actor.companyId), inArray(priceSources.id, sourceIds))).orderBy(asc(priceSources.id)).for("share") : [];
     const sourceById = new Map(sources.map((source) => [source.id, source]));
     for (const snapshot of snapshots) {
-      if (snapshotIsEligible(snapshot, sourceById.get(snapshot.priceSourceId), at)) snapshotById.set(snapshot.id, snapshot);
+      const source = sourceById.get(snapshot.priceSourceId);
+      if (source && snapshotIsEligible(snapshot, source, at)) {
+        snapshotById.set(snapshot.id, snapshot);
+        permissionBySnapshotId.set(snapshot.id, buildPricePermissionEvidence(source));
+      }
     }
   }
 
@@ -89,7 +95,7 @@ export async function resolveCatalogProvenance<T extends CatalogLine>(
     priceSnapshotId: snapshot.id, sourceDocumentHash: snapshot.sourceDocumentHash,
     capturedValueJson: {
       amount: snapshotAmountForCalculation(snapshot.amount).amount, sourceAmount: snapshot.amount,
-      currency: snapshot.currency, unit: snapshot.unit, snapshotKey: snapshot.snapshotKey, selection: "manual_catalog_pick",
+      currency: snapshot.currency, unit: snapshot.unit, snapshotKey: snapshot.snapshotKey, selection: "manual_catalog_pick", permissionReview: permissionBySnapshotId.get(snapshot.id),
     },
     status: "current", createdByUserId: actor.userId,
   }] : []);

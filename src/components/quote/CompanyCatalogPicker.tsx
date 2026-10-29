@@ -35,7 +35,7 @@ export function CompanyCatalogPicker({ currency, onPick }: CompanyCatalogPickerP
     let cancelled = false;
     (async () => {
       try {
-        const response = await fetchWithAuth(`/api/pricing/snapshots?status=approved&limit=${LIST_LIMIT}`);
+        const response = await fetchWithAuth(`/api/pricing/snapshots?status=approved&eligibleForQuotation=true&limit=${LIST_LIMIT}`);
         if (!response.ok) throw new Error('catalogue unavailable');
         const body: unknown = await response.json();
         if (!Array.isArray(body)) throw new Error('unexpected catalogue response');
@@ -75,7 +75,7 @@ export function CompanyCatalogPicker({ currency, onPick }: CompanyCatalogPickerP
             <p className="text-xs text-destructive">Katalog yüklenemedi. Sayfayı yenileyip tekrar deneyin.</p>
           ) : pickable.length === 0 ? (
             <p className="text-xs text-muted-foreground" data-testid="company-catalog-empty">
-              Bu teklifin para biriminde ({currency}) kullanılabilir onaylı fiyat yok.{' '}
+              Bu teklifin para biriminde ({currency}) kullanılabilir ve izin incelemesi tamamlanmış fiyat yok.{' '}
               <Link to="/app/fiyat-katalogu?kaynak=teklif" className="font-semibold text-primary underline">Fiyat kataloğuna fiyat ekleyin</Link>
             </p>
           ) : (

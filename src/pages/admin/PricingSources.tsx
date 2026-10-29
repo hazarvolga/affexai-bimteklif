@@ -1,3 +1,4 @@
+import { SourcePermissionReview } from '@/components/pricing/SourcePermissionReview';
 import { useEffect, useState } from 'react';
 import { PageContainer } from '../../components/layout/PageContainer';
 import { PageHeader } from '../../components/layout/PageHeader';
@@ -1110,6 +1111,7 @@ export function PricingSources() {
                       </div>
 
                       <h4 className="text-base font-bold text-foreground mb-1 leading-snug">{s.name}</h4>
+                      <SourcePermissionReview sourceId={s.id} mode="global" />
                       <p className="text-xs text-muted-foreground mb-3">{s.authority}</p>
 
                       {/* Mode / Automation Pill */}

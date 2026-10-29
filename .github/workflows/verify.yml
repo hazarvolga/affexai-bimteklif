@@ -180,6 +180,12 @@ jobs:
           CI_DISPOSABLE_DATABASE: 'true'
           PRICE_REVIEW_TEST_URL: postgresql://postgres:ci-local-only@127.0.0.1:5433/teklifpro_bootstrap_test
         run: pnpm exec tsx --test src/server/routes/admin-price-review.pgtest.ts
+      - name: Source permission review and CALM restricted-role contract
+        env:
+          NODE_ENV: test
+          CI_DISPOSABLE_DATABASE: 'true'
+          PRICE_REVIEW_TEST_URL: postgresql://postgres:ci-local-only@127.0.0.1:5433/teklifpro_bootstrap_test
+        run: pnpm exec tsx --test src/server/pricing/source-review.pgtest.ts
       - name: Quotation status and calibration audit atomicity
         env:
           NODE_ENV: test
@@ -241,6 +247,7 @@ jobs:
       - run: pnpm exec tsx scripts/protected-route-title-ui-smoke.ts
       - run: pnpm exec tsx scripts/crm-partial-loading-ui-smoke.ts
       - run: pnpm exec tsx scripts/billing-period-ui-smoke.ts
+      - run: pnpm exec tsx scripts/source-permission-ui-smoke.ts
       - run: node scripts/dependency-audit-policy.mjs
       # T45 bundle budget: the job runs with NODE_ENV=test, which ships React's development build, so
       # rebuild in production mode and run the bundle checks that otherwise skip when dist/ is absent.

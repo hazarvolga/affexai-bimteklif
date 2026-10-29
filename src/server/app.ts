@@ -63,6 +63,7 @@ import { capabilitySummaryLines } from "./security/web-hardening";
 import { registerIfcBrowserAnalysisRoutes } from "./routes/ifc-browser-analysis";
 import { registerSmartCheckRoutes } from "./routes/smartcheck";
 import { registerPricingRoutes } from "./routes/pricing";
+import { registerPriceSourcePermissionRoutes } from "./routes/price-source-permissions";
 import { registerSourceIntelligenceRoutes } from "./routes/source-intelligence";
 import { registerMarketIntelligenceRoutes } from "./routes/market-intelligence";
 import { registerPilotEvidenceRoutes, type PilotEvidenceRateLimiter } from "./routes/pilot-evidence";
@@ -198,6 +199,7 @@ export function createApiApp(options?: { configureRoutes?: (app: express.Express
   registerSmartCheckRoutes(app);
   registerIfcBrowserAnalysisRoutes(app, canMutate);
   registerPricingRoutes(app);
+  registerPriceSourcePermissionRoutes(app);
   registerPricingFileImportRoutes(app);
   registerSourceIntelligenceRoutes(app);
   registerMarketIntelligenceRoutes(app);

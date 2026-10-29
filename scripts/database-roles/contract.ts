@@ -1,3 +1,5 @@
+import { priceReviewProtection } from "../release-migrations/data-transitions";
+
 export const DATABASE_ROLE_CONTRACT = "bimmetraj.database-roles.v1" as const;
 
 export type DatabaseRoleName =
@@ -58,6 +60,10 @@ export const DATABASE_SCHEMA_SPECS = Object.freeze([
 }>[]);
 
 export const DATABASE_FUNCTION_EXECUTE_SPECS = Object.freeze([
+  Object.freeze({ schema: "public", name: "bimmetraj_lock_tenant_member", arguments: "uuid, uuid", fullArguments: "p_user_id uuid, p_company_id uuid", roles: Object.freeze(["bimmetraj_app"] as const), securityDefiner: true, strict: false, result: "text" }),
+  Object.freeze({ schema: "public", name: "bimmetraj_invalidate_price_review", arguments: "", fullArguments: "", roles: Object.freeze([] as const), securityDefiner: true, strict: false, result: "trigger" }),
+  Object.freeze({ schema: "public", name: "bimmetraj_lock_price_reviewer", arguments: "uuid, uuid", fullArguments: "p_user_id uuid, p_company_id uuid", roles: Object.freeze(["bimmetraj_app"] as const), securityDefiner: true, strict: false, result: "boolean" }),
+  Object.freeze({ schema: "public", name: "bimmetraj_lock_global_price_reviewer", arguments: "uuid", fullArguments: "p_user_id uuid", roles: Object.freeze(["bimmetraj_app"] as const), securityDefiner: true, strict: false, result: "boolean" }),
   Object.freeze({ schema: "public", name: "bimmetraj_revoke_session", arguments: "text, uuid, timestamp with time zone", fullArguments: "p_token_hash text, p_user_id uuid, p_expires_at timestamp with time zone", roles: Object.freeze(["bimmetraj_control"] as const), securityDefiner: true, strict: false, result: "void" }),
   Object.freeze({ schema: "public", name: "bimmetraj_cleanup_revoked_sessions", arguments: "", fullArguments: "", roles: Object.freeze(["bimmetraj_control"] as const), securityDefiner: true, strict: false, result: "void" }),
   Object.freeze({ schema: "public", name: "bimmetraj_worker_heartbeat", arguments: "uuid, text, text, text", fullArguments: "p_id uuid, p_kind text, p_revision text, p_revision_source text", roles: Object.freeze(["bimmetraj_worker"] as const), securityDefiner: true, strict: false, result: "void" }),
@@ -168,6 +174,8 @@ export const DATABASE_AUTHORITY_AUDIT_COMPANY_TABLES = Object.freeze([
   "usage_records",
 ] as const);
 export const DATABASE_PUBLIC_RESTRICTED_TABLE_ACL = Object.freeze({
+  tenant_price_source_review_invalidations: Object.freeze({ bimmetraj_app: Object.freeze(["SELECT"]), bimmetraj_control: Object.freeze([]), bimmetraj_worker: Object.freeze([]) }),
+  global_price_source_review_events: Object.freeze({ bimmetraj_app: Object.freeze(["INSERT", "SELECT"]), bimmetraj_control: Object.freeze([]), bimmetraj_worker: Object.freeze([]) }),
   admin_mfa_accounts: Object.freeze({ bimmetraj_app: Object.freeze([]), bimmetraj_control: Object.freeze(["DELETE", "INSERT", "SELECT", "UPDATE"]), bimmetraj_worker: Object.freeze([]) }),
   admin_mfa_challenges: Object.freeze({ bimmetraj_app: Object.freeze([]), bimmetraj_control: Object.freeze(["DELETE", "INSERT", "SELECT", "UPDATE"]), bimmetraj_worker: Object.freeze([]) }),
   revoked_sessions: Object.freeze({ bimmetraj_app: Object.freeze([]), bimmetraj_control: Object.freeze(["SELECT"]), bimmetraj_worker: Object.freeze([]) }),
@@ -220,6 +228,22 @@ export const DATABASE_QUEUE_MIGRATION_REVISION = 18;
 export const DATABASE_QUEUE_STRUCTURE_FINGERPRINT = "fecec79451c22e2ae6ad1a040c7eb88c0a4b4c94467f30555d9d003ec088e57e";
 
 export const DATABASE_SECURITY_DEFINER_WRAPPERS = Object.freeze({
+  bimmetraj_lock_tenant_member: priceReviewProtection.find((sql) => sql.startsWith("CREATE FUNCTION public.bimmetraj_lock_tenant_member("))!.split("$function$")[1],
+  bimmetraj_invalidate_price_review: priceReviewProtection.find((sql) => sql.startsWith("CREATE FUNCTION public.bimmetraj_invalidate_price_review()"))!.split("$function$")[1],
+  bimmetraj_lock_price_reviewer: `
+DECLARE permitted boolean;
+BEGIN
+  IF session_user <> 'bimmetraj_app' OR current_setting('bimmetraj.user_id', true) IS DISTINCT FROM p_user_id::text OR current_setting('bimmetraj.company_id', true) IS DISTINCT FROM p_company_id::text THEN RAISE EXCEPTION 'tenant context required' USING ERRCODE = '42501'; END IF;
+  SELECT u.email_verified IS NOT NULL AND m.role IN ('owner', 'admin') INTO permitted FROM public.memberships m JOIN public.users u ON u.id=m.user_id WHERE m.user_id=p_user_id AND m.company_id=p_company_id FOR SHARE OF m,u;
+  RETURN coalesce(permitted, false);
+END `,
+  bimmetraj_lock_global_price_reviewer: `
+DECLARE permitted boolean;
+BEGIN
+  IF session_user <> 'bimmetraj_app' THEN RAISE EXCEPTION 'application role required' USING ERRCODE = '42501'; END IF;
+  SELECT u.is_super_admin AND u.email_verified IS NOT NULL INTO permitted FROM public.users u WHERE u.id=p_user_id FOR SHARE OF u;
+  RETURN coalesce(permitted, false);
+END `,
   bimmetraj_revoke_session: `
 BEGIN
   IF session_user <> 'bimmetraj_control' THEN RAISE EXCEPTION 'control role required' USING ERRCODE = '42501'; END IF;

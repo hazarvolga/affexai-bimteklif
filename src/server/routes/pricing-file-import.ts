@@ -51,21 +51,8 @@ async function executeCatalogImport(payload: CatalogImportPayload) {
     await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`${parent.id}:${versionTag}`}, 0))`);
 
     const now = new Date();
-    const authorizationScope = `superadmin_sealed_catalog:${payload.kind}:${payload.licenseReference.slice(0, 120)}`;
 
     if (parent.dataHash === payload.documentHash && parent.versionTag === versionTag && parent.status === 'active') {
-      if (parent.authorizationStatus !== 'authorized' || !parent.authorizationEvidenceHash) {
-        await tx
-          .update(pricingDataSources)
-          .set({
-            authorizationStatus: 'authorized',
-            authorizationScope,
-            authorizationEvidenceHash: payload.documentHash,
-            authorizedAt: now,
-            updatedAt: now,
-          })
-          .where(eq(pricingDataSources.id, parent.id));
-      }
       return {
         sourceId: parent.id,
         insertedCount: 0,
@@ -86,7 +73,6 @@ async function executeCatalogImport(payload: CatalogImportPayload) {
       documentHash: payload.documentHash,
       fileName: payload.fileName,
       licenseReference: payload.licenseReference,
-      licenseConfirmedBy: payload.userId,
       importedAt: now.toISOString(),
       autoApprove: payload.autoApprove,
     };
@@ -132,10 +118,6 @@ async function executeCatalogImport(payload: CatalogImportPayload) {
         validityEnd: new Date(`${payload.validityEnd}T23:59:59.999Z`),
         versionTag,
         dataHash: payload.documentHash,
-        authorizationStatus: 'authorized',
-        authorizationScope,
-        authorizationEvidenceHash: payload.documentHash,
-        authorizedAt: now,
         crawlerConfig: metadata,
         lastSyncAt: now,
         updatedAt: now,

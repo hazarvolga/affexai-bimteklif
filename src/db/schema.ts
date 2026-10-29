@@ -587,6 +587,12 @@ export const priceSources = pgTable("price_sources", {
   sourceDocumentHash: text("source_document_hash").notNull(),
   licenseStatus: text("license_status").default("unknown").notNull(),
   authorizationStatus: text("authorization_status").default("pending").notNull(),
+  reviewStatus: text("review_status").default("legacy_unverified").notNull(),
+  reviewEvidenceReference: text("review_evidence_reference"),
+  reviewScope: text("review_scope"),
+  reviewAllowsQuotations: boolean("review_allows_quotations").default(false).notNull(),
+  reviewedByUserId: uuid("reviewed_by_user_id"),
+  reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
   authorizationScope: text("authorization_scope"),
   authorizationEvidenceHash: text("authorization_evidence_hash"),
   authorizedAt: timestamp("authorized_at", { withTimezone: true }),
@@ -609,6 +615,8 @@ export const priceSources = pgTable("price_sources", {
   }).onDelete("restrict"),
   sourceTypeCheck: check("price_sources_source_type_check", sql`${table.sourceType} in ('official_reference', 'supplier_quote', 'company_actual', 'index_adjusted', 'manual_override')`),
   licenseStatusCheck: check("price_sources_license_status_check", sql`${table.licenseStatus} in ('unknown', 'verified', 'restricted', 'not_applicable')`),
+  reviewStatusCheck: check("price_sources_review_status_check", sql`${table.reviewStatus} in ('legacy_unverified', 'verified', 'revoked')`),
+  reviewEvidenceCheck: check("price_sources_review_evidence_check", sql`${table.reviewStatus} <> 'verified' OR (${table.reviewEvidenceReference} IS NOT NULL AND length(trim(${table.reviewEvidenceReference})) > 0 AND ${table.reviewScope} IS NOT NULL AND length(trim(${table.reviewScope})) > 0 AND ${table.reviewAllowsQuotations} = true AND ${table.reviewedByUserId} IS NOT NULL AND ${table.reviewedAt} IS NOT NULL)`),
   authorizationStatusCheck: check("price_sources_authorization_status_check", sql`${table.authorizationStatus} in ('pending', 'authorized', 'restricted')`),
   authorizationEvidenceCheck: check("price_sources_authorization_evidence_check", sql`${table.authorizationStatus} <> 'authorized' OR (${table.authorizationEvidenceHash} ~ '^[0-9a-f]{64}$' AND length(${table.authorizationScope}) > 0 AND ${table.authorizedAt} IS NOT NULL AND ${table.authorizedByUserId} IS NOT NULL)`),
   sourceHashCheck: check("price_sources_source_document_hash_check", sql`length(${table.sourceDocumentHash}) >= 16`),
@@ -2326,6 +2334,12 @@ export const pricingDataSources = pgTable("pricing_data_sources", {
   versionTag: text("version_tag").default("2026/1").notNull(),
   dataHash: text("data_hash"),
   authorizationStatus: text("authorization_status").default("pending").notNull(),
+  reviewStatus: text("review_status").default("legacy_unverified").notNull(),
+  reviewEvidenceReference: text("review_evidence_reference"),
+  reviewScope: text("review_scope"),
+  reviewAllowsQuotations: boolean("review_allows_quotations").default(false).notNull(),
+  reviewedByUserId: uuid("reviewed_by_user_id"),
+  reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
   authorizationScope: text("authorization_scope"),
   authorizationEvidenceHash: text("authorization_evidence_hash"),
   authorizedAt: timestamp("authorized_at", { withTimezone: true }),
@@ -2335,11 +2349,40 @@ export const pricingDataSources = pgTable("pricing_data_sources", {
 }, (table) => ({
   categoryCheck: check("pricing_data_sources_category_check", sql`${table.category} in ('official_gazette', 'tuik_index', 'market_commodity', 'epys_standard')`),
   statusCheck: check("pricing_data_sources_status_check", sql`${table.status} in ('active', 'syncing', 'error', 'stale')`),
+  reviewStatusCheck: check("pricing_data_sources_review_status_check", sql`${table.reviewStatus} in ('legacy_unverified', 'verified', 'revoked')`),
+  reviewEvidenceCheck: check("pricing_data_sources_review_evidence_check", sql`${table.reviewStatus} <> 'verified' OR (${table.reviewEvidenceReference} IS NOT NULL AND length(trim(${table.reviewEvidenceReference})) > 0 AND ${table.reviewScope} IS NOT NULL AND length(trim(${table.reviewScope})) > 0 AND ${table.reviewAllowsQuotations} = true AND ${table.reviewedByUserId} IS NOT NULL AND ${table.reviewedAt} IS NOT NULL)`),
   authorizationStatusCheck: check("pricing_data_sources_authorization_status_check", sql`${table.authorizationStatus} in ('pending', 'authorized', 'restricted')`),
   authorizationEvidenceCheck: check("pricing_data_sources_authorization_evidence_check", sql`${table.authorizationStatus} <> 'authorized' OR (${table.authorizationEvidenceHash} ~ '^[0-9a-f]{64}$' AND length(${table.authorizationScope}) > 0 AND ${table.authorizedAt} IS NOT NULL)`),
   syncFreqCheck: check("pricing_data_sources_sync_freq_check", sql`${table.syncFrequency} in ('realtime', 'daily', 'weekly', 'monthly', 'annually')`),
   categoryIdx: index("idx_pricing_data_sources_category").on(table.category),
 }));
+
+export const globalPriceSourceReviewEvents = pgTable("global_price_source_review_events", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  sourceId: uuid("source_id").references(() => pricingDataSources.id, { onDelete: "restrict" }).notNull(),
+  actorUserId: uuid("actor_user_id").references(() => users.id, { onDelete: "restrict" }),
+  action: text("action").notNull(),
+  before: jsonb("before").notNull(),
+  after: jsonb("after").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  actionCheck: check("global_price_source_review_events_action_check", sql`${table.action} in ('verify', 'revoke', 'invalidated')`),
+}));
+
+export const tenantPriceSourceReviewInvalidations = pgTable("tenant_price_source_review_invalidations", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyId: uuid("company_id").references(() => companies.id).notNull(),
+  sourceId: uuid("source_id").notNull(),
+  reason: text("reason").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  sourceFk: foreignKey({ columns: [table.sourceId, table.companyId], foreignColumns: [priceSources.id, priceSources.companyId] }).onDelete("restrict"),
+  reasonCheck: check("tenant_price_source_review_invalidations_reason_check", sql`${table.reason} in ('source_identity_or_authorization_changed', 'review_evidence_changed')`),
+  appTenantReadPolicy: appTenantReadPolicy("tenant_price_source_review_invalidations", table.companyId),
+  ownerTriggerInsert: pgPolicy("tenant_price_source_review_invalidations_owner_trigger_insert", { for: "insert", to: "public", withCheck: sql`current_user = 'bimmetraj_owner' AND session_user = 'bimmetraj_app' AND ${table.companyId} = nullif(current_setting('bimmetraj.company_id', true), '')::uuid` }),
+  backupReadPolicy: backupReadPolicy("tenant_price_source_review_invalidations"),
+  ownerMigrationPolicy: ownerMigrationPolicy("tenant_price_source_review_invalidations"),
+})).enableRLS();
 
 export const priceFeedStaging = pgTable("price_feed_staging", {
   id: uuid("id").primaryKey().defaultRandom(),

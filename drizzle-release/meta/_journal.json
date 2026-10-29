@@ -248,6 +248,13 @@
       "when": 1791417600034,
       "tag": "0034_admin_mfa",
       "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1791417600035,
+      "tag": "0035_price_source_review",
+      "breakpoints": true
     }
   ]
 }

@@ -196,6 +196,18 @@ export async function createTestIsolation(sourceUrl: string) {
     if (roleNames.has("bimmetraj_app")) {
       await client.query(`GRANT SELECT ON TABLE ${quote(workerSchema)}.migrations TO bimmetraj_app`);
     }
+    // Production membership lock runs through a bounded owner function. Recreate
+    // its equivalent over isolated fixtures rather than touching public tenant data.
+    await client.query(`CREATE FUNCTION ${quote(schema)}.bimmetraj_lock_tenant_member(p_user_id uuid,p_company_id uuid) RETURNS text
+      LANGUAGE plpgsql SECURITY DEFINER SET search_path TO pg_catalog,${quote(schema)} AS $function$
+      DECLARE current_role text;
+      BEGIN
+        IF session_user <> 'bimmetraj_app' OR current_setting('bimmetraj.user_id', true) IS DISTINCT FROM p_user_id::text OR current_setting('bimmetraj.company_id', true) IS DISTINCT FROM p_company_id::text THEN RAISE EXCEPTION 'tenant context required' USING ERRCODE = '42501'; END IF;
+        SELECT m.role::text INTO current_role FROM ${quote(schema)}.memberships m WHERE m.user_id=p_user_id AND m.company_id=p_company_id FOR SHARE OF m;
+        RETURN current_role;
+      END $function$`);
+    await client.query(`REVOKE ALL ON FUNCTION ${quote(schema)}.bimmetraj_lock_tenant_member(uuid,uuid) FROM PUBLIC`);
+    if (roleNames.has("bimmetraj_app")) await client.query(`GRANT EXECUTE ON FUNCTION ${quote(schema)}.bimmetraj_lock_tenant_member(uuid,uuid) TO bimmetraj_app`);
     // The application uses two bounded SECURITY DEFINER queue wrappers rather
     // than calling vendor functions directly. Recreate those wrappers in the
     // isolated schema too; otherwise integration tests exercise a function

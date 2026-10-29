@@ -1,12 +1,13 @@
+import { buildPricePermissionEvidence, sourceReviewEligible } from "../../server/pricing/source-review-policy";
+export { buildPricePermissionEvidence } from "../../server/pricing/source-review-policy";
 import { randomUUID } from "node:crypto";
-import { and, desc, eq, inArray, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, or, sql } from "drizzle-orm";
 import { withAppTenantTransaction } from "../../db/app-tenant";
 import {
   clients,
   documentProcessingRuns,
   documentProcessingArtifacts,
   documents,
-  memberships,
   normalizedQuantityRows,
   priceSnapshots,
   priceSources,
@@ -18,7 +19,6 @@ import {
 } from "../../db/schema";
 import { buildCalmIfcDatasetFromElements, CALM_ICMAL_RULE_VERSION, parseSmartCheckRowToPseudoElement } from "../../ifc/calm-icmal";
 import { calculateLineItemTotal, calculateQuotationTotals } from "../../lib/calculations";
-import { evaluatePriceSourceAuthorization, hasCommercialQuotationCapability, licensePermitsCommercialQuotation, type PriceAuthorizationStatus } from "../../smartcheck/pricing/authorization";
 import { priceSnapshotMatchesQuotationItem } from "../../smartcheck/pricing/integrity";
 import { isPriceSnapshotStale, sha256Payload } from "../../smartcheck/pricing/snapshots";
 import { consumeQuotationQuota } from "../billing/quota";
@@ -281,13 +281,8 @@ export function snapshotIsEligible(
   at: Date,
 ): boolean {
   if (snapshot.reviewStatus !== "approved" || !snapshot.reviewedAt || !snapshot.reviewedByUserId || isPriceSnapshotStale(snapshot, at)) return false;
-  if (!source?.authorizationScope || !source.authorizedAt || !source.authorizedByUserId || !licensePermitsCommercialQuotation(source.sourceType, source.licenseStatus)) return false;
-  if (!hasCommercialQuotationCapability(source.authorizationScope)) return false;
-  return evaluatePriceSourceAuthorization({
-    sourceType: source.sourceType,
-    authorizationStatus: source.authorizationStatus as PriceAuthorizationStatus,
-    authorizationEvidenceHash: source.authorizationEvidenceHash,
-  }).eligible;
+  return Boolean(source && source.authorizationStatus !== "restricted" && sourceReviewEligible(source)
+    && source.licenseStatus !== "restricted");
 }
 
 async function authorizeActorAndFindReplay(
@@ -297,12 +292,12 @@ async function authorizeActorAndFindReplay(
   requestPayloadHash: string,
 ) {
   await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`${actor.companyId}:${actor.userId}:${idempotencyKey}`}, 0))`);
-  const [member] = await tx.select({ id: memberships.id, role: memberships.role }).from(memberships).where(and(
-    eq(memberships.companyId, actor.companyId),
-    eq(memberships.userId, actor.userId),
-  )).for("share");
-  if (!member) transferError("CALM_TRANSFER_ACTOR_NOT_MEMBER", 403);
-  if (member.role === "viewer") transferError("CALM_TRANSFER_ACTOR_NOT_AUTHORIZED", 403);
+  // The application role may read memberships but cannot lock rows directly:
+  // the narrowly scoped helper checks the tenant GUC and holds the lock as owner.
+  const memberResult = await tx.execute<{ role: string | null }>(sql`select bimmetraj_lock_tenant_member(${actor.userId}::uuid, ${actor.companyId}::uuid) as role`);
+  const memberRole = memberResult.rows[0]?.role;
+  if (!memberRole) transferError("CALM_TRANSFER_ACTOR_NOT_MEMBER", 403);
+  if (memberRole === "viewer") transferError("CALM_TRANSFER_ACTOR_NOT_AUTHORIZED", 403);
 
   const [ledger] = await tx.select().from(quotationTransferLedgers).where(and(
     eq(quotationTransferLedgers.companyId, actor.companyId),
@@ -381,10 +376,10 @@ async function loadPricingContext(
   at: Date,
 ) {
   const snapshotIds = [...new Set(lines.map((line) => line.priceSnapshotId))];
-  const snapshots = await tx.select().from(priceSnapshots).where(and(eq(priceSnapshots.companyId, actor.companyId), inArray(priceSnapshots.id, snapshotIds))).for("share");
+  const snapshots = await tx.select().from(priceSnapshots).where(and(eq(priceSnapshots.companyId, actor.companyId), inArray(priceSnapshots.id, snapshotIds))).orderBy(asc(priceSnapshots.id)).for("share");
   if (snapshots.length !== snapshotIds.length) transferError("CALM_TRANSFER_PRICE_SNAPSHOT_INVALID");
   const sourceIds = [...new Set(snapshots.map((snapshot) => snapshot.priceSourceId))];
-  const sources = await tx.select().from(priceSources).where(and(eq(priceSources.companyId, actor.companyId), inArray(priceSources.id, sourceIds))).for("share");
+  const sources = await tx.select().from(priceSources).where(and(eq(priceSources.companyId, actor.companyId), inArray(priceSources.id, sourceIds))).orderBy(asc(priceSources.id)).for("share");
   const sourceById = new Map(sources.map((source) => [source.id, source]));
   if (sources.length !== sourceIds.length || snapshots.some((snapshot) => !snapshotIsEligible(snapshot, sourceById.get(snapshot.priceSourceId), at))) {
     transferError("CALM_TRANSFER_PRICE_SNAPSHOT_INVALID");
@@ -503,9 +498,9 @@ function createScopeSnapshot(args: {
     lines: source.lines.map((line) => ({ lineId: line.lineId, description: line.description, positionCode: line.positionCode, unit: line.unit, quantity: line.quantity, sourceRows: line.sourceRows })),
     pricing: pricing.snapshots.map((snapshot) => {
       const priceSource = pricing.sourceById.get(snapshot.priceSourceId)!;
-      return { snapshotId: snapshot.id, snapshotKey: snapshot.snapshotKey, snapshotHash: snapshot.sourceDocumentHash, amount: snapshot.amount, calculationAmount: snapshotAmountForCalculation(snapshot.amount).amount, vatPercent: snapshotVatPercent(snapshot.vatPercent), vatStatus: snapshot.vatStatus, positionCode: snapshot.positionCode, description: snapshot.description, unit: snapshot.unit, currency: snapshot.currency, validFrom: snapshot.validFrom?.toISOString() ?? null, validUntil: snapshot.validUntil?.toISOString() ?? null, reviewStatus: snapshot.reviewStatus, reviewedAt: snapshot.reviewedAt?.toISOString() ?? null, reviewedByUserId: snapshot.reviewedByUserId, sourceType: priceSource.sourceType, licenseStatus: priceSource.licenseStatus, authorizationStatus: priceSource.authorizationStatus, authorizationEvidenceHash: priceSource.authorizationEvidenceHash, authorizationScope: priceSource.authorizationScope, sourceDocumentHash: priceSource.sourceDocumentHash, authorizedAt: priceSource.authorizedAt?.toISOString() ?? null, authorizedByUserId: priceSource.authorizedByUserId };
+      return { snapshotId: snapshot.id, snapshotKey: snapshot.snapshotKey, snapshotHash: snapshot.sourceDocumentHash, amount: snapshot.amount, calculationAmount: snapshotAmountForCalculation(snapshot.amount).amount, vatPercent: snapshotVatPercent(snapshot.vatPercent), vatStatus: snapshot.vatStatus, positionCode: snapshot.positionCode, description: snapshot.description, unit: snapshot.unit, currency: snapshot.currency, validFrom: snapshot.validFrom?.toISOString() ?? null, validUntil: snapshot.validUntil?.toISOString() ?? null, reviewStatus: snapshot.reviewStatus, reviewedAt: snapshot.reviewedAt?.toISOString() ?? null, reviewedByUserId: snapshot.reviewedByUserId, sourceType: priceSource.sourceType, licenseStatus: priceSource.licenseStatus, legacyAuthorizationStatus: priceSource.authorizationStatus, sourceDocumentHash: priceSource.sourceDocumentHash, permissionReview: buildPricePermissionEvidence(priceSource) };
     }).sort((a, b) => a.snapshotId.localeCompare(b.snapshotId)),
-    policy: { calmRuleVersion: CALM_ICMAL_RULE_VERSION, requireApprovedRows: true, requireAuthorizedFreshSnapshots: true, requiredCapability: "commercial_quotation", permittedLicenseStatuses: ["verified", "not_applicable"], requiredVatStatus: "excluded", requireExplicitVatPercent: true },
+    policy: { calmRuleVersion: CALM_ICMAL_RULE_VERSION, requireApprovedRows: true, requireAuthorizedFreshSnapshots: true, requiredSourceReview: "verified", requireExplicitQuotationPermission: true, blockedAuthorizationStatus: "restricted", blockedLicenseStatus: "restricted", requiredVatStatus: "excluded", requireExplicitVatPercent: true },
   };
   return { scopeSnapshot, quotationBaselineHash, requestHash: buildCalmTransferScopeHash(scopeSnapshot) };
 }

@@ -64,6 +64,9 @@ test("official source adapter ingest is hash-bound, review-gated, and tenant-iso
     assert.equal(queueItems[0].itemType, "price_snapshot");
     const selfReview = await request(`/api/source-intelligence/review-items/${queueItems[0].id}`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ status: "approved", notes: "Kendi kendime onay" }) }, tokenA);
     assert.equal(selfReview.status, 409);
+    const pendingPermission = await request(`/api/source-intelligence/review-items/${queueItems[0].id}`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ status: "approved", notes: "Kaynak izni eksik." }) }, tokenReviewerA);
+    assert.equal(pendingPermission.status, 409);
+    await db.update(schema.priceSources).set({ reviewStatus: "verified", reviewEvidenceReference: "https://example.org/test-permission", reviewScope: "Ticari teklifler", reviewAllowsQuotations: true, reviewedByUserId: userA.id, reviewedAt: new Date() }).where(eq(schema.priceSources.id, priceSourceId));
     const review = await request(`/api/source-intelligence/review-items/${queueItems[0].id}`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ status: "approved", notes: "YFK resmi kaynak kontrolü tamamlandı." }) }, tokenReviewerA);
     assert.equal(review.status, 200);
     const [approvedSnapshot] = await db.select().from(schema.priceSnapshots).where(and(eq(schema.priceSnapshots.id, snapshotId), eq(schema.priceSnapshots.companyId, companyA.id)));

@@ -147,6 +147,13 @@ const stages = [
     sql: 'ed2c3e01ce6defd6ee31f9bf9be1afcb0cd84c1ae512c6de1b64289e312c9929',
     snapshot: '96a73322eb297376d9d32403e70f5d9d3a88eb7165100d1d155ff9dd9468a8d3',
     catalog: '8c9368844d999ad129eb19e905b542b71bb1f66415a06eb4475343b6af7d2cba' },
+
+
+
+  { tag: '0035_price_source_review',
+    sql: 'ff908d9db61505d9a307566475b1cf74415dc0d348570dc51491109cbec25cc6',
+    snapshot: '0ac2c493f7823d9ea509f7f3b9d57e89976c770a5a684ff87948d3d141f9f8eb',
+    catalog: '7521d0c2d8c93ee294f3a3fc583772dedc785f4751a1d9d7b334317472440919' },
 ] as const;
 
 export function pinnedSignature(migration: { idx: number; tag: string; sha256: string; snapshotSha256: string }) {

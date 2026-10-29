@@ -1,3 +1,4 @@
+import { buildPricePermissionEvidence, sourceReviewEligible } from "../pricing/source-review-policy";
 import { tenantOf, withAppTenant, withAppTenantTransaction } from "../../db/app-tenant";
 import { acquireDocumentIo } from "../../smartcheck/import/admission";
 import { UPLOAD_MAX_TTL_MS, reserveUpload, UploadQuotaError } from "../../smartcheck/import/upload-quota";
@@ -6,7 +7,7 @@ import crypto from "node:crypto";
 import { pipeline } from 'node:stream/promises';
 import type { Express, Request, RequestHandler, Response } from "express";
 import express from "express";
-import { and, desc, eq, inArray, ne, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, ne, sql } from "drizzle-orm";
 import { changeProcessingRun, ProcessingConflict } from "../../smartcheck/import/service";
 import { db } from "../../db";
 import { clients, companies, documentProcessingArtifacts, documents, documentProcessingRuns, normalizedQuantityRows, priceSnapshots, priceSources, quotationItemEvidence, quotationItems, quotations, smartcheckAuditLogs } from "../../db/schema";
@@ -21,7 +22,6 @@ import { validateRows, type ColumnMapping, type ParsedQuantityRow } from "../../
 import { getMappingProfile } from "../../smartcheck/import/mapping-profiles";
 import { calculateLineItemTotal, calculateQuotationTotals } from "../../lib/calculations";
 import { isPriceSnapshotStale, sha256Payload } from "../../smartcheck/pricing/snapshots";
-import { evaluatePriceSourceAuthorization, type PriceAuthorizationStatus } from "../../smartcheck/pricing/authorization";
 import { priceSnapshotMatchesQuotationItem } from "../../smartcheck/pricing/integrity";
 import { isProcessingRunStale } from "../../smartcheck/import/run-health";
 import { consumeQuotationQuota, QuotaError } from "../../services/billing/quota";
@@ -848,7 +848,7 @@ export function registerSmartCheckRoutes(app: Express) {
     const pricingSourceById = new Map(pricingSources.map((source) => [source.id, source]));
     const invalidSnapshot = snapshots.find((snapshot) => {
       const source = pricingSourceById.get(snapshot.priceSourceId);
-      return snapshot.reviewStatus !== "approved" || !snapshot.reviewedAt || !snapshot.reviewedByUserId || isPriceSnapshotStale(snapshot) || !source || !source.authorizationScope || !source.authorizedAt || !source.authorizedByUserId || !evaluatePriceSourceAuthorization({ sourceType: source.sourceType, authorizationStatus: source.authorizationStatus as PriceAuthorizationStatus, authorizationEvidenceHash: source.authorizationEvidenceHash }).eligible;
+      return snapshot.reviewStatus !== "approved" || !snapshot.reviewedAt || !snapshot.reviewedByUserId || isPriceSnapshotStale(snapshot) || !source || source.authorizationStatus === "restricted" || source.licenseStatus === "restricted" || !sourceReviewEligible(source);
     });
     if (snapshots.length !== new Set(requestedSnapshotIds).size || pricingSources.length !== pricingSourceIds.length || invalidSnapshot) return res.status(409).json({ error: "Yalnız yetkili, onaylı ve güncel fiyat snapshot seçilebilir.", code: "INVALID_PRICE_SNAPSHOT" });
     const documentHashById = new Map(sourceDocuments.map((document) => [document.id, document.checksumSha256]));
@@ -857,13 +857,13 @@ export function registerSmartCheckRoutes(app: Express) {
       await tx.select({ id: quotations.id }).from(quotations).where(and(eq(quotations.id, quotation.parentId ?? quotation.id), eq(quotations.companyId, req.user.companyId))).for("update");
       const [currentQuote] = await tx.select().from(quotations).where(and(eq(quotations.id, quotation.id), eq(quotations.companyId, req.user.companyId))).for("update");
       if (!currentQuote?.isLatest || currentQuote.status !== "draft" || currentQuote.pricingSnapshotLockStatus === "locked") throw new Error("TRANSFER_QUOTE_CHANGED");
-      const lockedSnapshots = requestedSnapshotIds.length ? await tx.select().from(priceSnapshots).where(and(eq(priceSnapshots.companyId, req.user.companyId), inArray(priceSnapshots.id, requestedSnapshotIds))).for("update") : [];
+      const lockedSnapshots = requestedSnapshotIds.length ? await tx.select().from(priceSnapshots).where(and(eq(priceSnapshots.companyId, req.user.companyId), inArray(priceSnapshots.id, requestedSnapshotIds))).orderBy(asc(priceSnapshots.id)).for("update") : [];
       const lockedSourceIds = [...new Set(lockedSnapshots.map((snapshot) => snapshot.priceSourceId))];
-      const lockedSources = lockedSourceIds.length ? await tx.select().from(priceSources).where(and(eq(priceSources.companyId, req.user.companyId), inArray(priceSources.id, lockedSourceIds))).for("update") : [];
+      const lockedSources = lockedSourceIds.length ? await tx.select().from(priceSources).where(and(eq(priceSources.companyId, req.user.companyId), inArray(priceSources.id, lockedSourceIds))).orderBy(asc(priceSources.id)).for("update") : [];
       const lockedSourceById = new Map(lockedSources.map((source) => [source.id, source]));
       const invalidLockedSnapshot = lockedSnapshots.find((snapshot) => {
         const source = lockedSourceById.get(snapshot.priceSourceId);
-        return snapshot.reviewStatus !== "approved" || !snapshot.reviewedAt || !snapshot.reviewedByUserId || isPriceSnapshotStale(snapshot) || !source || !source.authorizationScope || !source.authorizedAt || !source.authorizedByUserId || !evaluatePriceSourceAuthorization({ sourceType: source.sourceType, authorizationStatus: source.authorizationStatus as PriceAuthorizationStatus, authorizationEvidenceHash: source.authorizationEvidenceHash }).eligible;
+        return snapshot.reviewStatus !== "approved" || !snapshot.reviewedAt || !snapshot.reviewedByUserId || isPriceSnapshotStale(snapshot) || !source || source.authorizationStatus === "restricted" || source.licenseStatus === "restricted" || !sourceReviewEligible(source);
       });
       if (lockedSnapshots.length !== new Set(requestedSnapshotIds).size || lockedSources.length !== lockedSourceIds.length || invalidLockedSnapshot) throw new Error("INVALID_PRICE_SNAPSHOT");
       const snapshotById = new Map(lockedSnapshots.map((snapshot) => [snapshot.id, snapshot]));
@@ -943,7 +943,7 @@ export function registerSmartCheckRoutes(app: Express) {
         const evidenceValue = { quantity: item.quantity, unit: item.unit, price: item.unitPrice, priceSnapshotId: priceSnapshot?.id ?? null, review: transferReviewEvidence(row, Number(item.quantity), item.unit).review };
         allEvidences.push(
           { companyId: req.user.companyId, quotationId: quotation.id, quotationItemId: item.id, evidenceType: "quantity", evidenceKey: sha256Payload({ itemId: item.id, rowId: row.id, type: "quantity" }), sourceDocumentId: row.documentId, sourceProcessingRunId: row.processingRunId, sourceQuantityRowId: row.id, sourceCellRange: row.sourceCellRange, sourceDocumentHash: documentHashById.get(row.documentId) ?? null, capturedValueJson: evidenceValue, status: "current", createdByUserId: req.user.userId },
-          { companyId: req.user.companyId, quotationId: quotation.id, quotationItemId: item.id, evidenceType: "price", evidenceKey: sha256Payload({ itemId: item.id, rowId: row.id, type: "price", priceSnapshotId }), priceSnapshotId: priceSnapshot?.id ?? null, sourceDocumentHash: priceSnapshot?.sourceDocumentHash ?? documentHashById.get(row.documentId) ?? null, capturedValueJson: { ...evidenceValue, source: priceSnapshot ? "price_snapshot" : override.unitPrice != null ? (Number(override.unitPrice) === 0 ? "manual_zero_override" : "manual_override") : row.rawPrice, ...(override.unitPrice != null && Number(override.unitPrice) === 0 ? { zeroPriceReason: override.zeroPriceReason?.trim() } : {}) }, status: "current", createdByUserId: req.user.userId },
+          { companyId: req.user.companyId, quotationId: quotation.id, quotationItemId: item.id, evidenceType: "price", evidenceKey: sha256Payload({ itemId: item.id, rowId: row.id, type: "price", priceSnapshotId }), priceSnapshotId: priceSnapshot?.id ?? null, sourceDocumentHash: priceSnapshot?.sourceDocumentHash ?? documentHashById.get(row.documentId) ?? null, capturedValueJson: { ...evidenceValue, ...(priceSnapshot ? { permissionReview: buildPricePermissionEvidence(lockedSourceById.get(priceSnapshot.priceSourceId)!) } : {}), source: priceSnapshot ? "price_snapshot" : override.unitPrice != null ? (Number(override.unitPrice) === 0 ? "manual_zero_override" : "manual_override") : row.rawPrice, ...(override.unitPrice != null && Number(override.unitPrice) === 0 ? { zeroPriceReason: override.zeroPriceReason?.trim() } : {}) }, status: "current", createdByUserId: req.user.userId },
         );
       }
       for (let i = 0; i < allEvidences.length; i += 500) {
@@ -992,7 +992,7 @@ export function registerSmartCheckRoutes(app: Express) {
       const pricingSourceById = new Map(pricingSources.map((source) => [source.id, source]));
       const invalidSnapshot = snapshots.find((snapshot) => {
         const source = pricingSourceById.get(snapshot.priceSourceId);
-        return snapshot.reviewStatus !== "approved" || !snapshot.reviewedAt || !snapshot.reviewedByUserId || isPriceSnapshotStale(snapshot) || !source || !source.authorizationScope || !source.authorizedAt || !source.authorizedByUserId || !evaluatePriceSourceAuthorization({ sourceType: source.sourceType, authorizationStatus: source.authorizationStatus as PriceAuthorizationStatus, authorizationEvidenceHash: source.authorizationEvidenceHash }).eligible;
+        return snapshot.reviewStatus !== "approved" || !snapshot.reviewedAt || !snapshot.reviewedByUserId || isPriceSnapshotStale(snapshot) || !source || source.authorizationStatus === "restricted" || source.licenseStatus === "restricted" || !sourceReviewEligible(source);
       });
       if (snapshots.length !== new Set(requestedSnapshotIds).size || pricingSources.length !== pricingSourceIds.length || invalidSnapshot) return res.status(409).json({ error: "Yalnız yetkili, onaylı ve güncel fiyat snapshot seçilebilir.", code: "INVALID_PRICE_SNAPSHOT" });
       const documentHashById = new Map(sourceDocuments.map((document) => [document.id, document.checksumSha256]));
@@ -1000,13 +1000,13 @@ export function registerSmartCheckRoutes(app: Express) {
 
     const transferResult = await withAppTenantTransaction(tenantOf(req.user), async (tx) => {
       await consumeQuotationQuota(tx, req.user.companyId);
-      const lockedSnapshots = requestedSnapshotIds.length ? await tx.select().from(priceSnapshots).where(and(eq(priceSnapshots.companyId, req.user.companyId), inArray(priceSnapshots.id, requestedSnapshotIds))).for("update") : [];
+      const lockedSnapshots = requestedSnapshotIds.length ? await tx.select().from(priceSnapshots).where(and(eq(priceSnapshots.companyId, req.user.companyId), inArray(priceSnapshots.id, requestedSnapshotIds))).orderBy(asc(priceSnapshots.id)).for("update") : [];
       const lockedSourceIds = [...new Set(lockedSnapshots.map((snapshot) => snapshot.priceSourceId))];
-      const lockedSources = lockedSourceIds.length ? await tx.select().from(priceSources).where(and(eq(priceSources.companyId, req.user.companyId), inArray(priceSources.id, lockedSourceIds))).for("update") : [];
+      const lockedSources = lockedSourceIds.length ? await tx.select().from(priceSources).where(and(eq(priceSources.companyId, req.user.companyId), inArray(priceSources.id, lockedSourceIds))).orderBy(asc(priceSources.id)).for("update") : [];
       const lockedSourceById = new Map(lockedSources.map((source) => [source.id, source]));
       const invalidLockedSnapshot = lockedSnapshots.find((snapshot) => {
         const source = lockedSourceById.get(snapshot.priceSourceId);
-        return snapshot.reviewStatus !== "approved" || !snapshot.reviewedAt || !snapshot.reviewedByUserId || isPriceSnapshotStale(snapshot) || !source || !source.authorizationScope || !source.authorizedAt || !source.authorizedByUserId || !evaluatePriceSourceAuthorization({ sourceType: source.sourceType, authorizationStatus: source.authorizationStatus as PriceAuthorizationStatus, authorizationEvidenceHash: source.authorizationEvidenceHash }).eligible;
+        return snapshot.reviewStatus !== "approved" || !snapshot.reviewedAt || !snapshot.reviewedByUserId || isPriceSnapshotStale(snapshot) || !source || source.authorizationStatus === "restricted" || source.licenseStatus === "restricted" || !sourceReviewEligible(source);
       });
       if (lockedSnapshots.length !== new Set(requestedSnapshotIds).size || lockedSources.length !== lockedSourceIds.length || invalidLockedSnapshot) throw new Error("INVALID_PRICE_SNAPSHOT");
       const snapshotById = new Map(lockedSnapshots.map((snapshot) => [snapshot.id, snapshot]));
@@ -1117,7 +1117,7 @@ export function registerSmartCheckRoutes(app: Express) {
         const evidenceValue = { quantity: item.quantity, unit: item.unit, price: item.unitPrice, priceSnapshotId: priceSnapshot?.id ?? null, review: transferReviewEvidence(row, Number(item.quantity), item.unit).review };
         allEvidences.push(
           { companyId: req.user.companyId, quotationId: quotation.id, quotationItemId: item.id, evidenceType: "quantity", evidenceKey: sha256Payload({ itemId: item.id, rowId: row.id, type: "quantity" }), sourceDocumentId: row.documentId, sourceProcessingRunId: row.processingRunId, sourceQuantityRowId: row.id, sourceCellRange: row.sourceCellRange, sourceDocumentHash: documentHashById.get(row.documentId) ?? null, capturedValueJson: evidenceValue, status: "current", createdByUserId: req.user.userId },
-          { companyId: req.user.companyId, quotationId: quotation.id, quotationItemId: item.id, evidenceType: "price", evidenceKey: sha256Payload({ itemId: item.id, rowId: row.id, type: "price", priceSnapshotId }), priceSnapshotId: priceSnapshot?.id ?? null, sourceDocumentHash: priceSnapshot?.sourceDocumentHash ?? documentHashById.get(row.documentId) ?? null, capturedValueJson: { ...evidenceValue, source: priceSnapshot ? "price_snapshot" : override.unitPrice != null ? (Number(override.unitPrice) === 0 ? "manual_zero_override" : "manual_override") : row.rawPrice, ...(override.unitPrice != null && Number(override.unitPrice) === 0 ? { zeroPriceReason: override.zeroPriceReason?.trim() } : {}) }, status: "current", createdByUserId: req.user.userId },
+          { companyId: req.user.companyId, quotationId: quotation.id, quotationItemId: item.id, evidenceType: "price", evidenceKey: sha256Payload({ itemId: item.id, rowId: row.id, type: "price", priceSnapshotId }), priceSnapshotId: priceSnapshot?.id ?? null, sourceDocumentHash: priceSnapshot?.sourceDocumentHash ?? documentHashById.get(row.documentId) ?? null, capturedValueJson: { ...evidenceValue, ...(priceSnapshot ? { permissionReview: buildPricePermissionEvidence(lockedSourceById.get(priceSnapshot.priceSourceId)!) } : {}), source: priceSnapshot ? "price_snapshot" : override.unitPrice != null ? (Number(override.unitPrice) === 0 ? "manual_zero_override" : "manual_override") : row.rawPrice, ...(override.unitPrice != null && Number(override.unitPrice) === 0 ? { zeroPriceReason: override.zeroPriceReason?.trim() } : {}) }, status: "current", createdByUserId: req.user.userId },
         );
       }
       for (let i = 0; i < allEvidences.length; i += 500) {

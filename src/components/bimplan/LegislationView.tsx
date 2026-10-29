@@ -275,7 +275,7 @@ export default function LegislationView() {
             T.C. Bakanlık Birim Fiyat (Poz) Eşleştirici
           </h2>
           <p className="text-xs text-muted-foreground mt-1">
-            IFC sınıfları için örnek poz adaylarını ve birimlerini inceleyin. Bu eğitim tablosu güncel katalog, imalat koşulu, ticari kullanım yetkisi veya teklif fiyatı onayı değildir; gerçek seçim yetkilendirilmiş tenant kaynağında ayrıca doğrulanır.
+            IFC sınıfları için örnek poz adaylarını ve birimlerini inceleyin. Bu eğitim tablosu güncel katalog, imalat koşulu, ticari kullanım yetkisi veya teklif fiyatı onayı değildir; gerçek seçim kullanım izni yetkili kişi tarafından incelenmiş firma kaynağında ayrıca doğrulanır; inceleme kaydı hukuki geçerliliği otomatik ispatlamaz.
           </p>
         </div>
 

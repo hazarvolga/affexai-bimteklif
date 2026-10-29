@@ -913,7 +913,67 @@ export const smartcheckPilotAuditFunctionOwner = `ALTER FUNCTION prevent_smartch
 export const smartcheckPilotAuditFunctionRevoke = `REVOKE ALL ON FUNCTION prevent_smartcheck_pilot_audit_mutation() FROM PUBLIC`;
 export const smartcheckPilotAuditMutationTrigger = `CREATE TRIGGER smartcheck_pilot_audit_append_only BEFORE INSERT OR UPDATE OR DELETE ON smartcheck_audit_logs FOR EACH ROW EXECUTE FUNCTION prevent_smartcheck_pilot_audit_mutation()`;
 
+
+export const priceReviewProtection = [
+  `ALTER TABLE public.global_price_source_review_events OWNER TO bimmetraj_owner;`,
+  `REVOKE ALL ON TABLE public.global_price_source_review_events FROM PUBLIC, bimmetraj_app, bimmetraj_control, bimmetraj_worker;`,
+  `GRANT SELECT, INSERT ON TABLE public.global_price_source_review_events TO bimmetraj_app;`,
+  `ALTER TABLE public.tenant_price_source_review_invalidations OWNER TO bimmetraj_owner;`,
+  `ALTER TABLE public.tenant_price_source_review_invalidations FORCE ROW LEVEL SECURITY;`,
+  `REVOKE ALL ON TABLE public.tenant_price_source_review_invalidations FROM PUBLIC, bimmetraj_app, bimmetraj_control, bimmetraj_worker;`,
+  `GRANT SELECT ON TABLE public.tenant_price_source_review_invalidations TO bimmetraj_app;`,
+  `CREATE FUNCTION public.bimmetraj_lock_tenant_member(p_user_id uuid, p_company_id uuid) RETURNS text LANGUAGE plpgsql SECURITY DEFINER SET search_path TO pg_catalog, public AS $function$
+DECLARE current_role text;
+BEGIN
+  IF session_user <> 'bimmetraj_app' OR current_setting('bimmetraj.user_id', true) IS DISTINCT FROM p_user_id::text OR current_setting('bimmetraj.company_id', true) IS DISTINCT FROM p_company_id::text THEN RAISE EXCEPTION 'tenant context required' USING ERRCODE = '42501'; END IF;
+  SELECT m.role::text INTO current_role FROM public.memberships m WHERE m.user_id=p_user_id AND m.company_id=p_company_id FOR SHARE OF m;
+  RETURN current_role;
+END $function$;`,
+  `CREATE FUNCTION public.bimmetraj_lock_price_reviewer(p_user_id uuid, p_company_id uuid) RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER SET search_path TO pg_catalog, public AS $function$
+DECLARE permitted boolean;
+BEGIN
+  IF session_user <> 'bimmetraj_app' OR current_setting('bimmetraj.user_id', true) IS DISTINCT FROM p_user_id::text OR current_setting('bimmetraj.company_id', true) IS DISTINCT FROM p_company_id::text THEN RAISE EXCEPTION 'tenant context required' USING ERRCODE = '42501'; END IF;
+  SELECT u.email_verified IS NOT NULL AND m.role IN ('owner', 'admin') INTO permitted FROM public.memberships m JOIN public.users u ON u.id=m.user_id WHERE m.user_id=p_user_id AND m.company_id=p_company_id FOR SHARE OF m,u;
+  RETURN coalesce(permitted, false);
+END $function$;`,
+  `CREATE FUNCTION public.bimmetraj_lock_global_price_reviewer(p_user_id uuid) RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER SET search_path TO pg_catalog, public AS $function$
+DECLARE permitted boolean;
+BEGIN
+  IF session_user <> 'bimmetraj_app' THEN RAISE EXCEPTION 'application role required' USING ERRCODE = '42501'; END IF;
+  SELECT u.is_super_admin AND u.email_verified IS NOT NULL INTO permitted FROM public.users u WHERE u.id=p_user_id FOR SHARE OF u;
+  RETURN coalesce(permitted, false);
+END $function$;`,
+  ...['bimmetraj_lock_tenant_member(uuid,uuid)', 'bimmetraj_lock_price_reviewer(uuid,uuid)', 'bimmetraj_lock_global_price_reviewer(uuid)'].flatMap(fn => [
+    `ALTER FUNCTION public.${fn} OWNER TO bimmetraj_owner;`,
+    `REVOKE ALL ON FUNCTION public.${fn} FROM PUBLIC;`,
+    `GRANT EXECUTE ON FUNCTION public.${fn} TO bimmetraj_app;`,
+  ]),
+  `CREATE FUNCTION public.bimmetraj_invalidate_price_review() RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path TO pg_catalog, public AS $function$
+DECLARE invalidation_reason text;
+BEGIN
+  IF (TG_TABLE_NAME = 'price_sources' AND ((to_jsonb(OLD) -> 'source_type'), (to_jsonb(OLD) -> 'name'), (to_jsonb(OLD) -> 'authority'), (to_jsonb(OLD) -> 'source_url'), (to_jsonb(OLD) -> 'source_document_identifier'), (to_jsonb(OLD) -> 'source_document_hash'), (to_jsonb(OLD) -> 'license_status'), (to_jsonb(OLD) -> 'authorization_status'), (to_jsonb(OLD) -> 'authorization_scope'), (to_jsonb(OLD) -> 'authorization_evidence_hash')) IS DISTINCT FROM ((to_jsonb(NEW) -> 'source_type'), (to_jsonb(NEW) -> 'name'), (to_jsonb(NEW) -> 'authority'), (to_jsonb(NEW) -> 'source_url'), (to_jsonb(NEW) -> 'source_document_identifier'), (to_jsonb(NEW) -> 'source_document_hash'), (to_jsonb(NEW) -> 'license_status'), (to_jsonb(NEW) -> 'authorization_status'), (to_jsonb(NEW) -> 'authorization_scope'), (to_jsonb(NEW) -> 'authorization_evidence_hash')))
+     OR (TG_TABLE_NAME = 'pricing_data_sources' AND ((to_jsonb(OLD) -> 'code'), (to_jsonb(OLD) -> 'name'), (to_jsonb(OLD) -> 'authority'), (to_jsonb(OLD) -> 'category'), (to_jsonb(OLD) -> 'source_url'), (to_jsonb(OLD) -> 'version_tag'), (to_jsonb(OLD) -> 'authorization_status'), (to_jsonb(OLD) -> 'authorization_scope'), (to_jsonb(OLD) -> 'authorization_evidence_hash')) IS DISTINCT FROM ((to_jsonb(NEW) -> 'code'), (to_jsonb(NEW) -> 'name'), (to_jsonb(NEW) -> 'authority'), (to_jsonb(NEW) -> 'category'), (to_jsonb(NEW) -> 'source_url'), (to_jsonb(NEW) -> 'version_tag'), (to_jsonb(NEW) -> 'authorization_status'), (to_jsonb(NEW) -> 'authorization_scope'), (to_jsonb(NEW) -> 'authorization_evidence_hash')))
+     OR ((to_jsonb(OLD) ->> 'review_status') = 'verified' AND ((to_jsonb(OLD) -> 'review_evidence_reference'), (to_jsonb(OLD) -> 'review_scope'), (to_jsonb(OLD) -> 'review_allows_quotations')) IS DISTINCT FROM ((to_jsonb(NEW) -> 'review_evidence_reference'), (to_jsonb(NEW) -> 'review_scope'), (to_jsonb(NEW) -> 'review_allows_quotations')) AND (to_jsonb(NEW) -> 'reviewed_at') IS NOT DISTINCT FROM (to_jsonb(OLD) -> 'reviewed_at')) THEN
+    IF OLD.review_status = 'verified' THEN
+      invalidation_reason := CASE WHEN (OLD.review_evidence_reference, OLD.review_scope, OLD.review_allows_quotations) IS DISTINCT FROM (NEW.review_evidence_reference, NEW.review_scope, NEW.review_allows_quotations) AND NEW.reviewed_at IS NOT DISTINCT FROM OLD.reviewed_at THEN 'review_evidence_changed' ELSE 'source_identity_or_authorization_changed' END;
+      IF TG_TABLE_NAME = 'price_sources' THEN
+        INSERT INTO public.tenant_price_source_review_invalidations(company_id,source_id,reason) VALUES (OLD.company_id,OLD.id,invalidation_reason);
+      ELSE
+        INSERT INTO public.global_price_source_review_events(source_id,actor_user_id,action,before,after) VALUES (OLD.id,NULL,'invalidated',jsonb_build_object('status','verified'),jsonb_build_object('status','legacy_unverified','reason',invalidation_reason));
+      END IF;
+    END IF;
+    NEW.review_status := 'legacy_unverified';
+  END IF;
+  RETURN NEW;
+END $function$;`,
+  `ALTER FUNCTION public.bimmetraj_invalidate_price_review() OWNER TO bimmetraj_owner;`,
+  `REVOKE ALL ON FUNCTION public.bimmetraj_invalidate_price_review() FROM PUBLIC;`,
+  `CREATE TRIGGER price_sources_review_invalidation BEFORE UPDATE ON public.price_sources FOR EACH ROW EXECUTE FUNCTION public.bimmetraj_invalidate_price_review();`,
+  `CREATE TRIGGER pricing_data_sources_review_invalidation BEFORE UPDATE ON public.pricing_data_sources FOR EACH ROW EXECUTE FUNCTION public.bimmetraj_invalidate_price_review();`,
+] as const;
+
 export function injectDataTransitions(tag: string, schemaStatements: readonly string[]): string[] {
+  if (tag === '0035_price_source_review') return [...schemaStatements, ...priceReviewProtection];
   if (tag === '0009_price_source_authorization') {
     const index = schemaStatements.findIndex((statement) => statement.startsWith(currentPriceEvidenceIndex));
     if (index < 0) throw new Error('0009 data transition anchor is missing');

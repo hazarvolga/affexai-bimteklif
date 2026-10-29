@@ -1,4 +1,4 @@
-import { createHash } from "node:crypto";
+import { isSourceReviewHistoryConflict } from "../pricing/source-delete-error";
 import { Router, type Express } from "express";
 import { authenticate, checkSuperAdmin } from "../middleware/auth";
 import { db } from "../../db";
@@ -1095,9 +1095,6 @@ export function registerAdminRoutes(app: Express) {
       const now = new Date();
       const validityDays = category === "market_commodity" ? 90 : 365;
       const validityEnd = new Date(now.getTime() + validityDays * 24 * 60 * 60 * 1000);
-      const evidenceHash = createHash("sha256")
-        .update(`${code}:${sourceUrl}:${versionTag}:${req.user.userId}:${now.toISOString()}`)
-        .digest("hex");
       const [inserted] = await db
         .insert(pricingDataSources)
         .values({
@@ -1112,15 +1109,8 @@ export function registerAdminRoutes(app: Express) {
           itemCount: 0,
           validityStart: now,
           validityEnd,
-          dataHash: evidenceHash,
-          authorizationStatus: "authorized",
-          authorizationScope: `superadmin_created_source:${category}`,
-          authorizationEvidenceHash: evidenceHash,
-          authorizedAt: now,
           crawlerConfig: {
             autoApprove: autoApprove ?? (category === "market_commodity"),
-            verifiedBy: req.user.userId,
-            verifiedAt: now.toISOString(),
           },
           createdAt: now,
           updatedAt: now,
@@ -1220,13 +1210,6 @@ export function registerAdminRoutes(app: Express) {
           : existing.versionTag);
 
       const resolvedUrl = parsed.data.sourceUrl || existing.sourceUrl;
-      const evidenceHash =
-        existing.dataHash && /^[a-f0-9]{64}$/.test(existing.dataHash)
-          ? existing.dataHash
-          : createHash("sha256")
-              .update(`${existing.code}:${resolvedUrl}:${nextVersionTag}:${req.user.userId}:${now.toISOString()}`)
-              .digest("hex");
-
       const [updated] = await db
         .update(pricingDataSources)
         .set({
@@ -1237,16 +1220,9 @@ export function registerAdminRoutes(app: Express) {
           syncFrequency: parsed.data.syncFrequency || existing.syncFrequency,
           validityStart,
           validityEnd,
-          dataHash: evidenceHash,
-          authorizationStatus: "authorized",
-          authorizationScope: `superadmin_verified_source:${existing.code}`,
-          authorizationEvidenceHash: evidenceHash,
-          authorizedAt: now,
           crawlerConfig: {
             ...prevConfig,
             autoApprove,
-            verifiedBy: req.user.userId,
-            verifiedAt: now.toISOString(),
           },
           updatedAt: now,
         })
@@ -1268,7 +1244,7 @@ export function registerAdminRoutes(app: Express) {
 
       return res.json({
         success: true,
-        message: `"${updated.name}" kaynağı doğrulandı ve aktif edildi.`,
+        message: `"${updated.name}" kaynak bilgileri güncellendi. Tekliflerde kullanım için ayrıca izin incelemesi gerekir.`,
         source: updated,
       });
     } catch (error) {
@@ -1309,6 +1285,9 @@ export function registerAdminRoutes(app: Express) {
 
       return res.json({ success: true, message: `${existing.name} kaynağı silindi.` });
     } catch (error) {
+      if (isSourceReviewHistoryConflict(error)) {
+        return res.status(409).json({ error: "Bu kaynakta korunması gereken izin inceleme geçmişi bulunuyor. Kaynağı silmek yerine kullanımını devre dışı bırakın.", code: "PRICE_SOURCE_REVIEW_HISTORY_EXISTS" });
+      }
       console.error("Admin delete pricing source error:", error);
       return res.status(500).json({ error: "Kaynak silinirken bir hata oluştu." });
     }
@@ -1430,19 +1409,12 @@ export function registerAdminRoutes(app: Express) {
         if (parsed.data.action === "approve" && touchedSourceIds.size > 0) {
           const rollingEnd = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000);
           for (const sourceId of touchedSourceIds) {
-            const evidenceHash = createHash("sha256")
-              .update(`bulk_review:${sourceId}:${req.user.userId}:${now.toISOString()}`)
-              .digest("hex");
             await tx
               .update(pricingDataSources)
               .set({
                 status: "active",
                 validityStart: sql`COALESCE(${pricingDataSources.validityStart}, ${now})`,
                 validityEnd: sql`COALESCE(${pricingDataSources.validityEnd}, ${rollingEnd})`,
-                authorizationStatus: "authorized",
-                authorizationScope: `superadmin_bulk_approved_staging:${sourceId}`,
-                authorizationEvidenceHash: sql`CASE WHEN ${pricingDataSources.authorizationEvidenceHash} ~ '^[0-9a-f]{64}$' THEN ${pricingDataSources.authorizationEvidenceHash} ELSE ${evidenceHash} END`,
-                authorizedAt: sql`COALESCE(${pricingDataSources.authorizedAt}, ${now})`,
                 updatedAt: now,
               })
               .where(eq(pricingDataSources.id, sourceId));
@@ -1543,19 +1515,12 @@ export function registerAdminRoutes(app: Express) {
 
         if (newStatus === "approved") {
           const rollingEnd = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000);
-          const evidenceHash = createHash("sha256")
-            .update(`single_review:${existing.sourceId}:${existing.id}:${req.user.userId}:${now.toISOString()}`)
-            .digest("hex");
           await tx
             .update(pricingDataSources)
             .set({
               status: "active",
               validityStart: sql`COALESCE(${pricingDataSources.validityStart}, ${now})`,
               validityEnd: sql`COALESCE(${pricingDataSources.validityEnd}, ${rollingEnd})`,
-              authorizationStatus: "authorized",
-              authorizationScope: `superadmin_approved_staging:${existing.sourceId}`,
-              authorizationEvidenceHash: sql`CASE WHEN ${pricingDataSources.authorizationEvidenceHash} ~ '^[0-9a-f]{64}$' THEN ${pricingDataSources.authorizationEvidenceHash} ELSE ${evidenceHash} END`,
-              authorizedAt: sql`COALESCE(${pricingDataSources.authorizedAt}, ${now})`,
               updatedAt: now,
             })
             .where(eq(pricingDataSources.id, existing.sourceId));
@@ -1738,14 +1703,8 @@ export function registerAdminRoutes(app: Express) {
       );
 
       // 4. Update data source metadata & rolling validity window
-      const nextDataHash =
-        crawlResult.dataHash && /^[a-f0-9]{64}$/.test(crawlResult.dataHash)
-          ? crawlResult.dataHash
-          : source.dataHash && /^[a-f0-9]{64}$/.test(source.dataHash)
-          ? source.dataHash
-          : createHash("sha256")
-              .update(`live_sync:${source.code}:${crawlResult.crawledAt.toISOString()}`)
-              .digest("hex");
+      const nextDataHash = crawlResult.dataHash && /^[a-f0-9]{64}$/.test(crawlResult.dataHash)
+        ? crawlResult.dataHash : source.dataHash;
 
       await db
         .update(pricingDataSources)
@@ -1754,10 +1713,6 @@ export function registerAdminRoutes(app: Express) {
           status: "active",
           itemCount: sql`GREATEST(${pricingDataSources.itemCount}, ${crawlResult.itemsCount})`,
           dataHash: nextDataHash,
-          authorizationStatus: "authorized",
-          authorizationScope: `superadmin_live_crawl:${source.code}`,
-          authorizationEvidenceHash: nextDataHash,
-          authorizedAt: source.authorizedAt ?? crawlResult.crawledAt,
           validityStart: source.validityStart ?? crawlResult.crawledAt,
           validityEnd:
             source.validityEnd && source.validityEnd > rollingValidityEnd

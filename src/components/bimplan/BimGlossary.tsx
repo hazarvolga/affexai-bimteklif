@@ -103,7 +103,7 @@ export default function BimGlossary() {
       category: 'Mali & Yönetim',
       definition: 'Çevre, Şehircilik ve İklim Değişikliği Bakanlığı (Yüksek Fen Kurulu) tarafından yayımlanan imalat pozları, ölçü esasları ve dönemsel birim fiyat tarifleridir. Bir kaydın katalogda bulunması, ticari yazılımda kullanım yetkisi veya güncel/onaylı teklif fiyatı olduğu anlamına gelmez; belge sürümü, birim, geçerlilik ve kullanım hakkı ayrıca doğrulanır.',
       englishTranslation: 'Official Ministry Unit Price Cost Codes',
-      isoRole: '5D BIM metrajlarında TREpys_PozOzellikSeti.PozNo ile kaynak eşleştirmesine yardım eder; fiyat hesabı yalnız yetkilendirilmiş ve onaylı snapshot kaydıyla yapılır.',
+      isoRole: '5D BIM metrajlarında TREpys_PozOzellikSeti.PozNo ile kaynak eşleştirmesine yardım eder; fiyat seçimi yalnız kullanım izni yetkili kişi tarafından incelenmiş ve fiyat satırı onaylanmış snapshot kaydıyla yapılır; bu kayıt hukuki geçerliliği otomatik olarak doğrulamaz.',
       importance: 'Çok Yüksek'
     },
     {

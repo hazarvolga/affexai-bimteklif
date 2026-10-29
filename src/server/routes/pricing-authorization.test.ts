@@ -9,5 +9,6 @@ test("vendor catalog import cannot self-authorize commercial quotation permissio
   assert.equal(supplier.authorizationEvidenceHash, null);
 
   const tenantActual = resolveAuthorizationInput({ sourceType: "company_actual", sourceDocumentHash: "b".repeat(64), actorUserId: "actor", allowTenantAuthorization: true });
-  assert.equal(tenantActual.authorizationStatus, "authorized");
+  assert.equal(tenantActual.authorizationStatus, "pending");
+  assert.equal(tenantActual.authorizationEvidenceHash, null);
 });

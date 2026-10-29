@@ -1,3 +1,4 @@
+import { TenantSourcePermissionList } from "@/components/pricing/TenantSourcePermissionList";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { BarChart3, Check, FileUp, Loader2, RefreshCw, ShieldAlert, X } from "lucide-react";
 import { toast } from "sonner";
@@ -176,6 +177,7 @@ export function MarketIntelligence() {
 
   return (
     <PageContainer>
+      <TenantSourcePermissionList />
       <PageHeader title="Piyasa Verisi" description="Tedarikçi tekliflerini kaynak dosyası, bölge, teslim koşulu ve inceleme kararıyla firma fiyat hafızasına ekleyin." icon={BarChart3} actions={<Button variant="ghost" onClick={() => void refresh()} disabled={loading} className="gap-2 text-muted-foreground hover:text-foreground"><RefreshCw size={14} className={cn(loading && "animate-spin")} /> Yenile</Button>} />
       <div className="grid gap-6 lg:grid-cols-[1fr_1.4fr]">
         <Card className="border-border bg-card shadow-none">

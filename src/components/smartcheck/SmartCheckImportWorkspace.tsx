@@ -247,14 +247,8 @@ export function SmartCheckImportWorkspace() {
   };
 
   const loadPriceSnapshots = async () => {
-    const [advisory, approved] = await Promise.all([
-      fetchWithAuth("/api/pricing/snapshots?status=advisory&limit=200"),
-      fetchWithAuth("/api/pricing/snapshots?status=approved&limit=200"),
-    ]);
-    const rows = [
-      ...(advisory.ok ? await advisory.json() : []),
-      ...(approved.ok ? await approved.json() : []),
-    ] as PriceSnapshotOption[];
+    const approved = await fetchWithAuth("/api/pricing/snapshots?status=approved&eligibleForQuotation=true&limit=200");
+    const rows = (approved.ok ? await approved.json() : []) as PriceSnapshotOption[];
     setPriceSnapshots(rows.filter((snapshot, index, all) => all.findIndex((candidate) => candidate.id === snapshot.id) === index));
   };
 
@@ -669,10 +663,10 @@ export function SmartCheckImportWorkspace() {
     const imported = await readJsonBody<{ snapshots?: PriceSnapshotOption[]; error?: string }>(importResponse);
     const snapshot = imported.snapshots?.[0];
     if (!importResponse.ok || !snapshot?.id) return toast.error(imported.error ?? "Fiyat kaydı oluşturulamadı.");
-    setPriceSnapshots((current) => [snapshot, ...current.filter((candidate) => candidate.id !== snapshot.id)]);
-    setSnapshotByRow((current) => ({ ...current, [row.id]: snapshot.id }));
+    await loadPriceSnapshots();
+    setSnapshotByRow((current) => { const next = { ...current }; delete next[row.id]; return next; });
     setManualSnapshotDraft((current) => ({ ...current, rowId: row.id, amount: "", sourceName }));
-    toast.success("Manuel fiyat kaydedildi. Teklifte kullanmak için farklı bir yetkili tarafından onaylanmalıdır.");
+    toast.success("Manuel fiyat kaydedildi. Teklife eklenmeden önce kaynak izni ve fiyat incelemesi tamamlanmalıdır.");
   };
 
   const readPriceCatalogFile = async (selectedFile: File | null) => {
@@ -740,10 +734,7 @@ export function SmartCheckImportWorkspace() {
       });
       const body = await readJsonBody<{ error?: string; insertedCount?: number; reusedCount?: number; snapshots?: PriceSnapshotOption[] }>(response);
       if (!response.ok || !body.snapshots) return toast.error(body.error ?? "CSV fiyat kataloğu içe aktarılamadı.");
-      setPriceSnapshots((current) => [
-        ...body.snapshots!,
-        ...current.filter((candidate) => !body.snapshots!.some((snapshot) => snapshot.id === candidate.id)),
-      ]);
+      await loadPriceSnapshots();
       setPriceSuggestionsByRow({});
       setCatalogOwnershipConfirmed(false);
       toast.success(`${(body.insertedCount ?? 0) + (body.reusedCount ?? 0)} fiyat kataloğa eklendi.`);

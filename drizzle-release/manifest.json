@@ -246,6 +246,13 @@
       "sha256": "ed2c3e01ce6defd6ee31f9bf9be1afcb0cd84c1ae512c6de1b64289e312c9929",
       "snapshotSha256": "96a73322eb297376d9d32403e70f5d9d3a88eb7165100d1d155ff9dd9468a8d3",
       "statements": 12
+    },
+    {
+      "idx": 35,
+      "tag": "0035_price_source_review",
+      "sha256": "ff908d9db61505d9a307566475b1cf74415dc0d348570dc51491109cbec25cc6",
+      "snapshotSha256": "0ac2c493f7823d9ea509f7f3b9d57e89976c770a5a684ff87948d3d141f9f8eb",
+      "statements": 51
     }
   ]
 }

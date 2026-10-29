@@ -59,6 +59,9 @@ test("pricing snapshot evidence flow is tenant-isolated and lockable", { timeout
     const preview = await request(`/api/quotations/${quote.id}/pricing-snapshot`);
     assert.equal(preview.status, 200);
     assert.equal((await preview.json() as { warnings: unknown[] }).warnings.length, 1);
+    const unverifiedReview = await request(`/api/pricing/snapshots/${snapshotId}/review`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ status: "approved", notes: "Kaynak incelemesi eksik." }) });
+    assert.equal(unverifiedReview.status, 409);
+    await db.update(schema.priceSources).set({ reviewStatus: "verified", reviewEvidenceReference: "https://example.org/test-permission", reviewScope: "Ticari teklifler", reviewAllowsQuotations: true, reviewedByUserId: userA.id, reviewedAt: new Date() }).where(eq(schema.priceSources.id, sourceId));
     const review = await request(`/api/pricing/snapshots/${snapshotId}/review`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ status: "approved", notes: "Tedarikçi belgesi ve birim teyit edildi." }) });
     assert.equal(review.status, 200);
     const lock = await request(`/api/quotations/${quote.id}/pricing-snapshot/lock`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ items: [{ quotationItemId: item.id, priceSnapshotId: snapshotId }] }) });
@@ -75,6 +78,14 @@ test("pricing snapshot evidence flow is tenant-isolated and lockable", { timeout
     const evidence = await db.select().from(schema.quotationItemEvidence).where(and(eq(schema.quotationItemEvidence.quotationItemId, item.id), eq(schema.quotationItemEvidence.companyId, companyA.id)));
     assert.equal(evidence.length, 1);
     assert.equal(evidence[0].priceSnapshotId, snapshotId);
+    assert.equal((evidence[0].capturedValueJson.permissionReview as {status?:string}).status,"verified");
+    assert.equal(JSON.stringify(evidence[0].capturedValueJson).includes("https://example.org/test-permission"),false);
+    await db.update(schema.priceSources).set({ reviewScope:"Yeni ticari kapsam", reviewedAt:new Date(Date.now()+1000) }).where(eq(schema.priceSources.id,sourceId));
+    const relock = await request(`/api/quotations/${quote.id}/pricing-snapshot/lock`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ items: [{ quotationItemId: item.id, priceSnapshotId: snapshotId }] }) });
+    assert.equal(relock.status,200);
+    assert.notEqual((await relock.json() as {lockHash:string}).lockHash,lockBody.lockHash);
+    const refreshed = await db.select().from(schema.quotationItemEvidence).where(and(eq(schema.quotationItemEvidence.quotationItemId, item.id), eq(schema.quotationItemEvidence.companyId, companyA.id), eq(schema.quotationItemEvidence.status,"current")));
+    assert.equal((refreshed[0].capturedValueJson.permissionReview as {scope:string}).scope,"Yeni ticari kapsam");
   } finally {
     await new Promise<void>((resolve) => server.close(() => resolve()));
     await db.delete(schema.quotationItemEvidence).where(and(eq(schema.quotationItemEvidence.quotationItemId, item.id), eq(schema.quotationItemEvidence.companyId, companyA.id)));
@@ -163,6 +174,9 @@ test("pricing catalog import creates advisory snapshots without cross-tenant lea
     assert.equal(Number(importBody.snapshots[0].amount), 12500.5);
     assert.equal(importBody.snapshots[0].vatPercent, "20.25");
     assert.equal(importBody.snapshots[0].stale, false);
+    const beforePermission = await request(`/api/pricing/snapshots/${importBody.snapshots[0].id}/review`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ status: "approved", notes: "Kaynak incelemesi eksik." }) });
+    assert.equal(beforePermission.status, 409);
+    await db.update(schema.priceSources).set({ reviewStatus: "verified", reviewEvidenceReference: "https://example.org/test-permission", reviewScope: "Ticari teklifler", reviewAllowsQuotations: true, reviewedByUserId: userA.id, reviewedAt: new Date() }).where(eq(schema.priceSources.id, importBody.source.id));
     for (const snapshot of importBody.snapshots) {
       const reviewResponse = await request(`/api/pricing/snapshots/${snapshot.id}/review`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ status: "approved", notes: "Tenant tarafından sağlanan katalog satırı incelendi." }) });
       assert.equal(reviewResponse.status, 200);
@@ -229,8 +243,12 @@ test("pricing catalog import creates advisory snapshots without cross-tenant lea
     assert.ok(approvedBody.snapshots[0].reviewedAt);
     const wizardSuggestion = await request("/api/pricing/snapshot-suggestions", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ rows: [{ rowId: "wizard-row", positionCode: "M-WIZ-001", description: "Sihirbaz beton", unit: "m³" }] }) });
     const wizardSuggestionBody = await wizardSuggestion.json() as { suggestions: Array<{ decision: string; bestSuggestion: null | { snapshot: { id: string } } }> };
-    assert.equal(wizardSuggestionBody.suggestions[0].decision, "safe_candidate", "an approved import prices an item without a separate review step");
-    assert.equal(wizardSuggestionBody.suggestions[0].bestSuggestion?.snapshot.id, approvedBody.snapshots[0].id);
+    assert.equal(wizardSuggestionBody.suggestions[0].decision, "no_match", "price-row approval alone must not grant source permission");
+    await db.update(schema.priceSources).set({ reviewStatus: "verified", reviewEvidenceReference: "https://example.org/test-permission", reviewScope: "Ticari teklifler", reviewAllowsQuotations: true, reviewedByUserId: userA.id, reviewedAt: new Date() }).where(eq(schema.priceSources.id, approvedBody.source.id));
+    const reviewedWizardSuggestion = await request("/api/pricing/snapshot-suggestions", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ rows: [{ rowId: "wizard-row", positionCode: "M-WIZ-001", description: "Sihirbaz beton", unit: "m³" }] }) });
+    const reviewedWizardBody = await reviewedWizardSuggestion.json() as { suggestions: Array<{ decision: string; bestSuggestion: null | { snapshot: { id: string } } }> };
+    assert.equal(reviewedWizardBody.suggestions[0].decision, "safe_candidate");
+    assert.equal(reviewedWizardBody.suggestions[0].bestSuggestion?.snapshot.id, approvedBody.snapshots[0].id);
 
     const invalidImport = await request("/api/pricing/catalog/import", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ ...importPayload, sourceName: "Invalid catalog", sourceType: "official_reference" }) });
     assert.equal(invalidImport.status, 400);
