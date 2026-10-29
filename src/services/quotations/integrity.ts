@@ -3,7 +3,7 @@ import { resolveCatalogProvenance } from './catalog-provenance';
 import { and, desc, eq, or } from "drizzle-orm";
 import { withAppTenantTransaction } from "../../db/app-tenant";
 import type { TenantContext } from "../../db/tenant-context";
-import { clients, industries, quotationItemEvidence, quotationItems, quotations } from "../../db/schema";
+import { clients, industries, quotationItemEvidence, quotationItems, quotations, smartcheckAuditLogs } from "../../db/schema";
 import { calculateLineItemTotal, calculateQuotationTotals } from "../../lib/calculations";
 import type { ManualQuotationInput } from "./input";
 import { copyRevisionItems } from "./revision-copy";
@@ -38,7 +38,9 @@ export async function resolveQuotationIndustryId(
   return matched.id;
 }
 
-export async function createManualQuotation(actor: TenantContext, input: ManualQuotationInput) {
+type QuotationAuditContext = { impersonatedBy?: string };
+
+export async function createManualQuotation(actor: TenantContext, input: ManualQuotationInput, audit: QuotationAuditContext = {}) {
   const { companyId } = actor;
   return withAppTenantTransaction(actor, async tx => {
     await consumeQuotationQuota(tx, companyId);
@@ -99,12 +101,16 @@ export async function createManualQuotation(actor: TenantContext, input: ManualQ
         status: 'current', createdByUserId: actor.userId }];
     }) ];
     if (evidence.length) await tx.insert(quotationItemEvidence).values(evidence);
+    await tx.insert(smartcheckAuditLogs).values({ companyId, userId: actor.userId, action: 'quotation.created',
+      entityType: 'quotation', entityId: quote.id, metadataJson: audit.impersonatedBy ? { impersonatedBy: audit.impersonatedBy } : {} });
     return quote;
   });
 }
 
-export async function createQuotationRevision(actorOrCompanyId: TenantContext | string, sourceId: string) {
-  const actor = normalizeQuotationTenantActor(actorOrCompanyId);
+export async function createQuotationRevision(actor: TenantContext, sourceId: string, audit: QuotationAuditContext = {}) {
+  if (!actor || typeof actor !== 'object' || typeof actor.companyId !== 'string' || !actor.companyId || typeof actor.userId !== 'string' || !actor.userId) {
+    throw new QuotationIntegrityError(400, 'A tenant and authenticated actor are required to create a revision');
+  }
   const { companyId } = actor;
   // Revisions preserve an existing quote series and do not consume new-quote quota.
   return withAppTenantTransaction(actor, async tx => {
@@ -139,6 +145,9 @@ export async function createQuotationRevision(actorOrCompanyId: TenantContext | 
     if (evidence.length) {
       await tx.insert(quotationItemEvidence).values(cloned.evidence);
     }
+    await tx.insert(smartcheckAuditLogs).values({ companyId, userId: actor.userId, action: 'quotation.revision_created',
+      entityType: 'quotation', entityId: revision.id,
+      metadataJson: { parentId: sourceId, ...(audit.impersonatedBy ? { impersonatedBy: audit.impersonatedBy } : {}) } });
     return revision;
   });
 }

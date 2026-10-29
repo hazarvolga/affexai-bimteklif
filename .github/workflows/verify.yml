@@ -186,6 +186,14 @@ jobs:
           CI_DISPOSABLE_DATABASE: 'true'
           QUOTE_AUDIT_TEST_URL: postgresql://postgres:ci-local-only@127.0.0.1:5433/teklifpro_bootstrap_test
         run: pnpm exec tsx --test src/server/routes/quotation-audit-atomic.pgtest.ts
+      - name: Quotation create, revision and edit audit atomicity
+        env:
+          NODE_ENV: test
+          CI_DISPOSABLE_DATABASE: 'true'
+          QUOTE_AUDIT_TEST_URL: postgresql://postgres:ci-local-only@127.0.0.1:5433/teklifpro_bootstrap_test
+        run: |
+          pnpm exec tsx --test src/server/routes/quotation-create-revision-audit.pgtest.ts
+          pnpm exec tsx --test src/server/routes/quotation-edit-audit.pgtest.ts
       - name: Benchmark provenance lock ordering
         env:
           NODE_ENV: test

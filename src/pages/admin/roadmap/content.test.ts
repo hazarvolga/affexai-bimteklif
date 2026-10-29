@@ -72,8 +72,8 @@ test("roadmap covers the agreed topics, ministry questions and official sources"
 
 
 test("Rev. 112 documents Phase 0 without claiming production or independent expert approval", () => {
-  assert.equal(CALC_REVIEW_META.version, "BIM-CALC-2026-10-29.9");
-  assert.equal(CALC_REVIEW_CHANGELOG.at(-1)?.revision, "Rev. 127");
+  assert.equal(CALC_REVIEW_META.version, "BIM-CALC-2026-10-29.10");
+  assert.equal(CALC_REVIEW_CHANGELOG.at(-1)?.revision, "Rev. 128");
   const revisions = CALC_REVIEW_CHANGELOG.map(item => Number(item.revision.match(/Rev\. (\d+)/)?.[1]));
   assert.ok(revisions.every((value, index) => index === 0 || value > revisions[index - 1]), "calculation revisions must be strictly increasing");
   const kik = CALC_REVIEW_CHANGELOG.find(item => item.revision === "Rev. 112")?.moduleDetails?.["kik-adt"];
@@ -85,7 +85,7 @@ test("Rev. 112 documents Phase 0 without claiming production or independent expe
   for (const [index, table] of tables.entries()) {
     if (table.type !== "table") continue;
     const numbers = table.rows.map(row => Number(row[0].match(/Rev\. (\d+)/)?.[1]));
-    assert.equal(numbers.at(-1), 127);
+    assert.equal(numbers.at(-1), 128);
     assert.ok(numbers.every((value, rowIndex) => rowIndex === 0 || (index === 0 ? value > numbers[rowIndex - 1] : value >= numbers[rowIndex - 1])), "roadmap revisions must be ordered");
   }
 });
@@ -275,4 +275,13 @@ test("Rev. 127 records benchmark lock ordering without claiming source permissio
   for (const term of [/Kaynaklar sonra staging/, /deterministik/, /UUID/, /409/, /40P01/, /RED/, /GREEN/, /gerçek kullanım hakkı/, /crawler ayrı WIP/, /sentetik yetki hash/, /CI/, /canlı/, /formülleri değişmedi/]) assert.match(rev.afterSummary, term);
   for (const id of ['fiyat-eslestirme', 'teklif-satir']) assert.ok(rev.moduleDetails?.[id]?.before && rev.moduleDetails[id].after && rev.moduleDetails[id].basis);
   assert.match(JSON.stringify(ROADMAP_SECTIONS.find(section => section.id === "revizyon-gunlugu")), /Rev\. 127/);
+});
+
+
+test("Rev. 128 records quotation write audit atomicity and legacy caller limit", () => {
+  const rev = CALC_REVIEW_CHANGELOG.find(item => item.revision === "Rev. 128");
+  assert.ok(rev);
+  for (const term of [/Oluşturma, revizyon ve düzenleme/, /tenant transaction/, /audit hatası/, /kota/, /kişisel içerik yoktur/, /telemetrisi arındırılır/, /firma kimliği string/, /reddedilir/, /doğrulanmış aktör/, /uyumluluk değişikliği/, /Crawler WIP/, /CI/, /canlı/, /formülleri değişmedi/]) assert.match(rev.afterSummary, term);
+  assert.ok(rev.moduleDetails?.['teklif-satir']?.before && rev.moduleDetails['teklif-satir'].after && rev.moduleDetails['teklif-satir'].basis);
+  assert.match(JSON.stringify(ROADMAP_SECTIONS.find(section => section.id === "revizyon-gunlugu")), /Rev\. 128/);
 });

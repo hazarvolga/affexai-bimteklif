@@ -17,7 +17,11 @@ import { usageTracker } from "../middleware/usage";
 import { QuotaError } from "../../services/billing/quota";
 import type { UsageSubject } from "../../services/billing/feature-quota";
 import { consumeRateLimit } from "../auth/security";
-import { captureError } from "../observability/error-tracking";
+import { captureError, hashReportingIdentifier } from "../observability/error-tracking";
+
+export function quotationAuditReportingContext(action: string, quotationId?: string) {
+  return { area: 'quotation-audit', action, quotationId: hashReportingIdentifier(quotationId) };
+}
 
 /**
  * The PDF quota is counted once per quotation version per month (marka.md M-7.6): the version key changes
@@ -49,27 +53,6 @@ export function registerQuotationRoutes(app: Express, canMutate: any) {
       entityId: quotationId,
       metadataJson: { ...metadataJson, ...(req.user.impersonatedBy ? { impersonatedBy: req.user.impersonatedBy } : {}) },
     });
-  };
-
-  const auditQuotation = async (req: any, action: string, quotationId: string, metadataJson: Record<string, unknown> = {}) => {
-    try {
-      const mergedMetadata = {
-        ...metadataJson,
-        ...(req.user?.impersonatedBy ? { impersonatedBy: req.user.impersonatedBy } : {}),
-      };
-      await withAppTenant(tenantOf(req.user), tx => tx.insert(smartcheckAuditLogs).values({
-        companyId: req.user.companyId,
-        userId: req.user.userId,
-        action,
-        entityType: "quotation",
-        entityId: quotationId,
-        metadataJson: mergedMetadata,
-      }).then(() => undefined));
-    } catch (auditErr) {
-      // The business action already succeeded; a lost audit row must still be visible to operators (Sentry), not only stdout.
-      console.error("Failed to write quotation audit log:", auditErr);
-      captureError(auditErr, { area: "quotation-audit", action, quotationId });
-    }
   };
 
   app.get("/api/quotations", authenticate, async (req, res) => {
@@ -157,25 +140,25 @@ export function registerQuotationRoutes(app: Express, canMutate: any) {
     try {
       const parsed = manualQuotationInput.safeParse(req.body);
       if (!parsed.success) return res.status(400).json({ error: "Invalid quotation input", issues: parsed.error.issues });
-      const newQuote = await createManualQuotation(tenantOf(req.user), parsed.data);
-      await auditQuotation(req, "quotation.created", newQuote.id);
+      const newQuote = await createManualQuotation(tenantOf(req.user), parsed.data, { impersonatedBy: req.user.impersonatedBy });
       res.json(newQuote);
     } catch (error) {
       if (error instanceof QuotaError) return res.status(error.status).json({ error: error.message, code: error.code, ...error.details });
       if (error instanceof QuotationIntegrityError) return res.status(error.status).json({ error: error.message });
       console.error("Quote creation error:", error);
+      captureError(error, { area: "quotation-audit", action: "quotation.created" });
       res.status(500).json({ error: "Failed to create quotation" });
     }
   });
 
   app.post("/api/quotations/:id/revision", authenticate, canMutate, async (req, res) => {
     try {
-      const newQuote = await createQuotationRevision(tenantOf(req.user), req.params.id);
-      await auditQuotation(req, "quotation.revision_created", newQuote.id, { parentId: req.params.id });
+      const newQuote = await createQuotationRevision(tenantOf(req.user), req.params.id, { impersonatedBy: req.user.impersonatedBy });
       res.json(newQuote);
     } catch (error) {
       if (error instanceof QuotationIntegrityError) return res.status(error.status).json({ error: error.message });
       console.error("Revision error:", error);
+      captureError(error, quotationAuditReportingContext("quotation.revision_created", req.params.id));
       res.status(500).json({ error: "Failed to create revision" });
     }
   });
@@ -199,7 +182,7 @@ export function registerQuotationRoutes(app: Express, canMutate: any) {
       if (!updated) return res.status(404).json({ error: "Quotation not found" });
       res.json(updated);
     } catch (error) {
-      captureError(error, { area: "quotation-audit", action: "quotation.status_updated", quotationId: req.params.id });
+      captureError(error, quotationAuditReportingContext("quotation.status_updated", req.params.id));
       res.status(500).json({ error: "Failed to update status" });
     }
   });
@@ -224,7 +207,7 @@ export function registerQuotationRoutes(app: Express, canMutate: any) {
       if (!updated) return res.status(404).json({ error: "Quotation not found" });
       res.json(updated);
     } catch (error) {
-      captureError(error, { area: "quotation-audit", action: "quotation.calibrated", quotationId: req.params.id });
+      captureError(error, quotationAuditReportingContext("quotation.calibrated", req.params.id));
       res.status(500).json({ error: "Calibration observation could not be saved" });
     }
   });

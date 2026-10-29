@@ -66,7 +66,7 @@ test('benchmark approval is revalidated atomically and persisted through creatio
   assert.equal(snapshot.stagingId,row.id);assert.equal(snapshot.reviewedByUserId,reviewer.id);assert.equal(snapshot.price,'100.00');
   assert.equal(item.priceSource,'market');assert.equal(item.costUnitPrice,null);assert.equal(Number(item.wastePercent),0);
   await assert.rejects(loadEditableQuotation(company.id,quote.id),{status:409});
-  const revision=await createQuotationRevision(company.id,quote.id);
+  const revision=await createQuotationRevision({companyId:company.id,userId:reviewer.id},quote.id);
   const [copy]=await db.select().from(s.quotationItems).where(eq(s.quotationItems.quotationId,revision.id));
   assert.equal(copy.sourceReference,item.sourceReference);
  });
