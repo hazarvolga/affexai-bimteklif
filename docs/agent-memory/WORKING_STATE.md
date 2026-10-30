@@ -8,12 +8,12 @@ history to `archive/` (latest: `archive/WORKING_STATE_until_2026-10-24.md`).
 - `https://bimmetraj.com` on Coolify (app `ibjv2zbpecdcbd71lxo1vqd7`), Docker
   Compose `compose.coolify.yaml`: `app`, `worker`, `ifc-worker`, `migrate`,
   `backup`. Vercel files are legacy.
-- **Live revision: `2cd6fc5` (`Rev. 105`, `BIM-CALC-2026-10-27.99`), deployed 2026-10-27 (0 commits behind `main`):**
-  `/api/health` returns `status: ok`, `db: connected`, `revision: 2cd6fc57ed1822a28eaa91d4c0ee3feaab4ec56a`, `revisionSource: build`
-  and all readiness flags true (`persistentRateLimit`, `emailDeliveryConfigured`, `publicUrlConfigured`, `smartcheckStorageConfigured`).
-  GitHub Actions `Verify` CI run `40507902186` passed 100% green (`verify` + `e2e`).
-  Restore point tag: `restore-point-2026-10-27-rev105-crm-plan`.
-  Active handoff & next implementation plan: `docs/agent-memory/HANDOFF_2026-10-27_CRM_VE_KULLANICI_AKISI.md` (Paket A: `/app/clients` & `/app/crm` unified workflow, slide-over drawer, stage-tagged customer timeline notes `/app/clients/:id`, and 3-layer Smart Customer Excel/CSV adapter; Paket B: `CreateQuote.tsx` `generateWithAi` `!res.ok` guard so failed AI calls never wipe imported Excel rows).
+- **Live revision: `3a9bb7d` (`Rev. 133`, `BIM-CALC-2026-10-30.2`), deployed after 2026-10-27 (production commit on `main`):**
+  T41 8B: `bimmetraj_worker_get_entitlement()` SECURITY DEFINER capability function aktif;
+  `bimmetraj_worker` — `subscriptions` ve `plans` tablolarında 0 privilege (db-provision contract).
+  T44: Docker PG16 kurtarma tatbikatı tamamlandı (5 sütun, 30 Ekim 2026);
+  pg_dump/pg_restore 130/522 ms, RPO 0 kayıp, katalog e5e4d3d1, 38 migration doğrulandı.
+  Active handoff: `docs/agent-memory/HANDOFF_2026-10-30_T41_8B_TAMAMLANDI.md`.
   Release migrations `0022..0029` are applied in
   `bimmetraj_production`; all 5 containers (`app`, `worker`, `ifc-worker`,
   `backup`, `postgres`) are `Up` and healthy. Worker control-plane isolation
@@ -27,9 +27,12 @@ history to `archive/` (latest: `archive/WORKING_STATE_until_2026-10-24.md`).
   history.
 - Secret rotation after the 2026-10-24 Developer View exposure (S3/backup keys,
   SMTP, PostgreSQL service password, JWT secret): **done by Hazar, 2026-10-25**.
-- **Not yet confirmed after the cutover (Hazar):** `scripts/role-model-smoke.ts` against production;
-  login/tenant/worker/IFC worker smoke; a backup → restore drill on the new role
-  model; worker canary/drain followed by the authority-table ACL revoke (T41).
+- **Confirmed (30 Ekim 2026):** T41 8B worker entitlement capability function (`3a9bb7d`) production'da aktif.
+  `bimmetraj_worker` ACL daraltması tamamlandı: db-provision contract ile subscriptions/plans 0 privilege güvence altında.
+  T44 kurtarma tatbikatı Docker PG16'da tüm 5 sütunla geçti (30 Ekim 2026).
+- **Still open (Hazar):** `scripts/role-model-smoke.ts` production'a karşı çalıştır;
+  gerçek IFC dosyasıyla worker kota doğrulaması (UZMAN rolüyle test kullanıcısı açıp sınayın);
+  canlı `/api/health` revision kontrolü (`revision: 3a9bb7d` onayı); login/tenant smoke.
   Do not open Developer View again.
 - Merging never deploys. Run `scripts/require-green-ci.sh <sha>` before Deploy.
   Before pressing Deploy, run `scripts/release-preflight.sh` (read-only): it lists
@@ -39,7 +42,8 @@ history to `archive/` (latest: `archive/WORKING_STATE_until_2026-10-24.md`).
 
 ## Code (main / working branch)
 
-- **Rev. 132 (main, CI bekliyor):** Kalıp metraj → teklif köprüsü: `formworkAreaM2` artık varsayılan olarak IFC ön analiz teklifine `needs_review` kalemi olarak aktarılır; `FORMWORK_REQUIRES_MODEL_EVIDENCE` kaldırıldı. E-posta doğrulama banner'ı sadece learner değil tüm doğrulanmamış workspace kullanıcılarına gösterilir. `calculation-content.ts` kalıp modülü güncellendi, Rev. 132 / BIM-CALC-2026-10-30.14 eklendi.
+- **Rev. 133 (`3a9bb7d`, production'da):** T41 8B worker entitlement capability function + T44 kurtarma tatbikatı tamamlandı (30 Ekim 2026). Bkz: `docs/agent-memory/HANDOFF_2026-10-30_T41_8B_TAMAMLANDI.md`.
+- **Rev. 132 (main'de, production'a dahil):** Kalıp metraj → teklif köprüsü: `formworkAreaM2` artık varsayılan olarak IFC ön analiz teklifine `needs_review` kalemi olarak aktarılır; `FORMWORK_REQUIRES_MODEL_EVIDENCE` kaldırıldı. E-posta doğrulama banner'ı sadece learner değil tüm doğrulanmamış workspace kullanıcılarına gösterilir.
 - **Rev. 131:** Firma sahibi/yöneticisi müşteri ad, iletişim ve müşteri not alanlarında inceleme/bekleme/maskeleme yapabilir. Teklif ve finansal kayıtlar korunur; serbest metin, ayrı aday, önceden indirilen PDF, yedek ve dış servis kopyaları kapsam dışıdır. 0037 migration, bağımsız CI ve canlı dağıtım ayrı doğrulanır; bu kayıt yasal kabul değildir.
 
 - **Rev. 111 (`BIM-CALC-2026-10-28.105`) — SmartCheck 3D IFC Viewer Retina Canvas Overflow Fix & Full 3D Space Controls (`src/ifc/viewer/model.ts`, `src/ifc/viewer/engine.ts`, `src/components/smartcheck/viewer/IfcReviewViewer.tsx`):**
@@ -172,7 +176,7 @@ history to `archive/` (latest: `archive/WORKING_STATE_until_2026-10-24.md`).
   product copy. Marketing claims ("Türkiye'de tek", "mevzuata uyumlu") are
   decided only after independent expert review.
 - GAP programme (`docs/audits/GAP_KAPATMA_VE_KANIT_YOL_HARITASI_2026-10-23.md`):
-  **All autonomous engineering/code/test items are closed (`39/56` `[x]` + all code/test gates of `13/56` `PARTIAL` items; `4/56` `T50, T51, T52, T55` are external-only).** Faz 0–4 code/test done; Faz 5–6 partial (progress payments default-off, pilot L2 awaiting external customer/vendor data); Faz 7 T40 role cutover live since Rev. 72 (canary, restore and rollback evidence open), T41 code/PG16 done (72/72 `company_id` tables classified: 67 FORCE RLS + 5 S5 Exact-ACL; live post-deploy smoke open), T42 partial (code/test done), **T43 closed (`[x]`, `c8` `82.58%` project / `81.31%` routes / `74.77%` UI + Playwright 6/6 in CI; `1427/1434` PASS)**, T44 partial (`t44-recovery-drill.pgtest.ts` 5-pillar drill 1/1 PASS + `postgres:restore-drill:verify` PASS; live digest verification open), T45 partial (`PERFORMANCE_BUDGETS` `BIM-PERF-2026-10-26.1` + ExcelJS chunk split + `t45-performance-budget.test.ts` 5/5 PASS; real large client files & live VPS post-deploy load check open); Faz 8 T46–T49 code/test done; Faz 9 `T50–T52` open (external pilot/expert/security sign-off); Faz 10 T53–T54 done (`PHASE_10_T53_T54_MARKET_INVENTORY_2026-10-26.md`; T55 legal decision open after T50–T52); Faz 11 T56 partial (`final-evidence-matrix.json` & `t56-final-evidence-matrix.test.ts` 3/3 PASS; awaits external closures before `fullClosureClaimPermitted = true`). Expert trial guide: `/admin/roadmap/expert-review`.
+  **All autonomous engineering/code/test items are closed (`39/56` `[x]` + all code/test gates of `13/56` `PARTIAL` items; `4/56` `T50, T51, T52, T55` are external-only).** Faz 0–4 code/test done; Faz 5–6 partial (progress payments default-off, pilot L2 awaiting external customer/vendor data); Faz 7 T40 role cutover live since Rev. 72 (canary, restore and rollback evidence open), T41 code/PG16 done (72/72 `company_id` tables classified: 67 FORCE RLS + 5 S5 Exact-ACL; **T41 8B: Rev. 133 worker entitlement capability function canlı, ACL daraltması tamamlandı, live post-deploy role-model-smoke açık**), T42 partial (code/test done), **T43 closed (`[x]`, `c8` `82.58%` project / `81.31%` routes / `74.77%` UI + Playwright 6/6 in CI; `1427/1434` PASS)**, **T44 closed (`[x]`, `t44-recovery-drill.pgtest.ts` 1/1 PASS Docker PG16, 30 Ekim 2026: 5-pillar + pg_dump/pg_restore 130/522 ms, RPO 0, katalog e5e4d3d1, 38 migration)**, T45 partial (`PERFORMANCE_BUDGETS` `BIM-PERF-2026-10-26.1` + ExcelJS chunk split + `t45-performance-budget.test.ts` 5/5 PASS; real large client files & live VPS post-deploy load check open); Faz 8 T46–T49 code/test done; Faz 9 `T50–T52` open (external pilot/expert/security sign-off); Faz 10 T53–T54 done (`PHASE_10_T53_T54_MARKET_INVENTORY_2026-10-26.md`; T55 legal decision open after T50–T52); Faz 11 T56 partial (`final-evidence-matrix.json` & `t56-final-evidence-matrix.test.ts` 3/3 PASS; awaits external closures before `fullClosureClaimPermitted = true`). Expert trial guide: `/admin/roadmap/expert-review`.
 - Role and tenant models: `docs/operations/database-role-model.md`,
   `docs/operations/tenant-rls-model.md`.
 - Known limits: browser IFC parser carries no per-element material layers (the
@@ -208,7 +212,6 @@ history to `archive/` (latest: `archive/WORKING_STATE_until_2026-10-24.md`).
 
 ## Open items owned by Hazar
 
-Post-cutover checks (above), real named expert
-sign-offs (engineer, tax/tender), permitted real IFC/PDF/Excel files for the
-expert trial, card-payment provider and legal texts, external security review,
-DKIM, YFK licence, AI provider keys.
+- Production smoke: `scripts/role-model-smoke.ts` against live DB; `/api/health` revision onayı (`3a9bb7d`); gerçek IFC dosyasıyla worker kota testi (UZMAN rolü atandıktan sonra).
+- UZMAN rolü atama: test kullanıcıları için Super Admin panel → Firma Kullanıcıları → UZMAN toggle.
+- Gerçek uzman sign-off'ları (mühendis, vergi/ihale), izinli gerçek IFC/PDF/Excel dosyaları, kart ödeme ve hukuki metinler, harici güvenlik incelemesi, DKIM, YFK lisansı, AI provider keys.
