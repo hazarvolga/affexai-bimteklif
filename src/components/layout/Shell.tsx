@@ -243,9 +243,9 @@ export function Shell() {
             </Button>
           </div>
         )}
-        {isLearner && user && !user.emailVerified && (
+        {user && !user.emailVerified && !isDemoMode && (
           <div className="flex flex-col gap-3 border-b border-border bg-card px-6 py-2.5 text-xs text-foreground sm:flex-row sm:items-center sm:justify-between">
-            <p>E-posta adresinizi doğrulayın. Dersleri kullanabilirsiniz; sertifika işlemleri doğrulama tamamlanana kadar kilitlidir.</p>
+            <p>{isLearner ? 'E-posta adresinizi doğrulayın. Dersleri kullanabilirsiniz; sertifika işlemleri doğrulama tamamlanana kadar kilitlidir.' : 'E-posta adresinizi doğrulayın. SmartCheck, CDE ve hakediş işlemleri doğrulama tamamlanana kadar kilitlidir.'}</p>
             <Button
               type="button"
               variant="outline"

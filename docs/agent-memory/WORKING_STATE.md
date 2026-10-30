@@ -1,6 +1,6 @@
 # Working State: BIMMetraj
 
-Last updated: 2026-10-27. Keep this file to one page: current truth only. Move
+Last updated: 2026-10-30. Keep this file to one page: current truth only. Move
 history to `archive/` (latest: `archive/WORKING_STATE_until_2026-10-24.md`).
 
 ## Production
@@ -39,7 +39,8 @@ history to `archive/` (latest: `archive/WORKING_STATE_until_2026-10-24.md`).
 
 ## Code (main / working branch)
 
-- **Rev. 131 (yerel geliştirme):** Firma sahibi/yöneticisi müşteri ad, iletişim ve müşteri not alanlarında inceleme/bekleme/maskeleme yapabilir. Teklif ve finansal kayıtlar korunur; serbest metin, ayrı aday, önceden indirilen PDF, yedek ve dış servis kopyaları kapsam dışıdır. 0037 migration, bağımsız CI ve canlı dağıtım ayrı doğrulanır; bu kayıt yasal kabul değildir.
+- **Rev. 132 (main, CI bekliyor):** Kalıp metraj → teklif köprüsü: `formworkAreaM2` artık varsayılan olarak IFC ön analiz teklifine `needs_review` kalemi olarak aktarılır; `FORMWORK_REQUIRES_MODEL_EVIDENCE` kaldırıldı. E-posta doğrulama banner'ı sadece learner değil tüm doğrulanmamış workspace kullanıcılarına gösterilir. `calculation-content.ts` kalıp modülü güncellendi, Rev. 132 / BIM-CALC-2026-10-30.14 eklendi.
+- **Rev. 131:** Firma sahibi/yöneticisi müşteri ad, iletişim ve müşteri not alanlarında inceleme/bekleme/maskeleme yapabilir. Teklif ve finansal kayıtlar korunur; serbest metin, ayrı aday, önceden indirilen PDF, yedek ve dış servis kopyaları kapsam dışıdır. 0037 migration, bağımsız CI ve canlı dağıtım ayrı doğrulanır; bu kayıt yasal kabul değildir.
 
 - **Rev. 111 (`BIM-CALC-2026-10-28.105`) — SmartCheck 3D IFC Viewer Retina Canvas Overflow Fix & Full 3D Space Controls (`src/ifc/viewer/model.ts`, `src/ifc/viewer/engine.ts`, `src/components/smartcheck/viewer/IfcReviewViewer.tsx`):**
   1. **Retina (`devicePixelRatio=2`) Canvas Sizing & Overflow Fix:** Changed `renderer.setSize(width, height, false)` to `renderer.setSize(width, height, true)` with explicit `100% × 100%` CSS sizing, `overflow-hidden` container bounds, and aspect-aware `computeFitCameraDistance` so the WebGL `<canvas>` never overflows over the `01 / İmalat Cetveli` or `Hesap Kanıtı · Minha Detayı` cards below it and centers the building model in the viewport.
