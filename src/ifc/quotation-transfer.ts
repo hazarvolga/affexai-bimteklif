@@ -17,7 +17,7 @@ export interface LegacyIfcTransferSummary {
 }
 
 export interface IfcSkippedTransferItem {
-  code: "REBAR_REQUIRES_MODEL_EVIDENCE" | "FORMWORK_REQUIRES_MODEL_EVIDENCE";
+  code: "REBAR_REQUIRES_MODEL_EVIDENCE";
   label: string;
   reason: string;
 }
@@ -147,20 +147,12 @@ export function buildIfcEstimateQuoteItems(
 
   const totalFormworkM2 = positiveNumber(transferSummary.totalFormworkM2);
   if (totalFormworkM2 > 0) {
-    if (options.includeDerivedEstimates) {
-      items.push(makeEstimateItem(
-        idFactory(),
-        "IFC On Analiz: Betonarme kalip ve iskele imalati (tahmini alan, review gerekli)",
-        totalFormworkM2,
-        "m2",
-      ));
-    } else {
-      skipped.push({
-        code: "FORMWORK_REQUIRES_MODEL_EVIDENCE",
-        label: "Kalip alani",
-        reason: "Formwork is not transferred from the legacy IFC estimate path until opening, contact-surface, and net/gross rules are implemented.",
-      });
-    }
+    items.push(makeEstimateItem(
+      idFactory(),
+      "IFC On Analiz: Betonarme kalip ve iskele imalati (tahmini alan; olcu esasi/minha uygulanmadi, muhendis incelemesi gerekli)",
+      totalFormworkM2,
+      "m2",
+    ));
   }
 
   return {

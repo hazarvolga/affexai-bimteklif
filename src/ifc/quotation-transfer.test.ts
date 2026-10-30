@@ -18,10 +18,10 @@ describe("IFC quote transfer safety gate", () => {
       })(),
     });
 
-    assert.equal(result.items.length, 2);
-    assert.deepEqual(result.items.map((item) => item.quantitySource), ["model_estimate", "model_estimate"]);
-    assert.deepEqual(result.items.map((item) => item.verificationStatus), ["needs_review", "needs_review"]);
-    assert.deepEqual(result.items.map((item) => item.priceSource), ["manual", "manual"]);
+    assert.equal(result.items.length, 3);
+    assert.deepEqual(result.items.map((item) => item.quantitySource), ["model_estimate", "model_estimate", "model_estimate"]);
+    assert.deepEqual(result.items.map((item) => item.verificationStatus), ["needs_review", "needs_review", "needs_review"]);
+    assert.deepEqual(result.items.map((item) => item.priceSource), ["manual", "manual", "manual"]);
     assert.match(result.items[0].sourceReference ?? "", /demo_estimate/);
     assert.match(result.items[0].description ?? "", /review gerekli/);
   });
@@ -35,7 +35,7 @@ describe("IFC quote transfer safety gate", () => {
     assert.match(result.warnings.join(" "), /birim fiyat/i);
   });
 
-  it("does not transfer derived rebar or formwork without explicit evidence", () => {
+  it("does not transfer derived rebar without explicit evidence but always transfers formwork", () => {
     const result = buildIfcEstimateQuoteItems({
       totalRebarTon: 3.1,
       totalFormworkM2: 120,
@@ -43,10 +43,12 @@ describe("IFC quote transfer safety gate", () => {
       idFactory: () => "unused",
     });
 
-    assert.equal(result.items.length, 0);
+    assert.equal(result.items.length, 1);
+    assert.equal(result.items[0].unit, "m2");
+    assert.equal(result.items[0].quantity, 120);
+    assert.match(result.items[0].description ?? "", /olcu esasi\/minha uygulanmadi/);
     assert.deepEqual(result.skipped.map((item) => item.code), [
       "REBAR_REQUIRES_MODEL_EVIDENCE",
-      "FORMWORK_REQUIRES_MODEL_EVIDENCE",
     ]);
     assert.match(result.warnings[0], /demo_estimate/);
   });
@@ -76,13 +78,12 @@ describe("IFC quote transfer safety gate", () => {
       })(),
     });
 
-    assert.equal(result.items.length, 4);
-    assert.deepEqual(result.items.map((item) => item.unit), ["m3", "m3", "m3", "m3"]);
-    assert.deepEqual(result.items.map((item) => item.verificationStatus), ["needs_review", "needs_review", "needs_review", "needs_review"]);
-    assert.deepEqual(result.items.map((item) => item.quantity), [362.65, 146.76, 404.67, 1847.4]);
+    assert.equal(result.items.length, 5);
+    assert.deepEqual(result.items.map((item) => item.unit), ["m3", "m3", "m3", "m3", "m2"]);
+    assert.deepEqual(result.items.map((item) => item.verificationStatus), ["needs_review", "needs_review", "needs_review", "needs_review", "needs_review"]);
+    assert.deepEqual(result.items.map((item) => item.quantity), [362.65, 146.76, 404.67, 1847.4, 14722.27]);
     assert.deepEqual(result.skipped.map((item) => item.code), [
       "REBAR_REQUIRES_MODEL_EVIDENCE",
-      "FORMWORK_REQUIRES_MODEL_EVIDENCE",
     ]);
   });
 
