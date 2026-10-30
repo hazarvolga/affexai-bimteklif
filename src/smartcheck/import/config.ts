@@ -1,5 +1,5 @@
 import path from "node:path";
-import { asc, eq } from "drizzle-orm";
+import { asc, eq, sql } from "drizzle-orm";
 import { db } from "../../db";
 import { plans, subscriptions } from "../../db/schema";
 import { readIfcEnvironmentLimits } from "../../server/config/ifc-limits";
@@ -50,13 +50,72 @@ export interface TenantIfcLimits {
   monthlyLimit: number | null;
 }
 
-export async function fetchTenantIfcLimits(companyId: string, tx?: any): Promise<TenantIfcLimits> {
+async function fetchWorkerEntitlement(
+  companyId: string,
+  tx: any | undefined,
+  envMaxMb: number,
+  envMaxConcurrent: number,
+  envMonthly: number | null,
+): Promise<TenantIfcLimits> {
+  const dbClient = tx ?? db;
+
+  let row: {
+    company_exists: boolean;
+    plan_is_active: boolean | null;
+    monthly_ifc_limit: number | null;
+    ifc_max_file_mb: number | null;
+    ifc_max_concurrent: number | null;
+  } | undefined;
+
+  try {
+    const result = await dbClient.execute(
+      sql`SELECT * FROM public.bimmetraj_worker_get_entitlement(${companyId}::uuid)`
+    );
+    row = result?.rows?.[0];
+  } catch {
+    throw new IfcLimitsUnavailableError();
+  }
+
+  if (!row?.company_exists) throw new IfcNotAvailableError();
+  if (!row.plan_is_active) throw new IfcNotAvailableError();
+
+  const effectiveMb = Math.min(row.ifc_max_file_mb ?? envMaxMb, envMaxMb);
+  const effectiveConcurrent = Math.min(row.ifc_max_concurrent ?? envMaxConcurrent, envMaxConcurrent);
+
+  let effectiveMonthly: number | null = null;
+  if (row.monthly_ifc_limit != null) {
+    effectiveMonthly = envMonthly != null ? Math.min(row.monthly_ifc_limit, envMonthly) : row.monthly_ifc_limit;
+  } else {
+    effectiveMonthly = envMonthly;
+  }
+
+  if (![effectiveMb, effectiveConcurrent].every(v => Number.isSafeInteger(v) && v > 0)
+      || (effectiveMonthly !== null && (!Number.isSafeInteger(effectiveMonthly) || effectiveMonthly < 0))) {
+    throw new IfcLimitsUnavailableError();
+  }
+
+  return {
+    maxFileBytes: effectiveMb * 1024 * 1024,
+    maxConcurrent: effectiveConcurrent,
+    monthlyLimit: effectiveMonthly,
+  };
+}
+
+export async function fetchTenantIfcLimits(
+  companyId: string,
+  tx?: any,
+  caller: "app" | "worker" = "app",
+): Promise<TenantIfcLimits> {
   let envLimits: TenantIfcLimits;
   try { envLimits = readIfcEnvironmentLimits(); }
   catch { throw new IfcLimitsUnavailableError(); }
   const envMaxMb = Math.floor(envLimits.maxFileBytes / (1024 * 1024));
   const envMaxConcurrent = envLimits.maxConcurrent;
   const envMonthly = envLimits.monthlyLimit;
+
+  if (caller === "worker" && process.env.NODE_ENV === "production") {
+    return fetchWorkerEntitlement(companyId, tx, envMaxMb, envMaxConcurrent, envMonthly);
+  }
 
   const dbClient = tx ?? db;
 
