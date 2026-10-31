@@ -8,7 +8,7 @@ history to `archive/` (latest: `archive/WORKING_STATE_until_2026-10-24.md`).
 - `https://bimmetraj.com` on Coolify (app `ibjv2zbpecdcbd71lxo1vqd7`), Docker
   Compose `compose.coolify.yaml`: `app`, `worker`, `ifc-worker`, `migrate`,
   `backup`. Vercel files are legacy.
-- **Live revision: `3a9bb7d` (`Rev. 133`, `BIM-CALC-2026-10-30.2`), deployed after 2026-10-27 (production commit on `main`):**
+- **Live revision: `a78c9c1` (Rev. 135, deployed 31 Ekim 2026 by Claude on Hazar's request; main's own `verify` was still running at deploy time, PR 37 and PR 38 CI passed).** Previous live: `3a9bb7d` (Rev. 133):
   T41 8B: `bimmetraj_worker_get_entitlement()` SECURITY DEFINER capability function aktif;
   `bimmetraj_worker` — `subscriptions` ve `plans` tablolarında 0 privilege (db-provision contract).
   T44: Docker PG16 kurtarma tatbikatı tamamlandı (5 sütun, 30 Ekim 2026);
@@ -27,15 +27,13 @@ history to `archive/` (latest: `archive/WORKING_STATE_until_2026-10-24.md`).
   history.
 - Secret rotation after the 2026-10-24 Developer View exposure (S3/backup keys,
   SMTP, PostgreSQL service password, JWT secret): **done by Hazar, 2026-10-25**.
-- **Live defect, fix pending deploy (Rev. 134, 31 Ekim 2026):** on `3a9bb7d` every IFC processing request returns 503 `IFC_LIMITS_UNAVAILABLE`: Rev. 133 sends the app-role request through the worker-only `bimmetraj_worker_get_entitlement`. Upload routes also read the lowest plan's limits outside tenant context. After deploy, retest a real IFC upload. The function now has no caller in running code, so the Rev. 133 'aktif' wording below means the grants only.
+- **Fixed live (Rev. 134, 31 Ekim 2026):** on `3a9bb7d` every IFC processing request returns 503 `IFC_LIMITS_UNAVAILABLE`: Rev. 133 sends the app-role request through the worker-only `bimmetraj_worker_get_entitlement`. Upload routes also read the lowest plan's limits outside tenant context. Retested live on `a78c9c1`, see smoke below. The function now has no caller in running code, so the Rev. 133 'aktif' wording below means the grants only.
 - **Decision (Hazar, 31 Ekim 2026):** no PDF/A conversion, validate only (T32, Rev. 135). T32 stays open for permitted real PDFs, a live worker smoke and document expert acceptance.
-- **Checked (31 Ekim 2026, 04:36 UTC):** `/api/health` → `status: ok`, `db: connected`, `revision: 3a9bb7d…`, `revisionSource: build`, all readiness flags true. This proves uptime and revision only. A 503 `no available server` seen on 27 Oct is resolved; its cause was not determined.
+- **Live smoke (31 Ekim 2026, `a78c9c1`, Demo owner session, no password entered):** session survives reload, no token in localStorage, session cookie hidden from JS. Tenant reads 200 (`auth/me`, `quotations`, `clients`, `smartcheck/queue`, `billing/alerts`, `billing/subscription`, `billing/usage-stats`, `company`, `company/profile`, `company/risk-settings`, `crm/leads`, `crm/pipeline`, `market-intelligence/supplier-quotes`, `smartcheck/sample-projects`); `admin/dashboard` 403 for non-admin. Quote create + PDF OK (30.000 net, 36.000 with VAT). IFC upload → 202 → `succeeded`, 2 rows `pending_review` (8,4 and 5,2 m³; repo fixture, not a real project). Non-compliant PDF → veraPDF 1.30.3 `2B uyumsuz`, new re-export message on screen. **Left in Demo:** quote `3d08b788-d70c-4bb4-b4a2-7874bb10db87` ("SMOKE canlı test"), `smoke-2026-10-31-*.ifc/.pdf`.
 - **Confirmed (30 Ekim 2026):** T41 8B worker entitlement capability function (`3a9bb7d`) production'da aktif.
   `bimmetraj_worker` ACL daraltması tamamlandı: db-provision contract ile subscriptions/plans 0 privilege güvence altında.
   T44 kurtarma tatbikatı Docker PG16'da tüm 5 sütunla geçti (30 Ekim 2026).
-- **Still open (Hazar):** `scripts/role-model-smoke.ts` production'a karşı çalıştır;
-  gerçek IFC dosyasıyla worker kota doğrulaması (UZMAN rolüyle test kullanıcısı açıp sınayın);
-  login/tenant smoke.
+- **Still open (Hazar, needs passwords or a second account):** `scripts/role-model-smoke.ts` write paths; logout; a second tenant cannot see the first; admin screens and the UZMAN role; a real project IFC.
   Do not open Developer View again.
 - Merging never deploys. Run `scripts/require-green-ci.sh <sha>` before Deploy.
   Before pressing Deploy, run `scripts/release-preflight.sh` (read-only): it lists
@@ -215,6 +213,6 @@ history to `archive/` (latest: `archive/WORKING_STATE_until_2026-10-24.md`).
 
 ## Open items owned by Hazar
 
-- Production smoke: `scripts/role-model-smoke.ts` against live DB; gerçek IFC dosyasıyla worker kota testi (UZMAN rolü atandıktan sonra).
+- Production smoke: see Still open above.
 - UZMAN rolü atama: test kullanıcıları için Super Admin panel → Firma Kullanıcıları → UZMAN toggle.
 - Gerçek uzman sign-off'ları (mühendis, vergi/ihale), izinli gerçek IFC/PDF/Excel dosyaları, kart ödeme ve hukuki metinler, harici güvenlik incelemesi, DKIM, YFK lisansı, AI provider keys.
