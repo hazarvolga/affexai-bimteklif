@@ -2,7 +2,7 @@ import { and, asc, eq, sql } from "drizzle-orm";
 import type { db } from "../../db";
 import { companies, plans, subscriptions, usageRecords } from "../../db/schema";
 import { lockCompanyQuota } from "./company-quota-lock";
-import { QuotaError, quotationAllowance, quotaUnavailable } from "./quota-policy";
+import { QuotaError, quotationAllowance, quotaUnavailable, quotaWindow } from "./quota-policy";
 
 export { QuotaError } from "./quota-policy";
 type Transaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
@@ -62,6 +62,12 @@ export async function consumeQuotationQuota(tx: Transaction, companyId: string, 
 /** Who consumes IFC usage: the app (browser pre-analysis) or the SmartCheck worker. */
 type IfcUsageCaller = "app" | "worker";
 
+async function appQuotaPeriod(tx: Transaction, companyId: string, now: Date): Promise<string> {
+  const [subscription] = await tx.select().from(subscriptions).where(eq(subscriptions.companyId, companyId));
+  const [plan] = subscription?.planId ? await tx.select().from(plans).where(eq(plans.id, subscription.planId)) : [];
+  return quotaWindow(subscription, plan, now).period;
+}
+
 async function lockedIfcUsage(tx: Transaction, companyId: string, at: Date | undefined, caller: IfcUsageCaller) {
   await lockCompanyQuota(tx, companyId);
   if (caller === "worker" && process.env.NODE_ENV === "production") {
@@ -83,7 +89,9 @@ async function lockedIfcUsage(tx: Transaction, companyId: string, at: Date | und
   }
 
   const now = at ?? new Date((await tx.execute<{ now: string }>(sql`SELECT clock_timestamp() AS now`)).rows[0].now);
-  const period = now.toISOString().slice(0, 7);
+  const period = caller === "worker" && process.env.NODE_ENV === "production"
+    ? (await tx.execute<{ period: string }>(sql`select public.bimmetraj_worker_get_quota_period(${companyId}::uuid, ${now.toISOString()}::timestamptz) as period`)).rows[0].period
+    : await appQuotaPeriod(tx, companyId, now);
   const counters = await tx.select().from(usageRecords)
     .where(and(eq(usageRecords.companyId, companyId), eq(usageRecords.period, period)))
     .orderBy(asc(usageRecords.id)).for("update");

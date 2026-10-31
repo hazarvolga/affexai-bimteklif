@@ -185,8 +185,9 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
   },
   {
     id: "durum",
-    title: "Uygulama durumu (31 Ekim 2026 · Rev. 140 geliştirme kaydı)",
+    title: "Uygulama durumu (31 Ekim 2026 · Rev. 141 geliştirme kaydı)",
     blocks: [
+      { type: "callout", tone: "info", title: "Rev. 141 · Deneme kotası ve Kurumsal paket metni", text: "Deneme paketinde teklif, IFC ve AI/PDF kotaları takvim ayı yerine 14 günlük deneme dönemine bağlandı; ay sınırı geçilince kota yenilenmez. Ücretli paketler takvim ayıyla devam eder. Migration 0040 worker için dar bir dönem fonksiyonu ekler. Kurumsal paket açıklamasından karşılığı olmayan ekip yönetimi ve öncelikli işleme vaadi Hazar'ın onayıyla çıkarıldı." },
       { type: "callout", tone: "info", title: "Rev. 140 · IFC abonelik denetimi", text: "IFC yükleme ve işleme, teklif kotasıyla aynı kuralı uygular: abonelik aktif ve dönem içinde olmalı, yoksa 403 SUBSCRIPTION_INACTIVE döner. Plan pasifse firma en düşük plana düşürülmez, 403 IFC_NOT_AVAILABLE döner. En düşük plana düşme yalnız planı olmayan firmalar içindir." },
       { type: "callout", tone: "warn", title: "Rev. 139 · EKLER.pdf kural verisi düzeltmesi", text: "EK-2 ve EK-3 kod listeleri, Tablo 7.8 ve Tablo 9.2 madde 9 EKLER.pdf sayfa görüntülerine göre düzeltildi ve testle sabitlendi. Alt disiplin kontrolü disipline bağlandı. Mahal adı hem düz EK-3 numarasıyla hem EK-5 şablonuyla kabul edilir; saha, bina ve kat adında şablon dışı ad uyarıdır. Belgeyle örnek model ayrıştığı için Bakanlık görüşü açıktır." },
       { type: "callout", tone: "warn", title: "Rev. 138 · Süper admin firma ve kullanıcı silme", text: "Süper admin firma üyesini çıkarabilir; başka firması ve bağlı kaydı olmayan hesap silinir. Firma, adı yazılarak onaylanınca kalıcı silinir. Belge, hakediş, CDE, ödeme, Academy gibi korunan kayıtları olan firma silinmez; beyaz liste dışındaki her company_id tablosu silmeyi engeller. Migration 0038 kontrol rolüne invitations silme izni ve üyesi kalmamış firmanın kota sayaçlarını silen dar bir fonksiyon verir, denetim kaydındaki firma bağını silmede boşaltır." },
@@ -1161,6 +1162,9 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
           ],
           [
             "Rev. 140", "31 Ekim 2026 · IFC abonelik denetimi", "BIM-CALC-2026-10-31.7", "IFC yükleme ve işleme, teklif kotasıyla aynı kuralı uygular: abonelik aktif ve dönem içinde olmalı, yoksa 403 SUBSCRIPTION_INACTIVE döner. Plan pasifse firma en düşük plana düşürülmez, 403 IFC_NOT_AVAILABLE döner. En düşük plana düşme yalnız planı olmayan firmalar içindir.",
+          ],
+          [
+            "Rev. 141", "31 Ekim 2026 · Deneme kotası ve Kurumsal paket metni", "BIM-CALC-2026-10-31.8", "Deneme paketinde teklif, IFC ve AI/PDF kotaları takvim ayı yerine 14 günlük deneme dönemine bağlandı; ay sınırı geçilince kota yenilenmez. Ücretli paketler takvim ayıyla devam eder. Migration 0040 worker için dar bir dönem fonksiyonu ekler. Kurumsal paket açıklamasından karşılığı olmayan ekip yönetimi ve öncelikli işleme vaadi Hazar'ın onayıyla çıkarıldı.",
           ],
         ],
       },
@@ -2215,6 +2219,9 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
           ],
           [
             "Rev. 140 · 31 Ekim 2026 (IFC yetkisi)", "Abonelik ve pasif plan denetimi", "Süresi dolmuş abonelik sunucu IFC yolunda reddedilmiyor, pasif plan en düşük plana düşüyordu.", "IFC yükleme ve işleme, teklif kotasıyla aynı kuralı uygular: abonelik aktif ve dönem içinde olmalı, yoksa 403 SUBSCRIPTION_INACTIVE döner. Plan pasifse firma en düşük plana düşürülmez, 403 IFC_NOT_AVAILABLE döner. En düşük plana düşme yalnız planı olmayan firmalar içindir.", "src/smartcheck/import/config.ts",
+          ],
+          [
+            "Rev. 141 · 31 Ekim 2026 (Deneme kotası)", "14 günlük kota dönemi", "Deneme kotası takvim ayına bağlıydı, ay sınırında iki kez veriliyordu. Kurumsal paket karşılıksız vaat içeriyordu.", "Deneme paketinde teklif, IFC ve AI/PDF kotaları takvim ayı yerine 14 günlük deneme dönemine bağlandı; ay sınırı geçilince kota yenilenmez. Ücretli paketler takvim ayıyla devam eder. Migration 0040 worker için dar bir dönem fonksiyonu ekler. Kurumsal paket açıklamasından karşılığı olmayan ekip yönetimi ve öncelikli işleme vaadi Hazar'ın onayıyla çıkarıldı.", "src/services/billing/quota-policy.ts; src/services/billing/plan-catalog.ts; drizzle-release/0040_trial_quota_period.sql",
           ],
         ],
       },

@@ -192,6 +192,12 @@ jobs:
           CI_DISPOSABLE_DATABASE: 'true'
           TENANT_DELETION_TEST_URL: postgresql://postgres:ci-local-only@127.0.0.1:5433/teklifpro_bootstrap_test
         run: pnpm exec tsx --test src/server/admin/tenant-deletion.pgtest.ts
+      - name: Worker trial quota period capability
+        env:
+          NODE_ENV: test
+          CI_DISPOSABLE_DATABASE: 'true'
+          TRIAL_QUOTA_TEST_URL: postgresql://postgres:ci-local-only@127.0.0.1:5433/teklifpro_bootstrap_test
+        run: pnpm exec tsx --test src/services/billing/trial-quota-period.pgtest.ts
       - name: Source permission review and CALM restricted-role contract
         env:
           NODE_ENV: test

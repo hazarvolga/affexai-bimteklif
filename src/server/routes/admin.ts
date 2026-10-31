@@ -949,12 +949,12 @@ export function registerAdminRoutes(app: Express) {
       // Monthly aggregate stats for last 6 months
       const monthlyTrends = await db.execute(sql`
         SELECT
-          period,
+          LEFT(period, 7) as period,
           SUM(quote_count) as total_quotes,
           SUM(ifc_count) as total_ifcs
         FROM usage_records
-        GROUP BY period
-        ORDER BY period DESC
+        GROUP BY LEFT(period, 7)
+        ORDER BY LEFT(period, 7) DESC
         LIMIT 6
       `);
 

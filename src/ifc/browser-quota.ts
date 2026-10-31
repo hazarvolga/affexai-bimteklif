@@ -44,8 +44,8 @@ const DENIAL_BY_CODE: Readonly<Record<string, DenialCopy>> = {
     action: packagesLink("Paketleri incele"),
   },
   IFC_QUOTA_EXCEEDED: {
-    title: "Aylık IFC kotası doldu",
-    message: "Aylık IFC kotanız dolmuştur. Paketinizi yükseltin veya gelecek ay tekrar deneyin.",
+    title: "IFC kotası doldu",
+    message: "Bu dönemdeki IFC kotanız dolmuştur. Paketinizi yükseltin veya yeni dönemde tekrar deneyin.",
     action: packagesLink("Paketi yükselt"),
   },
 };

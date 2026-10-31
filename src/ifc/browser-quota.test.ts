@@ -6,7 +6,7 @@ const message = (status: number, code?: string) => browserQuotaDenial(status, co
 
 test("browser IFC quota responses map to user-facing Turkish messages", () => {
   assert.equal(browserQuotaDenial(200, undefined), null);
-  assert.match(message(403, "IFC_QUOTA_EXCEEDED"), /aylık IFC kotanız dolmuştur/i);
+  assert.match(message(403, "IFC_QUOTA_EXCEEDED"), /bu dönemdeki IFC kotanız dolmuştur/i);
   assert.match(message(403, "IFC_NOT_AVAILABLE"), /IFC/);
   assert.match(message(403, "FORBIDDEN"), /yetki/i);
   assert.match(message(503, "IFC_QUOTA_UNAVAILABLE"), /daha sonra/i);

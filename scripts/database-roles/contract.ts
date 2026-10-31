@@ -77,6 +77,7 @@ export const DATABASE_FUNCTION_EXECUTE_SPECS = Object.freeze([
   Object.freeze({ schema: "teklifpro_queue", name: "bimmetraj_remove_smartcheck_job", arguments: "text", fullArguments: "p_job_key text", roles: Object.freeze(["bimmetraj_app"] as const), securityDefiner: true, strict: false, result: "TABLE(locked_at timestamp with time zone)" }),
   Object.freeze({ schema: "public", name: "bimmetraj_worker_get_entitlement", arguments: "uuid", fullArguments: "p_company_id uuid", roles: Object.freeze(["bimmetraj_worker"] as const), securityDefiner: true, strict: false, result: "TABLE(company_exists boolean, subscription_status text, current_period_end timestamp with time zone, plan_id uuid, plan_is_active boolean, monthly_ifc_limit integer, ifc_max_file_mb integer, ifc_max_concurrent integer)" }),
   Object.freeze({ schema: "public", name: "bimmetraj_worker_get_company_context", arguments: "uuid", fullArguments: "p_company_id uuid", roles: Object.freeze(["bimmetraj_worker"] as const), securityDefiner: true, strict: false, result: "TABLE(company_exists boolean, active_standard text, smartcheck_max_waste_percent numeric)" }),
+  Object.freeze({ schema: "public", name: "bimmetraj_worker_get_quota_period", arguments: "uuid, timestamp with time zone", fullArguments: "p_company_id uuid, p_at timestamp with time zone", roles: Object.freeze(["bimmetraj_worker"] as const), securityDefiner: true, strict: false, result: "text" }),
 ]);
 
 export const DATABASE_QUEUE_RLS_TABLES = Object.freeze(["_private_job_queues", "_private_jobs", "_private_known_crontabs", "_private_tasks"] as const);
@@ -345,6 +346,16 @@ BEGIN
     LEFT JOIN public.plans plan ON plan.id = subscription.plan_id;
 END;
 `,
+  bimmetraj_worker_get_quota_period: `
+DECLARE v_period text;
+BEGIN
+  IF session_user <> 'bimmetraj_worker' THEN RAISE EXCEPTION 'worker role required' USING ERRCODE = '42501'; END IF;
+  IF p_company_id IS NULL OR p_at IS NULL THEN RAISE EXCEPTION 'invalid quota period input' USING ERRCODE = '22023'; END IF;
+  SELECT to_char(s.current_period_start, 'YYYY-MM-DD') INTO v_period
+    FROM public.subscriptions s JOIN public.plans p ON p.id = s.plan_id
+    WHERE s.company_id = p_company_id AND p.is_trial AND s.current_period_start IS NOT NULL AND s.current_period_end IS NOT NULL;
+  RETURN coalesce(v_period, to_char(p_at AT TIME ZONE 'UTC', 'YYYY-MM'));
+END `,
   bimmetraj_worker_get_company_context: `
 BEGIN
   IF session_user <> 'bimmetraj_worker' THEN

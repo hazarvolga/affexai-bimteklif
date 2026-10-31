@@ -1,4 +1,4 @@
-export const PLAN_CATALOG_VERSION = 'bimmetraj-2026-10-15-v6';
+export const PLAN_CATALOG_VERSION = 'bimmetraj-2026-10-31-v7';
 export interface CatalogPlan {
   id: string; name: string; monthlyPrice: number; monthlyQuoteLimit: number;
   monthlyIfcLimit: number | null; ifcMaxFileMb: number; ifcMaxConcurrent: number; isActive: boolean;
@@ -25,7 +25,7 @@ export const canonicalPlans: readonly CatalogPlan[] = [
   { id: '2b507e20-83d1-4b21-9fc1-000000000002', name: 'e-PYS & BIM Standart Denetçi', monthlyPrice: 1250, monthlyQuoteLimit: 5, monthlyIfcLimit: 5, ifcMaxFileMb: 35, ifcMaxConcurrent: 1, isActive: true, isPublished: true, isFeatured: false, displayOrder: 20, marketingBadge: 'Pilot', marketingDescription: 'Pilot erken erişim: RG 33331 eklerine göre IFC ön kontrolü ve EK-9 taslak raporu; resmî uygunluk kararı değildir. Sunucu tarafı denetim henüz pilot şirketlerde açılıyor.' , ...limits(10, 8, 25, 15, 5, 1, 150) },
   { id: '2b507e20-83d1-4b21-9fc1-000000000003', name: 'Teklif & Şantiye', monthlyPrice: 2950, monthlyQuoteLimit: 25, monthlyIfcLimit: 5, ifcMaxFileMb: 40, ifcMaxConcurrent: 1, isActive: true, isPublished: true, isFeatured: false, displayOrder: 30, marketingBadge: 'Başlangıç', marketingDescription: 'Excel metrajı ve fiyat kataloğuyla teklif hazırlama için.' , ...limits(25, 15, 150, 30, 25, 2, 300) },
   { id: '2b507e20-83d1-4b21-9fc1-000000000004', name: '5D BIM & SmartCheck', monthlyPrice: 5450, monthlyQuoteLimit: 75, monthlyIfcLimit: 15, ifcMaxFileMb: 60, ifcMaxConcurrent: 1, isActive: true, isPublished: true, isFeatured: true, displayOrder: 40, marketingBadge: 'En çok tercih edilen', marketingDescription: '5D BIM, SmartCheck kalite kontrolleri ve kaynak izi.' , ...limits(60, 35, 500, 100, 75, 5, 750) },
-  { id: '2b507e20-83d1-4b21-9fc1-000000000005', name: 'Kurumsal Taahhüt & e-PYS', monthlyPrice: 8900, monthlyQuoteLimit: 200, monthlyIfcLimit: 35, ifcMaxFileMb: 85, ifcMaxConcurrent: 2, isActive: true, isPublished: true, isFeatured: false, displayOrder: 50, marketingBadge: 'Kurumsal', marketingDescription: 'Ekip yönetimi, yüksek kapasite ve öncelikli işleme için.' , ...limits(150, 75, 1500, 250, 200, 15, 2000) },
+  { id: '2b507e20-83d1-4b21-9fc1-000000000005', name: 'Kurumsal Taahhüt & e-PYS', monthlyPrice: 8900, monthlyQuoteLimit: 200, monthlyIfcLimit: 35, ifcMaxFileMb: 85, ifcMaxConcurrent: 2, isActive: true, isPublished: true, isFeatured: false, displayOrder: 50, marketingBadge: 'Kurumsal', marketingDescription: 'Yüksek teklif ve IFC kapasitesi için.' , ...limits(150, 75, 1500, 250, 200, 15, 2000) },
 ];
 
 export function planCatalogChanges(rows: readonly CatalogPlan[]) {

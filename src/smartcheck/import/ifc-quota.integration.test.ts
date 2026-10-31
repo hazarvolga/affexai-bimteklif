@@ -224,7 +224,7 @@ test('IFC monthly quota and atomic usage counter integration tests', async (t) =
         assert.ok(err instanceof ProcessingConflict);
         assert.equal(err.code, 'IFC_QUOTA_EXCEEDED');
         assert.equal(err.status, 403);
-        assert.match(err.message, /Aylık IFC işleme kotanız dolmuştur/);
+        assert.match(err.message, /Bu dönemdeki IFC işleme kotanız dolmuştur/);
         return true;
       }
     );
