@@ -67,6 +67,7 @@ export const DATABASE_FUNCTION_EXECUTE_SPECS = Object.freeze([
   Object.freeze({ schema: "public", name: "bimmetraj_revoke_session", arguments: "text, uuid, timestamp with time zone", fullArguments: "p_token_hash text, p_user_id uuid, p_expires_at timestamp with time zone", roles: Object.freeze(["bimmetraj_control"] as const), securityDefiner: true, strict: false, result: "void" }),
   Object.freeze({ schema: "public", name: "bimmetraj_cleanup_revoked_sessions", arguments: "", fullArguments: "", roles: Object.freeze(["bimmetraj_control"] as const), securityDefiner: true, strict: false, result: "void" }),
   Object.freeze({ schema: "public", name: "bimmetraj_clear_deleted_company_usage", arguments: "uuid", fullArguments: "p_company_id uuid", roles: Object.freeze(["bimmetraj_control"] as const), securityDefiner: true, strict: false, result: "void" }),
+  Object.freeze({ schema: "public", name: "bimmetraj_clear_deleted_company_rows", arguments: "uuid", fullArguments: "p_company_id uuid", roles: Object.freeze(["bimmetraj_control"] as const), securityDefiner: true, strict: false, result: "void" }),
   Object.freeze({ schema: "public", name: "bimmetraj_worker_heartbeat", arguments: "uuid, text, text, text", fullArguments: "p_id uuid, p_kind text, p_revision text, p_revision_source text", roles: Object.freeze(["bimmetraj_worker"] as const), securityDefiner: true, strict: false, result: "void" }),
   Object.freeze({ schema: "public", name: "bimmetraj_worker_heartbeat_summary", arguments: "", fullArguments: "", roles: Object.freeze(["bimmetraj_control"] as const), securityDefiner: true, strict: false, result: "TABLE(kind text, last_seen timestamp with time zone, active_instances bigint, revision text, revision_source text)" }),
   Object.freeze({ schema: "teklifpro_queue", name: "add_job", arguments: "text, json, text, timestamp with time zone, integer, text, integer, text[], text", fullArguments: "identifier text, payload json DEFAULT NULL::json, queue_name text DEFAULT NULL::text, run_at timestamp with time zone DEFAULT NULL::timestamp with time zone, max_attempts integer DEFAULT NULL::integer, job_key text DEFAULT NULL::text, priority integer DEFAULT NULL::integer, flags text[] DEFAULT NULL::text[], job_key_mode text DEFAULT 'replace'::text", roles: Object.freeze(["bimmetraj_worker"] as const), securityDefiner: false, strict: false, result: "teklifpro_queue._private_jobs" }),
@@ -251,6 +252,23 @@ BEGIN
   IF p_token_hash IS NULL OR p_token_hash !~ '^[a-f0-9]{64}$' OR p_user_id IS NULL OR p_expires_at IS NULL THEN RAISE EXCEPTION 'invalid session revocation' USING ERRCODE = '22023'; END IF;
   INSERT INTO public.revoked_sessions(token_hash,user_id,expires_at) VALUES (p_token_hash,p_user_id,p_expires_at)
     ON CONFLICT (token_hash) DO UPDATE SET expires_at = GREATEST(public.revoked_sessions.expires_at, EXCLUDED.expires_at);
+END `,
+  bimmetraj_clear_deleted_company_rows: `
+BEGIN
+  IF session_user <> 'bimmetraj_control' THEN RAISE EXCEPTION 'control role required' USING ERRCODE = '42501'; END IF;
+  IF p_company_id IS NULL OR EXISTS (SELECT 1 FROM public.memberships WHERE company_id = p_company_id) THEN
+    RAISE EXCEPTION 'tenant rows can only be cleared for a company without members' USING ERRCODE = '42501';
+  END IF;
+  DELETE FROM public.activities WHERE company_id = p_company_id;
+  DELETE FROM public.deals WHERE company_id = p_company_id;
+  DELETE FROM public.quotation_item_evidence WHERE company_id = p_company_id;
+  DELETE FROM public.cost_components WHERE quotation_id IN (SELECT id FROM public.quotations WHERE company_id = p_company_id);
+  DELETE FROM public.quotation_financials WHERE quotation_id IN (SELECT id FROM public.quotations WHERE company_id = p_company_id);
+  DELETE FROM public.quotation_items WHERE company_id = p_company_id;
+  DELETE FROM public.quotations WHERE company_id = p_company_id;
+  DELETE FROM public.clients WHERE company_id = p_company_id;
+  DELETE FROM public.company_industry_settings WHERE company_id = p_company_id;
+  DELETE FROM public.usage_alerts WHERE company_id = p_company_id;
 END `,
   bimmetraj_clear_deleted_company_usage: `
 BEGIN

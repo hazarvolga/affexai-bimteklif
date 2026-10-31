@@ -166,6 +166,10 @@ const stages = [
     sql: 'b49c748212964a0f0d10f4b616e2c4663dcdb0678410fb11aa5dc2bc1f721f1a',
     snapshot: 'b2e7b203738cdf610a6b4b9fc3825c5f59a0ecc1261c8a673b043af783e1163a',
     catalog: '3ce90100e7f4034b33fc7badad484dd18fb8251d2fde4389a660b6be4ba06055' },
+  { tag: '0039_atomic_tenant_deletion',
+    sql: '711502e1480b574e228e1b0ba09d0b51ff1f73cdc05b41d3b8245b1523daf9f6',
+    snapshot: '49df6eceb49c6afbbd573c09e21cffe223039cae6b076defb9a3694ad4365b37',
+    catalog: 'd1e1420c5fe4bbd26eb9d8c44a2ad6bc0075683ffb66d497f17a86f1c5931e20' },
 ] as const;
 
 export function pinnedSignature(migration: { idx: number; tag: string; sha256: string; snapshotSha256: string }) {

@@ -37,6 +37,19 @@ import {
   smartcheckPilotMeasurementInsertFunction,
 } from "../release-migrations/data-transitions";
 
+/** Tables the tenant deletion capability may clear; the exact policy is allowed from migration 0039 on, anything else stays matrix drift. */
+const DELETION_CAPABILITY_TABLES: ReadonlySet<string> = new Set([
+  "activities", "deals", "quotation_item_evidence", "quotation_items", "quotations", "clients",
+  "company_industry_settings", "usage_alerts", "cost_components", "quotation_financials",
+]);
+const DELETION_CAPABILITY_USING = "((SESSION_USER = 'bimmetraj_control'::name) AND (CURRENT_USER = 'bimmetraj_owner'::name))";
+
+function withoutDeletionCapability<T extends { policy_name: string; command: string; role_oids: number[]; permissive: boolean; using_expression: string | null; check_expression: string | null }>(rows: T[], table: string): T[] {
+  if (!DELETION_CAPABILITY_TABLES.has(table)) return rows;
+  return rows.filter(row => !(row.policy_name === `${table}_admin_deletion_capability` && row.command === "*" && row.permissive
+    && JSON.stringify(row.role_oids) === "[0]" && row.using_expression === DELETION_CAPABILITY_USING && row.check_expression === "false"));
+}
+
 type Queryable = Pick<pg.Client, "query">;
 const functionSource = (definition: string) => definition.match(/AS \$\$\n([\s\S]*?)\n\$\$/)?.[1]?.trim() ?? "";
 
@@ -135,7 +148,7 @@ async function inspectProtectedTenantRlsViolations(
   const ownerExpression = "((SESSION_USER = 'bimmetraj_migrator'::name) AND (CURRENT_USER = 'bimmetraj_owner'::name))";
   for (const table of tables) {
     const state = states.rows.find((candidate) => candidate.table_name === table);
-    const actual = policies.rows.filter((policy) => policy.table_name === table);
+    const actual = withoutDeletionCapability(policies.rows.filter((policy) => policy.table_name === table), table);
     const app = actual.find((policy) => policy.policy_name === `${table}_app_tenant`);
     const backup = actual.find((policy) => policy.policy_name === `${table}_backup_read`);
     const owner = actual.find((policy) => policy.policy_name === `${table}_owner_migration`);
@@ -190,7 +203,7 @@ export async function inspectFinanceQuotationRlsViolations(client: Queryable): P
   if (!applied || states.rowCount !== tables.length) violations.push('public finance quotation: applied 0031 and complete table set required');
   const policies = await client.query<{ table_name: string; policy_name: string; command: string; role_oids: number[]; permissive: boolean; using_expression: string | null; check_expression: string | null }>(`select c.relname as table_name,p.polname as policy_name,p.polcmd as command,p.polroles::oid[] as role_oids,p.polpermissive as permissive,pg_get_expr(p.polqual,p.polrelid) as using_expression,pg_get_expr(p.polwithcheck,p.polrelid) as check_expression from pg_policy p join pg_class c on c.oid=p.polrelid join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relname=any($1::text[])`, [tables]);
   for (const table of tables) {
-    const state = states.rows.find(row => row.table_name === table), actual = policies.rows.filter(row => row.table_name === table);
+    const state = states.rows.find(row => row.table_name === table), actual = withoutDeletionCapability(policies.rows.filter(row => row.table_name === table), table);
     const app = actual.find(row => row.policy_name === `${table}_app_tenant`), backup = actual.find(row => row.policy_name === `${table}_backup_read`), owner = actual.find(row => row.policy_name === `${table}_owner_migration`);
     const tenant = `((CURRENT_USER = 'bimmetraj_app'::name) AND (EXISTS ( SELECT 1\n   FROM quotations\n  WHERE ((quotations.id = ${table}.quotation_id) AND (quotations.company_id = (NULLIF(current_setting('bimmetraj.company_id'::text, true), ''::text))::uuid)))))`;
     const publicPolicy = (policy: typeof app) => policy?.permissive && JSON.stringify(policy.role_oids) === '[0]';
@@ -485,7 +498,7 @@ export async function inspectCompanyIndustryRlsViolations(client: Queryable): Pr
   const isPublic = (policy: typeof policies.rows[number] | undefined) => policy?.permissive && JSON.stringify(policy.role_oids) === JSON.stringify([0]);
   for (const table of tables) {
     const state = states.rows.find((row) => row.table_name === table);
-    const actual = policies.rows.filter((row) => row.table_name === table);
+    const actual = withoutDeletionCapability(policies.rows.filter((row) => row.table_name === table), table);
     const matrix = expected[table];
     const matches = state?.enabled && state.forced && actual.length === matrix.length && matrix.every(([name, command, using, check]) => {
       const policy = actual.find((row) => row.policy_name === name);

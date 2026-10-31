@@ -8,16 +8,14 @@ import { AdminChangeError } from './changes';
 const FOREIGN_KEY_VIOLATION = '23503';
 const PROTECTED_RECORDS_MESSAGE = 'Bu firmanın korunan kayıtları olduğu için silinemedi.';
 
-/** Cleared through tenant RLS as the application role. Children come first. */
-const TENANT_DELETE_ORDER = [
+/** Cleared together with the control rows, in one transaction, by bimmetraj_clear_deleted_company_rows. */
+const TENANT_DELETE_TABLES = [
   'activities', 'deals', 'quotation_item_evidence', 'quotation_items', 'quotations', 'clients',
   'company_industry_settings', 'usage_alerts',
 ] as const;
-/** Have no company_id column; they belong to the company through their quotation. */
-const QUOTATION_CHILD_TABLES = ['cost_components', 'quotation_financials'] as const;
 /** Cleared by the control role. Every other company table blocks deletion while it has rows, so new tables stay protected. */
 const CONTROL_DELETE_TABLES = ['usage_records', 'usage_logs', 'invitations', 'memberships', 'subscriptions'] as const;
-const DELETABLE_TABLES: ReadonlySet<string> = new Set([...TENANT_DELETE_ORDER, ...CONTROL_DELETE_TABLES]);
+const DELETABLE_TABLES: ReadonlySet<string> = new Set([...TENANT_DELETE_TABLES, ...CONTROL_DELETE_TABLES]);
 
 export const deleteTenantInput = z.strictObject({ confirmName: z.string().min(1).max(200) });
 
@@ -79,6 +77,7 @@ async function deleteControlPlaneRows(adminId: string, companyId: string, compan
     await tx.delete(usageLogs).where(eq(usageLogs.companyId, companyId));
     await tx.delete(invitations).where(eq(invitations.companyId, companyId));
     await tx.delete(memberships).where(eq(memberships.companyId, companyId));
+    await tx.execute(sql`SELECT public.bimmetraj_clear_deleted_company_rows(${companyId}::uuid)`);
     await tx.execute(sql`SELECT public.bimmetraj_clear_deleted_company_usage(${companyId}::uuid)`);
     await tx.delete(subscriptions).where(eq(subscriptions.companyId, companyId));
     await tx.delete(companies).where(eq(companies.id, companyId));
@@ -99,17 +98,8 @@ export async function deleteTenant(adminId: string, companyId: string, confirmNa
   const name = await readCompanyName(companyId);
   if (name !== confirmName) throw new AdminChangeError(400, 'Onay için firma adını aynen yazın.');
   try {
-    // Tenant tables are writable only through tenant RLS, control tables only through the control role, so this is two steps.
-    await withAppTenantTransaction({ companyId, userId: adminId }, async tx => {
-      const blockers = Object.keys(await findBlockers(tx, companyId));
-      if (blockers.length) throw new AdminChangeError(409, `Firma silinemedi; korunan kayıtlar var: ${blockers.join(', ')}`);
-      for (const table of QUOTATION_CHILD_TABLES) {
-        await tx.execute(sql`DELETE FROM public.${sql.identifier(table)} WHERE quotation_id IN (SELECT id FROM public.quotations WHERE company_id = ${companyId})`);
-      }
-      for (const table of TENANT_DELETE_ORDER) {
-        await tx.execute(sql`DELETE FROM public.${sql.identifier(table)} WHERE company_id = ${companyId}`);
-      }
-    });
+    const blockers = Object.keys(await withAppTenantTransaction({ companyId, userId: adminId }, tx => findBlockers(tx, companyId), { readOnly: true }));
+    if (blockers.length) throw new AdminChangeError(409, `Firma silinemedi; korunan kayıtlar var: ${blockers.join(', ')}`);
     return await deleteControlPlaneRows(adminId, companyId, name);
   } catch (error) {
     if (hasPgCode(error, FOREIGN_KEY_VIOLATION)) throw new AdminChangeError(409, PROTECTED_RECORDS_MESSAGE);
