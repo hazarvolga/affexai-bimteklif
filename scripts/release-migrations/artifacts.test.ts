@@ -163,7 +163,7 @@ const matrixPolicyNames = (policies: Record<string, unknown>) => Object.keys(pol
 
 test('only the tenant deletion tables carry the exact deletion capability policy', () => {
   const { tables } = drizzleApi.generateDrizzleJson(schema);
-  const carriers = Object.entries(tables).filter(([, table]) => Object.keys(table.policies).some(name => name.endsWith('_admin_deletion_capability'))).map(([name]) => name.replace('public.', '')).sort();
+  const carriers = Object.entries(tables as Record<string, { policies: Record<string, unknown> }>).filter(([, table]) => Object.keys(table.policies).some(name => name.endsWith('_admin_deletion_capability'))).map(([name]) => name.replace('public.', '')).sort();
   assert.deepEqual(carriers, ['activities', 'clients', 'company_industry_settings', 'cost_components', 'deals', 'quotation_financials', 'quotation_item_evidence', 'quotation_items', 'quotations', 'usage_alerts']);
   for (const table of carriers) {
     const policy = tables[`public.${table}`].policies[`${table}_admin_deletion_capability`];
