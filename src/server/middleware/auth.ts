@@ -85,6 +85,8 @@ export const authDependencies: AuthDependencies = {
   },
 };
 
+export const emailVerificationRequired = { error: "Devam etmek için e-posta adresinizi doğrulamalısınız.", code: "EMAIL_VERIFICATION_REQUIRED" } as const;
+
 export const createAuthenticate = (dependencies: AuthDependencies = authDependencies) => async (req: any, res: any, next: any) => {
   try {
     const session = readSessionToken(req);
@@ -102,6 +104,8 @@ export const createAuthenticate = (dependencies: AuthDependencies = authDependen
     if (!user) return res.status(401).json({ error: "Invalid token" });
     if (user.isSuperAdmin && user.emailVerified && user.mfaEpoch && (parsed.data.mfaEpoch !== user.mfaEpoch || !user.passwordHash || parsed.data.mfaCredentialVersion !== hashActionToken(user.passwordHash))) return res.status(401).json({ error: "MFA session required", code: "MFA_REQUIRED" });
     if (user.passwordChangedAt && iat < Math.floor(user.passwordChangedAt.getTime() / 1000)) return res.status(401).json({ error: "Session expired" });
+    // Unverified accounts have no usable session; only read-only support impersonation may open them.
+    if (!user.emailVerified && !impersonatedBy) return res.status(403).json(emailVerificationRequired);
     const impersonationTokenHash = impersonatedBy ? hashActionToken(token) : undefined;
     if (impersonatedBy) {
       const admin = await dependencies.findUser(impersonatedBy);
@@ -158,7 +162,7 @@ export const createAuthenticate = (dependencies: AuthDependencies = authDependen
 export const authenticate = createAuthenticate();
 
 export const requireVerifiedEmail = (req: any, res: any, next: any) => {
-  if (!req.user?.emailVerified) return res.status(403).json({ error: "Bu işlem için e-posta adresinizi doğrulamalısınız.", code: "EMAIL_VERIFICATION_REQUIRED" });
+  if (!req.user?.emailVerified) return res.status(403).json(emailVerificationRequired);
   next();
 };
 

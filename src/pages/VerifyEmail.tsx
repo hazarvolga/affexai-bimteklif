@@ -63,7 +63,7 @@ export function VerifyEmail() {
           {status === "success" && (
             <div className="space-y-6">
               <p className="text-sm text-muted-foreground">
-                Hesabınız doğrulandı. Academy derslerinize güvenle devam edebilirsiniz.
+                Hesabınız doğrulandı. Artık giriş yapabilirsiniz.
               </p>
               <Button render={<Link to="/login" />} className="w-full h-12 bg-orange-700 hover:bg-orange-800 text-white font-bold shadow-lg shadow-orange-900/30">Giriş Yap ve Başla</Button>
             </div>
@@ -72,9 +72,9 @@ export function VerifyEmail() {
           {status === "error" && (
             <div className="space-y-6">
               <p className="text-sm text-muted-foreground">
-                Bağlantı geçersiz veya süresi dolmuş olabilir. Lütfen yeni bir doğrulama bağlantısı talep edin.
+                Bağlantı geçersiz veya süresi dolmuş olabilir. Giriş ekranında e-posta ve şifrenizi girerek yeni bir bağlantı isteyebilirsiniz.
               </p>
-              <Button render={<Link to="/" />} variant="outline" className="w-full h-12 border-border text-foreground dark:text-muted-foreground hover:bg-surface-elevated">Ana Sayfaya Dön</Button>
+              <Button render={<Link to="/login" />} variant="outline" className="w-full h-12 border-border text-foreground dark:text-muted-foreground hover:bg-surface-elevated">Giriş Ekranına Git</Button>
             </div>
           )}
 

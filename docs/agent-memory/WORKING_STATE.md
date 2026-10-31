@@ -8,7 +8,7 @@ history to `archive/` (latest: `archive/WORKING_STATE_until_2026-10-24.md`).
 - `https://bimmetraj.com` on Coolify (app `ibjv2zbpecdcbd71lxo1vqd7`), Docker
   Compose `compose.coolify.yaml`: `app`, `worker`, `ifc-worker`, `migrate`,
   `backup`. Vercel files are legacy.
-- **Live revision: `a78c9c1` (Rev. 135, deployed 31 Ekim 2026 by Claude on Hazar's request; main's own `verify` was still running at deploy time, PR 37 and PR 38 CI passed).** Previous live: `3a9bb7d` (Rev. 133):
+- **Live revision: `5ac7be9` (Rev. 135 code plus smoke docs, deployed 31 Ekim 2026 with `verify` and `e2e` green). Rev. 136 is on a PR until deployed.** Previous live: `3a9bb7d` (Rev. 133):
   T41 8B: `bimmetraj_worker_get_entitlement()` SECURITY DEFINER capability function aktif;
   `bimmetraj_worker` — `subscriptions` ve `plans` tablolarında 0 privilege (db-provision contract).
   T44: Docker PG16 kurtarma tatbikatı tamamlandı (5 sütun, 30 Ekim 2026);
@@ -28,6 +28,7 @@ history to `archive/` (latest: `archive/WORKING_STATE_until_2026-10-24.md`).
 - Secret rotation after the 2026-10-24 Developer View exposure (S3/backup keys,
   SMTP, PostgreSQL service password, JWT secret): **done by Hazar, 2026-10-25**.
 - **Fixed live (Rev. 134, 31 Ekim 2026):** on `3a9bb7d` every IFC processing request returns 503 `IFC_LIMITS_UNAVAILABLE`: Rev. 133 sends the app-role request through the worker-only `bimmetraj_worker_get_entitlement`. Upload routes also read the lowest plan's limits outside tenant context. Retested live on `a78c9c1`, see smoke below. The function now has no caller in running code, so the Rev. 133 'aktif' wording below means the grants only.
+- **Decision (Hazar, 31 Ekim 2026):** unverified accounts cannot log in (Rev. 136). Register opens no session, login returns 403 `EMAIL_VERIFICATION_REQUIRED` after the password check, existing sessions are rejected in `authenticate`, resend is on the login and register screens. Only read-only support impersonation may open such an account. Existing unverified production accounts are locked out until they verify.
 - **Decision (Hazar, 31 Ekim 2026):** no PDF/A conversion, validate only (T32, Rev. 135). T32 stays open for permitted real PDFs, a live worker smoke and document expert acceptance.
 - **Live smoke (31 Ekim 2026, `a78c9c1`, Demo owner session, no password entered):** session survives reload, no token in localStorage, session cookie hidden from JS. Tenant reads 200 (`auth/me`, `quotations`, `clients`, `smartcheck/queue`, `billing/alerts`, `billing/subscription`, `billing/usage-stats`, `company`, `company/profile`, `company/risk-settings`, `crm/leads`, `crm/pipeline`, `market-intelligence/supplier-quotes`, `smartcheck/sample-projects`); `admin/dashboard` 403 for non-admin. Quote create + PDF OK (30.000 net, 36.000 with VAT). IFC upload → 202 → `succeeded`, 2 rows `pending_review` (8,4 and 5,2 m³; repo fixture, not a real project). Non-compliant PDF → veraPDF 1.30.3 `2B uyumsuz`, new re-export message on screen. **Left in Demo:** quote `3d08b788-d70c-4bb4-b4a2-7874bb10db87` ("SMOKE canlı test"), `smoke-2026-10-31-*.ifc/.pdf`.
 - **Confirmed (30 Ekim 2026):** T41 8B worker entitlement capability function (`3a9bb7d`) production'da aktif.

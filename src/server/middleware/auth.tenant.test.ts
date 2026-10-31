@@ -156,3 +156,35 @@ test('super admin gate requires a verified timestamp, including null and undefin
     assert.equal(status, 403);
   }
 });
+
+test('unverified accounts cannot use an existing session, even with a valid token and membership', async () => {
+  const dependencies = {
+    isSessionRevoked: async () => false,
+    findUser: async () => ({ ...user, emailVerified: null }),
+    findMembership: async () => ({ role: 'owner' as const }),
+  };
+  let status = 200;
+  let body: any;
+  let passed = false;
+  const res: any = { status(code: number) { status = code; return this; }, json(value: unknown) { body = value; return this; } };
+  await createAuthenticate(dependencies)({ headers: { authorization: `Bearer ${token()}` } }, res, () => { passed = true; });
+  assert.equal(passed, false);
+  assert.equal(status, 403);
+  assert.equal(body.code, 'EMAIL_VERIFICATION_REQUIRED');
+});
+
+test('super-admin support impersonation can still open an unverified account read-only', async () => {
+  const adminId = '33333333-3333-4333-8333-333333333333';
+  const impersonation = AuthService.generateToken({ userId, companyId, role: 'owner', impersonatedBy: adminId, readOnly: true } as any);
+  let passed = false;
+  const res: any = { status() { return this; }, json() { return this; } };
+  const req: any = { method: 'GET', headers: { authorization: `Bearer ${impersonation}` } };
+  await createAuthenticate({
+    isSessionRevoked: async () => false,
+    isImpersonationRevoked: async () => false,
+    findUser: async (id) => (id === adminId ? { ...user, isSuperAdmin: true } : { ...user, emailVerified: null }),
+    findMembership: async () => ({ role: 'owner' as const }),
+  })(req, res, () => { passed = true; });
+  assert.equal(passed, true);
+  assert.equal(req.user.readOnly, true);
+});

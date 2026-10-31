@@ -64,7 +64,10 @@ test('registration without trial or free plan fails without partial users or com
     const [trial] = await db.insert(schema.plans).values({ name: 'Trial available', monthlyPrice: 0, monthlyQuoteLimit: 5, isActive: true, isTrial: true }).returning();
     const registered = await fetch(`http://127.0.0.1:${(server.address() as any).port}/api/auth/register`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email, password: 'test-password-123', fullName: 'Test User', companyName, termsAccepted: true, privacyAccepted: true }) });
     assert.equal(registered.status, 201);
-    const registeredBody = await registered.json() as { company: { id: string } };
+    assert.equal(registered.headers.get('set-cookie'), null);
+    const registeredBody = await registered.json() as { company: { id: string }; token?: string; emailVerificationRequired: boolean };
+    assert.equal(registeredBody.token, undefined);
+    assert.equal(registeredBody.emailVerificationRequired, true);
     const [subscription] = await db.select().from(schema.subscriptions).where(eq(schema.subscriptions.companyId, registeredBody.company.id));
     assert.equal(subscription.planId, trial.id);
   } finally { await new Promise<void>(resolve => server.close(() => resolve())); }
@@ -79,13 +82,14 @@ test('login and me expose effective super-admin and expert authority only after 
   const base = `http://127.0.0.1:${(server.address() as any).port}`;
   try {
     const login = async () => fetch(`${base}/api/auth/login`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email, password }) });
-    const unverified = await login(); assert.equal(unverified.status, 200);
-    const body = await unverified.json() as { user: { isSuperAdmin: boolean; isExpertReviewer: boolean } };
-    assert.equal(body.user.isSuperAdmin, false); assert.equal(body.user.isExpertReviewer, false);
+    const unverified = await login(); assert.equal(unverified.status, 403);
+    assert.equal((await unverified.json() as { code?: string }).code, 'EMAIL_VERIFICATION_REQUIRED');
+    assert.equal(unverified.headers.get('set-cookie'), null);
+    const wrongPassword = await fetch(`${base}/api/auth/login`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email, password: 'wrong-password-123' }) });
+    assert.equal(wrongPassword.status, 401);
     const token = AuthService.generateToken({ userId: user.id, companyId: null, role: null });
     const me = await fetch(`${base}/api/auth/me`, { headers: { Authorization: `Bearer ${token}` } });
-    const meBody = await me.json() as { user: { isSuperAdmin: boolean; isExpertReviewer: boolean } };
-    assert.equal(meBody.user.isSuperAdmin, false); assert.equal(meBody.user.isExpertReviewer, false);
+    assert.equal(me.status, 403);
     await db.update(schema.users).set({ emailVerified: new Date() }).where(eq(schema.users.id, user.id));
     const verified = await login(); const verifiedBody = await verified.json() as { user: { isSuperAdmin: boolean; isExpertReviewer: boolean } };
     assert.equal(verifiedBody.user.isSuperAdmin, true); assert.equal(verifiedBody.user.isExpertReviewer, true);

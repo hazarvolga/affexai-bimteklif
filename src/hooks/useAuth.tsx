@@ -91,7 +91,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setAccountType(data.accountType ?? 'workspace');
         setLearnerProfile(data.learnerProfile ?? null);
       } else {
-        if (res.status === 401) setSessionHint(false);
+        const failure = res.status === 403 ? await res.json().catch(() => null) : null;
+        if (res.status === 401 || failure?.code === 'EMAIL_VERIFICATION_REQUIRED') setSessionHint(false);
         if (import.meta.env.DEV) enterDemoMode();
       }
     } catch (e) {

@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ACADEMY_ENABLED } from '@/config/features';
-import { useNavigate, Link, useSearchParams } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
@@ -19,6 +18,7 @@ import {
 import { toast } from 'sonner';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { PublicMetadata } from '@/components/PublicMetadata';
+import { EmailVerificationNotice } from '@/components/auth/EmailVerificationNotice';
 import {
   BILLING_PERIOD_OPTIONS,
   type BillingCycleId,
@@ -86,8 +86,7 @@ export function Register() {
   const [bankAccounts, setBankAccounts] = useState<PublicBankAccount[]>([]);
 
   const formStartedAt = useRef(Date.now());
-  const { login } = useAuth();
-  const navigate = useNavigate();
+  const [registered, setRegistered] = useState<{ email: string; deliveryPending: boolean; orderReference: string | null } | null>(null);
   const [searchParams] = useSearchParams();
   const isPilot = searchParams.get('intent') === 'pilot';
   const isAcademy = ACADEMY_ENABLED && searchParams.get('intent') === 'academy';
@@ -188,17 +187,11 @@ export function Register() {
       });
       const data = await res.json();
       if (res.ok) {
-        login(data.token, data.user, data.company, 'owner', data.accountType);
-        if (data.pendingPaymentOrder?.referenceCode) {
-          toast.success(
-            `${selectedPlan.name} (${selectedPricing.label}) siparişi oluşturuldu (Kod: ${data.pendingPaymentOrder.referenceCode}). Havale/EFT bildirim ekranına yönlendiriliyorsunuz; bu sırada 14 günlük deneme kotanız aktiftir.`,
-          );
-        } else {
-          toast.success(
-            '14 Günlük Ücretsiz Deneme paketiniz ve SmartCheck (1 IFC / 25 MB, 3 Teklif) kotanız aktif edildi!',
-          );
-        }
-        navigate(nextPath);
+        setRegistered({
+          email: data.user.email,
+          deliveryPending: Boolean(data.emailVerificationDeliveryPending),
+          orderReference: data.pendingPaymentOrder?.referenceCode ?? null,
+        });
       } else {
         toast.error(data.error || 'Kayıt başarısız.');
       }
@@ -208,6 +201,24 @@ export function Register() {
       setLoading(false);
     }
   };
+
+  if (registered) {
+    return (
+      <main id="main-content" tabIndex={-1} className="min-h-screen bg-background bg-hairline-grid flex flex-col items-center justify-center p-4 sm:p-6">
+        <PublicMetadata title="E-postanızı Doğrulayın | BIMMetraj" description="Hesabınızı kullanmak için e-posta adresinizi doğrulayın." canonicalPath="/register" noIndex />
+        <div className="w-full max-w-md space-y-4">
+          <h1 className="font-display-serif text-3xl text-foreground text-center">Hesabınız oluşturuldu</h1>
+          <EmailVerificationNotice email={registered.email} deliveryPending={registered.deliveryPending} />
+          {registered.orderReference && (
+            <p className="text-xs text-muted-foreground">
+              Sipariş kodunuz: <strong className="font-mono text-foreground">{registered.orderReference}</strong>. Havale/EFT bildirimini doğrulama sonrası giriş yaparak tamamlayabilirsiniz.
+            </p>
+          )}
+          <Link to={`/login?next=${encodeURIComponent(nextPath)}`} className="pafta-button w-full !justify-center">Giriş Ekranına Git</Link>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main id="main-content" tabIndex={-1} className="min-h-screen bg-background bg-hairline-grid flex flex-col items-center justify-center p-4 sm:p-6 lg:p-10 relative">
@@ -244,8 +255,8 @@ export function Register() {
           </h1>
           <p className="mt-1.5 text-xs sm:text-sm text-muted-foreground max-w-2xl mx-auto">
             {isAcademy
-              ? 'Doğrulanmış Allplan derslerine hemen erişin. Kredi kartı gerekmez.'
-              : '0 ₺ bedelle 14 Günlük Ücretsiz Deneme paketini anında başlatabilir veya kurumsal paketlerde %30’a varan uzun dönem indirimleriyle aboneliğinizi başlatabilirsiniz.'}
+              ? 'E-postanızı doğruladıktan sonra Allplan derslerine erişin. Kredi kartı gerekmez.'
+              : '0 ₺ bedelle 14 Günlük Ücretsiz Deneme paketini e-posta doğrulamasının ardından kullanabilir veya kurumsal paketlerde %30’a varan uzun dönem indirimleriyle aboneliğinizi başlatabilirsiniz.'}
           </p>
         </div>
 
