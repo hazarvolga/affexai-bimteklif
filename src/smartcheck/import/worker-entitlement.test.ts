@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 
 test("fetchTenantIfcLimits worker production path via capability function", async (t) => {
@@ -92,4 +93,19 @@ test("fetchTenantIfcLimits worker production path via capability function", asyn
     );
     assert.strictEqual(executeCalled, false, "execute must not be called for app caller");
   });
+});
+
+test("HTTP processing runs read IFC limits as the app role, never through the worker-only function", () => {
+  // changeProcessingRun runs inside withAppTenantTransaction: bimmetraj_app has no EXECUTE on
+  // bimmetraj_worker_get_entitlement, so the worker path fails every production IFC upload.
+  const source = readFileSync(new URL("./service.ts", import.meta.url), "utf8");
+  assert.match(source, /withAppTenantTransaction\(/);
+  assert.match(source, /fetchTenantIfcLimits\(companyId, tx\)/);
+  assert.doesNotMatch(source, /fetchTenantIfcLimits\([^)]*"worker"/);
+});
+
+test("SmartCheck upload routes read IFC limits inside tenant context", () => {
+  const source = readFileSync(new URL("../../server/routes/smartcheck.ts", import.meta.url), "utf8");
+  assert.doesNotMatch(source, /await fetchTenantIfcLimits\(/);
+  assert.equal(source.match(/withAppTenant\(tenantOf\(req\.user\), tx => fetchTenantIfcLimits\(/g)?.length, 2);
 });

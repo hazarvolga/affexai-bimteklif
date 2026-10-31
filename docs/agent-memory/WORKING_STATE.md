@@ -1,6 +1,6 @@
 # Working State: BIMMetraj
 
-Last updated: 2026-10-30. Keep this file to one page: current truth only. Move
+Last updated: 2026-10-31. Keep this file to one page: current truth only. Move
 history to `archive/` (latest: `archive/WORKING_STATE_until_2026-10-24.md`).
 
 ## Production
@@ -27,6 +27,7 @@ history to `archive/` (latest: `archive/WORKING_STATE_until_2026-10-24.md`).
   history.
 - Secret rotation after the 2026-10-24 Developer View exposure (S3/backup keys,
   SMTP, PostgreSQL service password, JWT secret): **done by Hazar, 2026-10-25**.
+- **Live defect, fix pending deploy (Rev. 134, 31 Ekim 2026):** on `3a9bb7d` every IFC processing request returns 503 `IFC_LIMITS_UNAVAILABLE`: Rev. 133 sends the app-role request through the worker-only `bimmetraj_worker_get_entitlement`. Upload routes also read the lowest plan's limits outside tenant context. After deploy, retest a real IFC upload. The function now has no caller in running code, so the Rev. 133 'aktif' wording below means the grants only.
 - **Confirmed (30 Ekim 2026):** T41 8B worker entitlement capability function (`3a9bb7d`) production'da aktif.
   `bimmetraj_worker` ACL daraltması tamamlandı: db-provision contract ile subscriptions/plans 0 privilege güvence altında.
   T44 kurtarma tatbikatı Docker PG16'da tüm 5 sütunla geçti (30 Ekim 2026).

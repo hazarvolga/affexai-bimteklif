@@ -234,7 +234,8 @@ export function registerSmartCheckRoutes(app: Express) {
     let maxAllowedBytes = maxBytesForSmartCheckFileName(parsedRequest.data?.fileName || "");
     if (isIfc) {
       try {
-        const limits = await fetchTenantIfcLimits(req.user.companyId);
+        // FORCE RLS: without tenant context subscriptions is empty and the lowest plan's limits apply.
+        const limits = await withAppTenant(tenantOf(req.user), tx => fetchTenantIfcLimits(req.user.companyId, tx), { readOnly: true });
         maxAllowedBytes = limits.maxFileBytes;
       } catch (error) {
         if (error instanceof IfcNotAvailableError) {
@@ -337,7 +338,7 @@ export function registerSmartCheckRoutes(app: Express) {
         let size = 0;
         const headChunks: Buffer[] = [];
         let headSize = 0;
-        const limits = await fetchTenantIfcLimits(document.companyId);
+        const limits = await withAppTenant(tenantOf(req.user), tx => fetchTenantIfcLimits(document.companyId, tx), { readOnly: true });
         const maxIfcBytes = limits.maxFileBytes;
         for await (const chunk of stream) {
           const buf = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
