@@ -109,7 +109,7 @@ export async function changeProcessingRun(input: {
     }
 
     if (kind === 'ifc' && (action === 'process' || action === 'retry')) {
-      const limits = await fetchTenantIfcLimits(companyId, tx, "worker");
+      const limits = await fetchTenantIfcLimits(companyId, tx);
       const activeIfcRuns = await tx.select({ id: documentProcessingRuns.id })
         .from(documentProcessingRuns)
         .innerJoin(documents, eq(documents.id, documentProcessingRuns.documentId))

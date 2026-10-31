@@ -72,7 +72,8 @@ async function fetchWorkerEntitlement(
       sql`SELECT * FROM public.bimmetraj_worker_get_entitlement(${companyId}::uuid)`
     );
     row = result?.rows?.[0];
-  } catch {
+  } catch (error) {
+    console.error(`[fetchWorkerEntitlement] Capability read failed for company ${companyId}:`, error);
     throw new IfcLimitsUnavailableError();
   }
 

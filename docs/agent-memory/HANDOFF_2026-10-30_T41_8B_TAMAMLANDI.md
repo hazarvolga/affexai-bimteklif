@@ -4,6 +4,8 @@
 **Production commit:** `3a9bb7d` (Rev. 133, BIM-CALC-2026-10-30.2)  
 **Önceki handoff:** `HANDOFF_2026-10-27_CRM_VE_KULLANICI_AKISI.md`
 
+> **Düzeltme (31 Ekim 2026, Rev. 134):** Aşağıdaki `service.ts:112` yolu hatalıydı: bu kod app rolüyle çalışır ve fonksiyonu çağıramaz. Canlıda IFC işleme 503 ile durdu; çağrı kaldırıldı. Fonksiyonun çalışan kodda çağıranı yok.
+
 ---
 
 ## T41 8B: Worker Entitlement Capability Function (Canlı)
