@@ -21,17 +21,17 @@ test("pilot application conversion provisions a real company, user, and membersh
   const suffix = crypto.randomUUID();
 
   const [adminCompany] = await db.insert(schema.companies).values({ name: `Admin Co ${suffix}` }).returning();
-  const [adminUser] = await db.insert(schema.users).values({ email: `pilot-admin-${suffix}@example.test`, fullName: "Pilot Admin", emailVerified: new Date(), isSuperAdmin: true }).returning();
+  const [adminUser] = await db.insert(schema.users).values({ emailVerified: new Date(), email: `pilot-admin-${suffix}@example.test`, fullName: "Pilot Admin", emailVerified: new Date(), isSuperAdmin: true }).returning();
   await db.insert(schema.memberships).values({ companyId: adminCompany.id, userId: adminUser.id, role: "owner" });
-  const [viewerUser] = await db.insert(schema.users).values({ email: `pilot-viewer-${suffix}@example.test`, fullName: "Pilot Viewer", emailVerified: new Date() }).returning();
+  const [viewerUser] = await db.insert(schema.users).values({ emailVerified: new Date(), email: `pilot-viewer-${suffix}@example.test`, fullName: "Pilot Viewer", emailVerified: new Date() }).returning();
   await db.insert(schema.memberships).values({ companyId: adminCompany.id, userId: viewerUser.id, role: "viewer" });
   const ownerToken = AuthService.generateToken({ userId: adminUser.id, companyId: adminCompany.id, role: "owner" });
   const viewerToken = AuthService.generateToken({ userId: viewerUser.id, companyId: adminCompany.id, role: "viewer" });
-  const [ownerUser] = await db.insert(schema.users).values({ email: `pilot-owner-${suffix}@example.test`, fullName: "Regular Owner", emailVerified: new Date() }).returning();
+  const [ownerUser] = await db.insert(schema.users).values({ emailVerified: new Date(), email: `pilot-owner-${suffix}@example.test`, fullName: "Regular Owner", emailVerified: new Date() }).returning();
   await db.insert(schema.memberships).values({ companyId: adminCompany.id, userId: ownerUser.id, role: "owner" });
   const regularOwnerToken = AuthService.generateToken({ userId: ownerUser.id, companyId: adminCompany.id, role: "owner" });
 
-  const [existingCollisionUser] = await db.insert(schema.users).values({ email: `pilot-collision-${suffix}@example.test`, fullName: "Existing User" }).returning();
+  const [existingCollisionUser] = await db.insert(schema.users).values({ emailVerified: new Date(), email: `pilot-collision-${suffix}@example.test`, fullName: "Existing User" }).returning();
 
   const [application] = await db.insert(schema.pilotApplications).values({ fullName: `Pilot Contact ${suffix}`, companyName: `Pilot Firma ${suffix}`, email: `pilot-contact-${suffix}@example.test`, consentAt: new Date() }).returning();
   const [collisionApplication] = await db.insert(schema.pilotApplications).values({ fullName: `Collision Contact ${suffix}`, companyName: `Collision Firma ${suffix}`, email: existingCollisionUser.email, consentAt: new Date() }).returning();

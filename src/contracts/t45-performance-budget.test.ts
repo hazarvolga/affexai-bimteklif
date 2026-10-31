@@ -381,6 +381,7 @@ test("T45-5: Concurrent multi-tenant PostgreSQL 16 isolation and worker queue cl
     { id: tenantBId, name: "T45 Tenant B" },
   ]);
   await db.insert(users).values({
+    emailVerified: new Date(),
     id: ctxA.userId,
     email: `owner-${ctxA.userId}@t45.test`,
     passwordHash: "hash",

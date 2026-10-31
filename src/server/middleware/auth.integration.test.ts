@@ -23,7 +23,7 @@ test("authenticate does not reject a token issued the same second as a password 
   const suffix = crypto.randomUUID();
 
   const [company] = await db.insert(schema.companies).values({ name: `Auth Timing Co ${suffix}` }).returning();
-  const [user] = await db.insert(schema.users).values({ email: `auth-timing-${suffix}@example.test`, fullName: "Timing User" }).returning();
+  const [user] = await db.insert(schema.users).values({ emailVerified: new Date(), email: `auth-timing-${suffix}@example.test`, fullName: "Timing User" }).returning();
   await db.insert(schema.memberships).values({ companyId: company.id, userId: user.id, role: "owner" });
 
   // Pick a passwordChangedAt that lands well inside a second (.900) so a same-second

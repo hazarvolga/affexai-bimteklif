@@ -10,7 +10,7 @@ test('AI last monthly slot is atomic across concurrent requests in isolated Post
   const [{ db }, schema, { reserveAiUsage }] = await Promise.all([import('../../db'), import('../../db/schema'), import('./ai-quota')]);
   assert.match(String((await db.execute(sql`SELECT current_schema() AS schema`)).rows[0].schema), /^teklifpro_test_[a-f0-9]{32}$/);
   const [company] = await db.insert(schema.companies).values({ name: 'AI quota isolation' }).returning();
-  const [user] = await db.insert(schema.users).values({ email: 'ai-quota@example.test', fullName: 'AI tester' }).returning();
+  const [user] = await db.insert(schema.users).values({ emailVerified: new Date(), email: 'ai-quota@example.test', fullName: 'AI tester' }).returning();
   const now = new Date();
   await db.insert(schema.subscriptions).values({ companyId: company.id, plan: 'starter', currentPeriodStart: new Date('2020-01-01') });
   await db.insert(schema.usageLogs).values({ companyId: company.id, userId: user.id, feature: 'AI_QUOTATION_GENERATED', count: 19, date: now });
@@ -28,7 +28,7 @@ test('AI HTTP validates before reservation and retains failed provider attempts 
     import('../../db'), import('../../db/schema'), import('../../server/routes/ai'), import('../auth/authService'), import('express'),
   ]);
   const [company] = await db.insert(schema.companies).values({ name: 'AI HTTP test' }).returning();
-  const [user] = await db.insert(schema.users).values({ email: 'ai-http@example.test', fullName: 'AI HTTP tester' }).returning();
+  const [user] = await db.insert(schema.users).values({ emailVerified: new Date(), email: 'ai-http@example.test', fullName: 'AI HTTP tester' }).returning();
   await db.insert(schema.memberships).values({ companyId: company.id, userId: user.id, role: 'owner' });
   await db.insert(schema.subscriptions).values({ companyId: company.id, currentPeriodStart: new Date('2020-01-01') });
   const app = expressModule.default();
@@ -74,7 +74,7 @@ test('CRM and regulation paid HTTP routes share the monthly AI budget', async ()
     import('../../db'), import('../../db/schema'), import('../../server/routes/crm'), import('../../server/routes/regulations'), import('../auth/authService'), import('express'),
   ]);
   const [company] = await db.insert(schema.companies).values({ name: 'Shared AI budget' }).returning();
-  const [user] = await db.insert(schema.users).values({ email: 'ai-shared@example.test', fullName: 'Shared AI' }).returning();
+  const [user] = await db.insert(schema.users).values({ emailVerified: new Date(), email: 'ai-shared@example.test', fullName: 'Shared AI' }).returning();
   await db.insert(schema.memberships).values({ companyId: company.id, userId: user.id, role: 'owner' });
   await db.insert(schema.subscriptions).values({ companyId: company.id, currentPeriodStart: new Date('2020-01-01') });
   const [client] = await db.insert(schema.clients).values({ companyId: company.id, name: 'Client', type: 'corporate' }).returning();

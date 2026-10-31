@@ -401,10 +401,12 @@ test("T44 — Worker, runtime topology, S3/partial upload rollback, crash lease 
       }).returning();
 
       const [userA] = await testDb.insert(users).values({
+        emailVerified: new Date(),
         email: `t44-alpha-${crypto.randomUUID()}@example.test`,
         fullName: "Alpha Engineer",
       }).returning();
       const [userB] = await testDb.insert(users).values({
+        emailVerified: new Date(),
         email: `t44-beta-${crypto.randomUUID()}@example.test`,
         fullName: "Beta Engineer",
       }).returning();

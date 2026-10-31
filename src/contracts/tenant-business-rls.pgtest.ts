@@ -201,7 +201,7 @@ test("tenant business tables enforce FORCE RLS, pool-safe tenant context and CRM
     );
 
     await admin.query("insert into companies(id,name) values($1,'A'),($2,'B')", [ids.companyA, ids.companyB]);
-    await admin.query("insert into users(id,email,full_name,is_super_admin) values($1,'a@business.test','A',false),($2,'b@business.test','B',false),($3,'superadmin@business.test','Super Admin',true)", [ids.userA, ids.userB, ids.superAdminUser]);
+    await admin.query("insert into users(id,email,full_name,is_super_admin,email_verified) values($1,'a@business.test','A',false,now()),($2,'b@business.test','B',false,now()),($3,'superadmin@business.test','Super Admin',true,now())", [ids.userA, ids.userB, ids.superAdminUser]);
     await admin.query("insert into memberships(user_id,company_id,role) values($1,$2,'owner'),($3,$4,'owner')", [ids.userA, ids.companyA, ids.userB, ids.companyB]);
     await admin.query("insert into clients(id,company_id,name,type) values($1,$2,'Client A','company'),($3,$4,'Client B','company')", [ids.clientA, ids.companyA, ids.clientB, ids.companyB]);
     // Seed one row per tenant and table; FK triggers are bypassed only for this superuser seed.
