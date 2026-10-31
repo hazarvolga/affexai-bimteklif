@@ -185,8 +185,9 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
   },
   {
     id: "durum",
-    title: "Uygulama durumu (31 Ekim 2026 · Rev. 141 geliştirme kaydı)",
+    title: "Uygulama durumu (31 Ekim 2026 · Rev. 142 geliştirme kaydı)",
     blocks: [
+      { type: "callout", tone: "info", title: "Rev. 142 · IFC işleyici düşmesi ve ölçüm", text: "Açık lisanslı dört modelle yapılan ölçümde 93 MB dosya 8 çekirdek görünen ortamda düştü. Neden 2 GiB adres sınırı ile OpenBLAS'ın çekirdek başına bellek ayırmasıydı; işleyici tek iş parçacığına sabitlendi. Dört model 6-23 s ve en çok 1,75 GB ile tamamlandı. T45 kısmi kalır: gerçek müşteri dosyası ve uçtan uca işlem ölçülmedi." },
       { type: "callout", tone: "info", title: "Rev. 141 · Deneme kotası ve Kurumsal paket metni", text: "Deneme paketinde teklif, IFC ve AI/PDF kotaları takvim ayı yerine 14 günlük deneme dönemine bağlandı; ay sınırı geçilince kota yenilenmez. Ücretli paketler takvim ayıyla devam eder. Migration 0040 worker için dar bir dönem fonksiyonu ekler. Kurumsal paket açıklamasından karşılığı olmayan ekip yönetimi ve öncelikli işleme vaadi Hazar'ın onayıyla çıkarıldı." },
       { type: "callout", tone: "info", title: "Rev. 140 · IFC abonelik denetimi", text: "IFC yükleme ve işleme, teklif kotasıyla aynı kuralı uygular: abonelik aktif ve dönem içinde olmalı, yoksa 403 SUBSCRIPTION_INACTIVE döner. Plan pasifse firma en düşük plana düşürülmez, 403 IFC_NOT_AVAILABLE döner. En düşük plana düşme yalnız planı olmayan firmalar içindir." },
       { type: "callout", tone: "warn", title: "Rev. 139 · EKLER.pdf kural verisi düzeltmesi", text: "EK-2 ve EK-3 kod listeleri, Tablo 7.8 ve Tablo 9.2 madde 9 EKLER.pdf sayfa görüntülerine göre düzeltildi ve testle sabitlendi. Alt disiplin kontrolü disipline bağlandı. Mahal adı hem düz EK-3 numarasıyla hem EK-5 şablonuyla kabul edilir; saha, bina ve kat adında şablon dışı ad uyarıdır. Belgeyle örnek model ayrıştığı için Bakanlık görüşü açıktır." },
@@ -1165,6 +1166,9 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
           ],
           [
             "Rev. 141", "31 Ekim 2026 · Deneme kotası ve Kurumsal paket metni", "BIM-CALC-2026-10-31.8", "Deneme paketinde teklif, IFC ve AI/PDF kotaları takvim ayı yerine 14 günlük deneme dönemine bağlandı; ay sınırı geçilince kota yenilenmez. Ücretli paketler takvim ayıyla devam eder. Migration 0040 worker için dar bir dönem fonksiyonu ekler. Kurumsal paket açıklamasından karşılığı olmayan ekip yönetimi ve öncelikli işleme vaadi Hazar'ın onayıyla çıkarıldı.",
+          ],
+          [
+            "Rev. 142", "31 Ekim 2026 · IFC işleyici düşmesi ve ölçüm", "BIM-CALC-2026-10-31.9", "Açık lisanslı dört IFC modeliyle worker sınırlarında ölçüm yapıldı. 93 MB model 8 çekirdek görünen ortamda segfault ile düştü; neden 2 GiB adres sınırı ile OpenBLAS'ın çekirdek başına bellek ayırmasıydı. İşleyici tek iş parçacığına sabitlendi. Dört model 6-23 s ve en çok 1,75 GB ile tamamlandı.",
           ],
         ],
       },
@@ -2222,6 +2226,9 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
           ],
           [
             "Rev. 141 · 31 Ekim 2026 (Deneme kotası)", "14 günlük kota dönemi", "Deneme kotası takvim ayına bağlıydı, ay sınırında iki kez veriliyordu. Kurumsal paket karşılıksız vaat içeriyordu.", "Deneme paketinde teklif, IFC ve AI/PDF kotaları takvim ayı yerine 14 günlük deneme dönemine bağlandı; ay sınırı geçilince kota yenilenmez. Ücretli paketler takvim ayıyla devam eder. Migration 0040 worker için dar bir dönem fonksiyonu ekler. Kurumsal paket açıklamasından karşılığı olmayan ekip yönetimi ve öncelikli işleme vaadi Hazar'ın onayıyla çıkarıldı.", "src/services/billing/quota-policy.ts; src/services/billing/plan-catalog.ts; drizzle-release/0040_trial_quota_period.sql",
+          ],
+          [
+            "Rev. 142 · 31 Ekim 2026 (IFC ölçümü)", "Çok çekirdekte düşme", "Geçerli IFC dosyası çok çekirdekli ortamda düşebiliyordu. OpenBLAS tek iş parçacığına sabitlendi. T45 kısmi kalır: gerçek müşteri dosyası, uçtan uca işlem ve metraj doğruluğu ölçülmedi.", "src/smartcheck/import/ifc-python-runner.ts; src/smartcheck/import/ifc-orchestration.test.ts",
           ],
         ],
       },

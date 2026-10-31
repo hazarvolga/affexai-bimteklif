@@ -93,6 +93,8 @@ export async function runEpysPreflight(options: {
             TMPDIR: os.tmpdir(),
             LANG: process.env.LANG ?? "C.UTF-8",
             PYTHONIOENCODING: "utf-8",
+            // epys_preflight.py limits address space to 2 GiB; see ifc-python-runner.ts.
+            OPENBLAS_NUM_THREADS: "1",
           },
         });
       let stderr = "";

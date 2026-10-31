@@ -8,7 +8,7 @@ history to `archive/` (latest: `archive/WORKING_STATE_until_2026-10-24.md`).
 - `https://bimmetraj.com` on Coolify (app `ibjv2zbpecdcbd71lxo1vqd7`), Docker
   Compose `compose.coolify.yaml`: `app`, `worker`, `ifc-worker`, `migrate`,
   `backup`. Vercel files are legacy.
-- **Live revision: `3812e82` (Rev. 138, deployed 31 Ekim 2026 with `verify` green, migrations 0038 and 0039). Company deletion and the unverified login block are covered by tests, not exercised on live.** Previous live: `3a9bb7d` (Rev. 133):
+- **Live revision: `84c2332` (Rev. 140, deployed 31 Ekim 2026 with `verify` green). EK rule data and IFC subscription checks are live; PR 46 (Rev. 141, migration 0040) and the OpenBLAS fix (Rev. 142) are pending deploy.** T45 measurement (Rev. 142, arm64, 1.5 CPU, 2 GB, four open-license models 62-120 MB): 6-23 s, peak 1.75 GB; real customer file still missing. Previous live: `3812e82` (Rev. 138), before it `3a9bb7d` (Rev. 133):
   T41 8B: `bimmetraj_worker_get_entitlement()` SECURITY DEFINER capability function aktif;
   `bimmetraj_worker` — `subscriptions` ve `plans` tablolarında 0 privilege (db-provision contract).
   T44: Docker PG16 kurtarma tatbikatı tamamlandı (5 sütun, 30 Ekim 2026);
