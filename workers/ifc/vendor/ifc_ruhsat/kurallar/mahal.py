@@ -15,8 +15,10 @@ from ifc_ruhsat.kurallar.geometri import hacim, kesisim, sinir_kutulari
 from ifc_ruhsat.kurallar.ortak import Baglam, kati, oznitelik
 
 # EK-3 Tablo 3.1: Kat(3) _ Bölüm/Fonksiyon(3) _ Sıra No(3); kat kodu EK-2 Tablo 2.14
-# (B01… bodrum, K00 zemin, K01… kat, NNN kattan bağımsız).
-MAHAL_NO = re.compile(r"^(B\d{2}|K\d{2}|NNN)_([A-Z0-9]{3})_(\d{3})$")
+# (B01… bodrum, K00 zemin, K01… kat, KXX tabloda olmayan kat, NNN kattan bağımsız).
+MAHAL_NO = re.compile(r"^(B\d{2}|K[A-Z0-9]{2}|NNN)_([A-Z0-9]{3})_(\d{3})$")
+# EK-5 5.5.4 ve Tablo 6.58: Name = Disiplin-MHL-Açıklama; açıklamada mahal no ve/veya mahal ismi.
+SABLONLU_AD = re.compile(r"^[A-Z]{2}-MHL-([^\s-]+)$")
 ORTUSME_ORANI = 0.10  # küçük hacim oranına göre; komşu duvar payı için tolerans
 
 
@@ -27,6 +29,18 @@ def _tr_norm(s: str) -> str:
         .replace("I", "ı")
         .lower()
     )
+
+
+def mahal_adi_coz(ad: str) -> tuple[str | None, str | None]:
+    """Name değerinden (mahal numarası, mahal ismi) döndürür. Düz EK-3 numarası ve EK-5 şablonu kabul edilir."""
+    temiz = ad.strip()
+    sablon = SABLONLU_AD.match(temiz)
+    aciklama = sablon.group(1) if sablon else temiz
+    numara = MAHAL_NO.match(aciklama[:11])
+    if numara and (len(aciklama) == 11 or aciklama[11] == "_"):
+        isim = aciklama[12:].replace("_", " ") or None
+        return aciklama[:11], isim
+    return None, aciklama.replace("_", " ") if sablon else None
 
 
 def kontrol(b: Baglam) -> list[Bulgu]:
@@ -48,14 +62,17 @@ def _numaralar(mahaller: list[Any]) -> list[Bulgu]:
         ad = oznitelik(m, "Name")
         if ad is None:
             bos.append(m)
-        elif not MAHAL_NO.match(ad.strip()):
+            continue
+        numara, ad_ismi = mahal_adi_coz(str(ad))
+        if numara is None and ad_ismi is None:
             bicim.append(m)
         uzun_ad = oznitelik(m, "LongName")
-        if uzun_ad is None:
+        isim = str(uzun_ad) if uzun_ad is not None else ad_ismi
+        if isim is None:
             isimsiz.append(m)
         else:
-            norm_uzun = _tr_norm(str(uzun_ad))
-            if norm_uzun not in gecerli_kodlar and norm_uzun not in gecerli_isimler:
+            norm_isim = _tr_norm(isim)
+            if norm_isim not in gecerli_kodlar and norm_isim not in gecerli_isimler:
                 tablo_disi.append(m)
     out = []
     if bos:
@@ -75,10 +92,9 @@ def _numaralar(mahaller: list[Any]) -> list[Bulgu]:
             Bulgu(
                 "mahal-no-bicim",
                 "hata",
-                f"{len(bicim)} mahalin numarası EK-3 şablonuna uymuyor. Beklenen Kat_Bölüm_SıraNo, "
-                "alt tire ile: kat kodu B01/B02… (bodrum), K00 (zemin), K01… ya da NNN; bölüm üç "
-                "karakter; sıra no üç basamak — örn. K00_DAI_001.",
-                "m.10, EK-3 Tablo 3.1, EK-2 Tablo 2.14",
+                f"{len(bicim)} mahalin adı uymuyor. Beklenen K00_DAI_001 ya da MM-MHL-K00_DAI_001_Salon: kat kodu "
+                "B01/B02… (bodrum), K00 (zemin), K01…, KXX ya da NNN; bölüm üç karakter; sıra no üç basamak.",
+                "m.10, EK-3 Tablo 3.1, EK-5 5.5.4, EK-2 Tablo 2.14",
                 4,
                 varlik_listesi(bicim),
                 len(bicim),
@@ -89,8 +105,8 @@ def _numaralar(mahaller: list[Any]) -> list[Bulgu]:
             Bulgu(
                 "mahal-isim-bos",
                 "hata",
-                f"{len(isimsiz)} mahalin ismi (LongName) boş; mahal ismi EK-3 Tablo 3.2'deki adlarla "
-                "ya da kısaltmalarıyla verilir.",
+                f"{len(isimsiz)} mahalin ismi yok; isim Name açıklamasında ya da LongName'de, EK-3 Tablo 3.2'deki "
+                "adlarla veya kısaltmalarıyla verilir.",
                 "m.10, EK-3 3.3",
                 4,
                 varlik_listesi(isimsiz),
@@ -102,7 +118,7 @@ def _numaralar(mahaller: list[Any]) -> list[Bulgu]:
             Bulgu(
                 "mahal-isim-tablo",
                 "uyari",
-                f"{len(tablo_disi)} mahalin ismi (LongName) EK-3 Tablo 3.2 standart mahal isim/kısaltma "
+                f"{len(tablo_disi)} mahalin ismi EK-3 Tablo 3.2 standart mahal isim/kısaltma "
                 "listesinde yer almıyor (projeye özel mahal tanımıysa 3 harfli kısaltması Tablo 3.2 ile çakışmamalıdır).",
                 "m.10, EK-3 3.3 ve Tablo 3.2",
                 4,

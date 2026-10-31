@@ -24,6 +24,11 @@ def ek2_alt_disiplinler() -> dict[str, str]:
     return _yukle("ek2_disiplinler.json").get("alt_disiplinler", {})
 
 
+def ek2_alt_disiplin_tablolari() -> dict[str, dict[str, str]]:
+    """EK-2 Tablo 2.3-2.11, disiplin koduna göre. YN, GS ve AK için tablo yoktur."""
+    return _yukle("ek2_disiplinler.json")["alt_disiplin_tablolari"]
+
+
 def ek2_dosya_turleri() -> dict[str, str]:
     """EK-2 Tablo 2.12: iki harfli dosya türü kodu → ad."""
     return _yukle("ek2_disiplinler.json").get("dosya_turleri", {})

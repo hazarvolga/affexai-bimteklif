@@ -62,7 +62,7 @@ export const SMARTCHECK_SAMPLE_PROJECTS: Record<
     shortBadge: "MM · Tablo 9.1 (21 Satır)",
     description:
       "Mimari disiplin (MM) IFC4X3_ADD2 modeli: EK-9 Tablo 9.1 (21 satır), EK-7 Tablo 7.9 IfcAnnotation (SURVEY), IfcSpace mahal (K00_DAI_001/002), TREpys_EmsalOzellikSeti (DAHIL 300 m²) ve ALLPLAN IfcCovering kaplama metrajı (32,50 m²).",
-    fileName: "123456_00_MM_GNEL_MD_BIM_000_01_000.ifc",
+    fileName: "123456_00_MM_XXXX_MD_MMC_NNN_01_000.ifc",
     mimeType: "model/ifc",
     fileSizeBytes: 14585,
     checksumSha256: "d2195a87ebb13f839d6ee3f5229bf58f01df06c8ce7e65597e51f68056af0467",
@@ -86,7 +86,7 @@ export const SMARTCHECK_SAMPLE_PROJECTS: Record<
         "dataVerification": "Upstream visual verification of the scanned RG 33331 annex PDF (2026-09-17, page numbers in each table). BIMMetraj full annex verification 2026-10-15 against official ministry files #1.pdf, #2.pdf and EKLER.pdf / 20260805-2-1.pdf (SHA-256 7dc88971d3a7a8ae837ef148169fa5bf6c9ce7a01cc8fcd560ae3d342bb0ecb3): EK-1..EK-9 including Tablo 6.55, Tablo 6.60, Tablo 7.8–7.9, Tablo 9.1 (21 rows, MM) and Tablo 9.2 (16 rows, non-MM disciplines)."
     },
     "model": {
-        "fileName": "123456_00_MM_GNEL_MD_BIM_000_01_000.ifc",
+        "fileName": "123456_00_MM_XXXX_MD_MMC_NNN_01_000.ifc",
         "schema": "IFC4X3",
         "sizeBytes": 14585,
         "discipline": "MM"
@@ -635,7 +635,7 @@ export const SMARTCHECK_SAMPLE_PROJECTS: Record<
     shortBadge: "ST · Tablo 9.2 (16 Satır) + 3×3",
     description:
       "Sentetik demo statik disiplin (ST) IFC4X3_ADD2 modeli: EK-9 Tablo 9.2 (Diğer Disiplinler — 16 satır), m.13(3) malzeme tanımı, fiyatsız beton/kalıp QTO satırları ve dış perde paspayı için örnek 3×3 mühendis inceleme bulgusu; gerçek proje veya fiyat kaynağı değildir.",
-    fileName: "123456_00_ST_BETO_MD_BIM_000_01_000.ifc",
+    fileName: "123456_00_ST_BETO_MD_STC_NNN_01_000.ifc",
     mimeType: "model/ifc",
     fileSizeBytes: 14577,
     checksumSha256: "99e8ba2016ac2d67d14eb3207ea18131b94a0066190e3dc9494c74883f892aed",
@@ -659,7 +659,7 @@ export const SMARTCHECK_SAMPLE_PROJECTS: Record<
         "dataVerification": "Upstream visual verification of the scanned RG 33331 annex PDF (2026-09-17, page numbers in each table). BIMMetraj full annex verification 2026-10-15 against official ministry files #1.pdf, #2.pdf and EKLER.pdf / 20260805-2-1.pdf (SHA-256 7dc88971d3a7a8ae837ef148169fa5bf6c9ce7a01cc8fcd560ae3d342bb0ecb3): EK-1..EK-9 including Tablo 6.55, Tablo 6.60, Tablo 7.8–7.9, Tablo 9.1 (21 rows, MM) and Tablo 9.2 (16 rows, non-MM disciplines)."
     },
     "model": {
-        "fileName": "123456_00_ST_BETO_MD_BIM_000_01_000.ifc",
+        "fileName": "123456_00_ST_BETO_MD_STC_NNN_01_000.ifc",
         "schema": "IFC4X3",
         "sizeBytes": 14577,
         "discipline": "ST"
@@ -1158,7 +1158,7 @@ export const SMARTCHECK_SAMPLE_PROJECTS: Record<
     shortBadge: "PDF/A-2B · ISO 216 + e-İmza",
     description:
       "RG 33331 #1.pdf m.8(1) ISO 216 A3 (420×297 mm) pafta boyutu, m.8(2) tek pafta düzeni, #2.pdf m.6(1)-(2) 5070 sayılı Kanun gömülü e-imza (/Sig) ve m.6(4) vektörel metin kontrollerinden geçmiş örnek pafta.",
-    fileName: "123456_00_MM_GNEL_PL_MMC_K00_01_000.pdf",
+    fileName: "123456_00_MM_XXXX_PL_MMC_K00_01_000.pdf",
     mimeType: "application/pdf",
     fileSizeBytes: 1461,
     checksumSha256: "2f0a4ab7bebbb6f3351d448ed64b2e23db9a5cce17a63e717ef28c0931c45d4b",
@@ -1167,7 +1167,7 @@ export const SMARTCHECK_SAMPLE_PROJECTS: Record<
     "schemaVersion": 1,
     "kind": "pdf_preflight",
     "file": {
-        "fileName": "123456_00_MM_GNEL_PL_MMC_K00_01_000.pdf",
+        "fileName": "123456_00_MM_XXXX_PL_MMC_K00_01_000.pdf",
         "pageCount": 1
     },
     "pdfa": {

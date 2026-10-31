@@ -12,8 +12,8 @@ test("PDF preflight runner passes the upload name and validates the worker repor
   try {
     await fs.writeFile(input, "%PDF-1.7\n");
     await fs.writeFile(script, `import argparse, json\np=argparse.ArgumentParser()\np.add_argument('--input')\np.add_argument('--output')\np.add_argument('--file-name')\na=p.parse_args()\nwith open(a.output,'w') as out: json.dump({'schemaVersion':1,'kind':'pdf_preflight','file':{'fileName':a.file_name,'pageCount':1},'pdfa':{'claimed':None,'note':'Manual check'},'summary':{'hata':1,'uyari':0,'elle':1},'findings':[{'kod':'PDFA_KIMLIGI_YOK','seviye':'hata','mesaj':'Missing XMP','madde':'PDF/A'}],'disclaimer':'Preflight only'},out)\n`);
-    const report = await runPdfPreflight(input, "260001_00_MM_GNEL_PL_MMC_K00_01_000.pdf", { pythonBin: "python3", scriptPath: script });
-    assert.equal(report.file.fileName, "260001_00_MM_GNEL_PL_MMC_K00_01_000.pdf");
+    const report = await runPdfPreflight(input, "260001_00_MM_XXXX_PL_MMC_K00_01_000.pdf", { pythonBin: "python3", scriptPath: script });
+    assert.equal(report.file.fileName, "260001_00_MM_XXXX_PL_MMC_K00_01_000.pdf");
     assert.equal(report.summary.hata, 1);
   } finally {
     await fs.rm(directory, { recursive: true, force: true });

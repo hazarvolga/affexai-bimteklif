@@ -19,7 +19,7 @@ describe("SmartCheck file security", () => {
   });
   it("accepts bounded PDF signatures and rejects renamed or oversized PDFs", () => {
     const pdf = Buffer.from("%PDF-1.7\n1 0 obj\n<<>>\nendobj\n%%EOF");
-    assert.equal(detectAndValidateFile(pdf, "260001_00_MM_GNEL_PL_MMC_K00_01_000.pdf", "application/pdf"), "pdf");
+    assert.equal(detectAndValidateFile(pdf, "260001_00_MM_XXXX_PL_MMC_K00_01_000.pdf", "application/pdf"), "pdf");
     assert.throws(() => detectAndValidateFile(pdf, "report.csv", "application/pdf"), /FILE_SIGNATURE_MISMATCH/);
     assert.throws(() => detectAndValidateFile(Buffer.from("not pdf"), "report.pdf", "application/pdf"), /FILE_SIGNATURE_MISMATCH/);
     assert.equal(maxBytesForSmartCheckFileName("report.pdf"), 25 * 1024 * 1024);

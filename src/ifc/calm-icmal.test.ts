@@ -160,7 +160,7 @@ test("parseSmartCheckRowToPseudoElement accurately converts sample project rows 
     },
   ];
   const elements = sampleRows.map((r, i) => parseSmartCheckRowToPseudoElement(r, i));
-  const ds = buildCalmIfcDatasetFromElements(elements, null, "123456_00_MM_GNEL_MD_BIM_000_01_000.ifc");
+  const ds = buildCalmIfcDatasetFromElements(elements, null, "123456_00_MM_XXXX_MD_MMC_NNN_01_000.ifc");
   const flat = ds.groups.flatMap((g) => g.items);
   assert.equal(flat.length, 2);
   assert.equal(ds.apartments.length, 0);

@@ -203,7 +203,7 @@
       "kaynak_no": 8,
       "kategori": "Genel",
       "baslik": "IFC Sınıfları",
-      "soru": "Modelde yer alan varlıklar Yönetmeliğin 12 nci maddesinde tanımlanan \"Zorunlu IFC Sınıfları\" listesindeki doğru sınıflar kullanılarak tanımlandı mı?",
+      "soru": "Projede yer alan varlıklar Yönetmeliğin 12 nci maddesinde tanımlanan \"Zorunlu IFC Sınıfları\" listesindeki doğru sınıflar kullanılarak tanımlandı mı?",
       "bolum": "MODEL YAPILANMASI"
     },
     {
@@ -216,10 +216,10 @@
     },
     {
       "no": 9,
-      "kaynak_no": 11,
+      "kaynak_no": 10,
       "kategori": "Genel",
       "baslik": "IFC Sınıfları",
-      "soru": "Modelde \"Proje\", \"Saha\", \"Bina\" ve en az bir \"Bina Katı\" ile ilgili IFC Sınıfları bulunuyor mu?",
+      "soru": "Mahal (ifcSpace) ve Mekansal Zon (ifcSpatialZone) alanları emsal hesap tablolarıyla uyumlu mu?",
       "bolum": "MODEL YAPILANMASI"
     },
     {

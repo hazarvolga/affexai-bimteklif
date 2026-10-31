@@ -185,8 +185,9 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
   },
   {
     id: "durum",
-    title: "Uygulama durumu (31 Ekim 2026 · Rev. 138 geliştirme kaydı)",
+    title: "Uygulama durumu (31 Ekim 2026 · Rev. 139 geliştirme kaydı)",
     blocks: [
+      { type: "callout", tone: "warn", title: "Rev. 139 · EKLER.pdf kural verisi düzeltmesi", text: "EK-2 ve EK-3 kod listeleri, Tablo 7.8 ve Tablo 9.2 madde 9 EKLER.pdf sayfa görüntülerine göre düzeltildi ve testle sabitlendi. Alt disiplin kontrolü disipline bağlandı. Mahal adı hem düz EK-3 numarasıyla hem EK-5 şablonuyla kabul edilir; saha, bina ve kat adında şablon dışı ad uyarıdır. Belgeyle örnek model ayrıştığı için Bakanlık görüşü açıktır." },
       { type: "callout", tone: "warn", title: "Rev. 138 · Süper admin firma ve kullanıcı silme", text: "Süper admin firma üyesini çıkarabilir; başka firması ve bağlı kaydı olmayan hesap silinir. Firma, adı yazılarak onaylanınca kalıcı silinir. Belge, hakediş, CDE, ödeme, Academy gibi korunan kayıtları olan firma silinmez; beyaz liste dışındaki her company_id tablosu silmeyi engeller. Migration 0038 kontrol rolüne invitations silme izni ve üyesi kalmamış firmanın kota sayaçlarını silen dar bir fonksiyon verir, denetim kaydındaki firma bağını silmede boşaltır." },
       { type: "callout", tone: "info", title: "Rev. 137 · Ayarlarda hesap bilgileri", text: "Ayarlar ekranına ad soyad ve giriş e-postasını gösteren salt okunur Hesabım bölümü eklendi. Yeni kayıtta firmanın iletişim e-postası giriş e-postasıyla doldurulur; boş firmalarda alan önerilir ve kaydedilince yazılır." },
       { type: "callout", tone: "info", title: "Rev. 136 · E-posta doğrulaması olmadan giriş kapatıldı", text: "Hazar'ın 31 Ekim 2026 kararı. Doğrulanmamış hesap giriş yapamaz: kayıt oturum açmaz, giriş 403 EMAIL_VERIFICATION_REQUIRED döner, mevcut oturumlar reddedilir, giriş ve kayıt ekranında yeniden gönderme vardır. Yalnız salt-okunur destek impersonation doğrulanmamış hesabı açabilir." },
@@ -1153,6 +1154,9 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
           ],
           [
             "Rev. 138", "31 Ekim 2026 · Süper admin firma ve kullanıcı silme", "BIM-CALC-2026-10-31.5", "Süper admin firma üyesini çıkarabilir; başka firması ve bağlı kaydı olmayan hesap silinir. Firma, adı yazılarak onaylanınca kalıcı silinir. Belge, hakediş, CDE, ödeme, Academy gibi korunan kayıtları olan firma silinmez; beyaz liste dışındaki her company_id tablosu silmeyi engeller. Migration 0038 kontrol rolüne invitations silme izni ve üyesi kalmamış firmanın kota sayaçlarını silen dar bir fonksiyon verir, denetim kaydındaki firma bağını silmede boşaltır.",
+          ],
+          [
+            "Rev. 139", "31 Ekim 2026 · EKLER.pdf kural verisi düzeltmesi", "BIM-CALC-2026-10-31.6", "EK-2 ve EK-3 kod listeleri, Tablo 7.8 ve Tablo 9.2 madde 9 EKLER.pdf sayfa görüntülerine göre düzeltildi ve testle sabitlendi. Alt disiplin kontrolü disipline bağlandı. Mahal adı hem düz EK-3 numarasıyla hem EK-5 şablonuyla kabul edilir; saha, bina ve kat adında şablon dışı ad uyarıdır. Belgeyle örnek model ayrıştığı için Bakanlık görüşü açıktır.",
           ],
         ],
       },
@@ -2201,6 +2205,9 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
           ],
           [
             "Rev. 138 · 31 Ekim 2026 (admin silme)", "Firma ve kullanıcı silme", "Admin panelinde kullanıcı veya firma silme yoktu.", "Süper admin firma üyesini çıkarabilir; başka firması ve bağlı kaydı olmayan hesap silinir. Firma, adı yazılarak onaylanınca kalıcı silinir. Belge, hakediş, CDE, ödeme, Academy gibi korunan kayıtları olan firma silinmez; beyaz liste dışındaki her company_id tablosu silmeyi engeller. Migration 0038 kontrol rolüne invitations silme izni ve üyesi kalmamış firmanın kota sayaçlarını silen dar bir fonksiyon verir, denetim kaydındaki firma bağını silmede boşaltır.", "src/server/admin/tenant-deletion.ts; src/pages/admin/TenantDeletePanel.tsx; drizzle-release/0038_admin_tenant_deletion.sql",
+          ],
+          [
+            "Rev. 139 · 31 Ekim 2026 (EKLER kural verisi)", "EK-2, EK-3, Tablo 7.8, Tablo 9.2", "Kural listelerinde resmî kodlar eksik, resmî olmayan kodlar fazlaydı; doğru adlandırılmış dosya uyarı alabiliyordu.", "EK-2 ve EK-3 kod listeleri, Tablo 7.8 ve Tablo 9.2 madde 9 EKLER.pdf sayfa görüntülerine göre düzeltildi ve testle sabitlendi. Alt disiplin kontrolü disipline bağlandı. Mahal adı hem düz EK-3 numarasıyla hem EK-5 şablonuyla kabul edilir; saha, bina ve kat adında şablon dışı ad uyarıdır. Belgeyle örnek model ayrıştığı için Bakanlık görüşü açıktır.", "workers/ifc/vendor/ifc_ruhsat/ekler; workers/ifc/vendor/ifc_ruhsat/kurallar/isim.py; workers/ifc/vendor/ifc_ruhsat/kurallar/mahal.py; docs/audits/phase-5/EPYS_EKLER_TAM_ANALIZ_2026-10-31.md",
           ],
         ],
       },

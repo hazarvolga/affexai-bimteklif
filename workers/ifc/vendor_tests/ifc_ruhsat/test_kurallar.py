@@ -115,8 +115,8 @@ def test_varlik_adi_sablonu(ad, uygun):
 @pytest.mark.parametrize(
     "ad, uygun",
     [
-        ("123456_00_MM_GNEL_MD_BIM_000_01_000", True),
-        ("123456_00_MM_GNEL_MD_BIM_000_01", False),
+        ("123456_00_MM_XXXX_MD_MMC_NNN_01_000", True),
+        ("123456_00_MM_XXXX_MD_MMC_NNN_01", False),
         ("123456-00-MM-GNEL-MD-BIM-000-01-000", False),
         ("kotu model", False),
     ],
@@ -171,14 +171,14 @@ def test_ek6_tum_zorunlu_siniflar_ve_semayla_uyum():
 def test_disiplin_dosya_adindan(tmp_path):
     from ifc_ruhsat.kontrol import disiplini_sec
 
-    assert disiplini_sec(Path("123456_00_MK_GNEL_MD_BIM_000_01_000.ifc"), None) == "MK"
+    assert disiplini_sec(Path("123456_00_MK_GNEL_MD_MMC_NNN_01_000.ifc"), None) == "MK"
     assert disiplini_sec(Path("bina.ifc"), None) == "MM"
     assert disiplini_sec(Path("bina.ifc"), "st") == "ST"
     # Mekanik modelde mahal yokluğu hata değildir.
     m = iyi_model()
     for s in m.by_type("IfcSpace"):
         m.remove(s)
-    yol = kaydet(m, tmp_path, "123456_00_MK_GNEL_MD_BIM_000_01_000.ifc")
+    yol = kaydet(m, tmp_path, "123456_00_MK_GNEL_MD_MMC_NNN_01_000.ifc")
     assert "mahal-var" not in kodlar(kontrol_et(yol), "hata")
     assert "mahal-var" in kodlar(kontrol_et(yol, "MM"), "hata")
 
@@ -186,26 +186,26 @@ def test_disiplin_dosya_adindan(tmp_path):
 def test_ek2_alt_disiplin_ve_ek3_mahal_tablosu(tmp_path):
     assert veri.ek2_alt_disiplinler()["DUVA"] == "Duvar"
     assert veri.ek2_dosya_turleri()["MD"] == "Model"
-    assert veri.ek2_dosya_tipleri()["BIM"] == "BIM Modeli"
+    assert veri.ek2_dosya_tipleri()["MMC"] == "Mimari Çizim"
     assert veri.ek3_mahaller()["YTO"] == "Yatak Odası"
 
     m = iyi_model()
-    # Geçersiz alt disiplin (XXXX)
-    yol = kaydet(m, tmp_path, "123456_00_MM_XXXX_MD_BIM_000_01_000.ifc")
+    # Mimari tablosunda olmayan alt disiplin (BETO statiğe aittir)
+    yol = kaydet(m, tmp_path, "123456_00_MM_BETO_MD_MMC_NNN_01_000.ifc")
     assert "dosya-adi-alt-disiplin" in kodlar(kontrol_et(yol), "uyari")
 
     # Geçersiz dosya türü (XX)
-    yol_tur = kaydet(m, tmp_path, "123456_00_MM_GNEL_XX_BIM_000_01_000.ifc")
+    yol_tur = kaydet(m, tmp_path, "123456_00_MM_XXXX_XX_MMC_NNN_01_000.ifc")
     assert "dosya-adi-tur" in kodlar(kontrol_et(yol_tur), "uyari")
 
     # Geçersiz kat/konum (X99)
-    yol_kat = kaydet(m, tmp_path, "123456_00_MM_GNEL_MD_BIM_X99_01_000.ifc")
+    yol_kat = kaydet(m, tmp_path, "123456_00_MM_XXXX_MD_MMC_X99_01_000.ifc")
     assert "dosya-adi-kat" in kodlar(kontrol_et(yol_kat), "uyari")
 
     # EK-3 Tablo 3.2 dışı mahal LongName uyarısı
     for s in m.by_type("IfcSpace"):
         s.LongName = "Bilinmeyen Fantastik Oda"
-    yol2 = kaydet(m, tmp_path, "123456_00_MM_GNEL_MD_BIM_000_01_000.ifc")
+    yol2 = kaydet(m, tmp_path, "123456_00_MM_XXXX_MD_MMC_NNN_01_000.ifc")
     assert "mahal-isim-tablo" in kodlar(kontrol_et(yol2), "uyari")
 
 
@@ -213,12 +213,12 @@ def test_ek1_proje_kodu_ve_ek7_tablo_7_8(tmp_path):
     assert "IfcGeometricRepresentationContext" in veri.ek7_tablolar()
     m = iyi_model()
     # Dosya adındaki ProjeKodu (654321) ile IfcProject.Name (123456) uyumsuzluğu
-    yol_uyumsuz = kaydet(m, tmp_path, "654321_00_MM_GNEL_MD_BIM_000_01_000.ifc")
+    yol_uyumsuz = kaydet(m, tmp_path, "654321_00_MM_XXXX_MD_MMC_NNN_01_000.ifc")
     assert "proje-adi-dosya-uyum" in kodlar(kontrol_et(yol_uyumsuz), "uyari")
 
     # 6 haneli alfasayısal olmayan IfcProject.Name
     m.by_type("IfcProject")[0].Name = "PROJE-UZUN-KOD"
-    yol_bicim = kaydet(m, tmp_path, "123456_00_MM_GNEL_MD_BIM_000_01_000.ifc")
+    yol_bicim = kaydet(m, tmp_path, "123456_00_MM_XXXX_MD_MMC_NNN_01_000.ifc")
     assert "proje-adi-bicim" in kodlar(kontrol_et(yol_bicim), "uyari")
 
 
@@ -231,22 +231,22 @@ def test_ek9_tablo_9_2_diger_disiplinler_ve_ek7_tablo_7_9(tmp_path):
     m = iyi_model()
     for s in m.by_type("IfcSpace"):
         m.remove(s)
-    yol_st = kaydet(m, tmp_path, "123456_00_ST_BETO_MD_BIM_000_01_000.ifc")
+    yol_st = kaydet(m, tmp_path, "123456_00_ST_BETO_MD_STC_NNN_01_000.ifc")
     rapor_st = kontrol_et(yol_st)
     assert rapor_st.disiplin == "ST"
     satirlar_st = ek9.satirlar(rapor_st)
     assert len(satirlar_st) == 16
     assert ek9.tablo_bilgisi(rapor_st.disiplin)["tablo"] == "9.2"
     assert [r["no"] for r in satirlar_st] == list(range(1, 17))
-    # Mimari mahal satırları (kaynak_no 4, 10, 12, 13, 14) Tablo 9.2'de yer almaz
-    assert {r["kaynakNo"] for r in satirlar_st}.isdisjoint({4, 10, 12, 13, 14})
+    # Mimari mahal satırları (kaynak_no 4, 12, 13, 14) Tablo 9.2'de yer almaz
+    assert {r["kaynakNo"] for r in satirlar_st}.isdisjoint({4, 12, 13, 14})
     assert "# EK-9 Tablo 9.2" in ek9.markdown(rapor_st)
 
     # EK-7 Tablo 7.9: IfcAnnotation eklendiğinde Name, Description ve PredefinedType=SURVEY denetlenir
     ano = ifcopenshell.api.root.create_entity(m, ifc_class="IfcAnnotation", name="HR-ANO-nirengi1")
     ano.Description = ""
     ano.PredefinedType = "USERDEFINED"
-    yol_ano = kaydet(m, tmp_path, "123456_00_HR_GNEL_MD_BIM_000_01_000.ifc")
+    yol_ano = kaydet(m, tmp_path, "123456_00_HR_GNEL_MD_MMC_NNN_01_000.ifc")
     rapor_ano = kontrol_et(yol_ano)
     assert "ek7-oznitelik" in kodlar(rapor_ano, "hata")
     assert "ek7-oznitelik-deger" in kodlar(rapor_ano, "hata")

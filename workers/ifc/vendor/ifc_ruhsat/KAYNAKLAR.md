@@ -39,6 +39,10 @@ Tesisat tablolarının ortak deseni: PredefinedType, Name, Tag, `IfcRelAssignsTo
 - **EK-8** LOD 300 (Detaylı Modelleme, s.237): geometrik detay seviyesi elle değerlendirilir.
 - **EK-9** Tablo 9.1 (Mimari, 21 satır) ve Tablo 9.2 (Diğer disiplinler, 16 satır): model disiplinine göre otomatik seçilir.
 
+## 2026-10-31 düzeltmesi
+
+`ek2_disiplinler.json`, `ek3_mahaller.json`, Tablo 7.8 ve Tablo 9.2 madde 9 tam karşılaştırmada hatalı çıktı ve sayfa görüntülerine göre yeniden yazıldı. Yukarıdaki "görsel doğrulama" tarihleri bu dosyalar için geçerli değildir. Resmî listeler `vendor_tests/ifc_ruhsat/ek_resmi_kodlar.json` içinde sabittir.
+
 ## Metindeki tutarsızlıklar (araç ne yapıyor)
 
 1. **Açıklama alanındaki ayırıcı.** m.11(2): "Açıklama alanında yer alacak bilgiler boşluk bırakılmaksızın orta tire '-' kullanılarak ayrılır." EK-5 5.5 ve 5.5.3: bilgi alanları orta tire ile ayrılır, açıklama içindeki alt bilgiler **alt tire** ile ayrılır, "açıklama kısmında orta tire kullanılmaz". Araç EK-5'i (özel ve ayrıntılı kural) uygular: `MM-DVR-dis_20cm` geçer, `MM-DVR-dis-20cm` geçmez.
@@ -46,6 +50,8 @@ Tesisat tablolarının ortak deseni: PredefinedType, Name, Tag, `IfcRelAssignsTo
 3. **Özel özellik seti öneki.** EK-6 6.5 metninde "TREpys_" ile başlayan setler kullanıcı tarafından oluşturulur denir; Tablo 6.55 ve 6.60'ta setler `TREpys_ParselOzellikSeti` ve `TREpys_EmsalOzellikSeti` olarak geçer. Araç bu iki adı birebir kullanır.
 4. **IfcOrganization.Identification** için EK-7 "Sayı" der (vergi no) ama IFC'de bu alan metindir; araç rakamlardan oluşan metni kabul eder.
 5. **IfcGroup için "Attribute: Tag"** (Tablo 6.37): IfcGroup'un IFC şemasında Tag özniteliği yoktur; araç yalnızca Name'i denetler.
+7. **Zemin kodları.** EK-2 m.2.5 dört karakter der, Tablo 2.11 `IKS`, `KZK`, `ZTE` verir; araç üç ve dört karakteri kabul eder.
+8. **Mahal, saha, bina, kat adı.** Tablo 6.7, 6.8, 6.55, 6.58 "EK-5'e göre" der; `2026_45_MM_XXXX_MD_MMC_NNN_01` örnek modeli çoğunlukla düz `BDR_BDR_011` kullanır. Araç mahalde iki biçimi de kabul eder, diğerlerinde uyarı verir.
 6. **Ön Tanımlı Tip listelerinde yazım**: tablolarda "AIR COOLED", "BACKWARD INCLINED CURVED" gibi boşluklu yazımlar şemada "AIRCOOLED", "CENTRIFUGALBACKWARDINCLINEDCURVED" biçimindedir; araç şemayı esas alır.
 
 ## Yönetmelik listesinin gerçek modellerle sınandığı yerler

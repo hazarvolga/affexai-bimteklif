@@ -18,7 +18,7 @@ describe("TS EN ISO 19650-1/2, EN 17412-1 (LOIN) & RG 33331 EK-2 Rule Engine", (
     assert.equal(iso.originatorOrDiscipline, "ARC");
     assert.equal(iso.informationType, "M3");
 
-    const ek2 = parseContainerIdentity("123456_00_MM_GNEL_MD_BIM_000_01_000.ifc");
+    const ek2 = parseContainerIdentity("123456_00_MM_XXXX_MD_MMC_NNN_01_000.ifc");
     assert.equal(ek2.namingStandard, "RG_33331_EK2");
     assert.equal(ek2.projectCode, "123456");
     assert.equal(ek2.originatorOrDiscipline, "MM");
@@ -30,7 +30,7 @@ describe("TS EN ISO 19650-1/2, EN 17412-1 (LOIN) & RG 33331 EK-2 Rule Engine", (
 
   it("returns cdeEvaluationStatus = not_evaluated with null CDE fields when CDE metadata is not provided", () => {
     const res = evaluateIso19650Compliance({
-      fileName: "123456_00_MM_GNEL_MD_BIM_000_01_000.ifc",
+      fileName: "123456_00_MM_XXXX_MD_MMC_NNN_01_000.ifc",
       elements: [
         {
           id: "1",

@@ -9,7 +9,7 @@ sys.path.insert(0, HERE)
 
 import epys_preflight  # noqa: E402
 
-GOOD = os.path.join(HERE, "fixtures", "epys", "123456_00_MM_GNEL_MD_BIM_000_01_000.ifc")
+GOOD = os.path.join(HERE, "fixtures", "epys", "123456_00_MM_XXXX_MD_MMC_NNN_01_000.ifc")
 BAD = os.path.join(HERE, "fixtures", "epys", "hatali_ornek.ifc")
 
 
@@ -18,7 +18,7 @@ def run_cli(*args):
 
 
 def test_report_carries_regulation_provenance_and_all_ek9_rows():
-    report = epys_preflight.build_report(GOOD, "123456_00_MM_GNEL_MD_BIM_000_01_000.ifc")
+    report = epys_preflight.build_report(GOOD, "123456_00_MM_XXXX_MD_MMC_NNN_01_000.ifc")
     assert report["kind"] == "epys_preflight"
     assert "33331" in report["ruleSource"]["regulation"]["resmiGazete"]
     assert report["ruleSource"]["engine"]["upstreamCommit"] == "cd6d3ce"
@@ -32,7 +32,7 @@ def test_report_carries_regulation_provenance_and_all_ek9_rows():
     assert all(row["evaluationMode"] in {"automatic", "manual"} for row in report["ek9"])
     assert all(row["evidenceRefs"] for row in report["ek9"])
 
-    report_st = epys_preflight.build_report(GOOD, "123456_00_ST_BETO_MD_BIM_000_01_000.ifc", "ST")
+    report_st = epys_preflight.build_report(GOOD, "123456_00_ST_BETO_MD_STC_NNN_01_000.ifc", "ST")
     assert report_st["model"]["discipline"] == "ST"
     assert report_st["ek9Table"]["tablo"] == "9.2"
     assert len(report_st["ek9"]) == 16
