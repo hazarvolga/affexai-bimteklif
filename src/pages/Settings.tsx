@@ -36,6 +36,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { SectionWrapper } from "@/components/layout/SectionWrapper";
+import { AccountSummary, resolveContactEmail } from "./settings-account";
 import { fetchWithAuth } from "@/lib/api";
 import { persistIndustryEnabled } from "./settings-industry-client";
 import { SettingsBillingSection } from "./settings-billing-section";
@@ -124,7 +125,7 @@ const JURISDICTION_PRESETS: Record<string, {
 };
 
 export function Settings() {
-  const { company, role } = useAuth();
+  const { user, company, role } = useAuth();
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState('viewer');
   const [inviteDelivery, setInviteDelivery] = useState<{ status: string; devInvitationUrl?: string } | null>(null);
@@ -180,7 +181,7 @@ export function Settings() {
         const prof = await profileRes.json();
         setProfile({
           name: prof.name || "",
-          email: prof.email || "",
+          email: resolveContactEmail(prof.email, user?.email),
           phone: prof.phone || "",
           address: prof.address || "",
           taxOffice: prof.taxOffice || "",
@@ -340,6 +341,15 @@ export function Settings() {
         </TabsList>
 
         <TabsContent value="company" className="space-y-8 animate-in slide-in-from-left-2 duration-300">
+          {user && (
+            <SectionWrapper title="Hesabım" description="Kayıt olurken girdiğiniz kişisel bilgiler. Giriş e-postası buradan değiştirilemez.">
+              <Card className="bg-card border-border shadow-none">
+                <CardContent className="pt-6">
+                  <AccountSummary fullName={user.fullName} email={user.email} />
+                </CardContent>
+              </Card>
+            </SectionWrapper>
+          )}
           <SectionWrapper title="Genel Şirket Bilgileri" description="Resmi yazışmalarda ve teklif başlıklarında görünecek doğrulanmış şirket bilgileri.">
             <Card className="bg-card border-border shadow-none">
               <CardContent className="pt-6 space-y-6">
