@@ -231,7 +231,7 @@ test("Tenant IFC plan-based limits, planless policy, and fail-closed behavior", 
     };
     const denied = (id: string, code: string) => assert.rejects(() => fetchTenantIfcLimits(id), (err: any) => err instanceof IfcNotAvailableError && err.status === 403 && err.code === code);
     await denied(await company("Expired", { planId: plan50.id, status: "active", currentPeriodEnd: new Date("2020-02-01T00:00:00Z") }), "SUBSCRIPTION_INACTIVE");
-    await denied(await company("Suspended", { planId: plan50.id, status: "suspended" }), "SUBSCRIPTION_INACTIVE");
+    await denied(await company("Not active", { planId: plan50.id, status: "past_due" }), "SUBSCRIPTION_INACTIVE");
     await denied(await company("Closed plan", { planId: closedPlan.id, status: "active" }), "IFC_NOT_AVAILABLE");
   });
 

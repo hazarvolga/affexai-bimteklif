@@ -53,7 +53,7 @@ test("fetchTenantIfcLimits worker production path via capability function", asyn
   });
 
   for (const [label, status, end] of [
-    ["suspended", "suspended", null],
+    ["not active", "past_due", null],
     ["expired", "active", new Date(Date.now() - 1000)],
   ] as const) {
     await t.test(`${label} subscription throws SUBSCRIPTION_INACTIVE on the worker path`, async () => {
