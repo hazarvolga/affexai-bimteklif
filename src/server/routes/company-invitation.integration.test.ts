@@ -134,7 +134,7 @@ test('invitations are private, hashed, single-use and preserve existing account 
   assert.equal(tenantlessLearner.role, null);
   assert.equal(tenantlessLearner.accountType, 'academy_learner');
   assert.ok(tenantlessLearner.learnerProfile);
-  const [superAdmin] = await db.insert(schema.users).values({ emailVerified: new Date(), email: `super-${suffix}@example.test`, fullName: 'Super Admin', isSuperAdmin: true, emailVerified: new Date() }).returning();
+  const [superAdmin] = await db.insert(schema.users).values({ email: `super-${suffix}@example.test`, fullName: 'Super Admin', isSuperAdmin: true, emailVerified: new Date() }).returning();
   const tenantlessAdminToken = AuthService.generateToken({ userId: superAdmin.id, companyId: null, role: null });
   const tenantlessAdminResponse = await fetch(`${base}/api/auth/me`, { headers: { Authorization: `Bearer ${tenantlessAdminToken}` } });
   assert.equal(tenantlessAdminResponse.status, 200);

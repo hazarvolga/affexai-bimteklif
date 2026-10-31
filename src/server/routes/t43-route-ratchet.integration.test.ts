@@ -106,7 +106,6 @@ test("T43 R+1 route coverage ratchet: admin, pricing-file-import, academy, billi
   }).returning();
 
   const [owner] = await controlDb.insert(schema.users).values({
-    emailVerified: new Date(),
     email: `owner-${suffix}@example.test`,
     fullName: "T43 Firma Sahibi",
     emailVerified: new Date(),

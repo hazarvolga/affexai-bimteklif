@@ -83,7 +83,6 @@ test("Tenant IFC plan-based limits, planless policy, and fail-closed behavior", 
   });
 
   const [userA] = await db.insert(schema.users).values({
-    emailVerified: new Date(),
     email: `usera-${suffix}@example.test`,
     fullName: "User A",
     emailVerified: new Date(),
@@ -91,7 +90,6 @@ test("Tenant IFC plan-based limits, planless policy, and fail-closed behavior", 
   await db.insert(schema.memberships).values({ companyId: companyA.id, userId: userA.id, role: "owner" });
 
   const [userB] = await db.insert(schema.users).values({
-    emailVerified: new Date(),
     email: `userb-${suffix}@example.test`,
     fullName: "User B",
     emailVerified: new Date(),
@@ -204,7 +202,6 @@ test("Tenant IFC plan-based limits, planless policy, and fail-closed behavior", 
 
     // Also via HTTP upload endpoint
     const [userD] = await db.insert(schema.users).values({
-      emailVerified: new Date(),
       email: `userd-${suffix}@example.test`,
       fullName: "User D",
       emailVerified: new Date(),
