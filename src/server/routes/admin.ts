@@ -39,6 +39,7 @@ import {
   updateSubscription,
   updateTenantMemberAdmin,
 } from "../admin/changes";
+import { deleteTenant, deleteTenantInput, previewTenantDeletion, removeTenantMember } from "../admin/tenant-deletion";
 import { getExpertReviewerStatusMap } from "../admin/expert-reviewers";
 import { readAdminTenants } from "../admin/stats";
 import { AuthService } from "../../services/auth/authService";
@@ -340,6 +341,42 @@ export function registerAdminRoutes(app: Express) {
         return res.status(error.status).json({ error: error.message });
       }
       return res.status(500).json({ error: "Firma güncellenemedi" });
+    }
+  });
+
+  const sendAdminChangeError = (res: any, error: unknown, fallback: string) => {
+    if (error instanceof AdminChangeError) return res.status(error.status).json({ error: error.message });
+    console.error(fallback, error);
+    return res.status(500).json({ error: fallback });
+  };
+
+  router.get("/tenants/:companyId/deletion-preview", async (req, res) => {
+    if (!z.string().uuid().safeParse(req.params.companyId).success) return res.status(400).json({ error: "Geçersiz firma ID" });
+    try {
+      return res.json(await previewTenantDeletion(req.user.userId, req.params.companyId));
+    } catch (error) {
+      return sendAdminChangeError(res, error, "Silme kontrolü yapılamadı");
+    }
+  });
+
+  router.delete("/tenants/:companyId", async (req, res) => {
+    const input = deleteTenantInput.safeParse(req.body);
+    if (!z.string().uuid().safeParse(req.params.companyId).success || !input.success) return res.status(400).json({ error: "Geçersiz firma silme isteği" });
+    try {
+      return res.json({ success: true, ...await deleteTenant(req.user.userId, req.params.companyId, input.data.confirmName) });
+    } catch (error) {
+      return sendAdminChangeError(res, error, "Firma silinemedi");
+    }
+  });
+
+  router.delete("/tenants/:companyId/members/:userId", async (req, res) => {
+    if (!z.string().uuid().safeParse(req.params.companyId).success || !z.string().uuid().safeParse(req.params.userId).success) {
+      return res.status(400).json({ error: "Geçersiz firma veya kullanıcı ID formatı" });
+    }
+    try {
+      return res.json({ success: true, ...await removeTenantMember(req.user.userId, req.params.companyId, req.params.userId) });
+    } catch (error) {
+      return sendAdminChangeError(res, error, "Kullanıcı firmadan çıkarılamadı");
     }
   });
 

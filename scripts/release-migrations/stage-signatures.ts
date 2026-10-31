@@ -162,6 +162,10 @@ const stages = [
     sql: '80315f5cf6a1cc2a3146a8903603327b35b8c5ad91bb274f90d22e729dbdab25',
     snapshot: '1f59ed8aeea66dc001772ba9e9b382f91bc4a21bcab1d78fdd7a4337147e5d65',
     catalog: 'e5e4d3d1c4740a4713893c42a909c696208f64c8335f360707e79753f7525735' },
+  { tag: '0038_admin_tenant_deletion',
+    sql: '4c73ed7db2aab9e62fe0ebd84d75e841593e627cf7ec829b7d00adafe5fcd19a',
+    snapshot: '73bcee93b95ed524fdee86cd763ab2da46218a8178a449fe3bc7e5286229a40b',
+    catalog: '175cb83b46ea3a72024b0a6d5b8a05d369e7a7454d8b311d584a48c8180dc297' },
 ] as const;
 
 export function pinnedSignature(migration: { idx: number; tag: string; sha256: string; snapshotSha256: string }) {

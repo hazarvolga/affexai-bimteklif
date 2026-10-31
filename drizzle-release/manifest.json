@@ -267,6 +267,13 @@
       "sha256": "80315f5cf6a1cc2a3146a8903603327b35b8c5ad91bb274f90d22e729dbdab25",
       "snapshotSha256": "1f59ed8aeea66dc001772ba9e9b382f91bc4a21bcab1d78fdd7a4337147e5d65",
       "statements": 4
+    },
+    {
+      "idx": 38,
+      "tag": "0038_admin_tenant_deletion",
+      "sha256": "4c73ed7db2aab9e62fe0ebd84d75e841593e627cf7ec829b7d00adafe5fcd19a",
+      "snapshotSha256": "73bcee93b95ed524fdee86cd763ab2da46218a8178a449fe3bc7e5286229a40b",
+      "statements": 4
     }
   ]
 }

@@ -978,6 +978,14 @@ export function injectDataTransitions(tag: string, schemaStatements: readonly st
     const cumulative = fullSnapshot ? injectDataTransitions('0034_admin_mfa', schemaStatements) : [...schemaStatements];
     return [...cumulative, ...priceReviewProtection];
   }
+  if (tag === '0038_admin_tenant_deletion') {
+    const cumulative = schemaStatements.some(statement => statement.startsWith('CREATE TABLE "cde_transition_events"'))
+      ? injectDataTransitions('0037_client_privacy_mask', schemaStatements) : [...schemaStatements];
+    return [...cumulative,
+      `GRANT DELETE ON TABLE public.usage_records TO bimmetraj_control;`,
+      `GRANT DELETE ON TABLE public.invitations TO bimmetraj_control;`,
+    ];
+  }
   if (tag === '0037_client_privacy_mask') {
     return schemaStatements.some(statement => statement.startsWith('CREATE TABLE "cde_transition_events"'))
       ? injectDataTransitions('0036_crawler_lease_evidence', schemaStatements) : [...schemaStatements];
