@@ -34,7 +34,7 @@ test('admin deletion clears unprotected tenants, keeps audit history and refuses
   await db.query("INSERT INTO quotations(id,company_id,client_id,quote_number,project_name,expiry_date,subtotal,discount_total,vat_total,grand_total) VALUES ($1,$2,$3,'DEL-1','p',now()+interval '1 day',1,0,0,1)", [quote, firm, client]);
   await db.query("INSERT INTO usage_logs(company_id,user_id,feature) VALUES ($1,$2,'QUOTATION_CREATED')", [firm, owner]);
   await db.query("INSERT INTO admin_audit_logs(admin_id,target_company_id,action,details) VALUES ($1,$2,'tenant.updated','{}')", [admin, firm]);
-  await db.query("INSERT INTO usage_records(company_id,period_start,period_end) VALUES ($1,now(),now()+interval '1 month')", [firm]).catch(() => undefined);
+  await db.query("INSERT INTO usage_records(company_id,period) VALUES ($1,'2026-10')", [firm]);
   await db.query("INSERT INTO documents(company_id,uploaded_by_user_id,original_file_name,display_name,storage_key,mime_type,file_size_bytes,checksum_sha256) VALUES ($1,$2,'a.ifc','a.ifc','k','application/octet-stream',1,$3)", [protectedFirm, protectedOwner, 'a'.repeat(64)]);
 
   const app = createApiApp(); const server = app.listen(0, '127.0.0.1'); await new Promise<void>(resolve => server.once('listening', resolve));
@@ -73,7 +73,7 @@ test('admin deletion clears unprotected tenants, keeps audit history and refuses
     const deleted = await call(`/tenants/${firm}`, adminToken, 'DELETE', { confirmName: 'Silinecek' });
     assert.equal(deleted.status, 200, await deleted.clone().text());
     assert.deepEqual(await deleted.json(), { success: true, deletedUsers: 1, retainedUsers: 1 });
-    for (const [table, column] of [['companies', 'id'], ['clients', 'company_id'], ['quotations', 'company_id'], ['memberships', 'company_id'], ['subscriptions', 'company_id'], ['usage_logs', 'company_id']]) {
+    for (const [table, column] of [['companies', 'id'], ['clients', 'company_id'], ['quotations', 'company_id'], ['memberships', 'company_id'], ['subscriptions', 'company_id'], ['usage_logs', 'company_id'], ['usage_records', 'company_id']]) {
       assert.equal(await rows(table, column, firm), 0, table);
     }
     assert.equal(await rows('users', 'id', owner), 0, 'owner without other data is removed');
@@ -83,5 +83,12 @@ test('admin deletion clears unprotected tenants, keeps audit history and refuses
     assert.deepEqual(audit.rows.map(row => row.action), ['tenant.deleted']);
     const history = await db.query<{ target_company_id: string | null }>("SELECT target_company_id FROM admin_audit_logs WHERE action='tenant.updated' AND admin_id=$1", [admin]);
     assert.deepEqual(history.rows, [{ target_company_id: null }], 'older audit history survives the company');
+    const appClient = new pg.Client({ connectionString: appUrl.toString() }); await appClient.connect();
+    await assert.rejects(appClient.query('SELECT public.bimmetraj_clear_deleted_company_usage($1)', [otherFirm]), /permission denied/);
+    await appClient.end();
+    const control = new pg.Client({ connectionString: controlUrl.toString() }); await control.connect();
+    await assert.rejects(control.query('SELECT public.bimmetraj_clear_deleted_company_usage($1)', [otherFirm]), /without members/);
+    await assert.rejects(control.query('DELETE FROM usage_records'), /permission denied/);
+    await control.end();
   } finally { await new Promise<void>(resolve => server.close(() => resolve())); await pool.end(); await closeControlDatabase(); await db.end(); }
 });

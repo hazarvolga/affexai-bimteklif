@@ -2,7 +2,7 @@ import { and, eq, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { getControlDatabase } from '../../db/control-plane';
 import { withAppTenantTransaction } from '../../db/app-tenant';
-import { adminAuditLogs, companies, invitations, memberships, subscriptions, usageLogs, usageRecords, users } from '../../db/schema';
+import { adminAuditLogs, companies, invitations, memberships, subscriptions, usageLogs, users } from '../../db/schema';
 import { AdminChangeError } from './changes';
 
 const FOREIGN_KEY_VIOLATION = '23503';
@@ -76,10 +76,10 @@ export async function previewTenantDeletion(adminId: string, companyId: string) 
 async function deleteControlPlaneRows(adminId: string, companyId: string, companyName: string) {
   return getControlDatabase().db.transaction(async tx => {
     const members = await tx.select({ userId: memberships.userId }).from(memberships).where(eq(memberships.companyId, companyId)).for('update');
-    await tx.delete(usageRecords).where(eq(usageRecords.companyId, companyId));
     await tx.delete(usageLogs).where(eq(usageLogs.companyId, companyId));
     await tx.delete(invitations).where(eq(invitations.companyId, companyId));
     await tx.delete(memberships).where(eq(memberships.companyId, companyId));
+    await tx.execute(sql`SELECT public.bimmetraj_clear_deleted_company_usage(${companyId}::uuid)`);
     await tx.delete(subscriptions).where(eq(subscriptions.companyId, companyId));
     await tx.delete(companies).where(eq(companies.id, companyId));
     let deletedUsers = 0;
