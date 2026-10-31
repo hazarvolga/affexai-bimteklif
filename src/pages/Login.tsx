@@ -5,6 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent } from '@/components/ui/card';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { PublicMetadata } from '@/components/PublicMetadata';
+import { EmailVerificationNotice } from '@/components/auth/EmailVerificationNotice';
 import { Mail, Lock, Loader2, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -14,6 +15,7 @@ export function Login() {
   const [loading, setLoading] = useState(false);
   const [challenge, setChallenge] = useState<string | null>(null);
   const [code, setCode] = useState('');
+  const [unverifiedEmail, setUnverifiedEmail] = useState<string | null>(null);
   const { login } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -23,6 +25,7 @@ export function Login() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setUnverifiedEmail(null);
     try {
       const res = await fetch(challenge ? '/api/auth/mfa/verify' : '/api/auth/login', {
         method: 'POST',
@@ -32,6 +35,10 @@ export function Login() {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
+        if (data.code === 'EMAIL_VERIFICATION_REQUIRED') {
+          setUnverifiedEmail(email.trim().toLowerCase());
+          return;
+        }
         toast.error(typeof data.error === 'string' ? data.error : (challenge ? 'Doğrulama başarısız. Tekrar deneyin.' : 'E-posta veya şifre hatalı.'));
         return;
       }
@@ -93,6 +100,7 @@ export function Login() {
 
         <Card className="border border-border bg-card">
           <CardContent className="pt-6 space-y-4">
+            {unverifiedEmail && <EmailVerificationNotice email={unverifiedEmail} />}
             <form onSubmit={handleSubmit} className="space-y-4">
               {!challenge ? <>
               <div className="space-y-1.5">

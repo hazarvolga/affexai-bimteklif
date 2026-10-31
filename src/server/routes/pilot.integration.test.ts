@@ -31,7 +31,7 @@ test("pilot application conversion provisions a real company, user, and membersh
   await db.insert(schema.memberships).values({ companyId: adminCompany.id, userId: ownerUser.id, role: "owner" });
   const regularOwnerToken = AuthService.generateToken({ userId: ownerUser.id, companyId: adminCompany.id, role: "owner" });
 
-  const [existingCollisionUser] = await db.insert(schema.users).values({ email: `pilot-collision-${suffix}@example.test`, fullName: "Existing User" }).returning();
+  const [existingCollisionUser] = await db.insert(schema.users).values({ emailVerified: new Date(), email: `pilot-collision-${suffix}@example.test`, fullName: "Existing User" }).returning();
 
   const [application] = await db.insert(schema.pilotApplications).values({ fullName: `Pilot Contact ${suffix}`, companyName: `Pilot Firma ${suffix}`, email: `pilot-contact-${suffix}@example.test`, consentAt: new Date() }).returning();
   const [collisionApplication] = await db.insert(schema.pilotApplications).values({ fullName: `Collision Contact ${suffix}`, companyName: `Collision Firma ${suffix}`, email: existingCollisionUser.email, consentAt: new Date() }).returning();

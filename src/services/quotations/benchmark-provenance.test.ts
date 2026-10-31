@@ -15,7 +15,7 @@ test('benchmark approval is revalidated atomically and persisted through creatio
  const [company]=await db.insert(s.companies).values({name:'Benchmark test'}).returning();
  await db.insert(s.subscriptions).values({companyId:company.id,plan:'starter',status:'active',currentPeriodStart:new Date('2020-01-01T00:00:00Z')});
  const [client]=await db.insert(s.clients).values({name:'Buyer',type:'company',companyId:company.id}).returning();
- const [reviewer]=await db.insert(s.users).values({email:'benchmark@example.test',fullName:'Reviewer'}).returning();
+ const [reviewer]=await db.insert(s.users).values({emailVerified:new Date(),email:'benchmark@example.test',fullName:'Reviewer'}).returning();
  const [source]=await db.insert(s.pricingDataSources).values({code:'test',name:'Test source',category:'market_commodity',validityStart:new Date(Date.now()-86400000),validityEnd:new Date(Date.now()+86400000),reviewStatus:'verified',reviewEvidenceReference:'https://example.org/test-permission',reviewScope:'Ticari teklifler',reviewAllowsQuotations:true,reviewedByUserId:reviewer.id,reviewedAt:new Date(),authorizationStatus:'authorized',authorizationScope:'test fixture: tenant-approved benchmark lifecycle',authorizationEvidenceHash:'a'.repeat(64),authorizedAt:new Date()}).returning();
  const [row]=await db.insert(s.priceFeedStaging).values({sourceId:source.id,contentHash:'a'.repeat(64),sourceIdentity:priceSourceIdentity(source),itemCode:'A',itemName:'Test',unit:'m3',crawledPrice:'100',status:'pending',reviewedAt:new Date(),reviewedByUserId:reviewer.id}).returning();
  const input=(fields={})=>manualQuotationInput.parse({clientId:client.id,quoteNumber:'T',projectName:'Test',date:'2026-01-01',expiryDate:'2026-12-31',items:[{description:'A - Test',unit:'m3',quantity:1,unitPrice:100,benchmarkStagingId:row.id,...fields}]});
@@ -68,7 +68,7 @@ test('benchmark approval is revalidated atomically and persisted through creatio
   assert.equal(snapshot.permissionReview.scope,undefined);assert.equal(snapshot.permissionReview.reviewedByUserId,undefined);
   assert.match(snapshot.permissionReview.scopeHash,/^[a-f0-9]{64}$/);
   const [{registerQuotationRoutes},{AuthService}]=await Promise.all([import('../../server/routes/quotations'),import('../auth/authService')]);
-  const [viewer]=await db.insert(s.users).values({email:'benchmark-viewer@example.test',fullName:'Viewer'}).returning();
+  const [viewer]=await db.insert(s.users).values({emailVerified:new Date(),email:'benchmark-viewer@example.test',fullName:'Viewer'}).returning();
   await db.insert(s.memberships).values({companyId:company.id,userId:viewer.id,role:'viewer'});
   const app=express();registerQuotationRoutes(app,(_req:any,_res:any,next:any)=>next());
   const server=createServer(app);await new Promise<void>(resolve=>server.listen(0,'127.0.0.1',resolve));

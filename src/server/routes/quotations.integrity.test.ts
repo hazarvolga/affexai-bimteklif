@@ -40,7 +40,7 @@ test("quotation integrity against isolated PostgreSQL", { timeout: 30_000 }, asy
       costCategory: "labor", discountPercent: 10, vatPercent: 20 }],
   });
   // Route audit records require a real actor membership in the relevant company.
-  const [actor] = await db.insert(users).values({ email: `${crypto.randomUUID()}@example.test`, fullName: 'Quotation actor' }).returning();
+  const [actor] = await db.insert(users).values({ emailVerified: new Date(), email: `${crypto.randomUUID()}@example.test`, fullName: 'Quotation actor' }).returning();
   await db.insert(memberships).values([company, other].map(tenant => ({ companyId: tenant.id, userId: actor.id, role: 'owner' as const })));
   const actorUserId = actor.id;
   const call = async (route: string, body: unknown = {}, id?: string, companyId = company.id) => {
@@ -72,7 +72,7 @@ test("quotation integrity against isolated PostgreSQL", { timeout: 30_000 }, asy
   await t.test('detail exposes only tenant scoped sanitized AI evidence', async () => {
     const quote = (await create()).body;
     const [item] = await itemsFor(quote.id);
-    const [user] = await db.insert(users).values({ email: `${crypto.randomUUID()}@example.test`, fullName: 'AI reviewer' }).returning();
+    const [user] = await db.insert(users).values({ emailVerified: new Date(), email: `${crypto.randomUUID()}@example.test`, fullName: 'AI reviewer' }).returning();
     await db.insert(memberships).values({ userId: user.id, companyId: company.id, role: 'owner' });
     await db.insert(quotationItemEvidence).values([
       { companyId: company.id, quotationId: quote.id, quotationItemId: item.id, evidenceType: 'source', evidenceKey: crypto.randomUUID(), createdByUserId: user.id, capturedValueJson: { kind: 'ai_estimate', original: { description: 'Öneri', unit: 'm2', quantity: 1, unitPrice: 3, secret: 'must-not-leak' }, changedFields: ['quantity'], secret: 'must-not-leak' } },
@@ -91,7 +91,7 @@ test("quotation integrity against isolated PostgreSQL", { timeout: 30_000 }, asy
   const evidenceFixture = async () => {
     const data = payload();
     const root = (await create({ ...data, items: [data.items[0], { ...data.items[0], description: "Second item" }] })).body;
-    const [user] = await db.insert(users).values({ email: `${crypto.randomUUID()}@example.test`, fullName: "Evidence reviewer" }).returning();
+    const [user] = await db.insert(users).values({ emailVerified: new Date(), email: `${crypto.randomUUID()}@example.test`, fullName: "Evidence reviewer" }).returning();
     await db.insert(memberships).values({ userId: user.id, companyId: company.id, role: "owner" });
     const [document] = await db.insert(documents).values({ companyId: company.id, uploadedByUserId: user.id,
       originalFileName: "source.xlsx", displayName: "Source", mimeType: "application/octet-stream", fileSizeBytes: 1,

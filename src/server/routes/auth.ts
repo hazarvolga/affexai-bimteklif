@@ -15,7 +15,7 @@ import { AuthService } from "../../services/auth/authService";
 import { createInitialPaymentOrder } from "../../services/billing/bank-transfer";
 import { formatBillingCycleLabel, normalizeBillingCycle } from "../../services/billing/billing-periods";
 import { selectTrialPlan } from "../../services/billing/trial-plan";
-import { authenticate } from "../middleware/auth";
+import { authenticate, emailVerificationRequired } from "../middleware/auth";
 import { isUserExpertReviewer } from "../admin/expert-reviewers";
 import { ACADEMY_MARKETING_VERSION, ACADEMY_PRIVACY_VERSION, ACADEMY_TERMS_VERSION, isPlatformSuperAdminEmail, parseRegistrationInput, parseSelectedPlanId, publicRegisteredUser } from "../auth/registration";
 import { clientAddress, consumeRateLimit, createActionToken, hashActionToken } from "../auth/security";
@@ -212,13 +212,10 @@ export function registerAuthRoutes(app: Express) {
         emailVerificationDeliveryPending = true;
         console.error('Registration persisted; verification delivery must be retried:', error instanceof Error ? error.name : 'UnknownError');
       }
-      const token = AuthService.generateToken({ userId: result.user.id, companyId: result.company.id, role: "owner" });
-      setSessionCookies(res, token, { isSuperAdmin: result.user.isSuperAdmin });
       const pendingPaymentOrder = result.pendingPaymentOrder
         ? (({ createdNow: _createdNow, ...order }) => order)(result.pendingPaymentOrder)
         : null;
       res.status(201).json({
-        token: bodyToken(req, token),
         user: publicRegisteredUser(result.user),
         company: result.company,
         role: "owner",
@@ -356,6 +353,8 @@ export function registerAuthRoutes(app: Express) {
       if (!user || !(await AuthService.comparePassword(password, user.passwordHash || ""))) {
         return res.status(401).json({ error: "Invalid credentials" });
       }
+      // Checked only after the password so this answer cannot reveal which emails are registered.
+      if (!user.emailVerified) return res.set('Cache-Control', 'no-store').status(403).json(emailVerificationRequired);
       if (!user.isSuperAdmin && Boolean(user.emailVerified) && isPlatformSuperAdminEmail(user.email)) {
         await getControlDatabase().db.update(users).set({ isSuperAdmin: true }).where(eq(users.id, user.id));
         user.isSuperAdmin = true;

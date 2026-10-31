@@ -55,7 +55,7 @@ test('Admin /queue/retry and /queue/recover integration tests', async (t) => {
   });
 
   const [company] = await db.insert(schema.companies).values({ name: 'Admin Queue Co' }).returning();
-  const [tenantUser] = await db.insert(schema.users).values({ email: 'tenant@example.test', fullName: 'Tenant User' }).returning();
+  const [tenantUser] = await db.insert(schema.users).values({ emailVerified: new Date(), email: 'tenant@example.test', fullName: 'Tenant User' }).returning();
   await db.insert(schema.memberships).values({ companyId: company.id, userId: tenantUser.id, role: 'owner' });
 
   const [plan] = await db.insert(schema.plans).values({

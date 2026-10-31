@@ -21,11 +21,11 @@ test('invitations are private, hashed, single-use and preserve existing account 
   const suffix = crypto.randomUUID();
   const [company] = await db.insert(schema.companies).values({ name: `Invite Co ${suffix}` }).returning();
   const [otherCompany] = await db.insert(schema.companies).values({ name: `Other Co ${suffix}` }).returning();
-  const [inviter] = await db.insert(schema.users).values({ email: `inviter-${suffix}@example.test`, fullName: 'Inviter' }).returning();
+  const [inviter] = await db.insert(schema.users).values({ emailVerified: new Date(), email: `inviter-${suffix}@example.test`, fullName: 'Inviter' }).returning();
   await db.insert(schema.memberships).values({ companyId: company.id, userId: inviter.id, role: 'owner' });
   const ownerToken = AuthService.generateToken({ userId: inviter.id, companyId: company.id, role: 'owner' });
   const existingPassword = await AuthService.hashPassword('Existing-password-42');
-  const [existing] = await db.insert(schema.users).values({ email: `existing-${suffix}@example.test`, fullName: 'Existing', passwordHash: existingPassword }).returning();
+  const [existing] = await db.insert(schema.users).values({ emailVerified: new Date(), email: `existing-${suffix}@example.test`, fullName: 'Existing', passwordHash: existingPassword }).returning();
   await db.insert(schema.memberships).values({ companyId: otherCompany.id, userId: existing.id, role: 'viewer' });
   const existingToken = AuthService.generateToken({ userId: existing.id, companyId: otherCompany.id, role: 'viewer' });
   const server = http.createServer(createApiApp());
@@ -155,7 +155,7 @@ test('failed invitation delivery expires the persisted row and invalidates its l
   process.env.AUTH_EMAIL_WEBHOOK_URL = 'https://invitation-transport.invalid/test';
   const suffix = crypto.randomUUID();
   const [company] = await db.insert(schema.companies).values({ name: `Delivery Co ${suffix}` }).returning();
-  const [inviter] = await db.insert(schema.users).values({ email: `delivery-owner-${suffix}@example.test`, fullName: 'Inviter' }).returning();
+  const [inviter] = await db.insert(schema.users).values({ emailVerified: new Date(), email: `delivery-owner-${suffix}@example.test`, fullName: 'Inviter' }).returning();
   const captured: string[] = [];
   let failure: 'http' | 'network' = 'http';
   const transport = t.mock.method(globalThis, 'fetch', async (url, options) => {
@@ -205,7 +205,7 @@ test('concurrent distinct invitations for one new email create only one account 
   });
   const suffix = crypto.randomUUID();
   const email = `concurrent-${suffix}@example.test`;
-  const [inviter] = await db.insert(schema.users).values({ email: `concurrent-owner-${suffix}@example.test`, fullName: 'Inviter' }).returning();
+  const [inviter] = await db.insert(schema.users).values({ emailVerified: new Date(), email: `concurrent-owner-${suffix}@example.test`, fullName: 'Inviter' }).returning();
   const companies = await db.insert(schema.companies).values([{ name: `Concurrent A ${suffix}` }, { name: `Concurrent B ${suffix}` }]).returning();
   const first = await invitationService.issueInvitation(companies[0].id, inviter.id, { email, role: 'viewer' });
   const second = await invitationService.issueInvitation(companies[1].id, inviter.id, { email, role: 'manager' });

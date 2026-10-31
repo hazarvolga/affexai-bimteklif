@@ -51,7 +51,10 @@ export function AcceptInvite() {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: invite.email, password }),
         });
-        if (!loginResponse.ok) throw new Error('Giriş yapılamadı. Mevcut hesap parolanızı kontrol edin.');
+        if (!loginResponse.ok) {
+          const failure = await loginResponse.json().catch(() => ({}));
+          throw new Error(failure.code === 'EMAIL_VERIFICATION_REQUIRED' ? failure.error : 'Giriş yapılamadı. Mevcut hesap parolanızı kontrol edin.');
+        }
         const session = await loginResponse.json();
         authToken = session.token;
       }

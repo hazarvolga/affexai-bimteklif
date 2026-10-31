@@ -33,7 +33,7 @@ test('finance rows follow their parent quotation across restricted app tenants',
     const a = crypto.randomUUID(), b = crypto.randomUUID(), ua = crypto.randomUUID(), ub = crypto.randomUUID();
     const ca = crypto.randomUUID(), cb = crypto.randomUUID(), qa = crypto.randomUUID(), qa2 = crypto.randomUUID(), qb = crypto.randomUUID(), qb2 = crypto.randomUUID();
     await admin.query("insert into companies(id,name) values($1,'RLS A'),($2,'RLS B')", [a,b]);
-    await admin.query("insert into users(id,email,full_name) values($1,$2,'A'),($3,$4,'B')", [ua,`${ua}@example.test`,ub,`${ub}@example.test`]);
+    await admin.query("insert into users(id,email,full_name,email_verified) values($1,$2,'A',now()),($3,$4,'B',now())", [ua,`${ua}@example.test`,ub,`${ub}@example.test`]);
     await admin.query("insert into memberships(user_id,company_id,role) values($1,$2,'owner'),($3,$4,'owner')", [ua,a,ub,b]);
     await admin.query("insert into clients(id,company_id,name,type) values($1,$2,'A','company'),($3,$4,'B','company')", [ca,a,cb,b]);
     for (const [id, company, client] of [[qa,a,ca],[qa2,a,ca],[qb,b,cb],[qb2,b,cb]]) await admin.query("insert into quotations(id,company_id,client_id,quote_number,project_name,expiry_date,subtotal,discount_total,vat_total,grand_total) values($1,$2,$3,$4,'RLS','2030-01-01',0,0,0,0)",[id,company,client,id]);

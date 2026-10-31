@@ -44,7 +44,7 @@ test('revocation table denies runtime delete and cleanup removes only expired ha
     for (const table of ['global_price_source_review_events', 'tenant_price_source_review_invalidations']) {
       assert.equal((await admin.query('SELECT to_regclass($1) IS NOT NULL AS present', [`public.${table}`])).rows[0].present, true);
     }
-    await admin.query('INSERT INTO users(id,email,full_name) VALUES ($1,$2,$3)', [userId, `${userId}@example.test`, 'Test']);
+    await admin.query('INSERT INTO users(id,email,full_name,email_verified) VALUES ($1,$2,$3,now())', [userId, `${userId}@example.test`, 'Test']);
     await assert.rejects(control.query("INSERT INTO public.revoked_sessions(token_hash,user_id,expires_at) VALUES ($1,$2,now())", ['a'.repeat(64), userId]), /permission denied/);
     await control.query("SELECT public.bimmetraj_revoke_session($1,$3,now()-interval '8 days'), public.bimmetraj_revoke_session($2,$3,now()+interval '1 hour'), public.bimmetraj_revoke_session($4,$3,now()-interval '1 hour')", ['a'.repeat(64), 'b'.repeat(64), userId, 'c'.repeat(64)]);
     // A pre-seeded old expiry cannot shorten a later legitimate revocation.
@@ -77,7 +77,7 @@ test('HTTP logout revokes both cookie sessions and bearer while leaving unrelate
   const admin = new pg.Client({ connectionString: raw });
   await admin.connect();
   const userId = randomUUID();
-  await admin.query('INSERT INTO users(id,email,full_name) VALUES ($1,$2,$3)', [userId, `${userId}@example.test`, 'Session test']);
+  await admin.query('INSERT INTO users(id,email,full_name,email_verified) VALUES ($1,$2,$3,now())', [userId, `${userId}@example.test`, 'Session test']);
   const appUrl = new URL(raw); appUrl.username = 'bimmetraj_app';
   const controlUrl = new URL(raw); controlUrl.username = 'bimmetraj_control';
   process.env.NODE_ENV = 'test';
