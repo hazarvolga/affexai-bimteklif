@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
+import fs from "node:fs/promises";
+import os from "node:os";
 import path from "node:path";
 import test from "node:test";
 import { resolvePythonBin } from "./ifc-python-runner";
@@ -29,4 +31,24 @@ test("faulty sample reports errors, and the stored summary drops info rows and c
 test("a missing model fails with a coded error instead of a fake report", { skip }, async () => {
   await assert.rejects(runEpysPreflight({ inputPath: path.join(fixtures, "yok.ifc"), fileName: "yok.ifc" }),
     (error: unknown) => error instanceof EpysPreflightError && error.code === "EPYS_PREFLIGHT_FAILED");
+});
+
+test("limits OpenBLAS to one thread under the 2 GiB address limit", async () => {
+  const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "bimmetraj-epys-env-"));
+  try {
+    const envProbePath = path.join(tmpDir, "openblas-threads.txt");
+    const envProbeScript = path.join(tmpDir, "env-probe.py");
+    await fs.writeFile(envProbeScript, [
+      "import os",
+      "import sys",
+      `open(${JSON.stringify(envProbePath)}, "w").write(os.environ.get("OPENBLAS_NUM_THREADS", "unset"))`,
+      "sys.exit(9)",
+    ].join("\n"));
+
+    await assert.rejects(runEpysPreflight({ inputPath: envProbeScript, fileName: "x.ifc", scriptPath: envProbeScript }), EpysPreflightError);
+
+    assert.equal(await fs.readFile(envProbePath, "utf8"), "1");
+  } finally {
+    await fs.rm(tmpDir, { recursive: true, force: true });
+  }
 });

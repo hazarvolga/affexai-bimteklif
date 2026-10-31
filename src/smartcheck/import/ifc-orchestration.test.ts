@@ -256,6 +256,35 @@ test("runPythonIfcExtractor rejects oversized worker output before reading JSON 
   }
 });
 
+test("runPythonIfcExtractor limits OpenBLAS to one thread so the 2 GiB address limit does not crash on many-core hosts", async () => {
+  const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "teklifpro-test-ifc-"));
+  const previousThreads = process.env.OPENBLAS_NUM_THREADS;
+  try {
+    process.env.OPENBLAS_NUM_THREADS = "64";
+    const dummyPath = path.join(tmpDir, "dummy.ifc");
+    const envProbePath = path.join(tmpDir, "openblas-threads.txt");
+    const envProbeScript = path.join(tmpDir, "env-probe.py");
+    await fs.writeFile(dummyPath, "ISO-10303-21;");
+    await fs.writeFile(envProbeScript, [
+      "import os",
+      "import sys",
+      `open(${JSON.stringify(envProbePath)}, "w").write(os.environ.get("OPENBLAS_NUM_THREADS", "unset"))`,
+      "sys.exit(9)",
+    ].join("\n"));
+
+    await assert.rejects(
+      runPythonIfcExtractor({ inputPath: dummyPath, cliScriptPath: envProbeScript }),
+      IfcWorkerError,
+    );
+
+    assert.equal(await fs.readFile(envProbePath, "utf8"), "1");
+  } finally {
+    if (previousThreads === undefined) delete process.env.OPENBLAS_NUM_THREADS;
+    else process.env.OPENBLAS_NUM_THREADS = previousThreads;
+    await fs.rm(tmpDir, { recursive: true, force: true });
+  }
+});
+
 test("sanitizeIfcErrorMessage sanitizes internal paths and provides clean Turkish messages", () => {
   const timeoutMsg = sanitizeIfcErrorMessage("IFC_TIMEOUT", undefined, 120);
   assert.equal(timeoutMsg, "İşlem zaman aşımına uğradı (120 saniye). Dosya çok karmaşık olabilir.");

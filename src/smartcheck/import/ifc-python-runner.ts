@@ -444,6 +444,8 @@ export async function runPythonIfcExtractor(options: PythonIfcExtractOptions): P
           TMPDIR: os.tmpdir(),
           LANG: process.env.LANG ?? "C.UTF-8",
           PYTHONIOENCODING: "utf-8",
+          // ifc_extract.py limits address space to 2 GiB; OpenBLAS reserves buffers per core and segfaults on many-core hosts.
+          OPENBLAS_NUM_THREADS: "1",
         },
       });
 
