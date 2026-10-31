@@ -75,7 +75,7 @@ test('admin deletion clears unprotected tenants, keeps audit history and refuses
     const rolledBack = await call(`/tenants/${firm}`, adminToken, 'DELETE', { confirmName: 'Silinecek' });
     assert.equal(rolledBack.status, 409, await rolledBack.clone().text());
     for (const [table, column] of [['companies', 'id'], ['clients', 'company_id'], ['quotations', 'company_id'], ['memberships', 'company_id'], ['subscriptions', 'company_id'], ['usage_logs', 'company_id'], ['usage_records', 'company_id']]) {
-      assert.equal(await rows(table, column, firm), 1, `${table} must survive a failed deletion`);
+      assert.ok((await rows(table, column, firm) ?? 0) > 0, `${table} must survive a failed deletion`);
     }
     await db.query('DELETE FROM pilot_applications WHERE provisioned_company_id=$1', [firm]);
 

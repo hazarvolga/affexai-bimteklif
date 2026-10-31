@@ -158,12 +158,25 @@ test('progress-payment tables declare the exact tenant, backup, and migration RL
   assert.deepEqual(forced, tableNames.map((table) => `ALTER TABLE "${table}" FORCE ROW LEVEL SECURITY;`));
 });
 
+/** The deletion capability is pinned on its own below, so each table's tenant matrix stays exact. */
+const matrixPolicyNames = (policies: Record<string, unknown>) => Object.keys(policies).filter(name => !name.endsWith('_admin_deletion_capability')).sort();
+
+test('only the tenant deletion tables carry the exact deletion capability policy', () => {
+  const { tables } = drizzleApi.generateDrizzleJson(schema);
+  const carriers = Object.entries(tables).filter(([, table]) => Object.keys(table.policies).some(name => name.endsWith('_admin_deletion_capability'))).map(([name]) => name.replace('public.', '')).sort();
+  assert.deepEqual(carriers, ['activities', 'clients', 'company_industry_settings', 'cost_components', 'deals', 'quotation_financials', 'quotation_item_evidence', 'quotation_items', 'quotations', 'usage_alerts']);
+  for (const table of carriers) {
+    const policy = tables[`public.${table}`].policies[`${table}_admin_deletion_capability`];
+    assert.deepEqual({ for: policy.for, to: policy.to, using: policy.using, withCheck: policy.withCheck }, { for: 'ALL', to: ['public'], using: "session_user = 'bimmetraj_control' AND current_user = 'bimmetraj_owner'", withCheck: 'false' });
+  }
+});
+
 test('company industry settings and catalog declare exact FORCE-RLS policy inputs', () => {
   const { tables } = drizzleApi.generateDrizzleJson(schema);
   const settings = tables['public.company_industry_settings'];
   const industries = tables['public.industries'];
   assert.equal(settings.isRLSEnabled, true);
-  assert.deepEqual(Object.keys(settings.policies).sort(), [
+  assert.deepEqual(matrixPolicyNames(settings.policies), [
     'company_industry_settings_app_tenant_insert',
     'company_industry_settings_app_tenant_read',
     'company_industry_settings_app_tenant_update',
@@ -266,7 +279,7 @@ test('tenant business tables declare the exact CDE tenant, backup, and migration
   for (const table of DATABASE_TENANT_BUSINESS_RLS_TABLES) {
     const definition = tables[`public.${table}`];
     assert.equal(definition.isRLSEnabled, true, table);
-    assert.deepEqual(Object.keys(definition.policies).sort(), [`${table}_app_tenant`, `${table}_backup_read`, `${table}_owner_migration`]);
+    assert.deepEqual(matrixPolicyNames(definition.policies), [`${table}_app_tenant`, `${table}_backup_read`, `${table}_owner_migration`]);
     const tenant = `current_user = 'bimmetraj_app' AND "${table}"."company_id" = nullif(current_setting('bimmetraj.company_id', true), '')::uuid`;
     const app = definition.policies[`${table}_app_tenant`];
     assert.deepEqual({ for: app.for, to: app.to, using: app.using, withCheck: app.withCheck }, { for: 'ALL', to: ['public'], using: tenant, withCheck: tenant });
@@ -280,7 +293,7 @@ test('quotation core tables declare the exact CDE tenant, backup, and migration 
   for (const table of DATABASE_QUOTATION_CORE_RLS_TABLES) {
     const definition = tables[`public.${table}`];
     assert.equal(definition.isRLSEnabled, true, table);
-    assert.deepEqual(Object.keys(definition.policies).sort(), [`${table}_app_tenant`, `${table}_backup_read`, `${table}_owner_migration`]);
+    assert.deepEqual(matrixPolicyNames(definition.policies), [`${table}_app_tenant`, `${table}_backup_read`, `${table}_owner_migration`]);
     const tenant = `current_user = 'bimmetraj_app' AND "${table}"."company_id" = nullif(current_setting('bimmetraj.company_id', true), '')::uuid`;
     const app = definition.policies[`${table}_app_tenant`];
     assert.deepEqual({ for: app.for, to: app.to, using: app.using, withCheck: app.withCheck }, { for: 'ALL', to: ['public'], using: tenant, withCheck: tenant });
