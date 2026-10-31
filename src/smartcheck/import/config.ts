@@ -28,11 +28,33 @@ export function graphileWorkerSchema(): string {
 
 export class IfcNotAvailableError extends Error {
   readonly status = 403;
-  readonly code = "IFC_NOT_AVAILABLE";
+  readonly code: string = "IFC_NOT_AVAILABLE";
   constructor(message = "Aktif bir IFC planı bulunmadığından IFC işlemleri kullanılamaz.") {
     super(message);
     this.name = "IfcNotAvailableError";
   }
+}
+
+export class IfcSubscriptionInactiveError extends IfcNotAvailableError {
+  override readonly code = "SUBSCRIPTION_INACTIVE";
+  constructor() {
+    super("Aboneliğiniz aktif değil veya süresi doldu; IFC işlemleri kullanılamaz.");
+    this.name = "IfcSubscriptionInactiveError";
+  }
+}
+
+/** Same rule as quotation and browser analysis quota: active status inside the subscription period. */
+function assertIfcSubscriptionActive(
+  status: string | null | undefined,
+  periodStart: Date | string | null | undefined,
+  periodEnd: Date | string | null | undefined,
+  now = new Date(),
+): void {
+  const start = periodStart == null ? undefined : new Date(periodStart).getTime();
+  const end = periodEnd == null ? undefined : new Date(periodEnd).getTime();
+  const expired = end === undefined ? false : !(now.getTime() < end);
+  const notStarted = start === undefined ? false : !(start <= now.getTime());
+  if (status !== "active" || expired || notStarted) throw new IfcSubscriptionInactiveError();
 }
 
 export class IfcLimitsUnavailableError extends Error {
@@ -62,6 +84,8 @@ async function fetchWorkerEntitlement(
   let row: {
     company_exists: boolean;
     plan_is_active: boolean | null;
+    subscription_status: string | null;
+    current_period_end: Date | string | null;
     monthly_ifc_limit: number | null;
     ifc_max_file_mb: number | null;
     ifc_max_concurrent: number | null;
@@ -79,6 +103,7 @@ async function fetchWorkerEntitlement(
 
   if (!row?.company_exists) throw new IfcNotAvailableError();
   if (!row.plan_is_active) throw new IfcNotAvailableError();
+  assertIfcSubscriptionActive(row.subscription_status, undefined, row.current_period_end);
 
   const effectiveMb = Math.min(row.ifc_max_file_mb ?? envMaxMb, envMaxMb);
   const effectiveConcurrent = Math.min(row.ifc_max_concurrent ?? envMaxConcurrent, envMaxConcurrent);
@@ -127,6 +152,9 @@ export async function fetchTenantIfcLimits(
     planMaxFileMb: number | null;
     planMaxConcurrent: number | null;
     planIsActive: boolean | null;
+    status: string;
+    currentPeriodStart: Date | null;
+    currentPeriodEnd: Date | null;
   } | undefined;
 
   try {
@@ -138,6 +166,9 @@ export async function fetchTenantIfcLimits(
         planMaxFileMb: plans.ifcMaxFileMb,
         planMaxConcurrent: plans.ifcMaxConcurrent,
         planIsActive: plans.isActive,
+        status: subscriptions.status,
+        currentPeriodStart: subscriptions.currentPeriodStart,
+        currentPeriodEnd: subscriptions.currentPeriodEnd,
       })
       .from(subscriptions)
       .leftJoin(plans, eq(plans.id, subscriptions.planId))
@@ -153,7 +184,11 @@ export async function fetchTenantIfcLimits(
   let planIfcLimit: number | null = null;
   let bonusIfcLimit = 0;
 
-  if (subRow?.planId && subRow.planIsActive) {
+  if (subRow) assertIfcSubscriptionActive(subRow.status, subRow.currentPeriodStart, subRow.currentPeriodEnd);
+  // A closed plan must stay closed: the lowest-plan fallback below is only for companies without a plan.
+  if (subRow?.planId && !subRow.planIsActive) throw new IfcNotAvailableError();
+
+  if (subRow?.planId) {
     planMaxFileMb = subRow.planMaxFileMb;
     planMaxConcurrent = subRow.planMaxConcurrent;
     planIfcLimit = subRow.planIfcLimit;

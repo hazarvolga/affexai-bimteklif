@@ -15,7 +15,7 @@ test("fetchTenantIfcLimits worker production path via capability function", asyn
       execute: async () => ({
         rows: [{
           company_exists: true,
-          plan_is_active: true,
+          plan_is_active: true, subscription_status: "active", current_period_end: null,
           monthly_ifc_limit: 25,
           ifc_max_file_mb: 80,
           ifc_max_concurrent: 2,
@@ -52,6 +52,20 @@ test("fetchTenantIfcLimits worker production path via capability function", asyn
     );
   });
 
+  for (const [label, status, end] of [
+    ["suspended", "suspended", null],
+    ["expired", "active", new Date(Date.now() - 1000)],
+  ] as const) {
+    await t.test(`${label} subscription throws SUBSCRIPTION_INACTIVE on the worker path`, async () => {
+      const mockDb = {
+        execute: async () => ({
+          rows: [{ company_exists: true, plan_is_active: true, subscription_status: status, current_period_end: end, monthly_ifc_limit: 10, ifc_max_file_mb: 50, ifc_max_concurrent: 1 }],
+        }),
+      };
+      await assert.rejects(() => fetchTenantIfcLimits("00000000-0000-0000-0000-000000000000", mockDb, "worker"), (err: any) => err.code === "SUBSCRIPTION_INACTIVE" && err.status === 403);
+    });
+  }
+
   await t.test("DB execute error fails closed with IfcLimitsUnavailableError", async () => {
     const mockDb = {
       execute: async () => { throw new Error("connection refused"); },
@@ -68,7 +82,7 @@ test("fetchTenantIfcLimits worker production path via capability function", asyn
     try {
       const mockDb = {
         execute: async () => ({
-          rows: [{ company_exists: true, plan_is_active: true, monthly_ifc_limit: 200, ifc_max_file_mb: 100, ifc_max_concurrent: 1 }],
+          rows: [{ company_exists: true, plan_is_active: true, subscription_status: "active", current_period_end: null, monthly_ifc_limit: 200, ifc_max_file_mb: 100, ifc_max_concurrent: 1 }],
         }),
       };
       const limits = await fetchTenantIfcLimits("00000000-0000-0000-0000-000000000005", mockDb, "worker");

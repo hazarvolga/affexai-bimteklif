@@ -222,6 +222,19 @@ test("Tenant IFC plan-based limits, planless policy, and fail-closed behavior", 
     await db.update(schema.plans).set({ isActive: true });
   });
 
+  await t.test("inactive or expired subscription and a closed plan are refused, never downgraded", async () => {
+    const [closedPlan] = await db.insert(schema.plans).values({ name: `Closed ${suffix}`, monthlyPrice: 500, monthlyQuoteLimit: 5, monthlyIfcLimit: 50, isActive: false }).returning();
+    const company = async (name: string, values: Record<string, unknown>) => {
+      const [row] = await db.insert(schema.companies).values({ name: `${name} ${suffix}` }).returning();
+      await db.insert(schema.subscriptions).values({ companyId: row.id, currentPeriodStart: new Date("2020-01-01T00:00:00Z"), ...values } as any);
+      return row.id;
+    };
+    const denied = (id: string, code: string) => assert.rejects(() => fetchTenantIfcLimits(id), (err: any) => err instanceof IfcNotAvailableError && err.status === 403 && err.code === code);
+    await denied(await company("Expired", { planId: plan50.id, status: "active", currentPeriodEnd: new Date("2020-02-01T00:00:00Z") }), "SUBSCRIPTION_INACTIVE");
+    await denied(await company("Suspended", { planId: plan50.id, status: "suspended" }), "SUBSCRIPTION_INACTIVE");
+    await denied(await company("Closed plan", { planId: closedPlan.id, status: "active" }), "IFC_NOT_AVAILABLE");
+  });
+
   await t.test("DB error fails closed (returns 503 IFC_LIMITS_UNAVAILABLE, never expands limits)", async () => {
     // Mock dbClient to simulate a DB query failure
     const brokenDb = {
