@@ -269,6 +269,13 @@
       "when": 1791417600037,
       "tag": "0037_client_privacy_mask",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1791417600038,
+      "tag": "0038_admin_tenant_deletion",
+      "breakpoints": true
     }
   ]
 }

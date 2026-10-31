@@ -5,6 +5,7 @@ import { Button } from '../../components/ui/button';
 import { fetchWithAuth } from '../../lib/api';
 import { previewChanges, PREVIEW_STALE_NOTICE, planIdentity } from './admin-change-preview';
 import { toast } from 'sonner';
+import { TenantDeletePanel } from './TenantDeletePanel';
 import { formatBillingCycleLabel } from '../../services/billing/billing-periods';
 import {
   Building2,
@@ -307,6 +308,22 @@ export function TenantDetail() {
   };
 
   const [updatingMemberId, setUpdatingMemberId] = useState<string | null>(null);
+
+  const handleRemoveMember = async (userId: string, email: string) => {
+    if (!companyId || !window.confirm(`${email} firmadan çıkarılsın mı? Başka firması ve bağlı kaydı yoksa hesabı da kalıcı olarak silinir.`)) return;
+    try {
+      setUpdatingMemberId(userId);
+      const res = await fetchWithAuth(`/api/admin/tenants/${companyId}/members/${userId}`, { method: 'DELETE' });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(body.error || 'Kullanıcı firmadan çıkarılamadı');
+      setData((prev) => (prev ? { ...prev, members: prev.members.filter((m) => m.userId !== userId) } : prev));
+      toast.success(body.userDeleted ? 'Kullanıcı firmadan çıkarıldı ve hesabı silindi.' : 'Kullanıcı firmadan çıkarıldı. Hesabı başka kayıtlara bağlı olduğu için korundu.');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Kullanıcı firmadan çıkarılamadı');
+    } finally {
+      setUpdatingMemberId(null);
+    }
+  };
 
   const handleUpdateMember = async (
     userId: string,
@@ -682,7 +699,19 @@ export function TenantDetail() {
                             )}
                           </div>
                         </td>
-                        <td className="py-2.5 text-muted-foreground">{u.email}</td>
+                        <td className="py-2.5 text-muted-foreground">
+                          <span>{u.email}</span>
+                          <button
+                            type="button"
+                            disabled={isBusy || isSoleOwner}
+                            data-testid={`remove-member-${u.userId}`}
+                            title={isSoleOwner ? 'Firmanın tek sahibi çıkarılamaz' : 'Kullanıcıyı firmadan çıkar'}
+                            onClick={() => handleRemoveMember(u.userId, u.email)}
+                            className="ml-2 text-[10px] font-semibold text-destructive underline underline-offset-2 disabled:opacity-40 disabled:no-underline"
+                          >
+                            Çıkar
+                          </button>
+                        </td>
                         <td className="py-2.5">
                           <div className="flex items-center gap-1.5">
                             <span className="rounded border border-border bg-surface-elevated px-2 py-0.5 text-[10px] font-bold text-foreground dark:text-muted-foreground uppercase">
@@ -1033,6 +1062,7 @@ export function TenantDetail() {
           </div>
         </div>
       )}
+      <div className="mt-6"><TenantDeletePanel companyId={companyId ?? data.company.id} companyName={data.company.name} /></div>
     </PageContainer>
   );
 }

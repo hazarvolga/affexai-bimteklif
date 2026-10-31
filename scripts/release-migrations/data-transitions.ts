@@ -978,6 +978,24 @@ export function injectDataTransitions(tag: string, schemaStatements: readonly st
     const cumulative = fullSnapshot ? injectDataTransitions('0034_admin_mfa', schemaStatements) : [...schemaStatements];
     return [...cumulative, ...priceReviewProtection];
   }
+  if (tag === '0038_admin_tenant_deletion') {
+    const cumulative = schemaStatements.some(statement => statement.startsWith('CREATE TABLE "cde_transition_events"'))
+      ? injectDataTransitions('0037_client_privacy_mask', schemaStatements) : [...schemaStatements];
+    return [...cumulative,
+      `CREATE FUNCTION public.bimmetraj_clear_deleted_company_usage(p_company_id uuid) RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'pg_catalog', 'public' AS $function$
+BEGIN
+  IF session_user <> 'bimmetraj_control' THEN RAISE EXCEPTION 'control role required' USING ERRCODE = '42501'; END IF;
+  IF p_company_id IS NULL OR EXISTS (SELECT 1 FROM public.memberships WHERE company_id = p_company_id) THEN
+    RAISE EXCEPTION 'quota counters can only be cleared for a company without members' USING ERRCODE = '42501';
+  END IF;
+  DELETE FROM public.usage_records WHERE company_id = p_company_id;
+END $function$;`,
+      `ALTER FUNCTION public.bimmetraj_clear_deleted_company_usage(uuid) OWNER TO bimmetraj_owner;`,
+      `REVOKE ALL ON FUNCTION public.bimmetraj_clear_deleted_company_usage(uuid) FROM PUBLIC;`,
+      `GRANT EXECUTE ON FUNCTION public.bimmetraj_clear_deleted_company_usage(uuid) TO bimmetraj_control;`,
+      `GRANT DELETE ON TABLE public.invitations TO bimmetraj_control;`,
+    ];
+  }
   if (tag === '0037_client_privacy_mask') {
     return schemaStatements.some(statement => statement.startsWith('CREATE TABLE "cde_transition_events"'))
       ? injectDataTransitions('0036_crawler_lease_evidence', schemaStatements) : [...schemaStatements];

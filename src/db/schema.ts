@@ -2314,7 +2314,7 @@ export const usageRecords = pgTable("usage_records", {
 export const adminAuditLogs = pgTable("admin_audit_logs", {
   id: uuid("id").primaryKey().defaultRandom(),
   adminId: uuid("admin_id").references(() => users.id).notNull(),
-  targetCompanyId: uuid("target_company_id").references(() => companies.id),
+  targetCompanyId: uuid("target_company_id").references(() => companies.id, { onDelete: "set null" }),
   action: text("action").notNull(),
   details: jsonb("details"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
