@@ -29,12 +29,13 @@ history to `archive/` (latest: `archive/WORKING_STATE_until_2026-10-24.md`).
   SMTP, PostgreSQL service password, JWT secret): **done by Hazar, 2026-10-25**.
 - **Live defect, fix pending deploy (Rev. 134, 31 Ekim 2026):** on `3a9bb7d` every IFC processing request returns 503 `IFC_LIMITS_UNAVAILABLE`: Rev. 133 sends the app-role request through the worker-only `bimmetraj_worker_get_entitlement`. Upload routes also read the lowest plan's limits outside tenant context. After deploy, retest a real IFC upload. The function now has no caller in running code, so the Rev. 133 'aktif' wording below means the grants only.
 - **Decision (Hazar, 31 Ekim 2026):** no PDF/A conversion, validate only (T32, Rev. 135). T32 stays open for permitted real PDFs, a live worker smoke and document expert acceptance.
+- **Checked (31 Ekim 2026, 04:36 UTC):** `/api/health` → `status: ok`, `db: connected`, `revision: 3a9bb7d…`, `revisionSource: build`, all readiness flags true. This proves uptime and revision only. A 503 `no available server` seen on 27 Oct is resolved; its cause was not determined.
 - **Confirmed (30 Ekim 2026):** T41 8B worker entitlement capability function (`3a9bb7d`) production'da aktif.
   `bimmetraj_worker` ACL daraltması tamamlandı: db-provision contract ile subscriptions/plans 0 privilege güvence altında.
   T44 kurtarma tatbikatı Docker PG16'da tüm 5 sütunla geçti (30 Ekim 2026).
 - **Still open (Hazar):** `scripts/role-model-smoke.ts` production'a karşı çalıştır;
   gerçek IFC dosyasıyla worker kota doğrulaması (UZMAN rolüyle test kullanıcısı açıp sınayın);
-  canlı `/api/health` revision kontrolü (`revision: 3a9bb7d` onayı); login/tenant smoke.
+  login/tenant smoke.
   Do not open Developer View again.
 - Merging never deploys. Run `scripts/require-green-ci.sh <sha>` before Deploy.
   Before pressing Deploy, run `scripts/release-preflight.sh` (read-only): it lists
@@ -214,6 +215,6 @@ history to `archive/` (latest: `archive/WORKING_STATE_until_2026-10-24.md`).
 
 ## Open items owned by Hazar
 
-- Production smoke: `scripts/role-model-smoke.ts` against live DB; `/api/health` revision onayı (`3a9bb7d`); gerçek IFC dosyasıyla worker kota testi (UZMAN rolü atandıktan sonra).
+- Production smoke: `scripts/role-model-smoke.ts` against live DB; gerçek IFC dosyasıyla worker kota testi (UZMAN rolü atandıktan sonra).
 - UZMAN rolü atama: test kullanıcıları için Super Admin panel → Firma Kullanıcıları → UZMAN toggle.
 - Gerçek uzman sign-off'ları (mühendis, vergi/ihale), izinli gerçek IFC/PDF/Excel dosyaları, kart ödeme ve hukuki metinler, harici güvenlik incelemesi, DKIM, YFK lisansı, AI provider keys.
