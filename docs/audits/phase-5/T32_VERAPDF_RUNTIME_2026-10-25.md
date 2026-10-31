@@ -83,11 +83,13 @@ CI (`.github/workflows/verify.yml`) aynı komutu `T32 veraPDF fixture matrix` ad
 ## 5. Kapanmayan kapılar
 
 1. İzinli gerçek müşteri/vendor PDF matrisi (Allplan/AutoCAD/Revit çıktıları, CMYK/ICC, ekli dosya, çok sayfalı pafta seti, nitelikli e-imzalı dosya). Dosya kullanım izni gerekir.
-2. PDF/A dönüşüm sağlayıcısı kararı (§6). Karar verilene kadar dönüşüm kapalıdır.
+2. ~~PDF/A dönüşüm sağlayıcısı kararı~~ — **31 Ekim 2026: dönüşüm yok** (§6).
 3. Canlı `ifc-worker` imajında sürüm/smoke kanıtı (Coolify manuel deploy sonrası).
 4. Belge/arşiv uzmanının sonuç yorumunu kabulü.
 
-## 6. Açık karar — PDF/A dönüşümü (Hazar)
+## 6. Karar — PDF/A dönüşümü (Hazar)
+
+**Karar (31 Ekim 2026, Hazar): A — dönüşüm yok.** Sistem yalnız doğrular; uyumsuz dosyada kullanıcıya CAD/Allplan'dan PDF/A-2b olarak yeniden dışa aktarması söylenir. Aşağıdaki tablo karar kaydı olarak korunur. Kullanım verisi talep gösterirse konu yeniden açılır.
 
 Kod bu PR'da dönüşüm **eklemez**. Seçenekler:
 

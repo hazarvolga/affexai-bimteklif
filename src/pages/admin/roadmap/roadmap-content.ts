@@ -185,8 +185,10 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
   },
   {
     id: "durum",
-    title: "Uygulama durumu (30 Ekim 2026 · Rev. 133 geliştirme kaydı)",
+    title: "Uygulama durumu (31 Ekim 2026 · Rev. 135 geliştirme kaydı)",
     blocks: [
+      { type: "callout", tone: "info", title: "Rev. 135 · PDF/A dönüşüm yok kararı", text: "Hazar'ın 31 Ekim 2026 kararı: dönüşüm yok, yalnız veraPDF doğrulaması. Uyumsuz dosyada kullanıcıya paftayı Allplan veya CAD programından PDF/A-2b olarak yeniden dışa aktarması söylenir. Asıl dosya değiştirilmez. T32 açık: izinli gerçek PDF matrisi, canlı worker smoke ve belge uzmanı kabulü." },
+      { type: "callout", tone: "warn", title: "Rev. 134 · Canlı IFC işleme hatası düzeltildi (deploy bekliyor)", text: "Rev. 133 changeProcessingRun içinde app rolüyle çalışan kullanıcı isteğine worker-only bimmetraj_worker_get_entitlement yolunu bağladı; app rolünde EXECUTE olmadığından production'da her IFC işleme isteği IFC_LIMITS_UNAVAILABLE (503) ile duruyordu. Yükleme rotaları tenant bağlamı dışında okuduğu için FORCE RLS altında firmanın planı yerine en düşük aktif planın limitlerini alıyordu. İşleme isteği limitleri app rolü ve tenant transaction'ı içinde okur; iki yükleme rotası da okumayı tenant bağlamına aldı. Capability okuma hatası artık loglanır. Worker-only fonksiyon ve 0 privilege kontratı değişmedi; bu fonksiyonun çalışan kodda çağıranı kalmadı." },
       { type: "callout", tone: "info", title: "Rev. 133 · T41 8B worker entitlement canlıya alındı + T44 kurtarma tatbikatı tamamlandı", text: "bimmetraj_worker_get_entitlement() SECURITY DEFINER capability function (3a9bb7d) production'da çalışıyor; bimmetraj_worker, subscriptions ve plans tablolarında 0 privilege (db-provision contract ile güvence altında). T44 kurtarma tatbikatı (5 sütun): pg_dump/pg_restore 130 ms / 522 ms, RPO 0 kayıp, katalog imzası e5e4d3d1c4740a4713893c42a909c696208f64c8335f360707e79753f7525735, 38 migration doğrulandı (Docker PG16, 30 Ekim 2026)." },
       { type: "callout", tone: "info", title: "Rev. 132 · Kalıp metraj → teklif köprüsü + e-posta doğrulama genişletmesi", text: "IFC kalıp metraj çıktısı needs_review durumunda teklif satırlarına varsayılan olarak aktarılıyor; aktarım öncesi insan onayı zorunlu. E-posta doğrulama banner'ı workspace kullanıcılarına genişletildi. CI ve canlı kabul ayrıdır." },
       { type: "callout", tone: "info", title: "Rev. 131 · Müşteri kimlik alanları", text: "Yetkili kullanıcı inceleme ve bekleme süreciyle müşteri ad, telefon, e-posta, adres ve not alanlarını maskeler; teklif tutarları korunur. Serbest metin, önceki PDF, yedek ve dış sistem kapsam dışıdır. Hukuki ve canlı kabul açık." },
@@ -1133,6 +1135,12 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
           ],
           [
             "Rev. 133", "30 Ekim 2026 · T41 8B worker entitlement canlı + T44 tatbikatı", "BIM-CALC-2026-10-30.2 · temel 3a9bb7d; kanıt yerel Docker PG16", "bimmetraj_worker_get_entitlement() SECURITY DEFINER capability function production'da. bimmetraj_worker: subscriptions/plans 0 privilege (db-provision). T44: pg_dump/pg_restore 130/522 ms, RPO 0, katalog e5e4d3d1, 38 migration doğrulandı.",
+          ],
+          [
+            "Rev. 134", "31 Ekim 2026 · Canlı IFC işleme düzeltmesi", "BIM-CALC-2026-10-31.1; kanıt yerel PG16", "Rev. 133 changeProcessingRun içinde app rolüyle çalışan kullanıcı isteğine worker-only bimmetraj_worker_get_entitlement yolunu bağladı; app rolünde EXECUTE olmadığından production'da her IFC işleme isteği IFC_LIMITS_UNAVAILABLE (503) ile duruyordu. Yükleme rotaları tenant bağlamı dışında okuduğu için FORCE RLS altında firmanın planı yerine en düşük aktif planın limitlerini alıyordu. İşleme isteği limitleri app rolü ve tenant transaction'ı içinde okur; iki yükleme rotası da okumayı tenant bağlamına aldı. Capability okuma hatası artık loglanır. Worker-only fonksiyon ve 0 privilege kontratı değişmedi; bu fonksiyonun çalışan kodda çağıranı kalmadı.",
+          ],
+          [
+            "Rev. 135", "31 Ekim 2026 · PDF/A dönüşüm yok kararı", "BIM-CALC-2026-10-31.2", "Hazar'ın 31 Ekim 2026 kararı: dönüşüm yok, yalnız veraPDF doğrulaması. Uyumsuz dosyada kullanıcıya paftayı Allplan veya CAD programından PDF/A-2b olarak yeniden dışa aktarması söylenir. Asıl dosya değiştirilmez. T32 açık: izinli gerçek PDF matrisi, canlı worker smoke ve belge uzmanı kabulü.",
           ],
         ],
       },
@@ -2166,6 +2174,12 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
           ],
           [
             "Rev. 133 · 30 Ekim 2026 (T41 8B worker entitlement + T44)", "Worker ACL daralması ve kurtarma tatbikatı", "Worker subscriptions/plans tablolarını doğrudan okuyordu; T44 tatbikatı kısmi kanıtla açık kalıyordu.", "bimmetraj_worker_get_entitlement() SECURITY DEFINER capability function production'da aktif (3a9bb7d). bimmetraj_worker: subscriptions ve plans tablolarında 0 privilege (db-provision contract ile güvence). T44: pg_dump/pg_restore 130/522 ms, RPO 0 kayıp, 665 252 byte, katalog imzası e5e4d3d1c4740a4713893c42a909c696208f64c8335f360707e79753f7525735, 38 migration doğrulandı (Docker PG16). Dış kabul gerektirmiyor.", "src/smartcheck/import/config.ts; src/smartcheck/import/worker-entitlement.test.ts; scripts/database-roles/contract.ts; src/contracts/t44-recovery-drill.pgtest.ts",
+          ],
+          [
+            "Rev. 134 · 31 Ekim 2026 (IFC limit hatası)", "Canlı IFC işleme düzeltmesi", "Rev. 133 changeProcessingRun içinde app rolüyle çalışan kullanıcı isteğine worker-only bimmetraj_worker_get_entitlement yolunu bağladı; app rolünde EXECUTE olmadığından production'da her IFC işleme isteği IFC_LIMITS_UNAVAILABLE (503) ile duruyordu. Yükleme rotaları tenant bağlamı dışında okuduğu için FORCE RLS altında firmanın planı yerine en düşük aktif planın limitlerini alıyordu.", "İşleme isteği limitleri app rolü ve tenant transaction'ı içinde okur; iki yükleme rotası da okumayı tenant bağlamına aldı. Capability okuma hatası artık loglanır. Worker-only fonksiyon ve 0 privilege kontratı değişmedi; bu fonksiyonun çalışan kodda çağıranı kalmadı.", "src/smartcheck/import/service.ts; src/server/routes/smartcheck.ts; src/smartcheck/import/config.ts; src/smartcheck/import/worker-entitlement.test.ts",
+          ],
+          [
+            "Rev. 135 · 31 Ekim 2026 (T32 dönüşüm kararı)", "PDF/A dönüşüm yok", "T32 dönüşüm sağlayıcısı kararı açıktı; arayüz 'dönüştürme kapalı: lisanslı sağlayıcı gerekir' diyerek ileride dönüşüm geleceğini ima ediyordu.", "Hazar'ın 31 Ekim 2026 kararı: dönüşüm yok, yalnız veraPDF doğrulaması. Uyumsuz dosyada kullanıcıya paftayı Allplan veya CAD programından PDF/A-2b olarak yeniden dışa aktarması söylenir. Asıl dosya değiştirilmez. T32 açık: izinli gerçek PDF matrisi, canlı worker smoke ve belge uzmanı kabulü.", "src/components/smartcheck/pdfa-guidance.ts; src/components/smartcheck/PdfPreflightPanel.tsx; docs/audits/phase-5/T32_VERAPDF_RUNTIME_2026-10-25.md",
           ],
         ],
       },
