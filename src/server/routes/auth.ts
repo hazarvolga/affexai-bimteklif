@@ -139,7 +139,7 @@ export function registerAuthRoutes(app: Express) {
         if (intent === "academy" && !edition) throw new Error("ACADEMY_EDITION_UNAVAILABLE");
         const trialPlan = await selectTrialPlan(tx);
         if (!trialPlan) throw new Error('TRIAL_PLAN_UNAVAILABLE');
-        const [company] = await tx.insert(companies).values({ name: companyName, isSmartcheckEnabled: true }).returning();
+        const [company] = await tx.insert(companies).values({ name: companyName, email, isSmartcheckEnabled: true }).returning();
         const [user] = await tx.insert(users).values({ email, fullName, passwordHash, isSuperAdmin: false }).returning();
         await tx.insert(memberships).values({ userId: user.id, companyId: company.id, role: "owner" });
         const now = new Date();

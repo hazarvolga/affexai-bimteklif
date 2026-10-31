@@ -185,8 +185,9 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
   },
   {
     id: "durum",
-    title: "Uygulama durumu (31 Ekim 2026 · Rev. 136 geliştirme kaydı)",
+    title: "Uygulama durumu (31 Ekim 2026 · Rev. 137 geliştirme kaydı)",
     blocks: [
+      { type: "callout", tone: "info", title: "Rev. 137 · Ayarlarda hesap bilgileri", text: "Ayarlar ekranına ad soyad ve giriş e-postasını gösteren salt okunur Hesabım bölümü eklendi. Yeni kayıtta firmanın iletişim e-postası giriş e-postasıyla doldurulur; boş firmalarda alan önerilir ve kaydedilince yazılır." },
       { type: "callout", tone: "info", title: "Rev. 136 · E-posta doğrulaması olmadan giriş kapatıldı", text: "Hazar'ın 31 Ekim 2026 kararı. Doğrulanmamış hesap giriş yapamaz: kayıt oturum açmaz, giriş 403 EMAIL_VERIFICATION_REQUIRED döner, mevcut oturumlar reddedilir, giriş ve kayıt ekranında yeniden gönderme vardır. Yalnız salt-okunur destek impersonation doğrulanmamış hesabı açabilir." },
       { type: "callout", tone: "info", title: "Rev. 135 · PDF/A dönüşüm yok kararı", text: "Hazar'ın 31 Ekim 2026 kararı: dönüşüm yok, yalnız veraPDF doğrulaması. Uyumsuz dosyada kullanıcıya paftayı Allplan veya CAD programından PDF/A-2b olarak yeniden dışa aktarması söylenir. Asıl dosya değiştirilmez. T32 açık: izinli gerçek PDF matrisi, canlı worker smoke ve belge uzmanı kabulü." },
       { type: "callout", tone: "warn", title: "Rev. 134 · Canlı IFC işleme hatası düzeltildi (deploy bekliyor)", text: "Rev. 133 changeProcessingRun içinde app rolüyle çalışan kullanıcı isteğine worker-only bimmetraj_worker_get_entitlement yolunu bağladı; app rolünde EXECUTE olmadığından production'da her IFC işleme isteği IFC_LIMITS_UNAVAILABLE (503) ile duruyordu. Yükleme rotaları tenant bağlamı dışında okuduğu için FORCE RLS altında firmanın planı yerine en düşük aktif planın limitlerini alıyordu. İşleme isteği limitleri app rolü ve tenant transaction'ı içinde okur; iki yükleme rotası da okumayı tenant bağlamına aldı. Capability okuma hatası artık loglanır. Worker-only fonksiyon ve 0 privilege kontratı değişmedi; bu fonksiyonun çalışan kodda çağıranı kalmadı." },
@@ -1145,6 +1146,9 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
           ],
           [
             "Rev. 136", "31 Ekim 2026 · E-posta doğrulaması olmadan giriş kapatıldı", "BIM-CALC-2026-10-31.3", "Doğrulanmamış hesap giriş yapamaz: kayıt oturum açmaz, giriş 403 EMAIL_VERIFICATION_REQUIRED döner, mevcut oturumlar reddedilir, giriş ve kayıt ekranında yeniden gönderme vardır. Yalnız salt-okunur destek impersonation doğrulanmamış hesabı açabilir.",
+          ],
+          [
+            "Rev. 137", "31 Ekim 2026 · Ayarlarda hesap bilgileri", "BIM-CALC-2026-10-31.4", "Ayarlar ekranına ad soyad ve giriş e-postasını gösteren salt okunur Hesabım bölümü eklendi. Yeni kayıtta firmanın iletişim e-postası giriş e-postasıyla doldurulur; boş firmalarda alan önerilir ve kaydedilince yazılır.",
           ],
         ],
       },
@@ -2187,6 +2191,9 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
           ],
           [
             "Rev. 136 · 31 Ekim 2026 (doğrulanmamış giriş)", "E-posta doğrulaması olmadan giriş kapatıldı", "Kayıt hemen oturum açıyor, giriş doğrulamaya bakmıyor, teklif, müşteri, AI, ödeme ve davet işlemleri doğrulamasız açık kalıyordu.", "Kayıt oturum açmaz; giriş 403 EMAIL_VERIFICATION_REQUIRED döner; mevcut oturum reddedilir; giriş ve kayıt ekranında yeniden gönderme vardır. Mevcut doğrulanmamış hesaplar da doğrulayana kadar giremez.", "src/server/routes/auth.ts; src/server/middleware/auth.ts; src/components/auth/EmailVerificationNotice.tsx; src/pages/Login.tsx; src/pages/Register.tsx",
+          ],
+          [
+            "Rev. 137 · 31 Ekim 2026 (Ayarlar hesap bilgileri)", "Hesabım bölümü", "Kayıttaki ad soyad ve e-posta Ayarlarda görünmüyor, iletişim e-postası boş kalıyordu.", "Ayarlar ekranına ad soyad ve giriş e-postasını gösteren salt okunur Hesabım bölümü eklendi. Yeni kayıtta firmanın iletişim e-postası giriş e-postasıyla doldurulur; boş firmalarda alan önerilir ve kaydedilince yazılır.", "src/pages/settings-account.tsx; src/pages/Settings.tsx; src/server/routes/auth.ts",
           ],
         ],
       },

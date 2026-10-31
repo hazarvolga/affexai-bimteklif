@@ -65,7 +65,8 @@ test('registration without trial or free plan fails without partial users or com
     const registered = await fetch(`http://127.0.0.1:${(server.address() as any).port}/api/auth/register`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email, password: 'test-password-123', fullName: 'Test User', companyName, termsAccepted: true, privacyAccepted: true }) });
     assert.equal(registered.status, 201);
     assert.equal(registered.headers.get('set-cookie'), null);
-    const registeredBody = await registered.json() as { company: { id: string }; token?: string; emailVerificationRequired: boolean };
+    const registeredBody = await registered.json() as { company: { id: string; email: string | null }; token?: string; emailVerificationRequired: boolean };
+    assert.equal(registeredBody.company.email, email);
     assert.equal(registeredBody.token, undefined);
     assert.equal(registeredBody.emailVerificationRequired, true);
     const [subscription] = await db.select().from(schema.subscriptions).where(eq(schema.subscriptions.companyId, registeredBody.company.id));
