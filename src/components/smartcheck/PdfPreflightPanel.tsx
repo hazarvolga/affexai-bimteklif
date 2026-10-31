@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { fetchWithAuth } from "@/lib/api";
+import { pdfaNextStep } from "./pdfa-guidance";
 
 type PdfReport = {
   schemaVersion?: 1 | 2;
@@ -98,7 +99,7 @@ export function PdfPreflightPanel({ documentId, refreshKey }: { documentId: stri
             : `Çalıştırılmadı (${validation.unavailableReason ?? "doğrulayıcı kullanılamıyor"}); uygunluk sonucu belirsiz.`}
         </p>
         <p className="mt-1">Kaynak SHA-256: <span className="font-mono">{validation.source.checksumSha256}</span> · orijinal korundu</p>
-        <p className="mt-1">Dönüştürme kapalı: lisanslı sağlayıcı gerekir; kaynak dosyanın üzerine yazılmadı.</p>
+        <p className="mt-1">{pdfaNextStep(validation.status, validation.validation.isCompliant)}</p>
       </> : <p className="mt-1">{validationError ? "Bu işleme için ayrı PDF/A doğrulama artifactı bulunamadı." : "Doğrulama sonucu yükleniyor…"}</p>}
     </div>
     <ul className="space-y-2">{report.findings.map((finding, index) => <li key={`${finding.kod}-${index}`} className="rounded-md border border-border p-3 text-muted-foreground"><b className={finding.seviye === "hata" ? "text-red-400" : "text-foreground dark:text-muted-foreground"}>{finding.seviye.toUpperCase()} · {finding.kod}</b><p className="mt-1">{finding.mesaj}</p><p className="mt-1 text-muted-foreground">{finding.madde}{finding.sayfalar?.length ? ` · sayfalar: ${finding.sayfalar.join(", ")}` : ""}</p></li>)}</ul>
