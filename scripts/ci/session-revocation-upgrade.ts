@@ -57,7 +57,8 @@ try {
     assert.deepEqual(await applyMigrations(migrator, migrations, 37, { requireWorkersDrained: true }), ['0037_client_privacy_mask']);
     assert.deepEqual(await applyMigrations(migrator, migrations, 38, { requireWorkersDrained: true }), ['0038_admin_tenant_deletion']);
     assert.deepEqual(await applyMigrations(migrator, migrations, 39, { requireWorkersDrained: true }), ['0039_atomic_tenant_deletion']);
+    assert.deepEqual(await applyMigrations(migrator, migrations, 40, { requireWorkersDrained: true }), ['0040_trial_quota_period']);
   } finally { await migrator.end(); }
   await provisionDatabaseRoles(admin, credentials, target, decodeURIComponent(url.password));
-  process.stdout.write('0032 → 0033 → 0034 → 0035 → 0036 → 0037 → 0038 → 0039 migrator/owner upgrade and role provisioning verified\n');
+  process.stdout.write('0032 → 0033 → 0034 → 0035 → 0036 → 0037 → 0038 → 0039 → 0040 migrator/owner upgrade and role provisioning verified\n');
 } finally { await admin.end(); }

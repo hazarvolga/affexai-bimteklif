@@ -281,6 +281,13 @@
       "sha256": "711502e1480b574e228e1b0ba09d0b51ff1f73cdc05b41d3b8245b1523daf9f6",
       "snapshotSha256": "49df6eceb49c6afbbd573c09e21cffe223039cae6b076defb9a3694ad4365b37",
       "statements": 14
+    },
+    {
+      "idx": 40,
+      "tag": "0040_trial_quota_period",
+      "sha256": "85905d7baf6bd6ed5d54d6e3ede509dfa4e59f1eed25466a9b4d756f671e46b3",
+      "snapshotSha256": "0d9c43546c56a25713284ce5dc9fbb963e8ebb64c76328e753d32423b97243f7",
+      "statements": 5
     }
   ]
 }

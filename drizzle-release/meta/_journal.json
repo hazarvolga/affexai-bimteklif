@@ -283,6 +283,13 @@
       "when": 1791417600039,
       "tag": "0039_atomic_tenant_deletion",
       "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1791417600040,
+      "tag": "0040_trial_quota_period",
+      "breakpoints": true
     }
   ]
 }

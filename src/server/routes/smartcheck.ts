@@ -642,7 +642,7 @@ export function registerSmartCheckRoutes(app: Express) {
       } catch (error) {
         if (error instanceof ProcessingConflict) {
           const defaultMessage = error.code === 'IFC_QUOTA_EXCEEDED'
-            ? 'Aylık IFC işleme kotanız dolmuştur.'
+            ? 'Bu dönemdeki IFC işleme kotanız dolmuştur.'
             : 'İşlem mevcut durumda gerçekleştirilemiyor.';
           return res.status(error.status).json({
             error: error.message && error.message !== error.code ? error.message : defaultMessage,

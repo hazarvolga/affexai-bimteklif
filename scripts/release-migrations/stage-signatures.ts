@@ -170,6 +170,10 @@ const stages = [
     sql: '711502e1480b574e228e1b0ba09d0b51ff1f73cdc05b41d3b8245b1523daf9f6',
     snapshot: '49df6eceb49c6afbbd573c09e21cffe223039cae6b076defb9a3694ad4365b37',
     catalog: 'd1e1420c5fe4bbd26eb9d8c44a2ad6bc0075683ffb66d497f17a86f1c5931e20' },
+  { tag: '0040_trial_quota_period',
+    sql: '85905d7baf6bd6ed5d54d6e3ede509dfa4e59f1eed25466a9b4d756f671e46b3',
+    snapshot: '0d9c43546c56a25713284ce5dc9fbb963e8ebb64c76328e753d32423b97243f7',
+    catalog: '50c485901db5e06aa3bf9c1884cb1eab4d8825e283dedc5cfa6d79cf213b7e9a' },
 ] as const;
 
 export function pinnedSignature(migration: { idx: number; tag: string; sha256: string; snapshotSha256: string }) {

@@ -7,14 +7,14 @@ import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import type * as schema from '../../db/schema';
 import { companies, plans, subscriptions, usageLogs } from '../../db/schema';
 import { featureMonthlyLimit, featureQuotaUnavailable, quotaCodes, type MeteredFeature } from './feature-limits';
-import { QuotaError, quotationAllowance } from './quota-policy';
+import { QuotaError, quotaWindow, quotationAllowance } from './quota-policy';
 
 export interface FeatureReservation {
   id: string;
   current: number;
   limit: number;
   period: string;
-  /** True when an earlier reservation for the same subject this month was reused; nothing new was consumed. */
+  /** True when an earlier reservation for the same subject this period was reused; nothing new was consumed. */
   reused: boolean;
 }
 
@@ -38,8 +38,7 @@ export async function reserveFeatureUsageInTransaction(tx: FeatureQuotaTransacti
     const now = new Date((await tx.execute<{ now: string }>(sql`SELECT clock_timestamp() AS now`)).rows[0].now);
     const { period } = quotationAllowance(subscription, plan, now);
     const limit = featureMonthlyLimit(subscription!, plan, feature);
-    const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
-    const end = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
+    const { start, end } = quotaWindow(subscription, plan, now);
     const [usage] = await tx.select({ count: sql<string>`coalesce(sum(${usageLogs.count}), 0)`, minimum: sql<number>`coalesce(min(${usageLogs.count}), 0)` })
       .from(usageLogs).where(and(eq(usageLogs.companyId, companyId), eq(usageLogs.feature, feature), gte(usageLogs.date, start), lt(usageLogs.date, end)));
     const current = Number(usage.count);

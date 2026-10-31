@@ -9,6 +9,7 @@ import { processingIdempotencyKey } from './processor';
 import type { ColumnMapping } from './normalize';
 import { isProcessingRunStale } from './run-health';
 import { fetchTenantIfcLimits, graphileWorkerSchema } from './config';
+import { quotaWindow } from '../../services/billing/quota-policy';
 import { assertGraphileWorkerSchemaRevision } from './queue-readiness';
 const graphileSchema = () => graphileWorkerSchema();
 
@@ -125,13 +126,15 @@ export async function changeProcessingRun(input: {
       }
 
       if (limits.monthlyLimit !== null) {
-        const period = new Date().toISOString().slice(0, 7);
+        const [subscription] = await tx.select().from(subscriptions).where(eq(subscriptions.companyId, companyId));
+        const [plan] = subscription?.planId ? await tx.select().from(plans).where(eq(plans.id, subscription.planId)) : [];
+        const { period } = quotaWindow(subscription, plan, new Date());
         const counters = await tx.select({ ifcCount: usageRecords.ifcCount })
           .from(usageRecords)
           .where(and(eq(usageRecords.companyId, companyId), eq(usageRecords.period, period)));
         const completedThisPeriod = counters.reduce((sum, row) => sum + (row.ifcCount ?? 0), 0);
         if (completedThisPeriod + activeIfcRuns.length >= limits.monthlyLimit) {
-          throw new ProcessingConflict('IFC_QUOTA_EXCEEDED', 403, 'Aylık IFC işleme kotanız dolmuştur.');
+          throw new ProcessingConflict('IFC_QUOTA_EXCEEDED', 403, 'Bu dönemdeki IFC işleme kotanız dolmuştur.');
         }
       }
     }

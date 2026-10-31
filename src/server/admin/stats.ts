@@ -14,6 +14,8 @@ type TenantRow = {
   monthly_ifc_limit: number | null; ifc_max_file_mb: number | null; ifc_max_concurrent: number | null;
   bonus_quote_limit: number; bonus_ifc_limit: number;
   current_period_start: string; current_period_end: string | null;
+  quota_period_key: string;
+  plan_is_trial: boolean;
   current_usage: string; current_ifc_usage: string; invalid_usage: boolean;
   is_smartcheck_enabled: boolean; admin_notes: string | null;
 };
@@ -29,11 +31,11 @@ function tenantStats(row: TenantRow, now: Date) {
     currentPeriodEnd: row.current_period_end === null ? null : new Date(row.current_period_end),
   } : undefined;
   const plan = row.linked_plan_id ? {
-    id: row.linked_plan_id, monthlyQuoteLimit: row.monthly_quote_limit!, isActive: row.plan_active!,
+    id: row.linked_plan_id, monthlyQuoteLimit: row.monthly_quote_limit!, isActive: row.plan_active!, isTrial: Boolean(row.plan_is_trial),
   } : undefined;
   const allowance = describeQuotationAllowance(subscription, plan, now);
   const reason = allowance.reason ?? (allowance.limit !== null && current >= allowance.limit ? 'QUOTA_EXCEEDED' : null);
-  const { subscription_id, linked_plan_id, legacy_plan, plan_active, invalid_usage, ...fields } = row;
+  const { subscription_id, linked_plan_id, legacy_plan, plan_active, invalid_usage, quota_period_key, plan_is_trial, ...fields } = row;
   const ifcLimit = row.monthly_ifc_limit != null ? row.monthly_ifc_limit + (row.bonus_ifc_limit || 0) : null;
   return {
     ...fields, current_usage: current,
@@ -63,7 +65,10 @@ export async function readAdminTenants() {
         p.monthly_quote_limit, p.is_active AS plan_active,
         p.monthly_ifc_limit, p.ifc_max_file_mb, p.ifc_max_concurrent,
         s.bonus_quote_limit, s.bonus_ifc_limit,
-        s.current_period_start, s.current_period_end
+        s.current_period_start, s.current_period_end,
+        CASE WHEN p.is_trial AND s.current_period_start IS NOT NULL AND s.current_period_end IS NOT NULL
+          THEN to_char(s.current_period_start, 'YYYY-MM-DD') ELSE ${period} END AS quota_period_key,
+        COALESCE(p.is_trial, false) AS plan_is_trial
       FROM companies c
       LEFT JOIN subscriptions s ON s.company_id = c.id
       LEFT JOIN plans p ON p.id = s.plan_id
@@ -75,14 +80,14 @@ export async function readAdminTenants() {
       ORDER BY c.created_at DESC, c.id
     `);
     // usage_records has no RLS and is not a control-plane table: read it with the app role.
-    const usage = await db.execute<{ company_id: string; quote_count: string; ifc_count: string; invalid_usage: boolean }>(sql`
-      SELECT company_id, SUM(quote_count) AS quote_count, SUM(ifc_count) AS ifc_count,
+    const usage = await db.execute<{ company_id: string; period: string; quote_count: string; ifc_count: string; invalid_usage: boolean }>(sql`
+      SELECT company_id, period, SUM(quote_count) AS quote_count, SUM(ifc_count) AS ifc_count,
         bool_or(quote_count < 0 OR quote_count IS NULL) AS invalid_usage
-      FROM usage_records WHERE period = ${period} GROUP BY company_id
+      FROM usage_records WHERE period = ${period} OR period ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' GROUP BY company_id, period
     `);
-    const usageByCompany = new Map(usage.rows.map(row => [row.company_id, row]));
+    const usageByCompany = new Map(usage.rows.map(row => [`${row.company_id}:${row.period}`, row]));
     return result.rows.map(row => {
-      const counters = usageByCompany.get(row.id);
+      const counters = usageByCompany.get(`${row.id}:${row.quota_period_key}`);
       return tenantStats({
         ...row,
         current_usage: counters?.quote_count ?? '0',

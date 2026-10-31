@@ -978,6 +978,26 @@ export function injectDataTransitions(tag: string, schemaStatements: readonly st
     const cumulative = fullSnapshot ? injectDataTransitions('0034_admin_mfa', schemaStatements) : [...schemaStatements];
     return [...cumulative, ...priceReviewProtection];
   }
+  if (tag === '0040_trial_quota_period') {
+    const cumulative = schemaStatements.some(statement => statement.startsWith('CREATE TABLE "cde_transition_events"'))
+      ? injectDataTransitions('0039_atomic_tenant_deletion', schemaStatements) : [...schemaStatements];
+    return [...cumulative,
+      `CREATE FUNCTION public.bimmetraj_worker_get_quota_period(p_company_id uuid, p_at timestamp with time zone) RETURNS text LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'pg_catalog', 'public' AS $function$
+DECLARE v_period text;
+BEGIN
+  IF session_user <> 'bimmetraj_worker' THEN RAISE EXCEPTION 'worker role required' USING ERRCODE = '42501'; END IF;
+  IF p_company_id IS NULL OR p_at IS NULL THEN RAISE EXCEPTION 'invalid quota period input' USING ERRCODE = '22023'; END IF;
+  SELECT to_char(s.current_period_start, 'YYYY-MM-DD') INTO v_period
+    FROM public.subscriptions s JOIN public.plans p ON p.id = s.plan_id
+    WHERE s.company_id = p_company_id AND p.is_trial AND s.current_period_start IS NOT NULL AND s.current_period_end IS NOT NULL;
+  RETURN coalesce(v_period, to_char(p_at AT TIME ZONE 'UTC', 'YYYY-MM'));
+END $function$;`,
+      `ALTER FUNCTION public.bimmetraj_worker_get_quota_period(uuid, timestamp with time zone) OWNER TO bimmetraj_owner;`,
+      `REVOKE ALL ON FUNCTION public.bimmetraj_worker_get_quota_period(uuid, timestamp with time zone) FROM PUBLIC;`,
+      `GRANT EXECUTE ON FUNCTION public.bimmetraj_worker_get_quota_period(uuid, timestamp with time zone) TO bimmetraj_worker;`,
+      `UPDATE public.plans SET marketing_description = 'Yüksek teklif ve IFC kapasitesi için.' WHERE id = '2b507e20-83d1-4b21-9fc1-000000000005' AND marketing_description = 'Ekip yönetimi, yüksek kapasite ve öncelikli işleme için.';`,
+    ];
+  }
   if (tag === '0039_atomic_tenant_deletion') {
     const cumulative = schemaStatements.some(statement => statement.startsWith('CREATE TABLE "cde_transition_events"'))
       ? injectDataTransitions('0038_admin_tenant_deletion', schemaStatements) : [...schemaStatements];

@@ -3,7 +3,7 @@ import { withAppTenantTransaction } from "../../db/app-tenant";
 import type { TenantContext } from "../../db/tenant-context";
 import { plans, subscriptions, usageLogs, usageRecords } from "../../db/schema";
 import { PLAN_LIMITS } from "./limits";
-import { describeQuotationAllowance, quotaUnavailable } from "./quota-policy";
+import { describeQuotationAllowance, quotaUnavailable, quotaWindow } from "./quota-policy";
 import { AI_USAGE_FEATURE } from './ai-quota';
 import { featureMonthlyLimit, isMeteredFeature, quotaCodes } from './feature-limits';
 
@@ -14,10 +14,9 @@ export async function readBillingUsage(actor: TenantContext, at?: Date) {
   const { companyId } = actor;
   return withAppTenantTransaction(actor, async tx => {
     const now = at ?? new Date((await tx.execute<{ now: string }>(sql`SELECT clock_timestamp() AS now`)).rows[0].now);
-    const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
-    const end = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
     const [subscription] = await tx.select().from(subscriptions).where(eq(subscriptions.companyId, companyId));
     const [plan] = subscription?.planId ? await tx.select().from(plans).where(eq(plans.id, subscription.planId)) : [];
+    const { start, end } = quotaWindow(subscription, plan, now);
     const allowance = describeQuotationAllowance(subscription, plan, now);
     const counters = await tx.select({ count: usageRecords.quoteCount, ifcCount: usageRecords.ifcCount }).from(usageRecords)
       .where(and(eq(usageRecords.companyId, companyId), eq(usageRecords.period, allowance.period)));

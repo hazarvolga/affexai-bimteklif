@@ -11,7 +11,7 @@ const row = (overrides = {}) => ({
   subscription_id: 'subscription', subscription_status: 'active', legacy_plan: 'starter',
   plan_id: null, linked_plan_id: null, plan_name: null, monthly_quote_limit: null,
   plan_active: null, bonus_quote_limit: 2, current_period_start: '2020-01-01T00:00:00Z',
-  current_period_end: null, current_usage: '7', invalid_usage: false, ...overrides,
+  current_period_end: null, current_usage: '7', invalid_usage: false, quota_period_key: '2026-11', plan_is_trial: false, ...overrides,
 });
 
 type Row = ReturnType<typeof row>;
@@ -26,7 +26,7 @@ async function read(t: TestContext, rows: Row[]) {
     return { rows: compiled.sql.includes('clock_timestamp()') ? [{ now }] : result };
   };
   const companyRows = rows.map(({ current_usage: _usage, invalid_usage: _invalid, ...company }) => company);
-  const usageRows = rows.map(r => ({ company_id: r.id, quote_count: r.current_usage, ifc_count: '0', invalid_usage: r.invalid_usage }));
+  const usageRows = rows.map(r => ({ company_id: r.id, period: r.quota_period_key, quote_count: r.current_usage, ifc_count: '0', invalid_usage: r.invalid_usage }));
   const controlExecute = answering(companyRows);
   t.mock.method(getControlDatabase().db, 'transaction', (async (callback: any, options: unknown) => {
     assert.deepEqual(options, { isolationLevel: 'repeatable read', accessMode: 'read only' });
