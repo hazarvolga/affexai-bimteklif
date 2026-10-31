@@ -978,6 +978,32 @@ export function injectDataTransitions(tag: string, schemaStatements: readonly st
     const cumulative = fullSnapshot ? injectDataTransitions('0034_admin_mfa', schemaStatements) : [...schemaStatements];
     return [...cumulative, ...priceReviewProtection];
   }
+  if (tag === '0039_atomic_tenant_deletion') {
+    const cumulative = schemaStatements.some(statement => statement.startsWith('CREATE TABLE "cde_transition_events"'))
+      ? injectDataTransitions('0038_admin_tenant_deletion', schemaStatements) : [...schemaStatements];
+    return [...cumulative,
+      `CREATE FUNCTION public.bimmetraj_clear_deleted_company_rows(p_company_id uuid) RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'pg_catalog', 'public' AS $function$
+BEGIN
+  IF session_user <> 'bimmetraj_control' THEN RAISE EXCEPTION 'control role required' USING ERRCODE = '42501'; END IF;
+  IF p_company_id IS NULL OR EXISTS (SELECT 1 FROM public.memberships WHERE company_id = p_company_id) THEN
+    RAISE EXCEPTION 'tenant rows can only be cleared for a company without members' USING ERRCODE = '42501';
+  END IF;
+  DELETE FROM public.activities WHERE company_id = p_company_id;
+  DELETE FROM public.deals WHERE company_id = p_company_id;
+  DELETE FROM public.quotation_item_evidence WHERE company_id = p_company_id;
+  DELETE FROM public.cost_components WHERE quotation_id IN (SELECT id FROM public.quotations WHERE company_id = p_company_id);
+  DELETE FROM public.quotation_financials WHERE quotation_id IN (SELECT id FROM public.quotations WHERE company_id = p_company_id);
+  DELETE FROM public.quotation_items WHERE company_id = p_company_id;
+  DELETE FROM public.quotations WHERE company_id = p_company_id;
+  DELETE FROM public.clients WHERE company_id = p_company_id;
+  DELETE FROM public.company_industry_settings WHERE company_id = p_company_id;
+  DELETE FROM public.usage_alerts WHERE company_id = p_company_id;
+END $function$;`,
+      `ALTER FUNCTION public.bimmetraj_clear_deleted_company_rows(uuid) OWNER TO bimmetraj_owner;`,
+      `REVOKE ALL ON FUNCTION public.bimmetraj_clear_deleted_company_rows(uuid) FROM PUBLIC;`,
+      `GRANT EXECUTE ON FUNCTION public.bimmetraj_clear_deleted_company_rows(uuid) TO bimmetraj_control;`,
+    ];
+  }
   if (tag === '0038_admin_tenant_deletion') {
     const cumulative = schemaStatements.some(statement => statement.startsWith('CREATE TABLE "cde_transition_events"'))
       ? injectDataTransitions('0037_client_privacy_mask', schemaStatements) : [...schemaStatements];

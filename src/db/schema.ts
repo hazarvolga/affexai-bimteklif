@@ -120,6 +120,14 @@ const appSuperAdminQueueReadPolicy = (name: string) => pgPolicy(`${name}_app_sup
   using: sql`current_user = 'bimmetraj_app' AND nullif(current_setting('bimmetraj.super_admin_user_id', true), '')::uuid IS NOT NULL`,
 });
 
+/** Lets only the tenant deletion capability, entered from a control session, clear this table. */
+const adminDeletionCapabilityPolicy = (name: string) => pgPolicy(`${name}_admin_deletion_capability`, {
+  for: "all",
+  to: "public",
+  using: sql`session_user = 'bimmetraj_control' AND current_user = 'bimmetraj_owner'`,
+  withCheck: sql`false`,
+});
+
 const workerCapabilityReadPolicy = (name: string) => pgPolicy(`${name}_worker_capability_read`, {
   for: "select",
   to: "public",
@@ -439,6 +447,7 @@ export const usageAlerts = pgTable("usage_alerts", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (table) => ({
   appTenantPolicy: appTenantPolicy("usage_alerts", table.companyId),
+  adminDeletionCapabilityPolicy: adminDeletionCapabilityPolicy("usage_alerts"),
   backupReadPolicy: backupReadPolicy("usage_alerts"),
   ownerMigrationPolicy: ownerMigrationPolicy("usage_alerts"),
 })).enableRLS();
@@ -519,6 +528,7 @@ export const clients = pgTable("clients", {
   privacyStatusCheck: check("clients_privacy_status_check", sql`${table.privacyStatus} in ('active', 'requested', 'hold', 'masked')`),
   privacyMaskCheck: check("clients_privacy_mask_check", sql`${table.privacyStatus} <> 'masked' OR (${table.name} = 'Maskelenmiş müşteri' AND ${table.phone} IS NULL AND ${table.email} IS NULL AND ${table.address} IS NULL AND ${table.notes} IS NULL AND ${table.privacyMaskedAt} IS NOT NULL)`),
   appTenantPolicy: appTenantPolicy("clients", table.companyId),
+  adminDeletionCapabilityPolicy: adminDeletionCapabilityPolicy("clients"),
   backupReadPolicy: backupReadPolicy("clients"),
   ownerMigrationPolicy: ownerMigrationPolicy("clients"),
 })).enableRLS();
@@ -571,6 +581,7 @@ export const quotations = pgTable("quotations", {
     pricingSnapshotLockStatusCheck: check("quotations_pricing_snapshot_lock_status_check", sql`${table.pricingSnapshotLockStatus} in ('unlocked', 'locked', 'stale')`),
     overheadProfitPercentCheck: check("quotations_overhead_profit_percent_check", sql`${table.overheadProfitPercent} >= 0 AND ${table.overheadProfitPercent} <= 100`),
     appTenantPolicy: appTenantPolicy("quotations", table.companyId),
+  adminDeletionCapabilityPolicy: adminDeletionCapabilityPolicy("quotations"),
     backupReadPolicy: backupReadPolicy("quotations"),
     ownerMigrationPolicy: ownerMigrationPolicy("quotations"),
   };
@@ -941,6 +952,7 @@ export const quotationItems = pgTable("quotation_items", {
     transferIdempotencyUnique: uniqueIndex("quotation_items_transfer_idempotency_idx").on(table.companyId, table.quotationId, table.transferIdempotencyKey).where(sql`${table.transferIdempotencyKey} IS NOT NULL`),
     priceSnapshotStatusCheck: check("quotation_items_price_snapshot_status_check", sql`${table.priceSnapshotStatus} in ('none', 'attached', 'locked', 'stale', 'missing')`),
     appTenantPolicy: appTenantPolicy("quotation_items", table.companyId),
+  adminDeletionCapabilityPolicy: adminDeletionCapabilityPolicy("quotation_items"),
     backupReadPolicy: backupReadPolicy("quotation_items"),
     ownerMigrationPolicy: ownerMigrationPolicy("quotation_items"),
   };
@@ -1000,6 +1012,7 @@ export const quotationItemEvidence = pgTable("quotation_item_evidence", {
   sourceHashCheck: check("quotation_item_evidence_source_hash_check", sql`${table.sourceDocumentHash} IS NULL OR length(${table.sourceDocumentHash}) >= 16`),
   evidenceLookupIdx: index("idx_quotation_item_evidence_lookup").on(table.companyId, table.quotationId, table.quotationItemId),
   appTenantPolicy: appTenantPolicy("quotation_item_evidence", table.companyId),
+  adminDeletionCapabilityPolicy: adminDeletionCapabilityPolicy("quotation_item_evidence"),
   backupReadPolicy: backupReadPolicy("quotation_item_evidence"),
   ownerMigrationPolicy: ownerMigrationPolicy("quotation_item_evidence"),
 })).enableRLS();
@@ -1045,6 +1058,7 @@ export const companyIndustrySettings = pgTable("company_industry_settings", {
     appTenantReadPolicy: appTenantReadPolicy("company_industry_settings", table.companyId),
     appTenantInsertPolicy: appTenantInsertPolicy("company_industry_settings", table.companyId),
     appTenantUpdatePolicy: appTenantUpdatePolicy("company_industry_settings", table.companyId),
+  adminDeletionCapabilityPolicy: adminDeletionCapabilityPolicy("company_industry_settings"),
     backupReadPolicy: backupReadPolicy("company_industry_settings"),
     ownerMigrationPolicy: ownerMigrationPolicy("company_industry_settings"),
   };
@@ -1066,6 +1080,7 @@ export const deals = pgTable("deals", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, (table) => ({
   appTenantPolicy: appTenantPolicy("deals", table.companyId),
+  adminDeletionCapabilityPolicy: adminDeletionCapabilityPolicy("deals"),
   backupReadPolicy: backupReadPolicy("deals"),
   ownerMigrationPolicy: ownerMigrationPolicy("deals"),
 })).enableRLS();
@@ -1080,6 +1095,7 @@ export const activities = pgTable("activities", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (table) => ({
   appTenantPolicy: appTenantPolicy("activities", table.companyId),
+  adminDeletionCapabilityPolicy: adminDeletionCapabilityPolicy("activities"),
   backupReadPolicy: backupReadPolicy("activities"),
   ownerMigrationPolicy: ownerMigrationPolicy("activities"),
 })).enableRLS();
@@ -1094,7 +1110,7 @@ export const costComponents = pgTable("cost_components", {
   overheadCost: numeric("overhead_cost", { precision: 20, scale: 2 }).default("0"),
 }, (table) => {
   const tenant = sql`current_user = 'bimmetraj_app' AND EXISTS (SELECT 1 FROM ${quotations} WHERE ${quotations.id} = ${table.quotationId} AND ${quotations.companyId} = nullif(current_setting('bimmetraj.company_id', true), '')::uuid)`;
-  return { appTenantPolicy: pgPolicy('cost_components_app_tenant', { for: 'all', to: 'public', using: tenant, withCheck: tenant }), backupReadPolicy: backupReadPolicy('cost_components'), ownerMigrationPolicy: ownerMigrationPolicy('cost_components') };
+  return { adminDeletionCapabilityPolicy: adminDeletionCapabilityPolicy("cost_components"), appTenantPolicy: pgPolicy('cost_components_app_tenant', { for: 'all', to: 'public', using: tenant, withCheck: tenant }), backupReadPolicy: backupReadPolicy('cost_components'), ownerMigrationPolicy: ownerMigrationPolicy('cost_components') };
 }).enableRLS();
 
 export const quotationFinancials = pgTable("quotation_financials", {
@@ -1111,7 +1127,7 @@ export const quotationFinancials = pgTable("quotation_financials", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, (table) => {
   const tenant = sql`current_user = 'bimmetraj_app' AND EXISTS (SELECT 1 FROM ${quotations} WHERE ${quotations.id} = ${table.quotationId} AND ${quotations.companyId} = nullif(current_setting('bimmetraj.company_id', true), '')::uuid)`;
-  return { appTenantPolicy: pgPolicy('quotation_financials_app_tenant', { for: 'all', to: 'public', using: tenant, withCheck: tenant }), backupReadPolicy: backupReadPolicy('quotation_financials'), ownerMigrationPolicy: ownerMigrationPolicy('quotation_financials') };
+  return { adminDeletionCapabilityPolicy: adminDeletionCapabilityPolicy("quotation_financials"), appTenantPolicy: pgPolicy('quotation_financials_app_tenant', { for: 'all', to: 'public', using: tenant, withCheck: tenant }), backupReadPolicy: backupReadPolicy('quotation_financials'), ownerMigrationPolicy: ownerMigrationPolicy('quotation_financials') };
 }).enableRLS();
 
 // ============================================================
