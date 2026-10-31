@@ -72,8 +72,8 @@ test("roadmap covers the agreed topics, ministry questions and official sources"
 
 
 test("Rev. 112 documents Phase 0 without claiming production or independent expert approval", () => {
-  assert.equal(CALC_REVIEW_META.version, "BIM-CALC-2026-10-30.14");
-  assert.equal(CALC_REVIEW_CHANGELOG.at(-1)?.revision, "Rev. 132");
+  assert.equal(CALC_REVIEW_META.version, "BIM-CALC-2026-10-31.1");
+  assert.equal(CALC_REVIEW_CHANGELOG.at(-1)?.revision, "Rev. 134");
   const revisions = CALC_REVIEW_CHANGELOG.map(item => Number(item.revision.match(/Rev\. (\d+)/)?.[1]));
   assert.ok(revisions.every((value, index) => index === 0 || value > revisions[index - 1]), "calculation revisions must be strictly increasing");
   const kik = CALC_REVIEW_CHANGELOG.find(item => item.revision === "Rev. 112")?.moduleDetails?.["kik-adt"];
