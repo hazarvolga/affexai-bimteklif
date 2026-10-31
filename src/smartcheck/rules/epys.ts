@@ -111,7 +111,7 @@ export function validateEpysRules(input: EpysRuleInput): EpysValidationResult {
 
   // KURAL 4: m.10(2) & EK-3 Tablo 3.1 Mahal İsimlendirme Standartları
   if (input.spaceNames) {
-    const spaceFormatRegex = /^(B\d{2}|K\d{2}|NNN)_[A-Z0-9ÇŞĞÜÖİçşğüöı]{3}_\d{3}$/;
+    const spaceFormatRegex = /^(?:[A-Z]{2}-MHL-)?(B\d{2}|K[A-Z0-9]{2}|NNN)_[A-Z0-9]{3}_\d{3}(?:_[^\s-]+)?$/;
     const invalidSpaces = input.spaceNames.filter(s => !spaceFormatRegex.test(s));
     if (invalidSpaces.length > 0) {
       warnings.push(`[m.10 / EK-3 Uyarısı] ${invalidSpaces.length} adet IfcSpace (Mahal) numarası EK-3 Tablo 3.1 (Kat_Bölüm_SıraNo, örn. K00_DAI_001) şablonuna uymuyor. Örn: ${invalidSpaces[0]}`);

@@ -13,23 +13,20 @@ from ifc_ruhsat.kurallar.ortak import Baglam, oznitelik
 # Disiplin (2 harf) - Kategori (3 harf) - Açıklama (alt tire ile ayrılmış, orta tire yok)
 VARLIK_ADI = re.compile(r"^([A-Z]{2})-([A-Z]{3})(?:-([^\s-]+))?$")
 
-# EK-2 Tablo 2.1: ProjeKodu(6) BinaKodu(2) Disiplin(2) AltDisiplin(4) DosyaTürü(2)
+# EK-2 Tablo 2.1: ProjeKodu(6) BinaKodu(2) Disiplin(2) AltDisiplin(4; Tablo 2.11 üç karakter verir) DosyaTürü(2)
 # DosyaTipi(3) Kat/Konum(3) SıraNo(2) RevizyonNo(3), alt tire ile.
 DOSYA_ADI = re.compile(
-    r"^([A-Za-z0-9]{6})_([A-Za-z0-9]{2})_([A-Z]{2})_([A-Z0-9]{4})_([A-Z0-9]{2})_"
+    r"^([A-Za-z0-9]{6})_([A-Za-z0-9]{2})_([A-Z]{2})_([A-Z0-9]{3,4})_([A-Z0-9]{2})_"
     r"([A-Z0-9]{3})_([A-Za-z0-9]{3})_(\d{2})_(\d{3})$"
 )
 
-# İsimlendirme şablonu yapı elemanları ve mekânsal elemanlar içindir; iskelet ve
-# proje bilgileri EK-1/EK-3'e göre ayrı adlandırılır.
-SABLON_DISI = (
-    "IfcProject",
-    "IfcSite",
-    "IfcBuilding",
-    "IfcBuildingStorey",
-    "IfcSpace",
-    "IfcGridAxis",
-)
+# IfcSpace adı mahal.py'de denetlenir; IfcProject adı proje kodudur (Tablo 5.1 satır 69), aks için AxisTag kullanılır.
+SABLON_DISI = ("IfcProject", "IfcSpace", "IfcGridAxis")
+# Tablo 6.7, 6.8 ve 6.55 adı EK-5'e bağlar; uygulamadaki örnek model buna uymadığı için netleşene kadar uyarıdır.
+MEKANSAL_SINIFLAR = ("IfcSite", "IfcBuilding", "IfcBuildingStorey")
+# EK-2 m.2.9.3: 2B kesit ve görünüşte konum kodunu müellif belirler.
+KONUM_SERBEST_TURLER = ("KS", "GR")
+KAT_KODU = re.compile(r"^(B\d{2}|K[A-Z0-9]{2}|NNN)$")
 
 
 def kontrol(b: Baglam) -> list[Bulgu]:
@@ -44,7 +41,7 @@ def _varlik_adlari(b: Baglam) -> list[Bulgu]:
     out = []
     disiplinler = veri.ek2_disiplinler()
     kodlar = veri.kategori_kodlari()
-    bos, bicim, disiplin_yanlis, kod_yanlis, kod_sinif = [], [], [], [], []
+    bos, bicim, mekansal_bicim, disiplin_yanlis, kod_yanlis, kod_sinif = [], [], [], [], [], []
     for e in b.varliklar:
         if e.is_a() in SABLON_DISI:
             continue
@@ -54,7 +51,7 @@ def _varlik_adlari(b: Baglam) -> list[Bulgu]:
             continue
         m = VARLIK_ADI.match(ad.strip())
         if not m:
-            bicim.append(e)
+            (mekansal_bicim if e.is_a() in MEKANSAL_SINIFLAR else bicim).append(e)
             continue
         disiplin, kod = m.group(1), m.group(2)
         if disiplin not in disiplinler:
@@ -87,6 +84,19 @@ def _varlik_adlari(b: Baglam) -> list[Bulgu]:
                 5,
                 varlik_listesi(bicim),
                 len(bicim),
+            )
+        )
+    if mekansal_bicim:
+        out.append(
+            Bulgu(
+                "isim-mekansal-sablon",
+                "uyari",
+                f"{len(mekansal_bicim)} saha, bina veya kat adı EK-5 şablonunda değil (örn. MM-BNK-zemin). "
+                "EK-6 bu sınıflar için EK-5'e göre isimlendirme ister.",
+                "EK-6 Tablo 6.7, 6.8, 6.55; EK-5 5.5",
+                5,
+                varlik_listesi(mekansal_bicim),
+                len(mekansal_bicim),
             )
         )
     if disiplin_yanlis:
@@ -146,7 +156,7 @@ def _dosya_adi(b: Baglam) -> list[Bulgu]:
                 "uyari",
                 f"Dosya adı '{govde}' EK-2 Tablo 2.1 şablonuna uymuyor: "
                 "ProjeKodu(6)_BinaKodu(2)_Disiplin(2)_AltDisiplin(4)_DosyaTürü(2)_DosyaTipi(3)_"
-                "KatKonum(3)_SıraNo(2)_RevizyonNo(3), örn. 123456_00_MM_GNEL_MD_BIM_000_01_000.",
+                "KatKonum(3)_SıraNo(2)_RevizyonNo(3), örn. 123456_00_MM_XXXX_MD_MMC_NNN_01_000.",
                 "m.6, EK-2 Tablo 2.1",
                 3,
             )
@@ -168,14 +178,15 @@ def _dosya_adi(b: Baglam) -> list[Bulgu]:
                 3,
             )
         ]
-    alt_disiplinler = veri.ek2_alt_disiplinler()
-    if alt_disiplinler and alt_disiplin not in alt_disiplinler:
+    alt_tablo = veri.ek2_alt_disiplin_tablolari().get(disiplin)
+    if alt_tablo is not None and alt_disiplin not in alt_tablo:
         return [
             Bulgu(
                 "dosya-adi-alt-disiplin",
                 "uyari",
-                f"Dosya adındaki alt disiplin/öğe kodu '{alt_disiplin}' EK-2 Tablo 2.3–2.11 listesinde yok.",
-                "EK-2 Tablo 2.3–2.11",
+                f"Dosya adındaki alt disiplin/öge kodu '{alt_disiplin}' {disiplin} disiplininin EK-2 tablosunda yok. "
+                "Projeye özel tanım yapıldıysa müellif doğrulamalıdır (EK-2 m.2.6).",
+                "EK-2 Tablo 2.3–2.11, m.2.6",
                 3,
             )
         ]
@@ -201,13 +212,14 @@ def _dosya_adi(b: Baglam) -> list[Bulgu]:
                 3,
             )
         ]
-    if not re.match(r"^(B\d{2}|K[A-Z0-9]{2}|NNN|000)$", kat_konum):
+    konum_gecerli = dosya_turu in KONUM_SERBEST_TURLER and re.match(r"^[A-Z0-9]{3}$", kat_konum)
+    if not KAT_KODU.match(kat_konum) and not konum_gecerli:
         return [
             Bulgu(
                 "dosya-adi-kat",
                 "uyari",
-                f"Dosya adındaki kat/konum kodu '{kat_konum}' EK-2 Tablo 2.14 şablonuna (B01.., K00.., NNN, 000) uymuyor.",
-                "EK-2 Tablo 2.14",
+                f"Dosya adındaki kat/konum kodu '{kat_konum}' EK-2 Tablo 2.14 şablonuna (B01.., K00.., KXX, NNN) uymuyor.",
+                "EK-2 Tablo 2.14, m.2.9",
                 3,
             )
         ]

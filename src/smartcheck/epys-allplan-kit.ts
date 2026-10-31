@@ -193,7 +193,7 @@ export function buildAllplanEpysKitV1(): AllplanEpysKitV1 {
     trepysPsetCatalog: TREPYS_PSET_CATALOG,
     ek2FileNamingTemplate: {
       pattern: "ProjeKodu(6)_BinaKodu(2)_Disiplin(2)_AltDisiplin(4)_DosyaTuru(2)_DosyaTipi(3)_KatKonum(3)_SiraNo(2)_RevizyonNo(3)",
-      example: "123456_00_MM_GNEL_MD_BIM_000_01_000.ifc",
+      example: "123456_00_MM_XXXX_MD_MMC_NNN_01_000.ifc",
       disiplinler: ek2.disiplinler,
       altDisiplinler: ek2.alt_disiplinler,
       dosyaTurleri: ek2.dosya_turleri,

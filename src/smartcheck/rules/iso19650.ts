@@ -135,6 +135,7 @@ export interface Iso19650ValidationResult {
 const EK2_TABLES = ek2Raw as {
   disiplinler: Record<string, string>;
   alt_disiplinler: Record<string, string>;
+  alt_disiplin_tablolari: Record<string, Record<string, string>>;
   dosya_turleri: Record<string, string>;
   dosya_tipleri: Record<string, string>;
 };
@@ -143,9 +144,11 @@ const ISO_19650_HYPHEN_REGEX =
   /^([A-Z0-9]{2,8})-([A-Z0-9]{2,6})-([A-Z0-9]{2,4})-([A-Z0-9]{2,4})-([A-Z0-9]{2,4})-([A-Z0-9]{1,4})-(\d{3,6})$/i;
 
 const RG_33331_EK2_UNDERSCORE_REGEX =
-  /^([A-Z0-9]{6})_([A-Z0-9]{2})_([A-Z]{2})_([A-Z0-9]{4})_([A-Z]{2})_([A-Z0-9]{3})_([A-Z0-9]{3})_(\d{2})_(\d{3})$/i;
+  /^([A-Z0-9]{6})_([A-Z0-9]{2})_([A-Z]{2})_([A-Z0-9]{3,4})_([A-Z]{2})_([A-Z0-9]{3})_([A-Z0-9]{3})_(\d{2})_(\d{3})$/i;
 
-const EK2_LEVEL_CODE_REGEX = /^(000|NNN|B\d{2}|K\d{2}|KAC|KAA|KTH)$/;
+const EK2_LEVEL_CODE_REGEX = /^(NNN|B\d{2}|K[A-Z0-9]{2})$/;
+/** EK-2 m.2.9.3: 2B kesit ve görünüşte konum kodunu müellif belirler. */
+const EK2_FREE_LOCATION_GENRES = new Set(["KS", "GR"]);
 
 const PRELIMINARY_REV_REGEX = /^P\d{2}\.\d{2}$/;
 const CONTRACTUAL_REV_REGEX = /^(C\d{2}|\d{3})$/;
@@ -190,8 +193,9 @@ export function parseContainerIdentity(fileName: string): ParsedContainerIdentit
     if (!(discipline in EK2_TABLES.disiplinler)) {
       ek2Errors.push(`Disiplin kodu '${discipline}' RG 33331 EK-2 tablosunda tanımlı değil.`);
     }
-    if (!(subDiscipline in EK2_TABLES.alt_disiplinler)) {
-      ek2Errors.push(`Alt disiplin kodu '${subDiscipline}' RG 33331 EK-2 tablosunda tanımlı değil.`);
+    const subDisciplineTable = EK2_TABLES.alt_disiplin_tablolari[discipline];
+    if (subDisciplineTable && !(subDiscipline in subDisciplineTable)) {
+      ek2Errors.push(`Alt disiplin kodu '${subDiscipline}' ${discipline} disiplininin RG 33331 EK-2 tablosunda tanımlı değil.`);
     }
     if (!(fileGenre in EK2_TABLES.dosya_turleri)) {
       ek2Errors.push(`Dosya türü kodu '${fileGenre}' RG 33331 EK-2 tablosunda tanımlı değil.`);
@@ -199,9 +203,9 @@ export function parseContainerIdentity(fileName: string): ParsedContainerIdentit
     if (!(fileType in EK2_TABLES.dosya_tipleri)) {
       ek2Errors.push(`Dosya tipi kodu '${fileType}' RG 33331 EK-2 tablosunda tanımlı değil.`);
     }
-    if (!EK2_LEVEL_CODE_REGEX.test(levelCode)) {
+    if (!EK2_LEVEL_CODE_REGEX.test(levelCode) && !EK2_FREE_LOCATION_GENRES.has(fileGenre)) {
       ek2Errors.push(
-        `Kat/konum kodu '${levelCode}' RG 33331 EK-2 formatına (000, NNN, B01..B99, K00..K99, KAC, KAA, KTH) uymuyor.`,
+        `Kat/konum kodu '${levelCode}' RG 33331 EK-2 formatına (NNN, B01..B99, K00..K99, KXX) uymuyor.`,
       );
     }
 

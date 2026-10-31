@@ -35,7 +35,7 @@ _PART = re.compile(rb"pdfaid:part(?:>|=\")\s*(\d)")
 _CONFORMANCE = re.compile(rb"pdfaid:conformance(?:>|=\")\s*([ABUabu])")
 
 # Çizim paftası dosya türleri (EK-2 Tablo 2.12: Plan, Kesit, Görünüş, Detay)
-_DRAWING_FILE_TYPES = frozenset({"PL", "CP", "KS", "CK", "GR", "CG", "DT", "CD"})
+_DRAWING_FILE_TYPES = frozenset({"PL", "KS", "GR", "DT", "SM"})
 
 # TS EN ISO 216 A serisi standart boyutları (mm)
 _ISO_A_SIZES_MM = (
@@ -295,7 +295,7 @@ def build_report(path: str, file_name: Optional[str] = None) -> Dict[str, Any]:
 
     stem_match = DOSYA_ADI.match(Path(file_name).stem)
     if not stem_match:
-        findings.append(_finding("DOSYA_ADI_EK2", "hata", "Dosya adı EK-2'deki 9 alanlı şablona uymuyor (ör. 260001_00_MM_GNEL_PL_MMC_K00_01_000).", "Dijital Hazırlama Yönetmeliği m.6, EK-2"))
+        findings.append(_finding("DOSYA_ADI_EK2", "hata", "Dosya adı EK-2'deki 9 alanlı şablona uymuyor (ör. 260001_00_MM_XXXX_PL_MMC_K00_01_000).", "Dijital Hazırlama Yönetmeliği m.6, EK-2"))
     file_type_code = stem_match.group(5) if stem_match else None
     is_drawing_sheet = file_type_code in _DRAWING_FILE_TYPES if file_type_code else True
 

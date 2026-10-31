@@ -28,7 +28,7 @@ const PYTHON_AVAILABLE = hasPythonIfcRuntime();
 
 test("worker geometry survives zod and is excluded from SmartCheck evidence", (t) => {
   if (!PYTHON_AVAILABLE) return t.skip("Python IFC runtime unavailable");
-  const input = path.join(ROOT, "workers/ifc/fixtures/epys/123456_00_MM_GNEL_MD_BIM_000_01_000.ifc");
+  const input = path.join(ROOT, "workers/ifc/fixtures/epys/123456_00_MM_XXXX_MD_MMC_NNN_01_000.ifc");
   const dir = mkdtempSync(path.join(tmpdir(), "ifc-geometry-e2e-"));
   try {
     const output = path.join(dir, "output.json");

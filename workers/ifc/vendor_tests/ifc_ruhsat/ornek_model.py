@@ -256,7 +256,7 @@ def iyi_model() -> ifcopenshell.file:
 
 
 def kaydet(
-    m: ifcopenshell.file, klasor: Path, ad: str = "123456_00_MM_GNEL_MD_BIM_000_01_000.ifc"
+    m: ifcopenshell.file, klasor: Path, ad: str = "123456_00_MM_XXXX_MD_MMC_NNN_01_000.ifc"
 ) -> Path:
     yol = klasor / ad
     m.write(str(yol))

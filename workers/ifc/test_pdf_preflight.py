@@ -128,7 +128,7 @@ def codes(report):
 
 
 def test_pdfa_claim_with_text_and_ek2_name_has_no_errors(tmp_path):
-    path = write(tmp_path, "260001_00_MM_GNEL_PL_MMC_K00_01_000.pdf", text_pdf(pdfa=True))
+    path = write(tmp_path, "260001_00_MM_XXXX_PL_MMC_K00_01_000.pdf", text_pdf(pdfa=True))
     report = pdf_preflight.build_report(path)
     assert report["summary"]["hata"] == 0
     assert report["pdfa"]["claimed"] == {"part": "2", "conformance": "B"}
@@ -136,12 +136,12 @@ def test_pdfa_claim_with_text_and_ek2_name_has_no_errors(tmp_path):
 
 
 def test_missing_pdfa_identification_is_an_error(tmp_path):
-    report = pdf_preflight.build_report(write(tmp_path, "260001_00_MM_GNEL_PL_MMC_K00_01_000.pdf", text_pdf()))
+    report = pdf_preflight.build_report(write(tmp_path, "260001_00_MM_XXXX_PL_MMC_K00_01_000.pdf", text_pdf()))
     assert "PDFA_KIMLIGI_YOK" in codes(report)
 
 
 def test_image_only_pages_are_flagged_as_possibly_scanned(tmp_path):
-    report = pdf_preflight.build_report(write(tmp_path, "260001_00_MM_GNEL_PL_MMC_K00_01_000.pdf", scanned_pdf()))
+    report = pdf_preflight.build_report(write(tmp_path, "260001_00_MM_XXXX_PL_MMC_K00_01_000.pdf", scanned_pdf()))
     assert "TARANMIS_SAYFA_OLASI" in codes(report)
     finding = next(f for f in report["findings"] if f["kod"] == "TARANMIS_SAYFA_OLASI")
     assert "m.6" in finding["madde"]
@@ -150,13 +150,13 @@ def test_image_only_pages_are_flagged_as_possibly_scanned(tmp_path):
 
 
 def test_uploaded_filename_is_used_instead_of_temporary_worker_filename(tmp_path):
-    report = pdf_preflight.build_report(write(tmp_path, "document.pdf", text_pdf(pdfa=True)), "260001_00_MM_GNEL_PL_MMC_K00_01_000.pdf")
-    assert report["file"]["fileName"] == "260001_00_MM_GNEL_PL_MMC_K00_01_000.pdf"
+    report = pdf_preflight.build_report(write(tmp_path, "document.pdf", text_pdf(pdfa=True)), "260001_00_MM_XXXX_PL_MMC_K00_01_000.pdf")
+    assert report["file"]["fileName"] == "260001_00_MM_XXXX_PL_MMC_K00_01_000.pdf"
     assert "DOSYA_ADI_EK2" not in codes(report)
 
 
 def test_encrypted_pdf_is_rejected(tmp_path):
-    report = pdf_preflight.build_report(write(tmp_path, "260001_00_MM_GNEL_PL_MMC_K00_01_000.pdf", text_pdf(pdfa=True, encrypt=True)))
+    report = pdf_preflight.build_report(write(tmp_path, "260001_00_MM_XXXX_PL_MMC_K00_01_000.pdf", text_pdf(pdfa=True, encrypt=True)))
     assert "SIFRELI_PDF" in codes(report)
 
 
@@ -166,7 +166,7 @@ def test_file_name_must_follow_ek2_nine_field_pattern(tmp_path):
 
 
 def test_unreadable_file_reports_error_instead_of_passing(tmp_path):
-    report = pdf_preflight.build_report(write(tmp_path, "260001_00_MM_GNEL_PL_MMC_K00_01_000.pdf", b"not a pdf"))
+    report = pdf_preflight.build_report(write(tmp_path, "260001_00_MM_XXXX_PL_MMC_K00_01_000.pdf", b"not a pdf"))
     assert "PDF_OKUNAMADI" in codes(report)
     assert report["summary"]["hata"] == 1
 
@@ -190,7 +190,7 @@ def test_non_iso216_page_size_and_multi_sheet_drawing_warnings(tmp_path):
     out = io.BytesIO()
     writer.write(out)
 
-    path = write(tmp_path, "260001_00_MM_GNEL_PL_MMC_K00_01_000.pdf", out.getvalue())
+    path = write(tmp_path, "260001_00_MM_XXXX_PL_MMC_K00_01_000.pdf", out.getvalue())
     report = pdf_preflight.build_report(path)
     assert "PAFTA_BOYUTU_ISO216" in codes(report)
     assert "COKLU_PAFTA_DUZENI" in codes(report)
@@ -198,12 +198,12 @@ def test_non_iso216_page_size_and_multi_sheet_drawing_warnings(tmp_path):
     assert report["eSignature"]["fieldStatus"] == "absent"
 
     # Same 2-page PDF as a Report (RP_SHR) should NOT trigger COKLU_PAFTA_DUZENI
-    report_rp = pdf_preflight.build_report(path, "260001_00_ST_BETO_RP_SHR_000_01_000.pdf")
+    report_rp = pdf_preflight.build_report(path, "260001_00_ST_BETO_RP_SHR_NNN_01_000.pdf")
     assert "COKLU_PAFTA_DUZENI" not in codes(report_rp)
 
 
 def test_signature_scan_reaches_page_21_and_reports_complete_counts(tmp_path):
-    path = write(tmp_path, "260001_00_ST_BETO_RP_SHR_000_01_000.pdf", signature_pdf(page_number=21, value="signed", include_acroform=False))
+    path = write(tmp_path, "260001_00_ST_BETO_RP_SHR_NNN_01_000.pdf", signature_pdf(page_number=21, value="signed", include_acroform=False))
     report = pdf_preflight.build_report(path)
     signature = report["eSignature"]
     assert report["schemaVersion"] == 2
@@ -219,7 +219,7 @@ def test_signature_scan_reaches_page_21_and_reports_complete_counts(tmp_path):
 
 
 def test_nested_empty_signature_field_is_not_reported_as_signed(tmp_path):
-    path = write(tmp_path, "260001_00_ST_BETO_RP_SHR_000_01_000.pdf", signature_pdf(nested=True, value="empty"))
+    path = write(tmp_path, "260001_00_ST_BETO_RP_SHR_NNN_01_000.pdf", signature_pdf(nested=True, value="empty"))
     signature = pdf_preflight.build_report(path)["eSignature"]
     assert signature["fieldStatus"] == "empty"
     assert signature["signatureFieldPresent"] is True
@@ -229,7 +229,7 @@ def test_nested_empty_signature_field_is_not_reported_as_signed(tmp_path):
 
 
 def test_malformed_signature_value_is_explicit_and_never_claimed_valid(tmp_path):
-    path = write(tmp_path, "260001_00_ST_BETO_RP_SHR_000_01_000.pdf", signature_pdf(value="malformed"))
+    path = write(tmp_path, "260001_00_ST_BETO_RP_SHR_NNN_01_000.pdf", signature_pdf(value="malformed"))
     signature = pdf_preflight.build_report(path)["eSignature"]
     assert signature["fieldStatus"] == "malformed"
     assert signature["malformedFieldCount"] >= 1
@@ -248,7 +248,7 @@ def test_cyclic_signature_kids_are_bounded_and_mark_scan_incomplete(tmp_path):
     )
     out = io.BytesIO()
     writer.write(out)
-    path = write(tmp_path, "260001_00_ST_BETO_RP_SHR_000_01_000.pdf", out.getvalue())
+    path = write(tmp_path, "260001_00_ST_BETO_RP_SHR_NNN_01_000.pdf", out.getvalue())
     signature = pdf_preflight.build_report(path)["eSignature"]
     assert signature["scanComplete"] is False
     assert signature["fieldStatus"] == "malformed"

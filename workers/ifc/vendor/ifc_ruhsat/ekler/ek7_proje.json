@@ -252,21 +252,16 @@
     {
       "ifc": "IfcGeometricRepresentationContext",
       "tablo": "7.8",
-      "sayfa": 230,
+      "sayfa": 231,
       "gerekenler": [
-        {
-          "tur": "oznitelik",
-          "ad": "ContextType",
-          "veriTipi": "M",
-          "turkce": "Bağlam Tipi",
-          "degerler": ["MODEL"]
-        },
         {
           "tur": "oznitelik",
           "ad": "CoordinateSpaceDimension",
           "veriTipi": "S",
           "turkce": "Koordinat Uzayı Boyutu",
-          "degerler": ["3"]
+          "degerler": [
+            "3"
+          ]
         },
         {
           "tur": "oznitelik",
@@ -292,7 +287,9 @@
       "ifc": "IfcAnnotation",
       "tablo": "7.9",
       "sayfa": 233,
-      "onTanimliTipler": ["SURVEY"],
+      "onTanimliTipler": [
+        "SURVEY"
+      ],
       "gerekenler": [
         {
           "tur": "oznitelik",
@@ -311,7 +308,9 @@
           "ad": "PredefinedType",
           "veriTipi": "M",
           "turkce": "Ön Tanımlı Tip",
-          "degerler": ["SURVEY"]
+          "degerler": [
+            "SURVEY"
+          ]
         }
       ]
     }
