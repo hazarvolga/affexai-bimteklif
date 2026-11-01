@@ -8,7 +8,8 @@ history to `archive/` (latest: `archive/WORKING_STATE_until_2026-10-24.md`).
 - `https://bimmetraj.com` on Coolify (app `ibjv2zbpecdcbd71lxo1vqd7`), Docker
   Compose `compose.coolify.yaml`: `app`, `worker`, `ifc-worker`, `migrate`,
   `backup`. Vercel files are legacy.
-- **Live revision: `5e8952d` (Rev. 144, deployed 1 Kasım 2026 with `verify` green, migration 0041). Rev. 145 number parsing is pending. Plan values belong to the admin panel; the catalog only fills missing plans and empty columns.** T45 measurement (Rev. 142, arm64, 1.5 CPU, 2 GB, four open-license models 62-120 MB): 6-23 s, peak 1.75 GB; real customer file still missing. Previous live: `3812e82` (Rev. 138), before it `3a9bb7d` (Rev. 133):
+- **Rev. 149 (PR until deployed):** admin TÜİK connection check (`GET /api/admin/tuik/connection`, card on Mevzuat Bekçisi). The adapter's agency `TUIK` and flow ids are unverified until the real list is read; no automatic index sync yet.
+- **Live revision: `d9b400a` (Rev. 148, deployed 1 Kasım 2026 with `verify` green, migration 0042). Plan values belong to the admin panel; the catalog only fills missing plans and empty columns.** T45 measurement (Rev. 142, arm64, 1.5 CPU, 2 GB, four open-license models 62-120 MB): 6-23 s, peak 1.75 GB; real customer file still missing. Previous live: `3812e82` (Rev. 138), before it `3a9bb7d` (Rev. 133):
   T41 8B: `bimmetraj_worker_get_entitlement()` SECURITY DEFINER capability function aktif;
   `bimmetraj_worker` — `subscriptions` ve `plans` tablolarında 0 privilege (db-provision contract).
   T44: Docker PG16 kurtarma tatbikatı tamamlandı (5 sütun, 30 Ekim 2026);
