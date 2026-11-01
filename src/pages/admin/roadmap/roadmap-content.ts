@@ -185,8 +185,9 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
   },
   {
     id: "durum",
-    title: "Uygulama durumu (1 Kasım 2026 · Rev. 149 geliştirme kaydı)",
+    title: "Uygulama durumu (1 Kasım 2026 · Rev. 150 geliştirme kaydı)",
     blocks: [
+      { type: "callout", tone: "warn", title: "Rev. 150 · Boşluk düşüm hesabı değişti", text: "ÇŞB 2026 analizlerine göre sıva, alçı ve boyada tüm boşluklar düşülür. Duvarda 0,10 m², alçı levhada 0,50 m², asma tavanda 0,25 m²'den küçük boşluk düşülmez. Uzman kabulü açıktır." },
       { type: "callout", tone: "info", title: "Rev. 149 · TÜİK bağlantı kontrolü", text: "Yönetici, sunucudaki TÜİK anahtarının çalıştığını ve sunulan endeks veri akışlarını panelden görür. Veri kaydedilmez; otomatik endeks çekimi gerçek listeye göre ayrıca yazılacak." },
       { type: "callout", tone: "info", title: "Rev. 148 · Mevzuat Bekçisi", text: "Resmî Gazete ve GİB duyuruları (il duyuruları bölge bilgisiyle) taranır, eşleşenler yönetici ekranına düşer, kontrol edilemeyen günler gösterilir. Taranmış PDF kararlar Türkçe OCR ile okunur. Hiçbir oran otomatik değişmez." },
       { type: "callout", tone: "info", title: "Rev. 147 · Teklif ve aktarım kapıları", text: "Teklif durum geçişleri sınırlandı, IFC satırları yalnız kanıt kontrollü aktarımdan geçer, düzeltilen belirsiz sayı bulgusu kalkar ve eski kayıtlar ham hata kodu göstermez." },
@@ -1197,6 +1198,9 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
           ],
           [
             "Rev. 149", "1 Kasım 2026 · TÜİK bağlantı kontrolü", "BIM-CALC-2026-11-01.7", "Yönetici ekranı anahtarın kabulünü ve endeks veri akışlarını gösterir. Veri kaydedilmez, hesap değişmez.",
+          ],
+          [
+            "Rev. 150", "1 Kasım 2026 · ÇŞB boşluk düşümü", "BIM-CALC-2026-11-01.8", "Hesap yöntemi değişti: 0,50 m² eşiği yalnız alçı levhada kaldı. Kaynak 1.879 analizin ölçü maddesidir. Uzman kabulü açıktır.",
           ],
         ],
       },
@@ -2278,6 +2282,9 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
           ],
           [
             "Rev. 149 · 1 Kasım 2026 (TÜİK)", "Bağlantı kontrolü", "Anahtarın kabulü ve endeks veri akışları panelden görülür. Veri kaydedilmez.", "src/server/crawler/tuik-connection.ts; src/server/routes/admin.ts; src/pages/admin/TuikConnectionCard.tsx",
+          ],
+          [
+            "Rev. 150 · 1 Kasım 2026 (Minha)", "ÇŞB boşluk düşümü", "Sıva, alçı ve boyada tüm boşluklar düşülür; duvar, alçı levha ve asma tavanın kendi sınırı vardır.", "src/smartcheck/rules/minha.ts; src/ifc/openings-minha.ts; src/components/smartcheck/CalmIcmalEvidenceCard.tsx",
           ],
         ],
       },

@@ -51,7 +51,7 @@ export const PUBLIC_GLOSSARY_TERMS: readonly PublicGlossaryTerm[] = [
   {
     name: 'Minha (Boşluk ve Kesişim Düşümü)',
     description:
-      'Duvar, sıva, boya ve kaplama metrajlarında kapı/pencere boşluklarının ve yapısal kesişimlerin brüt alandan düşülmesi işlemidir. ÇŞB 2026 Genel Teknik Şartnamesi (0,50 m² eşiği), DIN 18350 VOB/C (2,50 m² eşiği) veya özel şartname kurallarına göre uygulanır.',
+      'Duvar, sıva, boya ve kaplama metrajlarında kapı/pencere boşluklarının ve yapısal kesişimlerin brüt alandan düşülmesi işlemidir. ÇŞB 2026 analizlerinin ölçü maddeleri (sıva ve boyada tüm boşluklar düşülür; küçük boşluk sınırı duvarda 0,10 m², alçı levhada 0,50 m², asma tavanda 0,25 m²), DIN 18350 VOB/C (2,50 m² eşiği) veya özel şartname kurallarına göre uygulanır.',
   },
   {
     name: 'TS 500 (Betonarme Yapıların Tasarım ve Yapım Kuralları)',

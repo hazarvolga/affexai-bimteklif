@@ -11,20 +11,20 @@ const openings: ParsedOpening[] = [
   { id: "5", kind: "window", widthM: null, heightM: null }, // ölçüsüz
 ];
 
-test("ÇŞB 0,50 m²: yalnız 0,48 m² düşülmez; diğer üçü düşülür; ölçüsüz sayılır", () => {
+test("ÇŞB sıva/boya: ölçülen dört boşluğun hepsi düşülür; ölçüsüz sayılır", () => {
   const r = summarizeOpeningsMinha(openings, "CSB_2026", null);
   assert.equal(r.status, "ok");
-  assert.equal(r.thresholdM2, 0.5);
+  assert.equal(r.thresholdM2, 0);
   assert.equal(r.totalCount, 5);
   assert.equal(r.measuredCount, 4);
   assert.equal(r.unmeasuredCount, 1);
-  assert.equal(r.notDeductedCount, 1);
-  assert.equal(r.notDeductedAreaM2, 0.48);
-  assert.equal(r.deductedCount, 3);
-  assert.equal(r.deductedAreaM2, 7.49);
+  assert.equal(r.notDeductedCount, 0);
+  assert.equal(r.notDeductedAreaM2, 0);
+  assert.equal(r.deductedCount, 4);
+  assert.equal(r.deductedAreaM2, 7.97);
   assert.equal(r.applicationStatus, "summary_only");
   assert.match(r.applicationNote, /kalem/i);
-  assert.equal(r.profile.version, "minha-2026.3");
+  assert.equal(r.profile.version, "minha-2026.4");
   assert.ok(r.profile.sourceReference.length > 0);
 });
 

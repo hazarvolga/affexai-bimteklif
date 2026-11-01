@@ -544,7 +544,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
               </div>
               <div className="rounded-sm border border-border bg-card/60 p-4">
                 <span className="font-mono text-xs uppercase tracking-wider text-primary font-semibold">SmartCheck 3×3 & Minha</span>
-                <p className="mt-1 text-sm font-medium text-foreground">ÇŞB 0,50 m² · DIN 18350 2,50 m² · Özel Eşik</p>
+                <p className="mt-1 text-sm font-medium text-foreground">ÇŞB imalat kuralları · DIN 18350 2,50 m² · Özel Eşik</p>
                 <p className="mt-1 text-xs text-muted-foreground">Şirket politikası olan ≤%3 QTO/STR kontrollerini standart incelemesinden ayırın; Minha'yı host, hedef kalem ve brüt/net ölçü esasıyla tek kez uygulayın.</p>
               </div>
             </div>
@@ -570,7 +570,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
                   </div>
                   <h3 className="text-base font-bold text-foreground mb-1.5">5D BIM & TS 500 Metraj Motoru</h3>
                   <p className="text-xs text-muted-foreground leading-relaxed">
-                    IFC elemanlarında QTO okuma, TS 500 kiriş–döşeme kesişim düşümü, <code className="font-mono text-[11px]">CSB_2026 (0,50 m²)</code> / <code className="font-mono text-[11px]">DIN_18350 (2,50 m²)</code> / özel şartname Minha düşümü ve kalıp/donatı sihirbazı.
+                    IFC elemanlarında QTO okuma, TS 500 kiriş–döşeme kesişim düşümü, <code className="font-mono text-[11px]">CSB_2026</code> / <code className="font-mono text-[11px]">DIN_18350 (2,50 m²)</code> / özel şartname Minha düşümü ve kalıp/donatı sihirbazı.
                   </p>
                 </div>
                 <div className="mt-5 pt-3 border-t border-border text-[11px] text-primary font-mono">

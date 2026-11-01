@@ -4,8 +4,9 @@
  *
  * Implements the two sourced official measurement standards plus a user-defined
  * contractual threshold mode:
- * - CSB_2026: ÇŞB Genel Teknik Şartnamesi (<= 0.50 m² openings not deducted for
- *   plaster/paint; > 0.50 m² deducted with reveal/return surfaces added back).
+ * - CSB_2026: "Ölçü" clauses of the ÇŞB 2026 İnşaat Birim Fiyat Analizleri. The rule depends on the
+ *   work: plaster and paint deduct every opening and count its reveals; walls, gypsum board and
+ *   suspended ceilings keep openings smaller than their own limit (CSB_SMALLEST_DEDUCTED_M2).
  * - DIN_18350: VOB/C DIN 18350 (<= 2.50 m² openings not deducted; > 2.50 m² deducted).
  * - CUSTOM_CONTRACT: Kullanıcı Tanımlı Özel Şartname Eşiği (explicit `customThresholdM2`
  *   required from the caller; no unsourced hardcoded preset).
@@ -13,6 +14,15 @@
 
 export type MeasurementStandard = "CSB_2026" | "DIN_18350" | "CUSTOM_CONTRACT";
 export type MinhaRuleProfile = MeasurementStandard;
+export type CsbWorkClass = "finish" | "masonry_wall" | "gypsum_board" | "suspended_ceiling";
+
+/** Smallest single opening that is deducted; anything smaller stays in the measured area. */
+const CSB_SMALLEST_DEDUCTED_M2: Record<CsbWorkClass, number> = {
+  finish: 0, // 15.275, 15.280, 15.285, 15.540
+  masonry_wall: 0.1, // 15.220-15.240
+  gypsum_board: 0.5, // 15.530
+  suspended_ceiling: 0.25, // 15.535
+};
 
 export interface OpeningInput {
   id?: string;
@@ -36,7 +46,7 @@ export interface OpeningInput {
 export type MinhaQuantityBasis = "gross_before_openings" | "net_after_openings" | "unknown";
 
 export interface MinhaProfileMetadata {
-  version: "minha-2026.3";
+  version: "minha-2026.4";
   sourceReference: string;
   effective: string;
 }
@@ -47,6 +57,8 @@ export interface MinhaTargetLine {
   finishLayer: string;
   quantityBasis: MinhaQuantityBasis;
   quantityM2: number;
+  /** Only read under CSB_2026; a line without it is measured as plaster or paint. */
+  csbWorkClass?: CsbWorkClass;
 }
 
 export interface MinhaLineAdjustment {
@@ -109,6 +121,7 @@ export interface PlasterPaintMinhaInput {
   grossAreaM2: number;
   openings: OpeningInput[];
   standard?: MeasurementStandard;
+  csbWorkClass?: CsbWorkClass;
   /** Required when standard === "CUSTOM_CONTRACT" (user-defined contractual threshold in m²). */
   customThresholdM2?: number;
   wallThicknessM?: number;
@@ -116,7 +129,7 @@ export interface PlasterPaintMinhaInput {
 }
 
 export interface PlasterPaintMinhaResult {
-  ruleVersion: "minha-2026.3";
+  ruleVersion: "minha-2026.4";
   profile: MinhaProfileMetadata;
   standard: MeasurementStandard;
   thresholdM2: number;
@@ -173,20 +186,20 @@ function isValidIsoDate(value: string): boolean {
 export function resolveMinhaProfileMetadata(standard: MeasurementStandard): MinhaProfileMetadata {
   if (standard === "CSB_2026") {
     return {
-      version: "minha-2026.3",
-      sourceReference: "ÇŞİDB Genel Teknik Şartnamesi, proje/sözleşme baskısı teyit edilmeli",
-      effective: "Proje sözleşmesinde atıf yapılan yürürlükteki baskı",
+      version: "minha-2026.4",
+      sourceReference: "ÇŞB 2026 İnşaat Birim Fiyat Analizleri, Ölçü maddeleri: sıva/alçı Cilt 1 PDF s. 423-429, boya Cilt 2 PDF s. 553-596, duvar Cilt 1 PDF s. 236, alçı levha Cilt 2 PDF s. 298, asma tavan Cilt 2 PDF s. 503",
+      effective: "01.01.2026 analizleri; sözleşmede başka ölçü esası varsa o uygulanır",
     };
   }
   if (standard === "DIN_18350") {
     return {
-      version: "minha-2026.3",
+      version: "minha-2026.4",
       sourceReference: "VOB/C DIN 18350, lisanslı proje/sözleşme baskısı teyit edilmeli",
       effective: "Proje sözleşmesinde atıf yapılan lisanslı baskı",
     };
   }
   return {
-    version: "minha-2026.3",
+    version: "minha-2026.4",
     sourceReference: "Kullanıcının proje özel şartnamesi",
     effective: "İlgili sözleşme/revizyon süresi",
   };
@@ -194,6 +207,7 @@ export function resolveMinhaProfileMetadata(standard: MeasurementStandard): Minh
 
 export function evaluatePlasterPaintMinha(input: PlasterPaintMinhaInput): PlasterPaintMinhaResult {
   const standard: MeasurementStandard = input.standard ?? "CSB_2026";
+  const csbWorkClass = input.csbWorkClass ?? "finish";
   if (
     standard === "CUSTOM_CONTRACT" &&
     (typeof input.customThresholdM2 !== "number" ||
@@ -209,12 +223,12 @@ export function evaluatePlasterPaintMinha(input: PlasterPaintMinhaInput): Plaste
       ? round4(Number(input.customThresholdM2))
       : standard === "DIN_18350"
         ? 2.5
-        : 0.5;
+        : CSB_SMALLEST_DEDUCTED_M2[csbWorkClass];
   const defaultRevealDepthM =
     typeof input.wallThicknessM === "number" && input.wallThicknessM > 0
       ? input.wallThicknessM
       : 0.15;
-  const includeReveal = input.includeRevealOnDeducted ?? standard === "CSB_2026";
+  const includeReveal = input.includeRevealOnDeducted ?? (standard === "CSB_2026" && csbWorkClass === "finish");
   const grossAreaM2 = Math.max(0, Number(input.grossAreaM2) || 0);
 
   let totalOpeningAreaM2 = 0;
@@ -230,7 +244,8 @@ export function evaluatePlasterPaintMinha(input: PlasterPaintMinhaInput): Plaste
     const totalArea = round4(singleAreaM2 * count);
     totalOpeningAreaM2 = round4(totalOpeningAreaM2 + totalArea);
 
-    const deducted = singleAreaM2 > thresholdM2;
+    // ÇŞB keeps only what is "smaller than" its limit; DIN and contract limits keep up to and including it.
+    const deducted = standard === "CSB_2026" ? singleAreaM2 > 0 && singleAreaM2 >= thresholdM2 : singleAreaM2 > thresholdM2;
     const revealDepth =
       typeof op.revealDepthM === "number" && op.revealDepthM >= 0
         ? op.revealDepthM
@@ -250,7 +265,7 @@ export function evaluatePlasterPaintMinha(input: PlasterPaintMinhaInput): Plaste
         deducted: false,
         deductedAreaM2: 0,
         addedRevealAreaM2: 0,
-        explanation: `${standard} uyarınca tekil boşluk alanı (${singleAreaM2.toFixed(2)} m²) <= ${thresholdM2.toFixed(2)} m² olduğundan minha edilmez; denizlik/merkez ayrıca eklenmez.`,
+        explanation: `${standard} uyarınca tekil boşluk alanı (${singleAreaM2.toFixed(2)} m²) ${standard === "CSB_2026" ? "<" : "<="} ${thresholdM2.toFixed(2)} m² olduğundan minha edilmez; denizlik/merkez ayrıca eklenmez.`,
       };
     }
 
@@ -267,7 +282,7 @@ export function evaluatePlasterPaintMinha(input: PlasterPaintMinhaInput): Plaste
       deducted: true,
       deductedAreaM2: totalArea,
       addedRevealAreaM2: revealArea,
-      explanation: `${standard} uyarınca tekil boşluk alanı (${singleAreaM2.toFixed(2)} m²) > ${thresholdM2.toFixed(2)} m² olduğundan ${totalArea.toFixed(2)} m² minha edildi${revealArea > 0 ? ` ve ${revealArea.toFixed(2)} m² merkez/yan yüz eklendi` : ""}.`,
+      explanation: `${standard} uyarınca ${thresholdM2 > 0 ? `tekil boşluk alanı (${singleAreaM2.toFixed(2)} m²) ${thresholdM2.toFixed(2)} m² sınırına ulaştığından ` : ""}${totalArea.toFixed(2)} m² minha edildi${revealArea > 0 ? ` ve ${revealArea.toFixed(2)} m² merkez/yan yüz eklendi` : ""}.`,
     };
   });
 
@@ -276,7 +291,7 @@ export function evaluatePlasterPaintMinha(input: PlasterPaintMinhaInput): Plaste
   );
 
   return {
-    ruleVersion: "minha-2026.3",
+    ruleVersion: "minha-2026.4",
     profile: resolveMinhaProfileMetadata(standard),
     standard,
     thresholdM2,
@@ -368,11 +383,13 @@ export function applyMinhaToTargetLines(input: ApplyMinhaToTargetLinesInput): Ap
       reviewItems.push({ openingId, reason: "Hedef satırın net/brüt miktar esası bilinmiyor; inceleme gerekli." });
       continue;
     }
+    const needsReveal = input.standard === "CSB_2026" && (line.csbWorkClass ?? "finish") === "finish";
     const evaluated = evaluatePlasterPaintMinha({
       grossAreaM2: 0,
       standard: input.standard,
       customThresholdM2: input.customThresholdM2,
-      includeRevealOnDeducted: input.standard === "CSB_2026",
+      csbWorkClass: line.csbWorkClass,
+      includeRevealOnDeducted: needsReveal,
       openings: [opening],
     }).items[0];
     if (line.quantityBasis === "net_after_openings") {
@@ -380,7 +397,7 @@ export function applyMinhaToTargetLines(input: ApplyMinhaToTargetLinesInput): Ap
       continue;
     }
     if (!evaluated.deducted) continue;
-    if (input.standard === "CSB_2026" && (!Number.isFinite(opening.revealDepthM) || Number(opening.revealDepthM) < 0 || !opening.revealDepthSourceReference?.trim())) {
+    if (needsReveal && (!Number.isFinite(opening.revealDepthM) || Number(opening.revealDepthM) < 0 || !opening.revealDepthSourceReference?.trim())) {
       reviewItems.push({ openingId, reason: "CSB minha için söve/yan yüzey derinliği ve ölçüm kaynağı doğrulanmadı; otomatik uygulanmadı." });
       continue;
     }
