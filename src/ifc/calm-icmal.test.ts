@@ -684,7 +684,7 @@ test("T17 kontrollü kapsam: dayanaklı beton Roof/Footing korunur; yalıtım, a
   for (const element of controlledUnsupported.slice(0, -1)) {
     assert.match(uncovered.get(element.guid) ?? "", /kontrollü kapsam|desteklenmiyor|dayanak/i, element.guid);
   }
-  assert.equal(ds.elements?.find((element) => element.guid === "MULTILAYER_PARTIAL_0001")?.matchedPozCode, "15.340.1002");
+  assert.equal(ds.elements?.find((element) => element.guid === "MULTILAYER_PARTIAL_0001")?.matchedPozCode, "15.250.1111");
   assert.match(ds.consistencyReport?.findings.find((finding) => finding.globalId === "MULTILAYER_PARTIAL_0001")?.message ?? "", /çok katmanlı.*vendor/i);
 });
 

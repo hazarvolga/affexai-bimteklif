@@ -214,9 +214,9 @@ function classifyMaterialLayer(
       groupKey: "floor_finish",
       title: "Şap İmalatı (3 cm Tesviye Şapı)",
       subtitle: "Parke, seramik ve mermer altı tüm katlar (Daire içleri + ortak alan + bodrum)",
-      pozCode: "15.340.1002",
+      pozCode: "15.250.1111",
       unit: "m²",
-      formulaNote: "Çok Katmanlı Döşeme (Katman #2: Şap_3CM) · Tüm mahallerin net döşeme alanı",
+      formulaNote: "Çok Katmanlı Döşeme (Katman #2: Şap_3CM) · Tüm mahallerin net döşeme alanı · Poz 2,5 cm içindir; 3 cm katman için kalınlık farkı incelenmeli",
     };
   }
 
@@ -236,9 +236,9 @@ function classifyMaterialLayer(
     return {
       id: "seramik-doseme",
       groupKey: "floor_finish",
-      title: "Seramik & Mermer Döşeme Kaplaması (60×60 / 60×120 cm)",
+      title: "Seramik & Mermer Döşeme Kaplaması (60×60 cm poz; farklı ebat ayrı poz ister)",
       subtitle: "Antre, hol, mutfak, banyo, balkon ve kat sahanlıkları",
-      pozCode: "15.390.1005",
+      pozCode: "15.390.1008",
       unit: "m²",
       formulaNote: "Çok Katmanlı Döşeme (Katman #3: Seramik / Mermer) · Islak hacim ve ortak hol net alanı",
     };
@@ -262,7 +262,7 @@ function classifyMaterialLayer(
       groupKey: "floor_finish",
       title: "Epoksi Zemin Kaplaması (Bodrum Sığınak & Teknik Hacimler)",
       subtitle: "Bodrum kat sığınak, enerji odası ve su deposu zeminleri",
-      pozCode: "15.410.1101",
+      pozCode: "15.190.1014",
       unit: "m²",
       formulaNote: "Çok Katmanlı Döşeme (Katman #2: Epoksi_Kaplama) · Bodrum kat net alanı",
     };
@@ -274,7 +274,7 @@ function classifyMaterialLayer(
       groupKey: "wall_finish",
       title: "Duvar Fayans Kaplaması (Banyo, WC ve Mutfak)",
       subtitle: "Sıva üstü seramik/fayans · Kapı ve pencere boşlukları (minha) düşülmüş net alan",
-      pozCode: "15.385.1003",
+      pozCode: "15.380.1006",
       unit: "m²",
       formulaNote: "Brüt Duvar Yüzeyi − Kapı/Pencere Boşluğu (Minha) = Net Fayans Alanı",
     };
@@ -286,7 +286,7 @@ function classifyMaterialLayer(
       groupKey: "wall_finish",
       title: "İç Cephe Duvar Sıvası (2 cm — Fayans ve Boya Altı)",
       subtitle: "Islak hacim fayans altı ve daire içi duvarlar · Pencere/kapı boşlukları düşülmüş",
-      pozCode: "15.275.1002",
+      pozCode: "15.275.1112",
       unit: "m²",
       formulaNote: "Çok Katmanlı Duvar Kaplaması (Katman #1: Sıva_2CM) · Minha düşülmüş net duvar yüzeyi",
     };
@@ -298,7 +298,7 @@ function classifyMaterialLayer(
       groupKey: "ceiling_plaster_paint",
       title: "Kaba Sıva İmalatı (Tavan ve İç Duvar Yüzeyleri)",
       subtitle: "Saten alçı ve boya altı tüm tavan + iç duvar yüzeyleri toplamı",
-      pozCode: "15.275.1001",
+      pozCode: "15.275.1117",
       unit: "m²",
       formulaNote: "Çok Katmanlı Tavan & Duvar (Katman #1: Kaba_Sıva) · Pencere/kapı boşlukları düşülmüş",
     };
@@ -310,7 +310,7 @@ function classifyMaterialLayer(
       groupKey: "ceiling_plaster_paint",
       title: "Saten Alçı Kaplaması (Boya Altı İnce Alçı)",
       subtitle: "Tavan ve kuru hacim duvarlarında kaba sıva üstü yoklama ve perdah alçısı",
-      pozCode: "15.280.1003",
+      pozCode: "15.280.1011",
       unit: "m²",
       formulaNote: "Çok Katmanlı Tavan & Duvar (Katman #2: Saten_Alçı) · Net uygulama yüzeyi",
     };
@@ -322,7 +322,7 @@ function classifyMaterialLayer(
       groupKey: "ceiling_plaster_paint",
       title: "İç Cephe Plastik / Silikonlu Boya (2 Kat)",
       subtitle: "Saten alçı üstü tüm daire tavanları, kuru hacim duvarları ve ortak holler",
-      pozCode: "15.540.1002",
+      pozCode: "15.540.1525",
       unit: "m²",
       formulaNote: "Çok Katmanlı Tavan & Duvar (Katman #3: Plastik_Boya) · Net boya yüzeyi",
     };
