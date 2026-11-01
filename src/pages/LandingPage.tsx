@@ -493,7 +493,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
                     </thead>
                     <tbody className="divide-y divide-border/60 text-foreground">
                       <tr className="hover:bg-muted/20">
-                        <td className="p-2.5 pl-4 font-semibold text-primary">15.120.1001</td>
+                        <td className="p-2.5 pl-4 font-semibold text-primary">15.150.1006</td>
                         <td className="p-2.5 font-sans font-medium">C30/37 Hazır Beton</td>
                         <td className="p-2.5 text-muted-foreground">Zemin Kat</td>
                         <td className="p-2.5 text-right tabular-nums">420,00 m³</td>
@@ -509,7 +509,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
                         <td className="p-2.5 pr-4 text-right tabular-nums font-semibold">983.250,00 ₺</td>
                       </tr>
                       <tr className="hover:bg-muted/20">
-                        <td className="p-2.5 pl-4 font-semibold text-primary">15.140.1002</td>
+                        <td className="p-2.5 pl-4 font-semibold text-primary">15.180.1002</td>
                         <td className="p-2.5 font-sans font-medium">Ahşap Düz Kalıp Yapılması</td>
                         <td className="p-2.5 text-muted-foreground">Perde & Döşeme</td>
                         <td className="p-2.5 text-right tabular-nums">1.120,00 m²</td>
@@ -517,7 +517,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
                         <td className="p-2.5 pr-4 text-right tabular-nums font-semibold">504.000,00 ₺</td>
                       </tr>
                       <tr className="hover:bg-muted/20">
-                        <td className="p-2.5 pl-4 font-semibold text-primary">15.220.1005</td>
+                        <td className="p-2.5 pl-4 font-semibold text-primary">15.150.1003</td>
                         <td className="p-2.5 font-sans font-medium">Temel Altı Grobeton (C16/20)</td>
                         <td className="p-2.5 text-muted-foreground">Temel Tabanı</td>
                         <td className="p-2.5 text-right tabular-nums">85,00 m³</td>

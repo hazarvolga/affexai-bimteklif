@@ -665,9 +665,9 @@ export async function parseQuoteXlsx(data: ArrayBuffer | Uint8Array, fileName = 
 export function buildQuoteCsvTemplate(): string {
   return serializeCsv([
     ["Poz No", "İş Kalemi Açıklaması", "Birim", "Miktar", "Birim Fiyat (TL)", "KDV (%)", "İskonto (%)"],
-    ["15.120.1001", "C25/30 Hazır Beton Dökülmesi", "m3", 1250, 3450, 20, 0],
-    ["15.140.1002", "Nervürlü Donatı Çeliği Temini ve İşçiliği", "ton", 95, 42000, 20, 0],
-    ["15.150.1005", "Plywood Kalıp Yapılması", "m2", 4800, 650, 20, 0],
-    ["27.501.1001", "İç Cephe Alçı Sıva Yapılması", "m2", 3200, 185, 20, 0],
+    ["15.150.1005", "C 25/30 Hazır Beton Dökülmesi", "m3", 1250, 3450, 20, 0],
+    ["15.160.1004", "Ø14-Ø28 Nervürlü Donatı Çeliği", "ton", 95, 42000, 20, 0],
+    ["15.180.1003", "Plywood Kalıp Yapılması", "m2", 4800, 650, 20, 0],
+    ["15.275.1112", "İç Cephe Sıvası Yapılması", "m2", 3200, 185, 20, 0],
   ], { delimiter: ";" });
 }

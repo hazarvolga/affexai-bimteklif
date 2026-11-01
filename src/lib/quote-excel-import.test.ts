@@ -23,7 +23,7 @@ test("parseQuoteCsv parses standard semicolon delimited Turkish quote CSV", () =
 
   assert.equal(res.errors.length, 0);
   assert.equal(res.items.length, 4);
-  assert.equal(res.items[0]?.description, "[15.120.1001] C25/30 Hazır Beton Dökülmesi");
+  assert.equal(res.items[0]?.description, "[15.150.1005] C 25/30 Hazır Beton Dökülmesi");
   assert.equal(res.items[0]?.unit, "m3");
   assert.equal(res.items[0]?.quantity, 1250);
   assert.equal(res.items[0]?.unitPrice, 3450);
