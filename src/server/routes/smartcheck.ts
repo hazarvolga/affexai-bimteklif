@@ -41,6 +41,7 @@ import {
   smartcheckUploadRequestSchema,
 } from "../../contracts/smartcheck";
 import { CalmTransferError, transferCalmRowsToNewQuotation, transferCalmRowsToQuotationRevision } from "../../services/quotations/calm-transfer";
+import { pickIfcScreenSummary } from "../../ifc/smartcheck-evidence";
 import { IFC_VIEWER_MAX_EVIDENCE_BYTES, IFC_VIEWER_MAX_FILE_BYTES, IFC_VIEWER_MAX_IDENTITIES, canonicalElementKey, parseViewerContext } from "../../ifc/viewer/model";
 import type { IfcSourceIdentity } from "../../ifc/types";
 import { createVerifiedIfcStream } from "../../ifc/viewer/verified-stream";
@@ -515,7 +516,7 @@ export function registerSmartCheckRoutes(app: Express) {
       return res.status(415).json({ error: "3B inceleme yalnız IFC kaynaklarında kullanılabilir.", code: "IFC_VIEWER_REQUIRES_IFC" });
     }
     if (document.fileSizeBytes > IFC_VIEWER_MAX_FILE_BYTES) {
-      return res.status(413).json({ error: "IFC 3B inceleme sınırı 50 MiB'dir.", code: "IFC_VIEWER_FILE_BUDGET_EXCEEDED" });
+      return res.status(413).json({ error: "Bu dosya 3B görünüm için büyük (sınır 50 MiB). Metraj sonuçları bundan etkilenmez.", code: "IFC_VIEWER_FILE_BUDGET_EXCEEDED" });
     }
     if (!latestRun) return res.status(409).json({ error: "Başarılı IFC işleme kanıtı bulunamadı.", code: "IFC_VIEWER_SUCCESSFUL_RUN_REQUIRED" });
     if (!artifact) return res.status(409).json({ error: "IFC kimlik kanıtı bulunamadı.", code: "IFC_VIEWER_EVIDENCE_REQUIRED" });
@@ -581,7 +582,7 @@ export function registerSmartCheckRoutes(app: Express) {
     if ((!document.originalFileName.toLowerCase().endsWith(".ifc") && document.mimeType !== "application/ifc" && document.mimeType !== "model/ifc") || document.checksumSha256 === "pending") {
       return res.status(409).json({ error: "Doğrulanmış IFC kaynağı bulunamadı.", code: "IFC_VIEWER_SOURCE_INVALID" });
     }
-    if (document.fileSizeBytes > IFC_VIEWER_MAX_FILE_BYTES) return res.status(413).json({ error: "IFC 3B inceleme sınırı 50 MiB'dir.", code: "IFC_VIEWER_FILE_BUDGET_EXCEEDED" });
+    if (document.fileSizeBytes > IFC_VIEWER_MAX_FILE_BYTES) return res.status(413).json({ error: "Bu dosya 3B görünüm için büyük (sınır 50 MiB). Metraj sonuçları bundan etkilenmez.", code: "IFC_VIEWER_FILE_BUDGET_EXCEEDED" });
     if (!latestRun) return res.status(409).json({ error: "Başarılı IFC işleme kanıtı bulunamadı.", code: "IFC_VIEWER_SUCCESSFUL_RUN_REQUIRED" });
     const storage = createStorageAdapter();
     if (!storage.getStream) return res.status(503).json({ error: "IFC akış servisi kullanılamıyor.", code: "IFC_VIEWER_STREAM_UNAVAILABLE" });
@@ -740,6 +741,20 @@ export function registerSmartCheckRoutes(app: Express) {
     if (!latestRun || latestRun.status !== "succeeded") return res.status(409).json({ error: "Son işleme tamamlanmadı.", code: "PDFA_VALIDATION_RUN_NOT_SUCCEEDED" });
     if (!artifact) return res.status(404).json({ error: "Bu doküman için PDF/A standart doğrulaması bulunmuyor.", code: "PDFA_VALIDATION_NOT_FOUND" });
     res.json({ ...artifact.metadataJson, processingRunId: artifact.processingRunId, createdAt: artifact.createdAt });
+  });
+
+  app.get("/api/smartcheck/documents/:id/ifc-summary", authenticate, featureGate, readRateLimit, async (req, res) => {
+    const { document, artifact } = await withAppTenant(tenantOf(req.user), async (tenantDb) => {
+      const [document] = await tenantDb.select({ id: documents.id }).from(documents).where(and(eq(documents.id, req.params.id), eq(documents.companyId, req.user.companyId))).limit(1);
+      if (!document) return { document: undefined, artifact: undefined };
+      const [artifact] = await tenantDb.select({ metadataJson: documentProcessingArtifacts.metadataJson })
+        .from(documentProcessingArtifacts)
+        .where(and(eq(documentProcessingArtifacts.documentId, document.id), eq(documentProcessingArtifacts.companyId, req.user.companyId), eq(documentProcessingArtifacts.artifactType, "ifc_evidence")))
+        .orderBy(desc(documentProcessingArtifacts.createdAt)).limit(1);
+      return { document, artifact };
+    }, { readOnly: true });
+    if (!document) return res.status(404).json({ error: "Doküman bulunamadı." });
+    res.json(pickIfcScreenSummary(artifact?.metadataJson));
   });
 
   app.get("/api/smartcheck/documents/:id/rows", authenticate, featureGate, readRateLimit, async (req, res) => {

@@ -16,7 +16,7 @@ import { RevitPreUploadChecklistPanel } from "./AuthoringAdvisoryBanner";
 import { PaftaDrawing } from "@/components/ui/PaftaDrawing";
 import { buildCalmIfcDatasetFromElements, parseSmartCheckRowToPseudoElement } from "@/ifc/calm-icmal";
 import { detectAuthoringSoftware, type AuthoringSoftwareDetection } from "@/ifc/authoring-software-diagnostics";
-import type { ParsedIfcElement } from "@/ifc/types";
+import type { IfcParseSummary, ParsedIfcElement } from "@/ifc/types";
 import { suggestMapping, type ColumnMapping, type SpreadsheetArchetype, type SpreadsheetTableMode } from "@/smartcheck/import/normalize";
 import { buildCalmTransferSelection, calmTransferAttemptScope, calmTransferTargetHint, getOrCreateCalmTransferAttempt, type CalmTransferTarget, type CalmTransferUiItem } from "./calm-transfer-ui";
 import { buildTenantPriceCatalogImportPayload, type TenantPriceCatalogRow } from "@/smartcheck/pricing/catalog-import";
@@ -174,6 +174,7 @@ export function SmartCheckImportWorkspace() {
   const [importState, setImportState] = useState<ImportState>("idle");
   const [stage, setStage] = useState("Dosya bekleniyor");
   const [rows, setRows] = useState<Row[]>([]);
+  const [ifcSummary, setIfcSummary] = useState<Partial<IfcParseSummary> | null>(null);
   const [preview, setPreview] = useState<DocumentPreview | null>(null);
   const [previewBusy, setPreviewBusy] = useState(false);
   const [selectedSheet, setSelectedSheet] = useState("");
@@ -274,14 +275,25 @@ export function SmartCheckImportWorkspace() {
     }
   }, [documentId]);
 
+  // Rows stay usable without this; the screen then says the door and window list is unknown.
+  const loadIfcSummary = async (id: string): Promise<Partial<IfcParseSummary> | null> => {
+    try {
+      const response = await fetchWithAuth(`/api/smartcheck/documents/${id}/ifc-summary`);
+      return response.ok ? await response.json() as Partial<IfcParseSummary> : null;
+    } catch {
+      return null;
+    }
+  };
+
   const loadRows = async (id: string, expectsRows = true) => {
     const isCurrent = documentGuard.current.request(id);
     try {
-      const response = await fetchWithAuth(`/api/smartcheck/documents/${id}/rows`);
+      const [response, summary] = await Promise.all([fetchWithAuth(`/api/smartcheck/documents/${id}/rows`), loadIfcSummary(id)]);
       if (!response.ok) throw new Error("Sonuçlar yüklenemedi");
       const data: unknown = await response.json();
       if (!Array.isArray(data)) throw new Error("Geçersiz sonuç");
       if (!isCurrent()) return false;
+      setIfcSummary(summary);
       setRows(data);
       setImportState(data.length || !expectsRows ? "idle" : "empty");
       return true;
@@ -931,8 +943,8 @@ export function SmartCheckImportWorkspace() {
     const pseudoElements: ParsedIfcElement[] = rows.map((row, idx) =>
       parseSmartCheckRowToPseudoElement(row, idx),
     );
-    return buildCalmIfcDatasetFromElements(pseudoElements, null, activeName);
-  }, [busy, file?.name, isPdfFile, openedFileName, rows]);
+    return buildCalmIfcDatasetFromElements(pseudoElements, ifcSummary, activeName);
+  }, [busy, file?.name, ifcSummary, isPdfFile, openedFileName, rows]);
 
   const resetToUploadScreen = () => {
     documentGuard.current.select(null);

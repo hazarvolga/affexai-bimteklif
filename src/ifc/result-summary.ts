@@ -39,6 +39,10 @@ const NEXT_STEP_TEXT: Record<NextStepAction, string> = {
   transfer_to_offer: "Tüm kalemler fiyatlandı. İcmali mevcut teklifinize yeni revizyon olarak aktarın.",
 };
 
+function unmatchedElementsText(elementCount: number): string {
+  return `${elementCount} eleman okundu, ancak malzemeleri hiçbir icmal kalemiyle eşleşmedi. Kapsama kartındaki açıkta kalan elemanlardan nedenlerini görün.`;
+}
+
 function countLine(
   key: "quantity" | "poz",
   total: number | null,
@@ -76,7 +80,7 @@ export function buildResultSummary(input: ResultSummaryInput): ResultSummary {
       ? { key: "price", tone: "ok", text: `Tüm kalemler fiyatlandı (${input.pricedItemCount}/${input.icmalItemCount}).` }
       : { key: "price", tone: "attention", text: `${missingPrices} kalem fiyat bekliyor (${input.pricedItemCount}/${input.icmalItemCount} fiyatlandı).` },
     input.openings === "present"
-      ? { key: "openings", tone: "ok", text: "Kapı/pencere boşlukları modelden okundu ve kalem bazında gösteriliyor." }
+      ? { key: "openings", tone: "ok", text: "Kapı/pencere boşlukları modelden okundu; düşüm özeti ayrı gösterilir, kalemlere otomatik uygulanmaz." }
       : input.openings === "none_in_model"
         ? { key: "openings", tone: "ok", text: "Modelde kapı/pencere yok; boşluk düşümü gerekmedi." }
         : { key: "openings", tone: "attention", text: "Modelde kapı/pencere bilgisi bulunamadı; boşluk düşümü (minha) değerlendirilemedi." },
@@ -89,7 +93,7 @@ export function buildResultSummary(input: ResultSummaryInput): ResultSummary {
       : input.hasQuotation ? "transfer_to_offer" : "create_offer";
   return {
     lines,
-    nextStep: { action, text: NEXT_STEP_TEXT[action] },
+    nextStep: { action, text: action === "check_file" && input.totalElementCount ? unmatchedElementsText(input.totalElementCount) : NEXT_STEP_TEXT[action] },
     readyForOffer: input.icmalItemCount > 0 && missingPrices === 0,
   };
 }

@@ -57,6 +57,20 @@ test("without a consistency report element counts are said to be unknown", () =>
   assert.match(summary.lines.find(line => line.key === "quantity")!.text, /belirlenemedi/);
 });
 
+test("elements that were read but matched no line say so, instead of blaming the file", () => {
+  const summary = buildResultSummary({ ...base, icmalItemCount: 0, totalElementCount: 1655, measuredElementCount: 1655, pozMatchedElementCount: 0 });
+  assert.equal(summary.nextStep.action, "check_file");
+  assert.match(summary.nextStep.text, /1655 eleman okundu/);
+  assert.match(summary.nextStep.text, /malzeme/);
+});
+
+test("openings read from the model are not described as applied to the lines", () => {
+  const summary = buildResultSummary({ ...base, openings: "present" });
+  const text = summary.lines.find(line => line.key === "openings")!.text;
+  assert.match(text, /okundu/);
+  assert.doesNotMatch(text, /kalem bazında gösteriliyor/);
+});
+
 test("an empty icmal asks the user to check the file instead of pricing", () => {
   const summary = buildResultSummary({ ...base, icmalItemCount: 0 });
   assert.equal(summary.nextStep.action, "check_file");
