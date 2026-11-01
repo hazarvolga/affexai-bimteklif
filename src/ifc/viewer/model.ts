@@ -159,6 +159,15 @@ export function computePanDelta(input: {
   };
 }
 
+export type IfcSectionAxis = "y" | "x" | "z";
+
+/** Next slider value while the section plays; it never passes 100 and says when it has finished. */
+export function nextSectionPlayPercent(current: number, stepPercent: number): { percent: number; finished: boolean } {
+  if (!Number.isFinite(current)) return { percent: 100, finished: true };
+  const next = Math.min(100, current + Math.max(1, stepPercent));
+  return { percent: next, finished: next >= 100 };
+}
+
 export function computeSectionCutConstant(minY: number, maxY: number, ratioPercent: number): number {
   const clamped = Math.max(5, Math.min(100, Number.isFinite(ratioPercent) ? ratioPercent : 100));
   const span = Math.max(maxY - minY, 0.1);

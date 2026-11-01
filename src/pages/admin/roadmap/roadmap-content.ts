@@ -185,8 +185,9 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
   },
   {
     id: "durum",
-    title: "Uygulama durumu (1 Kasım 2026 · Rev. 156 geliştirme kaydı)",
+    title: "Uygulama durumu (1 Kasım 2026 · Rev. 157 geliştirme kaydı)",
     blocks: [
+      { type: "callout", tone: "info", title: "Rev. 157 · Düşey kesit", text: "3B görüntüleyicide kesit yönü seçilir (yatay, sağ-sol düşey, ön-arka düşey) ve oynat düğmesiyle kesit kendiliğinden kayar. Metraj etkilenmez." },
       { type: "callout", tone: "info", title: "Rev. 156 · Model envanteri", text: "Dosyadaki sınıflar ve sayıları ekranda görünür; her biri için icmalde mi, ayrı listede mi, metraja girmiyor mu ve nedeni yazılır. Kapı ve pencere bloğu kalem seçmeden görünür. Hesap değişmedi." },
       { type: "callout", tone: "info", title: "Rev. 155 · Daire ve oda cetveli", text: "Sunucuda işlenen modelde bağımsız bölümler ve odalar ekrana gelir. Önceki kayıtlarda cetvel yoktur, dosya yeniden işlenmelidir. Hesap değişmedi." },
       { type: "callout", tone: "info", title: "Rev. 154 · Kanıtlı ve kanıtsız eleman", text: "Sonuç özeti ve üst başlık, miktarı kanıtlı elemanı ve modelin tamamını ayrı sayar. Yalnız geometriden hesaplanan elemanlar icmale girmez ve bu açıkça yazılır. Hesap değişmedi." },
@@ -1225,6 +1226,9 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
           ],
           [
             "Rev. 156", "1 Kasım 2026 · Model envanteri", "BIM-CALC-2026-11-01.14", "Dosyadaki sınıflar, sayılar ve metraja girme durumu görünür. Hesap değişmedi.",
+          ],
+          [
+            "Rev. 157", "1 Kasım 2026 · Düşey kesit", "BIM-CALC-2026-11-01.15", "3B görüntüleyicide düşey kesit ve oynat düğmesi. Metraj etkilenmez.",
           ],
         ],
       },
@@ -2318,6 +2322,9 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
           ],
           [
             "Rev. 156 · 1 Kasım 2026 (IFC ekranı)", "Model envanteri", "Dosyadaki sınıflar ve metraja girme durumu görünür; kapı/pencere bloğu kalem seçmeden çıkar.", "workers/ifc/ifc_extract.py; src/ifc/model-inventory.ts; src/ifc/openings-overview.ts; src/components/smartcheck/ModelInventoryCard.tsx",
+          ],
+          [
+            "Rev. 157 · 1 Kasım 2026 (3B)", "Düşey kesit", "Kesit yönü seçilir; her yön için sürgü ve oynat düğmesi vardır.", "src/ifc/viewer/engine.ts; src/ifc/viewer/model.ts; src/components/smartcheck/viewer/IfcReviewViewer.tsx",
           ],
           [
             "Rev. 150 · 1 Kasım 2026 (Minha)", "ÇŞB boşluk düşümü", "Sıva, alçı ve boyada tüm boşluklar düşülür; duvar, alçı levha ve asma tavanın kendi sınırı vardır.", "src/smartcheck/rules/minha.ts; src/ifc/openings-minha.ts; src/components/smartcheck/CalmIcmalEvidenceCard.tsx",

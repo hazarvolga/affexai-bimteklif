@@ -10,6 +10,7 @@ import {
   computeSectionCutConstant,
   getCameraPresetAngles,
   type IfcCameraPreset,
+  type IfcSectionAxis,
 } from "./model";
 import type { IfcSourceIdentity } from "../types";
 
@@ -27,7 +28,8 @@ export interface IfcViewerController {
   zoomByFactor(factor: number): void;
   panByPixels(dx: number, dy: number): void;
   setInteractionMode(mode: IfcViewerInteractionMode): void;
-  setSectionCutPercent(percent: number): void;
+  /** y: floor section (horizontal cut); x and z: vertical sections from the side and from the front. */
+  setSectionCut(axis: IfcSectionAxis, percent: number): void;
   setWireframe(enabled: boolean): void;
   dispose(): void;
 }
@@ -89,7 +91,12 @@ export async function createIfcViewer(
   const camera = new THREE.PerspectiveCamera(42, 1, 0.01, 100_000);
   const modelRoot = new THREE.Group();
   scene.add(modelRoot);
-  const sectionPlane = new THREE.Plane(new THREE.Vector3(0, -1, 0), 10_000);
+  // A plane keeps what is on its negative side of the normal: a cut at constant c keeps points below c on that axis.
+  const sectionPlanes: Record<IfcSectionAxis, THREE.Plane> = {
+    y: new THREE.Plane(new THREE.Vector3(0, -1, 0), 10_000),
+    x: new THREE.Plane(new THREE.Vector3(-1, 0, 0), 10_000),
+    z: new THREE.Plane(new THREE.Vector3(0, 0, -1), 10_000),
+  };
   const byExpressId = new Map<number, THREE.Object3D[]>();
   const identityIndex = buildViewerIdentityIndex(identities);
   let geometryBudget = { allocatedBytes: 0, triangleCount: 0, meshCount: 0 };
@@ -128,7 +135,7 @@ export async function createIfcViewer(
         transparent: placed.color.w < 1,
         opacity: placed.color.w,
         side: THREE.DoubleSide,
-        clippingPlanes: [sectionPlane],
+        clippingPlanes: Object.values(sectionPlanes),
       });
       const mesh = new THREE.Mesh(geometry, material);
       mesh.applyMatrix4(new THREE.Matrix4().fromArray(placed.flatTransformation));
@@ -155,9 +162,18 @@ export async function createIfcViewer(
   const sphere = box.getBoundingSphere(new THREE.Sphere());
   const initialTarget = sphere.center.clone();
   const target = initialTarget.clone();
-  const minY = Number.isFinite(box.min.y) ? box.min.y : -1;
-  const maxY = Number.isFinite(box.max.y) ? box.max.y : 10;
-  sectionPlane.constant = computeSectionCutConstant(minY, maxY, 100);
+  const sectionBounds: Record<IfcSectionAxis, [number, number]> = {
+    y: [Number.isFinite(box.min.y) ? box.min.y : -1, Number.isFinite(box.max.y) ? box.max.y : 10],
+    x: [Number.isFinite(box.min.x) ? box.min.x : -10, Number.isFinite(box.max.x) ? box.max.x : 10],
+    z: [Number.isFinite(box.min.z) ? box.min.z : -10, Number.isFinite(box.max.z) ? box.max.z : 10],
+  };
+  const setSectionCut = (axis: IfcSectionAxis, percent: number) => {
+    sectionPlanes[axis].constant = computeSectionCutConstant(sectionBounds[axis][0], sectionBounds[axis][1], percent);
+  };
+  const resetSections = () => (["y", "x", "z"] as const).forEach(axis => setSectionCut(axis, 100));
+  const isInsideSections = (point: THREE.Vector3) =>
+    point.y <= sectionPlanes.y.constant && point.x <= sectionPlanes.x.constant && point.z <= sectionPlanes.z.constant;
+  resetSections();
   const radius = Math.max(sphere.radius, 1);
   let azimuth = Math.PI / 4;
   let elevation = Math.PI / 5;
@@ -279,7 +295,7 @@ export async function createIfcViewer(
     raycaster.setFromCamera(pointer, camera);
     const visibleChildren = modelRoot.children.filter(child => child.visible);
     const hits = raycaster.intersectObjects(visibleChildren, false);
-    const hit = hits.find(candidate => candidate.point.y <= sectionPlane.constant);
+    const hit = hits.find(candidate => isInsideSections(candidate.point));
     const expressId = hit?.object.userData.expressId as number | undefined;
     setHighlighted(expressId ?? null);
     onSelection(expressId === undefined ? null : identityIndex.byExpressId.get(expressId) ?? null);
@@ -366,9 +382,7 @@ export async function createIfcViewer(
     setInteractionMode(mode) {
       interactionMode = mode;
     },
-    setSectionCutPercent(percent) {
-      sectionPlane.constant = computeSectionCutConstant(minY, maxY, percent);
-    },
+    setSectionCut,
     setWireframe(enabled) {
       modelRoot.traverse(object => {
         if (object instanceof THREE.Mesh) {
@@ -386,7 +400,7 @@ export async function createIfcViewer(
       elevation = angles.elevation;
       target.copy(initialTarget);
       distance = computeFitCameraDistance(radius, camera.fov, camera.aspect);
-      sectionPlane.constant = computeSectionCutConstant(minY, maxY, 100);
+      resetSections();
       hasUserAdjustedCamera = false;
       updateCamera();
       onSelection(null);

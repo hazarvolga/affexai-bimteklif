@@ -14,6 +14,8 @@ import {
   Maximize2,
   Minimize2,
   Orbit,
+  Pause,
+  Play,
   RotateCcw,
   Scissors,
   ZoomIn,
@@ -23,9 +25,11 @@ import { fetchWithAuth } from "@/lib/api";
 import { isStaleChunkError, STALE_CHUNK_MESSAGE } from "@/lib/stale-chunk";
 import type { IfcSourceIdentity } from "@/ifc/types";
 import {
+  nextSectionPlayPercent,
   parseViewerContext,
   sha256Hex,
   type IfcCameraPreset,
+  type IfcSectionAxis,
   type IfcViewerContext,
 } from "@/ifc/viewer/model";
 import type { IfcViewerController, IfcViewerInteractionMode } from "@/ifc/viewer/engine";
@@ -38,6 +42,15 @@ export interface IfcReviewViewerProps {
 }
 
 type ViewportSizeMode = "normal" | "tall" | "fullscreen";
+
+const SECTION_MIN_PERCENT = 10;
+const SECTION_PLAY_STEP_PERCENT = 2;
+const SECTION_PLAY_INTERVAL_MS = 80;
+const SECTION_AXES: ReadonlyArray<{ axis: IfcSectionAxis; label: string }> = [
+  { axis: "y", label: "Kat kesiti (yatay)" },
+  { axis: "x", label: "Düşey kesit (sağ-sol)" },
+  { axis: "z", label: "Düşey kesit (ön-arka)" },
+];
 
 export function IfcReviewViewer({
   documentId,
@@ -55,7 +68,12 @@ export function IfcReviewViewer({
   const [sizeMode, setSizeMode] = useState<ViewportSizeMode>("normal");
   const [interactionMode, setInteractionMode] = useState<IfcViewerInteractionMode>("orbit");
   const [activePreset, setActivePreset] = useState<IfcCameraPreset>("iso");
-  const [sectionCutPercent, setSectionCutPercent] = useState<number>(100);
+  const [sectionAxis, setSectionAxis] = useState<IfcSectionAxis>("y");
+  const [sectionPercents, setSectionPercents] = useState<Record<IfcSectionAxis, number>>({ y: 100, x: 100, z: 100 });
+  const [sectionPlaying, setSectionPlaying] = useState(false);
+  const sectionCutPercent = sectionPercents[sectionAxis];
+  const sectionPercentsRef = useRef(sectionPercents);
+  sectionPercentsRef.current = sectionPercents;
   const [wireframe, setWireframe] = useState<boolean>(false);
 
   useEffect(() => {
@@ -127,9 +145,33 @@ export function IfcReviewViewer({
     controllerRef.current?.setCameraPreset(preset);
   };
 
-  const handleSectionCutChange = (value: number) => {
-    setSectionCutPercent(value);
-    controllerRef.current?.setSectionCutPercent(value);
+  const handleSectionCutChange = (value: number, axis: IfcSectionAxis = sectionAxis) => {
+    setSectionPercents(current => ({ ...current, [axis]: value }));
+    controllerRef.current?.setSectionCut(axis, value);
+  };
+
+  // The play button moves the chosen cut from where it stands to the end of the model, then stops.
+  useEffect(() => {
+    if (!sectionPlaying) return;
+    const timer = window.setInterval(() => {
+      const { percent, finished } = nextSectionPlayPercent(sectionPercentsRef.current[sectionAxis], SECTION_PLAY_STEP_PERCENT);
+      sectionPercentsRef.current = { ...sectionPercentsRef.current, [sectionAxis]: percent };
+      setSectionPercents(sectionPercentsRef.current);
+      controllerRef.current?.setSectionCut(sectionAxis, percent);
+      if (finished) setSectionPlaying(false);
+    }, SECTION_PLAY_INTERVAL_MS);
+    return () => window.clearInterval(timer);
+  }, [sectionPlaying, sectionAxis]);
+
+  const handleSectionPlayToggle = () => {
+    if (sectionPlaying) return setSectionPlaying(false);
+    if (sectionPercents[sectionAxis] >= 100) handleSectionCutChange(SECTION_MIN_PERCENT);
+    setSectionPlaying(true);
+  };
+
+  const handleSectionAxisChange = (axis: IfcSectionAxis) => {
+    setSectionPlaying(false);
+    setSectionAxis(axis);
   };
 
   const handleWireframeToggle = () => {
@@ -140,7 +182,8 @@ export function IfcReviewViewer({
 
   const handleResetView = () => {
     setActivePreset("iso");
-    setSectionCutPercent(100);
+    setSectionPlaying(false);
+    setSectionPercents({ y: 100, x: 100, z: 100 });
     setWireframe(false);
     setInteractionMode("orbit");
     controllerRef.current?.setWireframe(false);
@@ -352,15 +395,22 @@ export function IfcReviewViewer({
 
             {/* Sağ: Kat Kesiti (Z-Section) Sürgüsü & Tel Kafes */}
             <div className="flex flex-wrap items-center gap-2">
-              <label className="inline-flex items-center gap-1.5 rounded border border-border bg-background px-2 py-1 text-[11px] text-foreground">
+              <div role="group" aria-label="Kesit" className="inline-flex items-center gap-1.5 rounded border border-border bg-background px-2 py-1 text-[11px] text-foreground">
                 <Scissors className="h-3.5 w-3.5 text-amber-400" />
-                <span className="font-medium">Kat Kesiti:</span>
+                <select
+                  aria-label="Kesit yönü"
+                  value={sectionAxis}
+                  onChange={(event) => handleSectionAxisChange(event.target.value as IfcSectionAxis)}
+                  className="rounded border border-border bg-background px-1 py-0.5 text-[11px] font-medium"
+                >
+                  {SECTION_AXES.map(({ axis, label }) => <option key={axis} value={axis}>{label}</option>)}
+                </select>
                 <input
                   type="range"
-                  aria-label="Kat kesiti yüksekliği"
-                  min={10}
+                  aria-label="Kesit konumu"
+                  min={SECTION_MIN_PERCENT}
                   max={100}
-                  step={5}
+                  step={sectionPlaying ? 1 : 5}
                   value={sectionCutPercent}
                   onChange={(event) => handleSectionCutChange(Number(event.target.value))}
                   className="h-1.5 w-24 cursor-pointer accent-amber-500"
@@ -368,7 +418,15 @@ export function IfcReviewViewer({
                 <span className="w-8 text-right font-mono text-[10px] text-muted-foreground">
                   %{sectionCutPercent}
                 </span>
-              </label>
+                <button
+                  type="button"
+                  aria-label={sectionPlaying ? "Kesiti durdur" : "Kesiti oynat"}
+                  onClick={handleSectionPlayToggle}
+                  className="inline-flex items-center rounded border border-border bg-background p-1 hover:bg-muted"
+                >
+                  {sectionPlaying ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />}
+                </button>
+              </div>
 
               <Button
                 size="sm"
