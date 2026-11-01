@@ -18,6 +18,8 @@ export interface ResultLine {
 export interface ResultSummaryInput {
   totalElementCount: number | null;
   measuredElementCount: number | null;
+  /** Elements that reached the icmal rows with explicit quantity evidence; null when the source is not a server evidence set. */
+  evidenceElementCount?: number | null;
   pozMatchedElementCount: number | null;
   icmalItemCount: number;
   pricedItemCount: number;
@@ -43,6 +45,25 @@ function unmatchedElementsText(elementCount: number): string {
   return `${elementCount} eleman okundu, ancak malzemeleri hiçbir icmal kalemiyle eşleşmedi. Kapsama kartındaki açıkta kalan elemanlardan nedenlerini görün.`;
 }
 
+function quantityLine(input: ResultSummaryInput): ResultLine {
+  const { totalElementCount: total, measuredElementCount: measured, evidenceElementCount: evidence } = input;
+  const withoutEvidence = typeof total === "number" && typeof evidence === "number" ? total - evidence : 0;
+  if (typeof total === "number" && typeof measured === "number" && measured === total && withoutEvidence > 0) {
+    return {
+      key: "quantity",
+      tone: "attention",
+      text: `Miktarı kanıtlı eleman: ${evidence}/${total}; kanıtsız: ${withoutEvidence} (yalnız geometriden hesaplananlar ve kapsam dışı sınıflar icmale girmez).`,
+    };
+  }
+  return countLine(
+    "quantity",
+    total,
+    measured,
+    count => `${count} elemanın tamamının miktarı okundu.`,
+    (count, part) => `Miktarı okunan eleman: ${part}/${count}; ölçülemeyen: ${count - part}.`,
+  );
+}
+
 function countLine(
   key: "quantity" | "poz",
   total: number | null,
@@ -62,13 +83,7 @@ export function buildResultSummary(input: ResultSummaryInput): ResultSummary {
     input.icmalItemCount > 0
       ? { key: "source", tone: "ok", text: `Dosya okundu; ${input.icmalItemCount} icmal kalemi oluştu.` }
       : { key: "source", tone: "attention", text: "Dosya okundu ancak icmal kalemi oluşmadı." },
-    countLine(
-      "quantity",
-      input.totalElementCount,
-      input.measuredElementCount,
-      total => `${total} elemanın tamamının miktarı okundu.`,
-      (total, part) => `Miktarı okunan eleman: ${part}/${total}; ölçülemeyen: ${total - part}.`,
-    ),
+    quantityLine(input),
     countLine(
       "poz",
       input.totalElementCount,

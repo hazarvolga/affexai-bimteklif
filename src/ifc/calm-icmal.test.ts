@@ -739,3 +739,17 @@ test("çok katmanlı kaplamada katkı hangi katmandan geldiğini söyler", () =>
   assert.ok(layers.length > 0);
   for (const layer of layers) assert.ok(layer === "Seramik_Kaplama" || layer === "Sap_5cm", String(layer));
 });
+
+const report = (totalElementCount: number) => ({
+  totalElementCount, measuredElementCount: totalElementCount, unmeasuredElementCount: 0, pozMatchedElementCount: 1, pozMatchedRatio: 0,
+  uncoveredElementCount: 0, typeInheritedElementCount: 0, suppressedAssemblyPartCount: 0, highSeverityCount: 0, mediumSeverityCount: 0,
+  findings: [], uncoveredElements: [], suppressedAssemblyParts: [],
+}) as never;
+
+test("the subtitle separates the rows backed by evidence from the elements of the whole model", () => {
+  const elements = [{ type: "IfcSlab", name: "D1", volumeM3: 1, formworkM2: 0, rebarKg: 0, quantitySource: "property", smartCheckStatus: "pass", materialLayers: ["Beton_C30"] }] as never[];
+  const full = buildCalmIfcDatasetFromElements(elements, { consistencyReport: report(1731) }, "Model.ifc");
+  assert.match(full.projectSubtitle, /1 Kanıtlı Eleman · Modelde 1\.731 Eleman/);
+  assert.doesNotMatch(full.projectSubtitle, /Toplam 1 IFC/);
+  assert.match(buildCalmIfcDatasetFromElements(elements, { consistencyReport: report(1) }, "Model.ifc").projectSubtitle, /Toplam 1 IFC Elemanı/);
+});

@@ -185,8 +185,9 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
   },
   {
     id: "durum",
-    title: "Uygulama durumu (1 Kasım 2026 · Rev. 153 geliştirme kaydı)",
+    title: "Uygulama durumu (1 Kasım 2026 · Rev. 154 geliştirme kaydı)",
     blocks: [
+      { type: "callout", tone: "info", title: "Rev. 154 · Kanıtlı ve kanıtsız eleman", text: "Sonuç özeti ve üst başlık, miktarı kanıtlı elemanı ve modelin tamamını ayrı sayar. Yalnız geometriden hesaplanan elemanlar icmale girmez ve bu açıkça yazılır. Hesap değişmedi." },
       { type: "callout", tone: "info", title: "Rev. 153 · Kapsam kartı gerçek sayıyı gösterir", text: "1.731 elemanlı bir modelde, yalnız kanıtlı 160 satır yerine modelin tamamı sayılır ve poz eşleşmesi 160/1.731 görünür. Kapı/pencere düşüm kartı yalnız m² kalemlerinde çıkar. Hesap değişmedi." },
       { type: "callout", tone: "info", title: "Rev. 152 · TÜİK veri akışı yapısı", text: "Canlı liste koddaki kimliklerin yanlış olduğunu gösterdi. Yönetici her endeks akışının boyutlarını ve son değerlerini görebilir; otomatik çekim bu çıktıya göre yazılacak." },
       { type: "callout", tone: "info", title: "Rev. 151 · IFC ekranı", text: "Sunucuda işlenen modelin kapı/pencere listesi ve kaynak yazılımı ekrana gelir. Düşüm özeti kalemlere otomatik uygulanmaz; ekran bunu açıkça söyler. Canlıya alımdan önce açılmış sekmede 3B görüntüleyici sayfayı yenilemeyi söyler." },
@@ -1213,6 +1214,9 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
           ],
           [
             "Rev. 153", "1 Kasım 2026 · Kapsam kartı", "BIM-CALC-2026-11-01.11", "Kapsam oranı modelin tüm elemanlarına göre gösterilir. Hesap değişmedi.",
+          ],
+          [
+            "Rev. 154", "1 Kasım 2026 · Eleman sayıları", "BIM-CALC-2026-11-01.12", "Kanıtlı ve kanıtsız eleman ayrı yazılır. Hesap değişmedi.",
           ],
         ],
       },
@@ -2297,6 +2301,9 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
           ],
           [
             "Rev. 153 · 1 Kasım 2026 (IFC ekranı)", "Kapsam kartı", "Gerçek eleman sayısı ve oranı gösterilir; yalnız m² kalemlerinde düşüm kartı çıkar.", "src/ifc/smartcheck-evidence.ts; src/ifc/openings-minha.ts; src/components/smartcheck/CalmIcmalEvidenceCard.tsx",
+          ],
+          [
+            "Rev. 154 · 1 Kasım 2026 (IFC ekranı)", "Eleman sayıları", "Üst başlık ve özet kanıtlı ile kanıtsız elemanı ayrı yazar.", "src/ifc/result-summary.ts; src/ifc/calm-icmal.ts; src/components/smartcheck/CalmIfcWorkspace.tsx",
           ],
           [
             "Rev. 150 · 1 Kasım 2026 (Minha)", "ÇŞB boşluk düşümü", "Sıva, alçı ve boyada tüm boşluklar düşülür; duvar, alçı levha ve asma tavanın kendi sınırı vardır.", "src/smartcheck/rules/minha.ts; src/ifc/openings-minha.ts; src/components/smartcheck/CalmIcmalEvidenceCard.tsx",

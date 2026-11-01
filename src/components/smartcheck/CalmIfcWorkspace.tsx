@@ -162,12 +162,13 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
   const resultSummary = useMemo(() => buildResultSummary({
     totalElementCount: dataset.consistencyReport?.totalElementCount ?? null,
     measuredElementCount: dataset.consistencyReport?.measuredElementCount ?? null,
+    evidenceElementCount: dataset.elements?.length ?? null,
     pozMatchedElementCount: dataset.consistencyReport?.pozMatchedElementCount ?? null,
     icmalItemCount: costSummary.itemCount,
     pricedItemCount: costSummary.pricedItemCount,
     openings: openingsAvailability(dataset.openings),
     hasQuotation: quotations.length > 0,
-  }), [costSummary.itemCount, costSummary.pricedItemCount, dataset.consistencyReport, dataset.openings, quotations.length]);
+  }), [costSummary.itemCount, costSummary.pricedItemCount, dataset.consistencyReport, dataset.elements, dataset.openings, quotations.length]);
   const costPendingLabel = costSummary.status === "empty" ? "Kalem yok" : `${costSummary.missingItemCount} kalem fiyat bekliyor`;
   const groupTotalLabel = (group: { pricedSubtotal: number; itemCount: number; missingItemCount: number }) => {
     if (group.missingItemCount === 0) return formatTrCurrency(group.pricedSubtotal);
