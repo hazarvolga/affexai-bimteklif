@@ -64,6 +64,7 @@ import {
 } from "../../services/billing/bank-transfer";
 import { syncPlanCatalog } from "../admin/plan-catalog-sync";
 import { readRegulationWatch, reviewRegulationWatchItem } from "../regulation-watch/store";
+import { checkTuikConnection } from "../crawler/tuik-connection";
 import {
   canonicalPricingSources,
   PRICING_SOURCE_CATALOG_VERSION,
@@ -483,6 +484,13 @@ export function registerAdminRoutes(app: Express) {
       console.error("Regulation watch review error:", error);
       return res.status(500).json({ error: "İnceleme kaydedilemedi." });
     }
+  });
+
+  // The key stays in the environment: this reports only whether TÜİK accepts it and which dataflows it offers.
+  router.get("/tuik/connection", async (_req, res) => {
+    const result = await checkTuikConnection(process.env.TUIK_SDMX_API_KEY);
+    if (result.errorCode) console.error("TÜİK connection check failed:", result.errorCode);
+    return res.json(result);
   });
 
   // 6b. Sync Canonical Plan Catalog (Prices & Server-Safe Quotas)

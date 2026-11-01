@@ -185,8 +185,9 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
   },
   {
     id: "durum",
-    title: "Uygulama durumu (1 Kasım 2026 · Rev. 148 geliştirme kaydı)",
+    title: "Uygulama durumu (1 Kasım 2026 · Rev. 149 geliştirme kaydı)",
     blocks: [
+      { type: "callout", tone: "info", title: "Rev. 149 · TÜİK bağlantı kontrolü", text: "Yönetici, sunucudaki TÜİK anahtarının çalıştığını ve sunulan endeks veri akışlarını panelden görür. Veri kaydedilmez; otomatik endeks çekimi gerçek listeye göre ayrıca yazılacak." },
       { type: "callout", tone: "info", title: "Rev. 148 · Mevzuat Bekçisi", text: "Resmî Gazete ve GİB duyuruları (il duyuruları bölge bilgisiyle) taranır, eşleşenler yönetici ekranına düşer, kontrol edilemeyen günler gösterilir. Taranmış PDF kararlar Türkçe OCR ile okunur. Hiçbir oran otomatik değişmez." },
       { type: "callout", tone: "info", title: "Rev. 147 · Teklif ve aktarım kapıları", text: "Teklif durum geçişleri sınırlandı, IFC satırları yalnız kanıt kontrollü aktarımdan geçer, düzeltilen belirsiz sayı bulgusu kalkar ve eski kayıtlar ham hata kodu göstermez." },
       { type: "callout", tone: "info", title: "Rev. 146 · Poz kodları katalogla eşit", text: "Calm icmaldeki 8 sabit poz, örnek CSV ve ana sayfa tablosu resmî ÇŞB 2026 kodlarına çevrildi; test bu eşleşmeyi korur. Laminat, süpürgelik, XPS ve gazbeton kalemleri bilinçli olarak çözümsüz kaldı. Poz seçimi teknik ön değerlendirmedir." },
@@ -1193,6 +1194,9 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
           ],
           [
             "Rev. 148", "1 Kasım 2026 · Mevzuat Bekçisi", "BIM-CALC-2026-11-01.6", "Migration 0042 iki tablo ekler. Tarama yalnız kayıt üretir; oran değişikliği yetkili kişi kararıyla yapılır. PDF kararlar OCR ile ilk 20 sayfaya kadar okunur.",
+          ],
+          [
+            "Rev. 149", "1 Kasım 2026 · TÜİK bağlantı kontrolü", "BIM-CALC-2026-11-01.7", "Yönetici ekranı anahtarın kabulünü ve endeks veri akışlarını gösterir. Veri kaydedilmez, hesap değişmez.",
           ],
         ],
       },
@@ -2271,6 +2275,9 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
           ],
           [
             "Rev. 148 · 1 Kasım 2026 (Mevzuat)", "Değişiklik bekçisi", "Resmî Gazete ve GİB taraması eklendi. Hesap girdisi otomatik değişmez.", "src/server/regulation-watch/gazette.ts; src/server/regulation-watch/gib.ts; src/server/regulation-watch/service.ts; drizzle-release/0042_regulation_watch.sql",
+          ],
+          [
+            "Rev. 149 · 1 Kasım 2026 (TÜİK)", "Bağlantı kontrolü", "Anahtarın kabulü ve endeks veri akışları panelden görülür. Veri kaydedilmez.", "src/server/crawler/tuik-connection.ts; src/server/routes/admin.ts; src/pages/admin/TuikConnectionCard.tsx",
           ],
         ],
       },

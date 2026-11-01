@@ -218,6 +218,13 @@ test("T43 R+1 route coverage ratchet: admin, pricing-file-import, academy, billi
   assert.equal((await reqJson("PATCH", `/api/admin/regulation-watch/${crypto.randomUUID()}`, adminToken, { status: "other" })).status, 400);
   assert.equal((await reqJson("PATCH", `/api/admin/regulation-watch/${crypto.randomUUID()}`, adminToken, { status: "reviewed" })).status, 404);
 
+  const previousTuikKey = process.env.TUIK_SDMX_API_KEY;
+  delete process.env.TUIK_SDMX_API_KEY;
+  const tuikConnection = await reqJson("GET", "/api/admin/tuik/connection", adminToken);
+  if (previousTuikKey !== undefined) process.env.TUIK_SDMX_API_KEY = previousTuikKey;
+  assert.equal(tuikConnection.status, 200);
+  assert.equal(tuikConnection.json.status, "not_configured");
+
   const usageReport = await reqJson("GET", "/api/admin/reports/usage", adminToken);
   assert.equal(usageReport.status, 200);
   assert.ok(Array.isArray(usageReport.json.topConsumers));

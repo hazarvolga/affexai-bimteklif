@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { PageContainer } from '../../components/layout/PageContainer';
 import { Button } from '../../components/ui/button';
 import { fetchWithAuth } from '../../lib/api';
+import { TuikConnectionCard } from './TuikConnectionCard';
 
 interface WatchItem {
   id: string;
@@ -93,6 +94,8 @@ export function RegulationWatch() {
             </p>
           )}
         </div>
+
+        <TuikConnectionCard />
 
         {loading && <p className="text-sm text-muted-foreground">Yükleniyor...</p>}
         {loadFailed && (
