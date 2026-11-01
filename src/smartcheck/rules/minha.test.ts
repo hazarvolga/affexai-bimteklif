@@ -10,26 +10,50 @@ import {
 const VERIFIED_PROFILE = { status: "verified" as const, sourceReference: "Sözleşme EK-Metraj", edition: "2026.1", effectiveDate: "2026-01-01", sha256: "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd" };
 
 describe("Contractual Opening Deduction (Minha) & Structural Intersection Engine", () => {
-  it("applies CSB_2026 0.50 m2 threshold and adds reveal surfaces on deducted openings", () => {
+  it("deducts every plaster and paint opening under CSB_2026, whatever its size, and adds its reveals", () => {
     const result = evaluatePlasterPaintMinha({
       grossAreaM2: 30,
       standard: "CSB_2026",
       wallThicknessM: 0.2,
       openings: [
-        // 0.40 x 1.00 = 0.40 m2 (<= 0.50 m2 -> not deducted)
+        // 0.40 m2, 3-sided reveal = (0.4 + 2.0) * 0.2 = 0.48 m2
         { id: "W-SMALL", widthM: 0.4, heightM: 1.0, count: 1 },
-        // 1.50 x 1.50 = 2.25 m2 (> 0.50 m2 -> deducted, 3-sided reveal = (1.5 + 3.0) * 0.2 = 0.90 m2)
+        // 2.25 m2, 3-sided reveal = (1.5 + 3.0) * 0.2 = 0.90 m2
         { id: "W-MAIN", widthM: 1.5, heightM: 1.5, count: 1, fourSidedReveal: false },
       ],
     });
 
-    assert.equal(result.thresholdM2, 0.5);
-    assert.equal(result.nonDeductedOpeningAreaM2, 0.4);
-    assert.equal(result.deductedOpeningAreaM2, 2.25);
-    assert.equal(result.addedRevealAreaM2, 0.9);
-    // 30 - 2.25 + 0.90 = 28.65 m2 (matches eng_calc.py siva_boya_alani)
-    assert.equal(result.netPayableAreaM2, 28.65);
+    assert.equal(result.thresholdM2, 0);
+    assert.equal(result.nonDeductedOpeningAreaM2, 0);
+    assert.equal(result.deductedOpeningAreaM2, 2.65);
+    assert.equal(result.addedRevealAreaM2, 1.38);
+    // 30 - 2.65 + 1.38 = 28.73 m2 (matches eng_calc.py siva_boya_alani kural=CSB)
+    assert.equal(result.netPayableAreaM2, 28.73);
+    assert.match(result.profile.sourceReference, /Analizleri/);
   });
+
+  for (const [csbWorkClass, threshold, smallWidth] of [
+    ["masonry_wall", 0.1, 0.09],
+    ["gypsum_board", 0.5, 0.49],
+    ["suspended_ceiling", 0.25, 0.24],
+  ] as const) {
+    it(`keeps openings smaller than ${threshold} m2 and deducts one exactly that size for ${csbWorkClass}, without reveals`, () => {
+      const result = evaluatePlasterPaintMinha({
+        grossAreaM2: 30,
+        standard: "CSB_2026",
+        csbWorkClass,
+        wallThicknessM: 0.2,
+        openings: [
+          { id: "smaller", widthM: smallWidth, heightM: 1 },
+          { id: "exact", widthM: threshold, heightM: 1 },
+        ],
+      });
+      assert.equal(result.thresholdM2, threshold);
+      assert.deepEqual(result.items.map(item => item.deducted), [false, true]);
+      assert.equal(result.addedRevealAreaM2, 0);
+      assert.equal(result.netPayableAreaM2, 30 - threshold);
+    });
+  }
 
   it("applies DIN_18350 2.50 m2 threshold without deducting medium windows", () => {
     const result = evaluatePlasterPaintMinha({
@@ -136,12 +160,36 @@ describe("T24 line-level minha application", () => {
     assert.notEqual(result.profileEvidence, VERIFIED_PROFILE);
     assert.ok(Object.isFrozen(result.profileEvidence));
     assert.equal(result.profile.sourceReference.length > 0, true);
-    assert.equal(result.profile.version, "minha-2026.3");
+    assert.equal(result.profile.version, "minha-2026.4");
     assert.equal(result.lines[0].status, "applied");
     assert.equal(result.lines[0].deductedOpeningAreaM2, 1);
     assert.equal(result.lines[0].addedRevealAreaM2, 0.6);
     assert.equal(result.lines[0].adjustmentM2, -0.4);
     assert.equal(result.lines[0].resultQuantityM2, 19.6);
+  });
+
+  it("deducts a small opening from a plaster line, but not from a wall line, which also needs no reveal depth", () => {
+    const opening = { widthM: 0.3, heightM: 0.3, hostElementId: "wall", targetFinishLayer: "Katman" };
+    const result = applyMinhaToTargetLines({
+      standard: "CSB_2026",
+      profileEvidence: VERIFIED_PROFILE,
+      openings: [
+        { ...opening, id: "plaster-small", targetLineId: "plaster", revealDepthM: 0.1, revealDepthSourceReference: "IFC wall thickness" },
+        { ...opening, id: "wall-small", targetLineId: "brick" },
+        { ...opening, id: "wall-big", targetLineId: "brick", widthM: 1, heightM: 1 },
+      ],
+      lines: [
+        { id: "plaster", hostElementId: "wall", finishLayer: "Katman", quantityBasis: "gross_before_openings", quantityM2: 10 },
+        { id: "brick", hostElementId: "wall", finishLayer: "Katman", quantityBasis: "gross_before_openings", quantityM2: 10, csbWorkClass: "masonry_wall" },
+      ],
+    });
+    // 0.09 m2 deducted, (0.3 + 0.6) * 0.1 = 0.09 m2 reveal added
+    assert.equal(result.lines[0].deductedOpeningAreaM2, 0.09);
+    assert.equal(result.lines[0].addedRevealAreaM2, 0.09);
+    assert.equal(result.lines[1].deductedOpeningAreaM2, 1);
+    assert.equal(result.lines[1].addedRevealAreaM2, 0);
+    assert.equal(result.lines[1].resultQuantityM2, 9);
+    assert.deepEqual(result.reviewItems, []);
   });
 
   it("adds sourced CSB reveal surfaces to the line adjustment", () => {

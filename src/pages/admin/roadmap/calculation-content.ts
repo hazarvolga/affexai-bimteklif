@@ -306,21 +306,23 @@ export const CALC_MODULES: CalcModule[] = [
     status: "mevzuat",
     sourceFiles: ["src/smartcheck/rules/minha.ts", "src/smartcheck/rules/minha.test.ts"],
     references: [
-      "ÇŞB Yüksek Fen Kurulu 2026 İnşaat Birim Fiyat Tarifleri ve Ölçü Esasları (CSB_2026_V1 — Duvar 15.220, Sıva/Boya 15.275–15.540, Kalıp 15.180)",
+      "ÇŞB Yüksek Fen Kurulu 2026 İnşaat Birim Fiyat Analizleri, Ölçü maddeleri (Cilt 1 PDF s. 236 duvar, s. 423-429 sıva/alçı; Cilt 2 PDF s. 298 alçı levha, s. 503 asma tavan, s. 553-596 boya)",
       "VOB/C DIN 18350 (2,50 m²) & Kullanıcı Tanımlı Özel Şartname Eşiği (CUSTOM_CONTRACT — customThresholdM2)",
     ],
     purpose: "Kapı, pencere ve tesisat boşluklarını doğrulanmış sözleşme baskısındaki ölçü esasına göre host+hedef kalem+bitiş katmanı anahtarıyla değerlendirir. CSB söve/yan yüzey alanı yalnız kaynaklı derinlikle düşüme geri eklenir; doğrulanmamış profil veya ölçü otomatik uygulanmaz ve uzman incelemesine gider.",
     formulas: [
       "Net Sözleşmesel Miktar = max(0; Brüt Miktar − Toplam Düşüm + Toplam Yan Yüzey / Söve Eklemesi)",
-      "Duvar / Sıva (CSB_2026, m²): tekil boşluk alanı A = w × h ≤ 0,50 m² (veya sıva/boya kural setinde 2,00 m²) ise düşülmez; aşarsa boşluk alanı düşülür ve söve/merkez yan yüzeyleri eklenir",
+      "Sıva / Boya (CSB_2026, m²): boyutuna bakılmaksızın tüm boşluklar düşülür, sıvanan veya boyanan yan yüzeyler eklenir. Duvar, alçı levha ve asma tavanda sınırdan küçük tekil boşluk düşülmez, yan yüzey eklenmez",
       "VOB/C DIN 18350 (DIN_18350, m²): tekil boşluk alanı A ≤ 2,50 m² ise düşülmez; A > 2,50 m² ise düşülür",
       "Özel Şartname (CUSTOM_CONTRACT, m²): kullanıcı tarafından açıkça girilen customThresholdM2 eşiği baz alınır (kaynaksız sabit eşik varsayılmaz)",
     ],
     rules: {
       columns: ["Standart / İmalat türü", "Minha eşiği (A = w × h)", "Eşik altı davranış", "Eşik üstü davranış"],
       rows: [
-        ["CSB_2026 · Duvar / İnce İş (m²)", "0,50 m²", "Boşluk düşülmez (0)", "Boşluk alanı düşülür + merkez/söve eklenir"],
-        ["CSB_2026_V1 · Sıva / Boya / Kalıp", "2,00 m² (Sıva) / 1,00 m² (Kalıp)", "Boşluk düşülmez", "Boşluk alanı düşülür + yan yüzey alanı eklenir"],
+        ["CSB_2026 · Sıva / Alçı / Boya (15.275, 15.280, 15.285, 15.540)", "Eşik yok", "Yok", "Boşluk alanı düşülür + yan yüzey eklenir"],
+        ["CSB_2026 · Duvar (15.220–15.240)", "0,10 m²'den küçük", "Boşluk düşülmez", "Boşluk alanı düşülür"],
+        ["CSB_2026 · Alçı Levha (15.530)", "0,50 m²'den küçük", "Boşluk düşülmez", "Boşluk alanı düşülür"],
+        ["CSB_2026 · Asma Tavan (15.535)", "0,25 m²'den küçük", "Boşluk düşülmez", "Boşluk alanı düşülür"],
         ["DIN_18350 · Uluslararası Sıva", "2,50 m²", "Boşluk düşülmez (0)", "Boşluk alanı düşülür"],
         ["CUSTOM_CONTRACT · Kullanıcı Tanımlı Özel Şartname", "customThresholdM2 (m²)", "Boşluk düşülmez (0)", "Boşluk alanı düşülür"],
       ],
@@ -328,14 +330,14 @@ export const CALC_MODULES: CalcModule[] = [
     example: {
       inputs: [["Sıva brüt alanı", "100,00 m²"], ["Pencere 1", "1,00 × 1,20 m (1,20 m², derinlik 0,20 m)"], ["Pencere 2", "2,00 × 1,50 m (3,00 m², derinlik 0,20 m, 4 kenar söve)"]],
       steps: [
-        "Pencere 1: 1,20 m² ≤ 2,00 m² → düşülmez (0 m²)",
-        "Pencere 2: 3,00 m² > 2,00 m² → 3,00 m² düşülür; söve = 2 × (2,00 + 1,50) × 0,20 = 1,40 m² eklenir",
-        "Net miktar = 100,00 − 3,00 + 1,40 = 98,40 m²",
+        "Pencere 1: 1,20 m² düşülür; söve (3 kenar) = (1,00 + 2 × 1,20) × 0,20 = 0,68 m² eklenir",
+        "Pencere 2: 3,00 m² düşülür; söve = 2 × (2,00 + 1,50) × 0,20 = 1,40 m² eklenir",
+        "Net miktar = 100,00 − 4,20 + 2,08 = 97,88 m²",
       ],
-      result: "Brüt: 100,00 m² · Düşüm: −3,00 m² · Söve Eklemesi: +1,40 m² · Net Sözleşmesel: 98,40 m²",
+      result: "Brüt: 100,00 m² · Düşüm: −4,20 m² · Söve Eklemesi: +2,08 m² · Net Sözleşmesel: 97,88 m²",
     },
     assumptions: ["Modelin ham/brüt miktarı hiçbir zaman sessizce üzerine yazılmaz; brüt, düşüm, ekleme ve net miktar ayrı alanlarda raporlanır.", "Özel idare şartnamesi (CUSTOM_CONTRACT) seçildiğinde customThresholdM2 değeri zorunludur; kaynaksız sabit eşik uydurulmaz.", "Açıklık host eleman ve hedef kalemle bağlanır; gross_before_openings yalnız bir kez düşülür, net_after_openings ikinci kez düşülmez, unknown ölçü esası manuel incelemeye gider."],
-    questions: ["Özel sektör ihaleleri için 'tüm boşlukları eşiksiz düş (0,00 m²)' seçeneği sözleşme profili olarak varsayılan listede yer almalı mı?"],
+    questions: ["Karşılaştırdığınız firmalar sıva ve boyada tüm boşlukları düşüyor mu, yoksa sözleşmeyle eşik mi koyuyor?"],
   },
   {
     id: "hakedis-donem",

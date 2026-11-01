@@ -67,7 +67,7 @@ export function CalmIcmalEvidenceCard({ dataset, selectedItem, expertMode, verif
                   onChange={(e) => setMinhaProfile(e.target.value as MinhaRuleProfile)}
                   className="border border-border bg-card px-2 py-0.5 text-[10px] font-mono text-foreground focus:border-primary focus:outline-none"
                 >
-                  <option value="CSB_2026">ÇŞB 2026 (0,50 m²)</option>
+                  <option value="CSB_2026">ÇŞB 2026 (sıva/boya: tüm boşluklar)</option>
                   <option value="DIN_18350">DIN 18350 / VOB (2,50 m²)</option>
                   <option value="CUSTOM_CONTRACT">Kullanıcı Tanımlı Eşik (m²)</option>
                 </select>
@@ -138,7 +138,7 @@ export function CalmIcmalEvidenceCard({ dataset, selectedItem, expertMode, verif
             )}
             {openingsMinha.status === "ok" && (
               <div className="space-y-1.5">
-                <div className="flex justify-between"><span>Eşik (tekil boşluk alanı)</span><span className="font-mono tabular-nums">{formatTrNumber(openingsMinha.thresholdM2 ?? 0)} m²</span></div>
+                <div className="flex justify-between"><span>Eşik (tekil boşluk alanı)</span><span className="font-mono tabular-nums">{openingsMinha.thresholdM2 ? `${formatTrNumber(openingsMinha.thresholdM2)} m²` : "Yok, tümü düşülür"}</span></div>
                 <div className="flex justify-between"><span>Düşülecek ({openingsMinha.deductedCount} adet)</span><span className="font-mono font-semibold tabular-nums">−{formatTrNumber(openingsMinha.deductedAreaM2)} m²</span></div>
                 <div className="flex justify-between"><span>Düşülmeyecek ({openingsMinha.notDeductedCount} adet)</span><span className="font-mono tabular-nums">{formatTrNumber(openingsMinha.notDeductedAreaM2)} m²</span></div>
                 <div className="flex justify-between text-muted-foreground"><span>{openingsMinha.doorCount} kapı · {openingsMinha.windowCount} pencere</span><span>{openingsMinha.unmeasuredCount > 0 ? `${openingsMinha.unmeasuredCount} boşluğun ölçüsü okunamadı` : "tüm ölçüler okundu"}</span></div>

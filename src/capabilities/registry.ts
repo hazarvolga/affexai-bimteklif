@@ -159,9 +159,9 @@ export const CAPABILITY_REGISTRY: readonly CapabilityRecord[] = [
   },
   {
     id: 'minha-opening-intersection-engine',
-    title: 'Sözleşmesel Boşluk Minha (ÇŞB 0,50 m² / DIN 18350 2,50 m² / Özel Şartname) & Kiriş-Döşeme Kesişim Motoru',
+    title: 'Sözleşmesel Boşluk Minha (ÇŞB imalat kuralları / DIN 18350 2,50 m² / Özel Şartname) & Kiriş-Döşeme Kesişim Motoru',
     shortClaim:
-      'ÇŞB Genel Teknik Şartnamesi (0,50 m²), DIN 18350 VOB/C (2,50 m²) ve kullanıcı tanımlı özel şartname eşiğine göre kapı/pencere minha, lento/denizlik dönüşü ve betonarme düğüm noktası tekilleştirme hesabı.',
+      'ÇŞB 2026 analiz ölçü maddeleri (sıva/boya tüm boşluklar, duvar 0,10 m², alçı levha 0,50 m², asma tavan 0,25 m²), DIN 18350 VOB/C (2,50 m²) ve kullanıcı tanımlı özel şartname eşiğine göre kapı/pencere minha, lento/denizlik dönüşü ve betonarme düğüm noktası tekilleştirme hesabı.',
     longDescription:
       'Duvar ve sıva/boya imalatlarında boşluk alanlarını seçilen şartname profiline göre düşer, denizlik/lento/mermer yan yüzey dönüşlerini ekler ve kolon-kiriş-döşeme birleşim bölgelerinde mükerrer beton hacmini TS 500 hiyerarşisiyle düşer.',
     level: 'L2',
@@ -172,8 +172,8 @@ export const CAPABILITY_REGISTRY: readonly CapabilityRecord[] = [
       goldenTestPath: 'src/smartcheck/rules/minha.test.ts',
       officialSource: {
         institution: 'T.C. Çevre, Şehircilik ve İklim Değişikliği Bakanlığı YFK & DIN',
-        documentTitle: 'ÇŞB Yapım İşleri Genel Teknik Şartnamesi & DIN 18350 (VOB/C)',
-        articleOrTable: 'Kagir/Sıva Ölçü Kuralları (0,50 m²) & DIN 18350 Bölüm 5 (2,50 m²)',
+        documentTitle: 'ÇŞB 2026 İnşaat Birim Fiyat Analizleri & DIN 18350 (VOB/C)',
+        articleOrTable: 'Poz ölçü maddeleri (15.220-15.240, 15.275-15.285, 15.530, 15.535, 15.540) & DIN 18350 Bölüm 5 (2,50 m²)',
         publicationDate: '2026-01-01',
       },
     },

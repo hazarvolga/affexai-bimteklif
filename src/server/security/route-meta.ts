@@ -127,7 +127,7 @@ const ROUTE_BODY: Readonly<Record<string, readonly string[]>> = {
   ],
   '/features': [
     'openBIM IFC Metraj (QTO) Motoru: IfcBeam, IfcColumn, IfcSlab, IfcWall ve çok katmanlı IfcCovering elemanlarından BaseQuantities, IfcComplexProperty ve 3B geometri tabanlı net metraj (m³, m², süpürgelik mtül) ve bağımsız bölüm (IfcZone/IfcSpace) daire cetveli çıkarımı yapar. Kalıp ve donatı miktarları model tahmini (model_estimate) olarak raporlanır.',
-    'SmartCheck 3×3 ve Minha Denetimi: Şirket kalite politikası olan ≤%3 QTO sapma toleransı (smartcheck-3x3-2026-10-v2), TS 500 minimum paspayı (mm), TS 500 kiriş–döşeme kesişim düşümü ve ÇŞB 2026 (0,50 m²) / DIN 18350 (2,50 m²) / Özel Şartname boşluk minha kuralları ile kanıta dayalı metraj kontrolü sağlar.',
+    'SmartCheck 3×3 ve Minha Denetimi: Şirket kalite politikası olan ≤%3 QTO sapma toleransı (smartcheck-3x3-2026-10-v2), TS 500 minimum paspayı (mm), TS 500 kiriş–döşeme kesişim düşümü ve ÇŞB 2026 imalat kuralları / DIN 18350 (2,50 m²) / Özel Şartname boşluk minha kuralları ile kanıta dayalı metraj kontrolü sağlar.',
     'RG 33331 e-PYS ve ISO 19650-2 Desteği: 5 Ağustos 2026 tarihli Resmî Gazete Yönetmeliği EK-1..EK-7 ve disipline göre EK-9 Tablo 9.1 (Mimari 21 satır) / Tablo 9.2 (Diğer Disiplinler 16 satır) kuralları ile TS EN ISO 19650-2 dosya adlandırma ve EN 17412-1 (LOIN) eleman bütünlük ön kontrolünü çalıştırır.',
   ],
   '/about': [
