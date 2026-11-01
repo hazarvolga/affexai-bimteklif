@@ -3001,7 +3001,7 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
     date: "1 Kasım 2026",
     trigger: "west_riverside_hospital IFC denemesi, Hazar",
     beforeSummary: "Sunucuda işlenen IFC ekranı işçinin okuduğu kapı/pencere listesini ve kaynak yazılımı almıyor, modelde kapı olsa da bulunamadı diyordu. Liste varken alt başlık boşlukların düşüldüğünü söylüyordu; özet kalemlere uygulanmıyordu.",
-    afterSummary: "Ekran kapı/pencere listesini ve kaynak yazılımı kayıtlı kanıttan alır, sayısını yazar ve düşümün kalemlere otomatik uygulanmadığını söyler. Eleman okunup kalem oluşmadıysa neden açıkça yazılır. 3B boyut uyarısı metrajın etkilenmediğini söyler. Hesap yöntemi değişmedi. Eski kayıtlarda yeniden işleme gerekebilir.",
+    afterSummary: "Ekran kapı/pencere listesini ve kaynak yazılımı kayıtlı kanıttan alır, sayısını yazar ve düşümün kalemlere otomatik uygulanmadığını söyler. Eleman okunup kalem oluşmadıysa neden açıkça yazılır. 3B boyut uyarısı metrajın etkilenmediğini söyler. Canlıya alımdan önce açılmış sekmede 3B görüntüleyici eski sürüm hatasını tanır ve Sayfayı yenile düğmesi sunar. Hesap yöntemi değişmedi. Eski kayıtlarda yeniden işleme gerekebilir.",
     affectedModules: [],
     moduleDetails: {},
   },
