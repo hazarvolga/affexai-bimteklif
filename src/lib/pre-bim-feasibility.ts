@@ -1,4 +1,5 @@
 import { detectCsvDelimiter, parseCsv, serializeCsv, type TabularCell } from "./tabular-data";
+import { parseImportNumber } from "./tr-number";
 
 /**
  * IFC öncesi ön teklif / kat karşılığı fizibilite motoru (Paket M-3)
@@ -504,17 +505,10 @@ export interface ParcelCsvParseResult {
 
 export type SheetCell = string | number | null | undefined;
 
-function parseNumberTr(raw: SheetCell, delimiter: string): number | null {
+function parseNumberTr(raw: SheetCell, _delimiter: string): number | null {
   if (typeof raw === "number") return Number.isFinite(raw) ? raw : null;
   if (raw === null || raw === undefined) return null;
-  let t = raw.trim().replace(/\s/g, "");
-  if (t === "") return null;
-  if (delimiter !== ",") {
-    // Ondalık virgül; binlik nokta olabilir (1.250,50)
-    if (t.includes(",")) t = t.replace(/\./g, "").replace(",", ".");
-  }
-  const n = Number(t);
-  return Number.isFinite(n) ? n : null;
+  return parseImportNumber(raw);
 }
 
 /**

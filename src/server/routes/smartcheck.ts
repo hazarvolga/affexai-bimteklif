@@ -779,7 +779,7 @@ export function registerSmartCheckRoutes(app: Express) {
       const target = corrected.rawPositionCode.trim();
       const [dup] = target ? await tx.select({ count: sql<number>`count(*)::int` }).from(normalizedQuantityRows).where(and(eq(normalizedQuantityRows.documentId, current.documentId), eq(normalizedQuantityRows.companyId, req.user.companyId), eq(normalizedQuantityRows.rawPositionCode, target), ne(normalizedQuantityRows.id, current.id))) : [];
       const [company] = await tx.select({ maxWaste: companies.smartcheckMaxWastePercent }).from(companies).where(eq(companies.id, req.user.companyId));
-      const [validated] = validateRows([corrected], Number(company?.maxWaste ?? 20));
+      const [validated] = validateRows([corrected], Number(company?.maxWaste ?? 20), { machineDecimals: current.quantitySource.startsWith("ifc") && patch.quantity === undefined });
       if (!validated) return { status: 500, body: { error: "Satır yeniden doğrulanamadı." } };
       if ((dup?.count ?? 0) > 0 && !validated.findings.some(f => f.code === "DUPLICATE_POSITION_CODE")) validated.findings.push({ code: "DUPLICATE_POSITION_CODE", severity: "medium", message: "Poz kodu dosyada tekrarlanıyor.", ruleVersion: "pilot-integrity-v1", suggestion: "Mükerrerliğin kapsam farkından kaynaklandığını doğrulayın." });
       const recomputed = new Set(["MISSING_POSITION_CODE:pilot-integrity-v1", "DUPLICATE_POSITION_CODE:pilot-integrity-v1", "UNKNOWN_UNIT:pilot-unit-v1", "INVALID_QUANTITY:pilot-quantity-v1", "MISSING_PRICE_SOURCE:pilot-cost-v1", "WASTE_LIMIT_EXCEEDED:pilot-waste-v1"]);

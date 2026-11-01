@@ -302,7 +302,7 @@ export function buildIfcSmartCheckEvidenceArtifact(
         : element.volumeM3 > 0 || (element.type === "IfcCovering" && (element.areaM2 ?? 0) > 0)),
   );
   const parsedRows = evidenceElements.map((element, index) => buildParsedQuantityRow(element, index + 1));
-  const validatedRows = validateRows(parsedRows);
+  const validatedRows = validateRows(parsedRows, 20, { machineDecimals: true });
   const rows = evidenceElements.map((element, index): IfcSmartCheckEvidenceRow => {
     const validated = validatedRows[index];
     return {

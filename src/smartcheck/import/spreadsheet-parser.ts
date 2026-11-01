@@ -1,3 +1,4 @@
+import { isNumberText, numericCellText } from "../../lib/tr-number";
 import ExcelJS from "exceljs";
 import { parse as parseCsv } from "csv-parse/sync";
 import { sanitizeSpreadsheetText, validateXlsxArchive } from "./file-security";
@@ -73,7 +74,7 @@ function cellText(cell: ExcelJS.Cell, formulaJson: Record<string, string>): stri
       if (typeof fObj.result === "object" && fObj.result !== null && "error" in fObj.result) {
         return "";
       }
-      return String(fObj.result).trim();
+      return typeof fObj.result === "number" ? numericCellText(fObj.result) : String(fObj.result).trim();
     }
     if ("richText" in value && Array.isArray((value as { richText?: Array<{ text?: string }> }).richText)) {
       return (value as { richText: Array<{ text?: string }> }).richText
@@ -85,6 +86,8 @@ function cellText(cell: ExcelJS.Cell, formulaJson: Record<string, string>): stri
       return (value as { text: string }).text.trim();
     }
   }
+
+  if (typeof value === "number") return numericCellText(value);
 
   try {
     return (master.text ?? String(value)).trim();
@@ -254,8 +257,7 @@ export function extractRepeatingBlockRows(
       const genelIdx = spans.findIndex((s) => isGenelToplamLabel(s.clean));
       if (genelIdx >= 0) {
         for (let k = genelIdx + 1; k < spans.length; k += 1) {
-          const num = parseLocalizedNumber(spans[k].text);
-          if (num !== null) {
+          if (isNumberText(spans[k].text)) {
             genelToplamQty = spans[k].text;
             genelToplamRow = r + 1;
             if (!rawUnit && spans[k + 1] && normalizeUnit(spans[k + 1].text)) {
@@ -283,7 +285,7 @@ export function extractRepeatingBlockRows(
 
       if (spans[0].clean === "bina:" || spans[0].clean === "bina") {
         const lastSpan = spans[spans.length - 1];
-        if (lastSpan && parseLocalizedNumber(lastSpan.text) !== null) {
+        if (lastSpan && isNumberText(lastSpan.text)) {
           binaTotalQty = lastSpan.text;
         }
         continue;
@@ -297,8 +299,8 @@ export function extractRepeatingBlockRows(
         spans.length === 2 &&
         !/^(id|bina|kat)\b/.test(spans[0].clean) &&
         !/^\d{4}[a-z]/i.test(spans[0].text) &&
-        parseLocalizedNumber(spans[0].text) === null &&
-        parseLocalizedNumber(spans[1].text) !== null
+        !isNumberText(spans[0].text) &&
+        isNumberText(spans[1].text)
       ) {
         if (!subGroupNames.includes(spans[0].text)) {
           subGroupNames.push(spans[0].text);
@@ -442,7 +444,7 @@ export function detectSheetStructure(matrix: string[][]): {
       // Ensure there is at least 1 data row between r+1 and firstBlockRow
       const hasDataRowBelow = matrix
         .slice(r + 1, Math.min(firstBlockRow, r + 15))
-        .some((dRow) => dRow && dRow.some((cell) => parseLocalizedNumber(String(cell ?? "")) !== null));
+        .some((dRow) => dRow && dRow.some((cell) => isNumberText(String(cell ?? ""))));
       if (hasDataRowBelow) {
         bestScore = score;
         bestRow = r;
@@ -712,7 +714,7 @@ function fromMatrix(
       rawDescription = readSpanValue(values, descCols);
     }
     const rawUnit = readSpanValue(values, unitCols, (v) => normalizeUnit(v) !== null);
-    const rawQuantity = readSpanValue(values, qtyCols, (v) => parseLocalizedNumber(v) !== null);
+    const rawQuantity = readSpanValue(values, qtyCols, (v) => isNumberText(v));
     const rawPrice = readSpanValue(values, priceCols);
     const rawWastePercent = readSpanValue(values, wasteCols);
 
