@@ -20,6 +20,7 @@ import {
   ZoomOut,
 } from "lucide-react";
 import { fetchWithAuth } from "@/lib/api";
+import { isStaleChunkError, STALE_CHUNK_MESSAGE } from "@/lib/stale-chunk";
 import type { IfcSourceIdentity } from "@/ifc/types";
 import {
   parseViewerContext,
@@ -100,7 +101,7 @@ export function IfcReviewViewer({
         setStatus("3B inceleme hazır");
       } catch (cause) {
         if (abort.signal.aborted) return;
-        setError(cause instanceof Error ? cause.message : "3B inceleme açılamadı.");
+        setError(isStaleChunkError(cause) ? STALE_CHUNK_MESSAGE : cause instanceof Error ? cause.message : "3B inceleme açılamadı.");
       }
     };
     void load();
@@ -247,6 +248,9 @@ export function IfcReviewViewer({
           className="m-4 border border-red-500/30 bg-red-500/10 p-4 text-xs text-red-200"
         >
           {error}
+          {error === STALE_CHUNK_MESSAGE && (
+            <Button size="sm" variant="outline" className="ml-3" onClick={() => window.location.reload()}>Sayfayı yenile</Button>
+          )}
         </div>
       ) : (
         <div className={collapsed ? "hidden" : "flex flex-1 flex-col"}>
