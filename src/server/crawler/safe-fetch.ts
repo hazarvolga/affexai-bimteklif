@@ -95,15 +95,22 @@ function decodeContentStream(response: http.IncomingMessage, encodingHeader: str
   return null;
 }
 
-export async function fetchCrawlerHtml(input: string, redirectDepth = 0): Promise<string> {
+/** POST with a JSON body for official list endpoints; same destination checks, size and time limits. */
+export function postCrawlerJson(input: string, body: unknown): Promise<string> {
+  return fetchCrawlerHtml(input, 0, JSON.stringify(body));
+}
+
+export async function fetchCrawlerHtml(input: string, redirectDepth = 0, jsonBody?: string): Promise<string> {
   if (redirectDepth > MAX_CRAWLER_REDIRECTS) {
     throw new Error('CRAWLER_TOO_MANY_REDIRECTS');
   }
   const url = validateCrawlerUrl(input);
   return new Promise((resolve, reject) => {
-    const request = (url.protocol === 'https:' ? https : http).get(url, {
+    const request = (url.protocol === 'https:' ? https : http).request(url, {
+      method: jsonBody === undefined ? 'GET' : 'POST',
       agent: false,
       headers: {
+        ...(jsonBody === undefined ? {} : { 'Content-Type': 'application/json' }),
         'User-Agent': 'TeklifPro-PriceReview/1.0 (+https://bimmetraj.com)',
         Accept: 'text/html,application/xhtml+xml,application/json,text/csv,*/*;q=0.8',
         'Accept-Encoding': 'gzip, deflate, br, identity',
@@ -146,5 +153,6 @@ export async function fetchCrawlerHtml(input: string, redirectDepth = 0): Promis
     const timer = setTimeout(() => request.destroy(new Error('CRAWLER_TIMEOUT')), CRAWLER_TIMEOUT_MS);
     request.on('error', error => { clearTimeout(timer); reject(error); });
     request.on('close', () => clearTimeout(timer));
+    request.end(jsonBody);
   });
 }

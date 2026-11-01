@@ -7,6 +7,8 @@ import { fetchWithAuth } from '../../lib/api';
 
 interface WatchItem {
   id: string;
+  source: 'resmi_gazete' | 'gib';
+  matchScope: 'title' | 'body';
   issueDate: string;
   title: string;
   url: string;
@@ -16,12 +18,15 @@ interface WatchItem {
 }
 
 interface WatchDay {
+  source: 'resmi_gazete' | 'gib';
   issueDate: string;
+  unreadCount: number;
   status: 'checked' | 'failed';
   matchedCount: number;
   errorCode: string | null;
 }
 
+const SOURCE_LABEL: Record<WatchItem['source'], string> = { resmi_gazete: 'Resmî Gazete', gib: 'GİB' };
 const STATUS_LABEL: Record<WatchItem['status'], string> = { new: 'Yeni', reviewed: 'İncelendi', dismissed: 'İlgisiz' };
 
 export function RegulationWatch() {
@@ -63,7 +68,8 @@ export function RegulationWatch() {
   };
 
   const failedDays = days.filter(day => day.status === 'failed');
-  const lastChecked = days.find(day => day.status === 'checked')?.issueDate;
+  const lastChecked = (source: WatchItem['source']) => days.find(day => day.source === source && day.status === 'checked')?.issueDate ?? 'Henüz yok';
+  const unreadPdfs = days.filter(day => day.source === 'resmi_gazete').reduce((sum, day) => sum + day.unreadCount, 0);
 
   return (
     <PageContainer>
@@ -71,15 +77,18 @@ export function RegulationWatch() {
         <div>
           <h1 className="text-2xl font-semibold">Mevzuat Bekçisi</h1>
           <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
-            Resmî Gazete başlıklarını vergi, ihale ve yapı konularında tarar. Buradaki kayıtlar hiçbir oranı değiştirmez; metni okuyup gerekirse oranı ayrıca güncelleyin.
+            Resmî Gazete ve GİB duyurularını vergi, ihale ve yapı konularında tarar. Buradaki kayıtlar hiçbir oranı değiştirmez; metni okuyup gerekirse oranı ayrıca güncelleyin.
           </p>
         </div>
 
         <div className="rounded-lg border border-border bg-card p-4 text-sm">
-          <p>Son başarılı kontrol: <b>{lastChecked ?? 'Henüz yok'}</b></p>
+          <p>Son başarılı kontrol: Resmî Gazete <b>{lastChecked('resmi_gazete')}</b>, GİB <b>{lastChecked('gib')}</b></p>
+          {unreadPdfs > 0 && (
+            <p className="mt-2 text-muted-foreground">Son günlerde {unreadPdfs} PDF kararın yalnız başlığı tarandı, metni okunmadı. Önemli günlerde Gazete'ye ayrıca göz atın.</p>
+          )}
           {failedDays.length > 0 && (
             <p className="mt-2 text-destructive">
-              Kontrol edilemeyen günler: {failedDays.map(day => `${day.issueDate} (${day.errorCode ?? 'bilinmiyor'})`).join(', ')}. Bu günlerde değişiklik kaçmış olabilir.
+              Kontrol edilemeyen günler: {failedDays.map(day => `${SOURCE_LABEL[day.source]} ${day.issueDate} (${day.errorCode ?? 'bilinmiyor'})`).join(', ')}. Bu günlerde değişiklik kaçmış olabilir.
             </p>
           )}
         </div>
@@ -100,7 +109,7 @@ export function RegulationWatch() {
             <li key={item.id} className="rounded-lg border border-border bg-card p-4">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs text-muted-foreground">{item.issueDate} · {STATUS_LABEL[item.status]} · {item.matchedKeywords.join(', ')}</p>
+                  <p className="text-xs text-muted-foreground">{SOURCE_LABEL[item.source]} · {item.issueDate} · {STATUS_LABEL[item.status]} · {item.matchScope === 'body' ? 'Metinde geçiyor' : 'Başlıkta'}: {item.matchedKeywords.join(', ')}</p>
                   <a href={item.url} target="_blank" rel="noreferrer" className="mt-1 inline-flex items-start gap-1 font-medium hover:underline">
                     {item.title}<ExternalLink size={14} className="mt-1 shrink-0" />
                   </a>

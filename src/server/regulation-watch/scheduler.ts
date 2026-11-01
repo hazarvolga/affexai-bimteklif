@@ -1,4 +1,4 @@
-import { fetchCrawlerHtml } from "../crawler/safe-fetch";
+import { fetchCrawlerHtml, postCrawlerJson } from "../crawler/safe-fetch";
 import { logger } from "../logger";
 import { runRegulationWatch } from "./service";
 import { regulationWatchStore } from "./store";
@@ -8,7 +8,7 @@ const FIRST_CHECK_DELAY_MS = 60 * 1000;
 
 async function check() {
   try {
-    const result = await runRegulationWatch({ store: regulationWatchStore, fetchHtml: fetchCrawlerHtml, now: new Date() });
+    const result = await runRegulationWatch({ store: regulationWatchStore, fetchHtml: url => fetchCrawlerHtml(url), postJson: postCrawlerJson, now: new Date() });
     logger.info(`[RegulationWatch] ${result.checked} gün kontrol edildi, ${result.matched} kayıt, ${result.failed} hata.`);
   } catch (error) {
     logger.error("[RegulationWatch] Kontrol tamamlanamadı", { error: error instanceof Error ? error.message : "UNKNOWN" });

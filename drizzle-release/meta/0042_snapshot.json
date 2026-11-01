@@ -13270,10 +13270,16 @@
       "name": "regulation_watch_days",
       "schema": "",
       "columns": {
+        "source": {
+          "name": "source",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
         "issue_date": {
           "name": "issue_date",
           "type": "date",
-          "primaryKey": true,
+          "primaryKey": false,
           "notNull": true
         },
         "status": {
@@ -13284,6 +13290,13 @@
         },
         "matched_count": {
           "name": "matched_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "unread_count": {
+          "name": "unread_count",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
@@ -13305,13 +13318,25 @@
       },
       "indexes": {},
       "foreignKeys": {},
-      "compositePrimaryKeys": {},
+      "compositePrimaryKeys": {
+        "regulation_watch_days_source_issue_date_pk": {
+          "name": "regulation_watch_days_source_issue_date_pk",
+          "columns": [
+            "source",
+            "issue_date"
+          ]
+        }
+      },
       "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {
         "regulation_watch_days_status_valid": {
           "name": "regulation_watch_days_status_valid",
           "value": "\"regulation_watch_days\".\"status\" in ('checked', 'failed')"
+        },
+        "regulation_watch_days_source_valid": {
+          "name": "regulation_watch_days_source_valid",
+          "value": "\"regulation_watch_days\".\"source\" in ('resmi_gazete', 'gib')"
         }
       },
       "isRLSEnabled": false
@@ -13333,6 +13358,13 @@
           "primaryKey": false,
           "notNull": true,
           "default": "'resmi_gazete'"
+        },
+        "match_scope": {
+          "name": "match_scope",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'title'"
         },
         "issue_date": {
           "name": "issue_date",
@@ -13424,6 +13456,14 @@
         "regulation_watch_items_status_valid": {
           "name": "regulation_watch_items_status_valid",
           "value": "\"regulation_watch_items\".\"status\" in ('new', 'reviewed', 'dismissed')"
+        },
+        "regulation_watch_items_source_valid": {
+          "name": "regulation_watch_items_source_valid",
+          "value": "\"regulation_watch_items\".\"source\" in ('resmi_gazete', 'gib')"
+        },
+        "regulation_watch_items_scope_valid": {
+          "name": "regulation_watch_items_scope_valid",
+          "value": "\"regulation_watch_items\".\"match_scope\" in ('title', 'body')"
         }
       },
       "isRLSEnabled": false
@@ -18756,6 +18796,6 @@
     "tables": {},
     "columns": {}
   },
-  "id": "0da1449c-b41d-43a8-9129-9963672685e1",
+  "id": "2e35e183-76a4-4444-af45-5667b4631fe5",
   "prevId": "938d41a7-56cc-4694-84a3-caf8ce5c612d"
 }

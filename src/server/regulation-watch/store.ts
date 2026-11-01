@@ -6,7 +6,7 @@ import type { RegulationWatchStore } from "./service";
 export const regulationWatchStore: RegulationWatchStore = {
   async checkedDays(issueDates) {
     const rows = await db.select({ issueDate: regulationWatchDays.issueDate }).from(regulationWatchDays)
-      .where(and(inArray(regulationWatchDays.issueDate, issueDates), eq(regulationWatchDays.status, "checked")));
+      .where(and(eq(regulationWatchDays.source, "resmi_gazete"), inArray(regulationWatchDays.issueDate, issueDates), eq(regulationWatchDays.status, "checked")));
     return rows.map(row => row.issueDate);
   },
   async saveItems(items) {
@@ -15,14 +15,14 @@ export const regulationWatchStore: RegulationWatchStore = {
   async saveDay(day) {
     const checkedAt = new Date();
     await db.insert(regulationWatchDays).values({ ...day, checkedAt }).onConflictDoUpdate({
-      target: regulationWatchDays.issueDate,
-      set: { status: day.status, matchedCount: day.matchedCount, errorCode: day.errorCode, checkedAt },
+      target: [regulationWatchDays.source, regulationWatchDays.issueDate],
+      set: { status: day.status, matchedCount: day.matchedCount, unreadCount: day.unreadCount, errorCode: day.errorCode, checkedAt },
     });
   },
 };
 
 const LISTED_ITEMS = 100;
-const LISTED_DAYS = 14;
+const LISTED_DAYS = 21;
 
 export async function readRegulationWatch() {
   const [items, days] = await Promise.all([

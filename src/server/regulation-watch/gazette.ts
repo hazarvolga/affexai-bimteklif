@@ -45,6 +45,11 @@ export function matchRegulationKeywords(title: string): string[] {
   return REGULATION_KEYWORDS.filter(keyword => normalized.includes(keyword));
 }
 
+/** Plain text of a decision page, for keywords that its title does not show. */
+export function gazetteBodyText(html: string): string {
+  return toTitle(html.replace(/<(script|style)\b[\s\S]*?<\/\1>/gi, " "));
+}
+
 export function gazetteIssueUrl(issueDate: string): string {
   const [year, month] = issueDate.split("-");
   return `${GAZETTE_ORIGIN}/eskiler/${year}/${month}/${issueDate.replaceAll("-", "")}.htm`;

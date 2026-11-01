@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { gazetteIssueUrl, matchRegulationKeywords, parseGazetteIssue, recentIssueDates } from "./gazette";
+import { parseGibAnnouncements } from "./gib";
 import { runRegulationWatch, type RegulationWatchStore } from "./service";
 import { decodeCrawlerText } from "../crawler/safe-fetch";
 
@@ -41,9 +42,15 @@ test("the checked days are computed in Istanbul, not server time", () => {
   assert.equal(gazetteIssueUrl("2026-11-01"), "https://www.resmigazete.gov.tr/eskiler/2026/11/20261101.htm");
 });
 
+const gib = JSON.stringify({ resultContainer: { content: [
+  { title: "Kurumlar Vergisi 74 Nolu Sirküler Yayımlandı", slug: "19314_kvk", startdate: "2026-10-30T18:15:00", ilkodu: "UNIVERSAL", summary: null },
+  { title: "Gelir Vergisi Rekortmenleri", slug: "19081_il", startdate: "2026-09-30T00:00:00", ilkodu: "OSMANIYE", summary: null },
+  { title: "Sınav Sonucu", slug: "19151_sinav", startdate: "2026-10-01T00:00:00", ilkodu: "UNIVERSAL", summary: null },
+] } });
+
 function memoryStore(checked: string[] = []) {
-  const items: Array<{ url: string; matchedKeywords: string[] }> = [];
-  const days: Array<{ issueDate: string; status: string; matchedCount: number; errorCode: string | null }> = [];
+  const items: Array<{ url: string; source: string; matchScope: string; matchedKeywords: string[] }> = [];
+  const days: Array<{ source: string; issueDate: string; status: string; matchedCount: number; unreadCount: number; errorCode: string | null }> = [];
   const store: RegulationWatchStore = {
     checkedDays: async () => checked,
     saveItems: async rows => { items.push(...rows); },
@@ -52,37 +59,64 @@ function memoryStore(checked: string[] = []) {
   return { store, items, days };
 }
 
-test("a day stores only matching decisions and records that it was checked", async () => {
+const baseInput = { now: new Date("2026-10-31T12:00:00Z"), pause: async () => undefined, postJson: async () => gib };
+const gazetteDays = (days: ReturnType<typeof memoryStore>["days"]) => days.filter(day => day.source === "resmi_gazete");
+
+test("GİB keeps nationwide matching announcements and links to the official page", () => {
+  const items = parseGibAnnouncements(gib);
+  assert.deepEqual(items.map(item => [item.url, item.issueDate]), [["https://gib.gov.tr/duyuru-arsivi/guncel/19314_kvk", "2026-10-30"]]);
+});
+
+test("an unexpected GİB response is an error, not an empty result", () => {
+  assert.throws(() => parseGibAnnouncements("{}"));
+  assert.throws(() => parseGibAnnouncements(JSON.stringify({ resultContainer: { content: [] } })));
+});
+
+test("a day stores title matches, reads decision bodies, and counts PDFs it could not read", async () => {
   const { store, items, days } = memoryStore();
-  const result = await runRegulationWatch({ store, now: new Date("2026-10-31T12:00:00Z"), lookbackDays: 1, fetchHtml: async () => issue });
-  assert.deepEqual(items.map(item => item.url), [
-    "https://www.resmigazete.gov.tr/eskiler/2026/10/20261031-5.htm",
-    "https://www.resmigazete.gov.tr/eskiler/2026/10/20261031M1-1.htm",
-  ]);
-  assert.deepEqual(days, [{ issueDate: "2026-10-31", status: "checked", matchedCount: 2, errorCode: null }]);
+  const fetched: string[] = [];
+  const page = `<a href="20261031-5.htm">–– Katma Değer Vergisi Tebliği</a><a href="20261031-8.htm">–– Bazı Kanunlarda Değişiklik Yapılmasına Dair Kanun</a><a href="20261031-9.htm">–– Federasyon Statüsü</a><a href="20261031-6.pdf">–– Atama Kararı</a>`;
+  const result = await runRegulationWatch({ ...baseInput, store, lookbackDays: 1, fetchHtml: async url => {
+    fetched.push(url);
+    if (url.endsWith("20261031.htm")) return page;
+    return url.endsWith("-8.htm") ? "<p>Yıllara yaygın işlerde <b>tevkifat</b> oranı</p>" : "<p>spor kuralları</p>";
+  } });
+  const gazette = items.filter(item => item.source === "resmi_gazete");
+  assert.deepEqual(gazette.map(item => [item.url.slice(-14), item.matchScope]), [["20261031-5.htm", "title"], ["20261031-8.htm", "body"]]);
+  assert.deepEqual(gazetteDays(days), [{ source: "resmi_gazete", issueDate: "2026-10-31", status: "checked", matchedCount: 2, unreadCount: 1, errorCode: null }]);
+  assert.ok(!fetched.some(url => url.endsWith(".pdf")), "PDF bytes are not read as text");
+  assert.ok(!fetched.some(url => url.endsWith("-5.htm")), "a title match needs no body request");
   assert.equal(result.failed, 0);
 });
 
-test("a failed fetch is recorded and does not stop the other days", async () => {
-  const { store, days } = memoryStore();
-  const result = await runRegulationWatch({
-    store, now: new Date("2026-10-31T12:00:00Z"), lookbackDays: 2,
-    fetchHtml: async url => { if (url.includes("20261031")) throw new Error("CRAWLER_TIMEOUT"); return issue.replaceAll("20261031", "20261030"); },
-  });
-  assert.deepEqual(days.map(day => [day.issueDate, day.status, day.errorCode]), [["2026-10-31", "failed", "CRAWLER_TIMEOUT"], ["2026-10-30", "checked", null]]);
+test("a failed fetch is recorded and does not stop the other days or GİB", async () => {
+  const { store, days, items } = memoryStore();
+  const result = await runRegulationWatch({ ...baseInput, store, lookbackDays: 2, fetchHtml: async url => {
+    if (url.includes("20261031")) throw new Error("CRAWLER_TIMEOUT");
+    if (url.endsWith("20261030.htm")) return '<a href="20261030-5.htm">–– Damga Vergisi Tebliği</a>';
+    return "";
+  } });
+  assert.deepEqual(gazetteDays(days).map(day => [day.issueDate, day.status, day.errorCode]), [["2026-10-31", "failed", "CRAWLER_TIMEOUT"], ["2026-10-30", "checked", null]]);
+  assert.ok(items.some(item => item.source === "gib"));
   assert.equal(result.failed, 1);
 });
 
 test("a page without any decision link counts as failed, because the layout may have changed", async () => {
   const { store, days } = memoryStore();
-  await runRegulationWatch({ store, now: new Date("2026-10-31T12:00:00Z"), lookbackDays: 1, fetchHtml: async () => "<html>bakım</html>" });
-  assert.equal(days[0].status, "failed");
-  assert.equal(days[0].errorCode, "GAZETTE_LAYOUT_UNRECOGNIZED");
+  await runRegulationWatch({ ...baseInput, store, lookbackDays: 1, fetchHtml: async () => "<html>bakım</html>" });
+  assert.equal(gazetteDays(days)[0].errorCode, "GAZETTE_LAYOUT_UNRECOGNIZED");
+});
+
+test("a GİB failure is recorded separately and the Gazette result is kept", async () => {
+  const { store, days } = memoryStore(["2026-10-31"]);
+  const result = await runRegulationWatch({ ...baseInput, store, lookbackDays: 1, fetchHtml: async () => "", postJson: async () => { throw new Error("CRAWLER_TIMEOUT"); } });
+  assert.deepEqual(days, [{ source: "gib", issueDate: "2026-10-31", status: "failed", matchedCount: 0, unreadCount: 0, errorCode: "CRAWLER_TIMEOUT" }]);
+  assert.equal(result.failed, 1);
 });
 
 test("days already checked are not fetched again", async () => {
   const { store } = memoryStore(["2026-10-31"]);
   const requested: string[] = [];
-  await runRegulationWatch({ store, now: new Date("2026-10-31T12:00:00Z"), lookbackDays: 2, fetchHtml: async url => { requested.push(url); return issue; } });
+  await runRegulationWatch({ ...baseInput, store, lookbackDays: 2, fetchHtml: async url => { requested.push(url); return '<a href="20261030-1.htm">–– Damga Vergisi</a>'; } });
   assert.deepEqual(requested, ["https://www.resmigazete.gov.tr/eskiler/2026/10/20261030.htm"]);
 });
