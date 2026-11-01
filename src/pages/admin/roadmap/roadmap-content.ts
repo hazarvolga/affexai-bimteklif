@@ -185,8 +185,9 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
   },
   {
     id: "durum",
-    title: "Uygulama durumu (1 Kasım 2026 · Rev. 146 geliştirme kaydı)",
+    title: "Uygulama durumu (1 Kasım 2026 · Rev. 147 geliştirme kaydı)",
     blocks: [
+      { type: "callout", tone: "info", title: "Rev. 147 · Teklif ve aktarım kapıları", text: "Teklif durum geçişleri sınırlandı, IFC satırları yalnız kanıt kontrollü aktarımdan geçer, düzeltilen belirsiz sayı bulgusu kalkar ve eski kayıtlar ham hata kodu göstermez." },
       { type: "callout", tone: "info", title: "Rev. 146 · Poz kodları katalogla eşit", text: "Calm icmaldeki 8 sabit poz, örnek CSV ve ana sayfa tablosu resmî ÇŞB 2026 kodlarına çevrildi; test bu eşleşmeyi korur. Laminat, süpürgelik, XPS ve gazbeton kalemleri bilinçli olarak çözümsüz kaldı. Poz seçimi teknik ön değerlendirmedir." },
       { type: "callout", tone: "info", title: "Rev. 145 · Sayı okuma ve alt endeks", text: "Metin hücresindeki 1.250 gibi belirsiz sayılar artık sessizce okunmaz, kullanıcıya gösterilir. Excel sayısal hücreleri ve IFC miktarları kesin okunur. Küçük harfli Türkçe malzeme adları doğru fiyat farkı alt endeksine eşleşir." },
       { type: "callout", tone: "info", title: "Rev. 144 · Paket değerleri panele ait", text: "Panelden yapılan kota, fiyat ve yayın değişikliği için kod gerekmez. Katalog eşitlemesi ve betik yalnız eksik paketi ekler, boş alanı doldurur; dolu değerleri ezmez, korunan olarak raporlar." },
@@ -1185,6 +1186,9 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
           ],
           [
             "Rev. 146", "1 Kasım 2026 · Poz kodları katalogla eşit", "BIM-CALC-2026-11-01.4", "Katalogda olmayan veya başka imalatı gösteren sabit pozlar değiştirildi. Örnek CSV ve ana sayfa tablosu düzeltildi. Katalog eşleşmesi testle korunuyor.",
+          ],
+          [
+            "Rev. 147", "1 Kasım 2026 · Teklif ve aktarım kapıları", "BIM-CALC-2026-11-01.5", "B-05 ve B-06 kapatıldı. B-04 iddiası kodda doğrulanmadı, ama aynı yerde Rev. 145 belirsiz sayı bulgusunun temizlenmemesi düzeltildi.",
           ],
         ],
       },
@@ -2257,6 +2261,9 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
           ],
           [
             "Rev. 146 · 1 Kasım 2026 (Poz eşleme)", "Sabit pozlar resmî katalogda", "Şap, seramik, epoksi, duvar seramiği, sıva, saten alçı ve boya pozları ÇŞB 2026 Mart listesiyle eşlendi. Şap pozu 2,5 cm olduğundan 3 cm katman için kalınlık farkı inceleme notu taşır.", "src/ifc/calm-icmal.ts; src/lib/quote-excel-import.ts; src/ifc/poz-catalog-alignment.test.ts",
+          ],
+          [
+            "Rev. 147 · 1 Kasım 2026 (Kapılar)", "Durum ve aktarım", "Kazanılan teklif geri açılmaz, kaybedilen yalnız müzakereye döner. IFC satırı eski uçtan teklife geçemez.", "src/services/quotations/status-transitions.ts; src/server/routes/quotations.ts; src/server/routes/smartcheck.ts",
           ],
         ],
       },

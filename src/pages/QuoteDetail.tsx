@@ -206,6 +206,9 @@ export function QuoteDetail() {
       if (res.ok) {
         toast.success(`Durum güncellendi: ${newStatus}`);
         fetchData();
+      } else {
+        const body = await res.json().catch(() => ({}));
+        toast.error(body.error || "Durum güncellenemedi.");
       }
     } catch (err) {
       toast.error("Durum güncellenemedi.");

@@ -48,8 +48,9 @@ test("failure message leaves other errors to the existing handling", () => {
 });
 
 test("queue shows the stored reason only for permanent failures", () => {
-  assert.equal(queueFailureLabel({ errorCode: NO_QUANTITY, errorMessage: "Neden" }), "Neden");
-  assert.equal(queueFailureLabel({ errorCode: NO_QUANTITY, errorMessage: null }), "İşleme hatası");
+  assert.equal(queueFailureLabel({ errorCode: "IFC_EMPTY_MODEL", errorMessage: "Neden" }), "Neden");
+  assert.equal(queueFailureLabel({ errorCode: "IFC_EMPTY_MODEL", errorMessage: null }), "İşleme hatası");
+  assert.match(queueFailureLabel({ errorCode: NO_QUANTITY, errorMessage: NO_QUANTITY }), /Base Quantities/);
   assert.equal(queueFailureLabel({ errorCode: "TENANT_COMPANY_MISSING", errorMessage: "TENANT_COMPANY_MISSING" }), "İşleme hatası");
   assert.equal(queueFailureLabel({ errorCode: null, errorMessage: null }), "İşleme hatası");
 });
