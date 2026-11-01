@@ -518,7 +518,7 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
                 <p className="text-xs text-muted-foreground mt-0.5">
                   IFC modelinden okunan net metrajlar.{" "}
                   {openingsAvailability(dataset.openings) === "present"
-                    ? "Modeldeki kapı/pencere boşlukları kalem bazında gösterilir."
+                    ? "Kapı/pencere listesi modelden okundu; düşüm özeti ayrı gösterilir, kalemlere otomatik uygulanmaz."
                     : openingsAvailability(dataset.openings) === "none_in_model"
                       ? "Modelde kapı/pencere yok; boşluk düşümü gerekmedi."
                       : "Modelde kapı/pencere bilgisi bulunamadı; boşluk düşümü (minha) değerlendirilemedi."}

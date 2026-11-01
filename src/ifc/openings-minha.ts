@@ -39,6 +39,11 @@ function round2(v: number): number {
   return Math.round((v + Number.EPSILON) * 100) / 100;
 }
 
+/** Doors and windows are deducted from surfaces; a volume, count or length line has nothing to deduct them from. */
+export function appliesOpeningDeduction(unit: string): boolean {
+  return /m[²2]$/.test(unit.trim());
+}
+
 export function parseThresholdInput(raw: string): number | null {
   const t = raw.trim().replace(",", ".");
   if (t === "") return null;

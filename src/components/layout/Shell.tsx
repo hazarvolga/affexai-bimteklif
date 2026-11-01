@@ -343,7 +343,7 @@ export function Shell() {
         {/* Footer */}
         <footer className="px-8 py-3 border-t border-border bg-card flex items-center justify-between text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
           <span>© 2026 {isLearner ? 'BIMPlan Academy' : 'BIMMetraj'} · MİMARİ METRAJ VE İHALE PAFTASI</span>
-          <span className="hidden sm:inline">IFC4 QTO · RG 33331 e-PYS · KANITLI MİNHA CETVELİ</span>
+          <span className="hidden sm:inline">IFC4 QTO · RG 33331 e-PYS · KAYNAKLI METRAJ</span>
         </footer>
       </main>
     </div>

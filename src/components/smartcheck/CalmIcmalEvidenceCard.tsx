@@ -5,7 +5,7 @@
 
 import React from "react";
 import type { CalmIcmalItem, CalmIfcDataset } from "@/ifc/calm-icmal";
-import type { summarizeOpeningsMinha } from "@/ifc/openings-minha";
+import { appliesOpeningDeduction, type summarizeOpeningsMinha } from "@/ifc/openings-minha";
 import { openingsAvailability } from "@/ifc/calculation-trace";
 import type { useExpertVerification } from "@/hooks/useExpertVerification";
 import type { MinhaRuleProfile } from "@/smartcheck/rules/minha";
@@ -119,6 +119,7 @@ export function CalmIcmalEvidenceCard({ dataset, selectedItem, expertMode, verif
           </div>
 
           {/* MODELDEKİ KAPI/PENCERELERE MİNHA UYGULAMASI */}
+          {appliesOpeningDeduction(selectedItem.unit) && (
           <div className="mt-4 border border-border bg-background p-4 text-xs" data-testid="openings-minha">
             <div className="font-mono text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">
               Modeldeki kapı / pencerelere minha ({minhaProfile})
@@ -148,6 +149,7 @@ export function CalmIcmalEvidenceCard({ dataset, selectedItem, expertMode, verif
               </div>
             )}
           </div>
+          )}
 
           {/* KATLARA GÖRE DAĞILIM */}
           <div className="mt-5">
@@ -205,8 +207,8 @@ export function CalmIcmalEvidenceCard({ dataset, selectedItem, expertMode, verif
           )}
 
           <div className="mt-5 pt-3 border-t border-border flex items-center justify-between font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-            <span>ÇŞB GENEL TEKNİK ŞARTNAMESİ</span>
-            <span>ÖLÇEK: BİREBİR IFC4</span>
+            <span>KAYNAK: İCMAL KALEMİ POZ ESASI</span>
+            <span>MİKTAR: IFC KANITINDAN</span>
           </div>
         </div>
       )}
