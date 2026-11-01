@@ -20,11 +20,23 @@ test("each of the five catalog packages enforces its own limits, not starter's",
   assert.equal(featureMonthlyLimit(subscription(enterprise.id), enterprise, "AI_QUOTATION_GENERATED"), 150, "8.900 TL package enforces server-safe 150 AI quotes limit");
 });
 
-test("unconfigured plan columns and legacy subscriptions fall back to the legacy enum limits", () => {
+test("an unconfigured plan column fails closed instead of using the legacy enum limit", () => {
   const plan = { ...canonicalPlans[3], ...unset };
   for (const feature of Object.keys(METERED_FEATURES)) {
     if (!isMeteredFeature(feature)) assert.fail(feature);
-    assert.equal(featureMonthlyLimit(subscription(plan.id), plan, feature), PLAN_LIMITS.starter[feature]);
+    assert.throws(() => featureMonthlyLimit(subscription(plan.id), plan, feature), (error: QuotaError) => error.status === 503 && error.code === quotaCodes(feature).unavailable);
+  }
+});
+
+test("one unconfigured column does not change the limits of the configured ones", () => {
+  const plan = { ...canonicalPlans[3], monthlyPdfLimit: null };
+  assert.equal(featureMonthlyLimit(subscription(plan.id), plan, "AI_QUOTATION_GENERATED"), plan.monthlyAiLimit);
+  assert.throws(() => featureMonthlyLimit(subscription(plan.id), plan, "PDF_GENERATED"), (error: QuotaError) => error.status === 503);
+});
+
+test("legacy subscriptions without a linked plan keep the enum limits", () => {
+  for (const feature of Object.keys(METERED_FEATURES)) {
+    if (!isMeteredFeature(feature)) assert.fail(feature);
     assert.equal(featureMonthlyLimit({ planId: null, plan: "pro" }, undefined, feature), PLAN_LIMITS.pro[feature]);
   }
 });

@@ -17,6 +17,7 @@ import {
 import {
   calculateBillingPeriodPricing,
   formatBillingCycleLabel,
+  billingPeriodEnd,
   getBillingPeriodOption,
 } from "./billing-periods";
 
@@ -160,28 +161,24 @@ test("calculateBillingPeriodPricing computes 0%, 10%, 20%, and 30% discounts acc
   assert.equal(m.effectiveMonthlyPriceTry, 5450);
   assert.equal(m.totalPayableTry, 5450);
   assert.equal(m.discountAmountTry, 0);
-  assert.equal(getBillingPeriodOption("monthly").durationDays, 30);
 
   const s = calculateBillingPeriodPricing(5450, "semi_annual");
   assert.equal(s.discountPercent, 10);
   assert.equal(s.effectiveMonthlyPriceTry, 4905);
   assert.equal(s.totalPayableTry, 29430);
   assert.equal(s.discountAmountTry, 3270);
-  assert.equal(getBillingPeriodOption("semi_annual").durationDays, 180);
 
   const y = calculateBillingPeriodPricing(5450, "yearly");
   assert.equal(y.discountPercent, 20);
   assert.equal(y.effectiveMonthlyPriceTry, 4360);
   assert.equal(y.totalPayableTry, 52320);
   assert.equal(y.discountAmountTry, 13080);
-  assert.equal(getBillingPeriodOption("yearly").durationDays, 365);
 
   const b = calculateBillingPeriodPricing(5450, "biennial");
   assert.equal(b.discountPercent, 30);
   assert.equal(b.effectiveMonthlyPriceTry, 3815);
   assert.equal(b.totalPayableTry, 91560);
   assert.equal(b.discountAmountTry, 39240);
-  assert.equal(getBillingPeriodOption("biennial").durationDays, 730);
   assert.equal(formatBillingCycleLabel("biennial"), "2 Yıllık (%30 İndirim)");
 });
 
@@ -288,3 +285,27 @@ test("payment lifecycle reduction never moves pending or terminal states backwar
   assert.equal(rejected[0].status, "rejected");
 });
 
+test("billing period end follows the calendar for every cycle", () => {
+  const start = new Date("2026-03-15T10:30:00.000Z");
+  assert.equal(billingPeriodEnd(start, "monthly").toISOString(), "2026-04-15T10:30:00.000Z");
+  assert.equal(billingPeriodEnd(start, "semi_annual").toISOString(), "2026-09-15T10:30:00.000Z");
+  assert.equal(billingPeriodEnd(start, "yearly").toISOString(), "2027-03-15T10:30:00.000Z");
+  assert.equal(billingPeriodEnd(start, "biennial").toISOString(), "2028-03-15T10:30:00.000Z");
+});
+
+test("billing period end clamps to the last day of a shorter month", () => {
+  assert.equal(billingPeriodEnd(new Date("2027-01-31T08:00:00.000Z"), "monthly").toISOString(), "2027-02-28T08:00:00.000Z");
+  assert.equal(billingPeriodEnd(new Date("2028-01-31T08:00:00.000Z"), "monthly").toISOString(), "2028-02-29T08:00:00.000Z");
+  assert.equal(billingPeriodEnd(new Date("2028-02-29T08:00:00.000Z"), "yearly").toISOString(), "2029-02-28T08:00:00.000Z");
+  assert.equal(billingPeriodEnd(new Date("2026-08-31T08:00:00.000Z"), "semi_annual").toISOString(), "2027-02-28T08:00:00.000Z");
+});
+
+test("a yearly period across a leap day keeps the contract date", () => {
+  assert.equal(billingPeriodEnd(new Date("2027-06-01T00:00:00.000Z"), "yearly").toISOString(), "2028-06-01T00:00:00.000Z");
+});
+
+test("billing period end does not change the start date", () => {
+  const start = new Date("2027-01-31T08:00:00.000Z");
+  billingPeriodEnd(start, "monthly");
+  assert.equal(start.toISOString(), "2027-01-31T08:00:00.000Z");
+});

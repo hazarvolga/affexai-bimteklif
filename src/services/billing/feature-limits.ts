@@ -37,13 +37,12 @@ export const featureQuotaUnavailable = (feature: MeteredFeature) =>
   new QuotaError(503, quotaCodes(feature).unavailable, "Feature quota is temporarily unavailable");
 
 /**
- * The linked plan row owns the limit. A NULL column means the catalog bootstrap has not
- * configured it yet, so the legacy enum limit keeps today's behaviour instead of locking tenants out.
+ * The linked plan row owns the limit, and a NULL column is unavailable rather than a legacy limit.
+ * Only legacy subscriptions without a linked plan still read the enum limits.
  */
 export function featureMonthlyLimit(subscription: Subscription, plan: Plan | undefined, feature: MeteredFeature): number {
   if (subscription.planId && plan?.id !== subscription.planId) throw featureQuotaUnavailable(feature);
-  const configured = subscription.planId ? plan![METERED_FEATURES[feature]] : null;
-  const limit = configured ?? PLAN_LIMITS[subscription.plan]?.[feature];
+  const limit = subscription.planId ? plan![METERED_FEATURES[feature]] : PLAN_LIMITS[subscription.plan]?.[feature];
   if (!Number.isSafeInteger(limit) || limit! < 0) throw featureQuotaUnavailable(feature);
   return limit!;
 }

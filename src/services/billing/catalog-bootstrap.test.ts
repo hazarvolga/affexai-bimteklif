@@ -35,6 +35,15 @@ test('bootstrap backfills unset limits once and never overwrites admin-set limit
   assert.deepEqual(changes.existing, [adminTuned.id]);
 });
 
+test('bootstrap backfills one unset limit without waiting for the AI limit to be unset', () => {
+  const partlyTuned = { ...canonicalPlans[2], monthlyAiLimit: 45, monthlyPdfLimit: null };
+  assert.deepEqual(planCatalogChanges([partlyTuned]).limitUpdates, [{ ...canonicalPlans[2], monthlyAiLimit: 45, monthlyPdfLimit: canonicalPlans[2].monthlyPdfLimit }]);
+});
+
+test('no catalog package sells more parallel IFC work than the single worker slot', () => {
+  assert.deepEqual(canonicalPlans.map(plan => plan.ifcMaxConcurrent), [1, 1, 1, 1, 1]);
+});
+
 test('IFC auditor package is sold as a pilot until server SmartCheck is live', () => {
   const auditor = canonicalPlans.find(p => p.id.endsWith('000000000002'))!;
   assert.equal(auditor.marketingBadge, 'Pilot');
