@@ -51,6 +51,12 @@ export function validateCrawlerUrl(input: string): URL {
   return url;
 }
 
+/** Official Turkish pages can still declare windows-1254; reading them as UTF-8 corrupts every Turkish letter. */
+export function decodeCrawlerText(body: Buffer): string {
+  const declared = body.subarray(0, 2048).toString('latin1').match(/charset=["']?\s*(windows-1254|iso-8859-9)/i)?.[1];
+  return declared ? new TextDecoder(declared.toLowerCase()).decode(body) : body.toString('utf8');
+}
+
 export async function readCrawlerBody(stream: Readable, maxBytes = MAX_CRAWLER_BYTES): Promise<string> {
   const chunks: Buffer[] = [];
   let size = 0;
@@ -61,7 +67,7 @@ export async function readCrawlerBody(stream: Readable, maxBytes = MAX_CRAWLER_B
       if (size > maxBytes) throw new Error('CRAWLER_RESPONSE_TOO_LARGE');
       chunks.push(buffer);
     }
-    return Buffer.concat(chunks, size).toString('utf8');
+    return decodeCrawlerText(Buffer.concat(chunks, size));
   } finally {
     stream.destroy();
   }

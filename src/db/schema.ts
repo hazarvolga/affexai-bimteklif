@@ -13,6 +13,7 @@ import {
   check,
   bigint,
   jsonb,
+  date,
   uniqueIndex,
   unique,
   pgPolicy,
@@ -2335,6 +2336,34 @@ export const adminAuditLogs = pgTable("admin_audit_logs", {
   details: jsonb("details"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+// Official Gazette entries that may change a rule the product uses. Nothing here changes a rate by itself.
+export const regulationWatchItems = pgTable("regulation_watch_items", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  source: text("source").default("resmi_gazete").notNull(),
+  issueDate: date("issue_date").notNull(),
+  title: text("title").notNull(),
+  url: text("url").notNull().unique(),
+  matchedKeywords: jsonb("matched_keywords").$type<string[]>().notNull(),
+  status: text("status").default("new").notNull(),
+  reviewNote: text("review_note"),
+  reviewedByUserId: uuid("reviewed_by_user_id"),
+  reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+}, (t) => ({
+  statusValid: check("regulation_watch_items_status_valid", sql`${t.status} in ('new', 'reviewed', 'dismissed')`),
+  issueDateIndex: index("regulation_watch_items_issue_date_idx").on(t.issueDate),
+}));
+
+export const regulationWatchDays = pgTable("regulation_watch_days", {
+  issueDate: date("issue_date").primaryKey(),
+  status: text("status").notNull(),
+  matchedCount: integer("matched_count").default(0).notNull(),
+  errorCode: text("error_code"),
+  checkedAt: timestamp("checked_at", { withTimezone: true }).defaultNow().notNull(),
+}, (t) => ({
+  statusValid: check("regulation_watch_days_status_valid", sql`${t.status} in ('checked', 'failed')`),
+}));
 
 export const pricingDataSources = pgTable("pricing_data_sources", {
   id: uuid("id").primaryKey().defaultRandom(),

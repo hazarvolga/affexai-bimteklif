@@ -212,6 +212,12 @@ test("T43 R+1 route coverage ratchet: admin, pricing-file-import, academy, billi
   assert.equal(resync.json.inserted, 0);
   assert.ok(resync.json.preserved.some((plan: { id: string; fields: string[] }) => plan.id === catalogPlanId && plan.fields.includes("ifcMaxFileMb")));
 
+  const watchList = await reqJson("GET", "/api/admin/regulation-watch", adminToken);
+  assert.equal(watchList.status, 200);
+  assert.ok(Array.isArray(watchList.json.items) && Array.isArray(watchList.json.days));
+  assert.equal((await reqJson("PATCH", `/api/admin/regulation-watch/${crypto.randomUUID()}`, adminToken, { status: "other" })).status, 400);
+  assert.equal((await reqJson("PATCH", `/api/admin/regulation-watch/${crypto.randomUUID()}`, adminToken, { status: "reviewed" })).status, 404);
+
   const usageReport = await reqJson("GET", "/api/admin/reports/usage", adminToken);
   assert.equal(usageReport.status, 200);
   assert.ok(Array.isArray(usageReport.json.topConsumers));

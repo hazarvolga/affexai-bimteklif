@@ -63,10 +63,13 @@ import {
   saveBankAccountsByAdmin,
 } from "../../services/billing/bank-transfer";
 import { syncPlanCatalog } from "../admin/plan-catalog-sync";
+import { readRegulationWatch, reviewRegulationWatchItem } from "../regulation-watch/store";
 import {
   canonicalPricingSources,
   PRICING_SOURCE_CATALOG_VERSION,
 } from "../../services/pricing/source-catalog";
+
+const regulationWatchReviewInput = z.object({ status: z.enum(["reviewed", "dismissed"]), note: z.string().trim().min(1).max(1000).nullable().optional() }).strict();
 
 /** A DB heartbeat is only a process-reported signal, not container or deployment proof. */
 async function readWorkerSignals() {
@@ -456,6 +459,29 @@ export function registerAdminRoutes(app: Express) {
       return res.status(201).json(newPlan);
     } catch (error) {
       return res.status(500).json({ error: "Paket oluşturulamadı." });
+    }
+  });
+
+  // 6a. Official Gazette watch: candidates for a person to read, never an automatic rate change.
+  router.get("/regulation-watch", async (_req, res) => {
+    try {
+      return res.json(await readRegulationWatch());
+    } catch (error) {
+      console.error("Regulation watch read error:", error);
+      return res.status(500).json({ error: "Mevzuat kayıtları okunamadı." });
+    }
+  });
+
+  router.patch("/regulation-watch/:id", async (req, res) => {
+    const input = regulationWatchReviewInput.safeParse(req.body);
+    if (!input.success || !z.string().uuid().safeParse(req.params.id).success) return res.status(400).json({ error: "Geçersiz inceleme bilgisi." });
+    try {
+      const updated = await reviewRegulationWatchItem({ id: req.params.id, adminId: req.user.userId, status: input.data.status, note: input.data.note ?? null });
+      if (!updated) return res.status(404).json({ error: "Kayıt bulunamadı." });
+      return res.json(updated);
+    } catch (error) {
+      console.error("Regulation watch review error:", error);
+      return res.status(500).json({ error: "İnceleme kaydedilemedi." });
     }
   });
 

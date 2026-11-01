@@ -79,6 +79,7 @@ import { validateAuthEmailEnvironment } from './auth/email-policy';
 import { pruneExpiredRateLimits } from "./auth/security";
 import { logger, requestIdMiddleware } from "./logger";
 import { priceSchedulerService } from "./crawler/priceSchedulerService";
+import { startRegulationWatch } from "./regulation-watch/scheduler";
 
 dotenv.config({ path: ".env.local" });
 dotenv.config();
@@ -396,6 +397,7 @@ export async function startServer() {
 
   // Start automated nightly crawler scheduler (OPS-CRAWLER)
   priceSchedulerService.start();
+  startRegulationWatch();
 
   let isShuttingDown = false;
   const shutdown = async (signal: string) => {

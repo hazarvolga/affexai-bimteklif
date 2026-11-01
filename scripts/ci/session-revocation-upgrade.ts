@@ -66,7 +66,8 @@ try {
     const { rows: [livePlan] } = await admin.query(`SELECT ifc_max_concurrent, monthly_ai_limit, monthly_pdf_limit, marketing_description FROM plans WHERE id=$1`, [livePlanId]);
     assert.deepEqual(livePlan, { ifc_max_concurrent: 1, monthly_ai_limit: 45, monthly_pdf_limit: 75, marketing_description: 'Yüksek teklif ve IFC kapasitesi için.' });
     await admin.query('DELETE FROM plans WHERE id=$1', [livePlanId]);
+    assert.deepEqual(await applyMigrations(migrator, migrations, 42, { requireWorkersDrained: true }), ['0042_regulation_watch']);
   } finally { await migrator.end(); }
   await provisionDatabaseRoles(admin, credentials, target, decodeURIComponent(url.password));
-  process.stdout.write('0032 → 0033 → 0034 → 0035 → 0036 → 0037 → 0038 → 0039 → 0040 → 0041 migrator/owner upgrade and role provisioning verified\n');
+  process.stdout.write('0032 → 0033 → 0034 → 0035 → 0036 → 0037 → 0038 → 0039 → 0040 → 0041 → 0042 migrator/owner upgrade and role provisioning verified\n');
 } finally { await admin.end(); }
