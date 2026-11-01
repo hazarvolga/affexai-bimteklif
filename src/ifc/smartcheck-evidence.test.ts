@@ -344,3 +344,18 @@ it("evidence from before these fields, or of another shape, gives an empty summa
   assert.deepEqual(pickIfcScreenSummary({ summary: {} }), {});
   assert.deepEqual(pickIfcScreenSummary({ summary: { openings: "x", authoringSoftware: 3 } }), {});
 });
+
+it("the stored evidence keeps the apartment schedule the worker read, and the screen summary returns it", () => {
+  const apartmentSchedule = [{ unitCode: "D01", unitLabel: "Daire D01", storey: "K01", roomCount: 8, netSweepableM2: 65.68, balconyM2: 4.73, totalNetM2: 70.41, unitGrossM2: null, generalGrossM2: null, rooms: [] }];
+  assert.deepEqual(pickIfcScreenSummary({ summary: { apartmentSchedule } }), { apartmentSchedule });
+  assert.deepEqual(pickIfcScreenSummary({ summary: { apartmentSchedule: "x" } }), {});
+});
+
+describe("apartment schedule in the stored evidence", () => {
+  it("is copied from the worker summary, so the result screen can show the units and rooms", () => {
+    const apartmentSchedule = [{ unitCode: "D01", unitLabel: "Daire D01", storey: "K01", roomCount: 1, netSweepableM2: 20, balconyM2: 0, totalNetM2: 20, unitGrossM2: null, generalGrossM2: null, rooms: [] }];
+    const artifact = buildIfcSmartCheckEvidenceArtifact([], { ...succeededSummary, totalElements: 0, apartmentSchedule } as IfcParseSummary, { fileName: "u.ifc", checksumSha256: "a".repeat(64), schemaName: "IFC4" });
+    assert.deepEqual(artifact.summary.apartmentSchedule, apartmentSchedule);
+    assert.deepEqual(pickIfcScreenSummary({ summary: artifact.summary }).apartmentSchedule, apartmentSchedule);
+  });
+});

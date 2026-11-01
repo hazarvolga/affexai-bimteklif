@@ -76,6 +76,8 @@ export interface IfcSmartCheckEvidenceArtifact {
     authoringSoftware?: AuthoringSoftwareDetection;
     /** Kapı/pencere listesi (sözleşmesel minha için); yoksa yok. */
     openings?: ParsedOpening[];
+    /** Bağımsız bölüm ve oda cetveli (IfcZone + IfcSpace); yoksa yok. */
+    apartmentSchedule?: IfcParseSummary["apartmentSchedule"];
     /** IFC Tutarlılık ve Metraj Kapsama Raporu (Rev. 36). */
     consistencyReport?: IfcConsistencyReport;
     parserContract?: IfcParserContract;
@@ -253,12 +255,13 @@ function resolveAuthoringSoftware(summary: IfcParseSummary): AuthoringSoftwareDe
 }
 
 /** The fields of stored evidence that the result screen needs next to the rows. */
-export function pickIfcScreenSummary(metadata: unknown): Pick<IfcParseSummary, "openings" | "authoringSoftware" | "consistencyReport"> {
+export function pickIfcScreenSummary(metadata: unknown): Pick<IfcParseSummary, "openings" | "authoringSoftware" | "consistencyReport" | "apartmentSchedule"> {
   const summary = (metadata as { summary?: Partial<IfcParseSummary> } | null)?.summary;
   return {
     ...(Array.isArray(summary?.openings) ? { openings: summary.openings } : {}),
     ...(summary?.authoringSoftware && typeof summary.authoringSoftware === "object" ? { authoringSoftware: summary.authoringSoftware } : {}),
     ...(summary?.consistencyReport && typeof summary.consistencyReport === "object" ? { consistencyReport: summary.consistencyReport } : {}),
+    ...(Array.isArray(summary?.apartmentSchedule) ? { apartmentSchedule: summary.apartmentSchedule } : {}),
   };
 }
 
@@ -290,6 +293,7 @@ export function buildIfcSmartCheckEvidenceArtifact(
         trPsetCsb: summary.trPsetCsb,
         authoringSoftware: resolveAuthoringSoftware(summary),
         openings: summary.openings,
+        apartmentSchedule: summary.apartmentSchedule,
         consistencyReport: summary.consistencyReport,
         parserContract: summary.parserContract,
       },
@@ -358,6 +362,7 @@ export function buildIfcSmartCheckEvidenceArtifact(
       trPsetCsb: summary.trPsetCsb,
       authoringSoftware: resolveAuthoringSoftware(summary),
       openings: summary.openings,
+      apartmentSchedule: summary.apartmentSchedule,
       consistencyReport: summary.consistencyReport,
       parserContract: summary.parserContract,
     },
