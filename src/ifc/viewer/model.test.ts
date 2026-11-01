@@ -11,6 +11,7 @@ import {
   computeFitCameraDistance,
   computePanDelta,
   computeSectionCutConstant,
+  nextSectionPlayPercent,
   getCameraPresetAngles,
   parseViewerContext,
   sha256Hex,
@@ -92,5 +93,13 @@ describe("IFC viewer model boundary", () => {
     assert.equal(computeSectionCutConstant(0, 12, 50), 6);
     assert.equal(computeSectionCutConstant(0, 12, 0) >= 0.6, true);
     assert.equal(computeSectionCutConstant(0, 12, 100) > 12, true);
+  });
+
+  it("advances the section while it plays and stops exactly at the end", () => {
+    assert.deepEqual(nextSectionPlayPercent(10, 2), { percent: 12, finished: false });
+    assert.deepEqual(nextSectionPlayPercent(98, 2), { percent: 100, finished: true });
+    assert.deepEqual(nextSectionPlayPercent(99, 5), { percent: 100, finished: true });
+    assert.deepEqual(nextSectionPlayPercent(100, 2), { percent: 100, finished: true });
+    assert.deepEqual(nextSectionPlayPercent(Number.NaN, 2), { percent: 100, finished: true });
   });
 });
