@@ -9,6 +9,7 @@ interface WatchItem {
   id: string;
   source: 'resmi_gazete' | 'gib';
   matchScope: 'title' | 'body';
+  region: string | null;
   issueDate: string;
   title: string;
   url: string;
@@ -84,7 +85,7 @@ export function RegulationWatch() {
         <div className="rounded-lg border border-border bg-card p-4 text-sm">
           <p>Son başarılı kontrol: Resmî Gazete <b>{lastChecked('resmi_gazete')}</b>, GİB <b>{lastChecked('gib')}</b></p>
           {unreadPdfs > 0 && (
-            <p className="mt-2 text-muted-foreground">Son günlerde {unreadPdfs} PDF kararın yalnız başlığı tarandı, metni okunmadı. Önemli günlerde Gazete'ye ayrıca göz atın.</p>
+            <p className="mt-2 text-muted-foreground">Son günlerde {unreadPdfs} PDF kararın metni okunamadı veya uzun olduğu için yalnız ilk 20 sayfası okundu. Önemli günlerde Gazete'ye ayrıca göz atın.</p>
           )}
           {failedDays.length > 0 && (
             <p className="mt-2 text-destructive">
@@ -109,7 +110,7 @@ export function RegulationWatch() {
             <li key={item.id} className="rounded-lg border border-border bg-card p-4">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs text-muted-foreground">{SOURCE_LABEL[item.source]} · {item.issueDate} · {STATUS_LABEL[item.status]} · {item.matchScope === 'body' ? 'Metinde geçiyor' : 'Başlıkta'}: {item.matchedKeywords.join(', ')}</p>
+                  <p className="text-xs text-muted-foreground">{SOURCE_LABEL[item.source]}{item.region ? ` (${item.region})` : ''} · {item.issueDate} · {STATUS_LABEL[item.status]} · {item.matchScope === 'body' ? 'Metinde geçiyor' : 'Başlıkta'}: {item.matchedKeywords.join(', ')}</p>
                   <a href={item.url} target="_blank" rel="noreferrer" className="mt-1 inline-flex items-start gap-1 font-medium hover:underline">
                     {item.title}<ExternalLink size={14} className="mt-1 shrink-0" />
                   </a>

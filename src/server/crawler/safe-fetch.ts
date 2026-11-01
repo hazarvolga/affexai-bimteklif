@@ -58,6 +58,10 @@ export function decodeCrawlerText(body: Buffer): string {
 }
 
 export async function readCrawlerBody(stream: Readable, maxBytes = MAX_CRAWLER_BYTES): Promise<string> {
+  return decodeCrawlerText(await readCrawlerBytes(stream, maxBytes));
+}
+
+async function readCrawlerBytes(stream: Readable, maxBytes: number): Promise<Buffer> {
   const chunks: Buffer[] = [];
   let size = 0;
   try {
@@ -67,7 +71,7 @@ export async function readCrawlerBody(stream: Readable, maxBytes = MAX_CRAWLER_B
       if (size > maxBytes) throw new Error('CRAWLER_RESPONSE_TOO_LARGE');
       chunks.push(buffer);
     }
-    return decodeCrawlerText(Buffer.concat(chunks, size));
+    return Buffer.concat(chunks, size);
   } finally {
     stream.destroy();
   }
@@ -101,6 +105,10 @@ export function postCrawlerJson(input: string, body: unknown): Promise<string> {
 }
 
 export async function fetchCrawlerHtml(input: string, redirectDepth = 0, jsonBody?: string): Promise<string> {
+  return decodeCrawlerText(await fetchCrawlerBytes(input, MAX_CRAWLER_BYTES, redirectDepth, jsonBody));
+}
+
+export async function fetchCrawlerBytes(input: string, maxBytes: number, redirectDepth = 0, jsonBody?: string): Promise<Buffer> {
   if (redirectDepth > MAX_CRAWLER_REDIRECTS) {
     throw new Error('CRAWLER_TOO_MANY_REDIRECTS');
   }
@@ -130,7 +138,7 @@ export async function fetchCrawlerHtml(input: string, redirectDepth = 0, jsonBod
         clearTimeout(timer);
         try {
           const redirectedUrl = new URL(nextLocation, url).toString();
-          void fetchCrawlerHtml(redirectedUrl, redirectDepth + 1).then(resolve, reject);
+          void fetchCrawlerBytes(redirectedUrl, maxBytes, redirectDepth + 1).then(resolve, reject);
         } catch (err) {
           reject(err);
         }
@@ -142,12 +150,12 @@ export async function fetchCrawlerHtml(input: string, redirectDepth = 0, jsonBod
         request.destroy(new Error('CRAWLER_RESPONSE_REJECTED'));
         return;
       }
-      if (Number(response.headers['content-length']) > MAX_CRAWLER_BYTES) {
+      if (Number(response.headers['content-length']) > maxBytes) {
         response.destroy();
         request.destroy(new Error('CRAWLER_RESPONSE_TOO_LARGE'));
         return;
       }
-      void readCrawlerBody(decodedStream).then(resolve, reject).finally(() => clearTimeout(timer));
+      void readCrawlerBytes(decodedStream, maxBytes).then(resolve, reject).finally(() => clearTimeout(timer));
     });
     // Includes DNS, connect, headers and the complete body; redirects are re-validated at every hop.
     const timer = setTimeout(() => request.destroy(new Error('CRAWLER_TIMEOUT')), CRAWLER_TIMEOUT_MS);

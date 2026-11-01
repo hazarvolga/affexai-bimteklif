@@ -13366,6 +13366,12 @@
           "notNull": true,
           "default": "'title'"
         },
+        "region": {
+          "name": "region",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
         "issue_date": {
           "name": "issue_date",
           "type": "date",
@@ -18796,6 +18802,6 @@
     "tables": {},
     "columns": {}
   },
-  "id": "2e35e183-76a4-4444-af45-5667b4631fe5",
+  "id": "881cc7ea-01bf-4a20-8648-e826df9b895d",
   "prevId": "938d41a7-56cc-4694-84a3-caf8ce5c612d"
 }

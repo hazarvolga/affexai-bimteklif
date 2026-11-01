@@ -2342,6 +2342,7 @@ export const regulationWatchItems = pgTable("regulation_watch_items", {
   id: uuid("id").primaryKey().defaultRandom(),
   source: text("source").default("resmi_gazete").notNull(),
   matchScope: text("match_scope").default("title").notNull(),
+  region: text("region"),
   issueDate: date("issue_date").notNull(),
   title: text("title").notNull(),
   url: text("url").notNull().unique(),

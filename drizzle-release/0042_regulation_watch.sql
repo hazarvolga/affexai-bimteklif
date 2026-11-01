@@ -16,6 +16,7 @@ CREATE TABLE "regulation_watch_items" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"source" text DEFAULT 'resmi_gazete' NOT NULL,
 	"match_scope" text DEFAULT 'title' NOT NULL,
+	"region" text,
 	"issue_date" date NOT NULL,
 	"title" text NOT NULL,
 	"url" text NOT NULL,

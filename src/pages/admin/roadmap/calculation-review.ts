@@ -2968,7 +2968,7 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
     date: "1 Kasım 2026",
     trigger: "Vergi ve ihale oranlarının değişikliğini kaçırmama ihtiyacı, Hazar kararı",
     beforeSummary: "Mevzuat değişikliklerini izleyen bir mekanizma yoktu.",
-    afterSummary: "Sistem günde dört kez son yedi günün Resmî Gazete sayılarını ve GİB genel duyurularını tarar, eşleşenleri yönetici ekranına yazar, kontrol edilemeyen günleri gösterir. HTML kararların tam metni okunur; PDF kararlarda yalnız başlık okunur ve sayısı gösterilir. Kayıt hiçbir oranı değiştirmez.",
+    afterSummary: "Sistem günde dört kez son yedi günün Resmî Gazete sayılarını ve GİB genel duyurularını tarar, eşleşenleri yönetici ekranına yazar, kontrol edilemeyen günleri gösterir. HTML kararların metni okunur; taranmış PDF kararlar Türkçe OCR ile ilk 20 sayfaya kadar okunur, okunamayanların sayısı gösterilir. GİB il duyuruları bölge bilgisiyle listelenir. Kayıt hiçbir oranı değiştirmez.",
     affectedModules: [],
     moduleDetails: {},
   },

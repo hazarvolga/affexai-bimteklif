@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { gazetteIssueUrl, matchRegulationKeywords, parseGazetteIssue, recentIssueDates } from "./gazette";
 import { parseGibAnnouncements } from "./gib";
+import { ocrPdfText, pageCountFromPdfInfo } from "./pdf-text";
 import { runRegulationWatch, type RegulationWatchStore } from "./service";
 import { decodeCrawlerText } from "../crawler/safe-fetch";
 
@@ -59,17 +60,35 @@ function memoryStore(checked: string[] = []) {
   return { store, items, days };
 }
 
-const baseInput = { now: new Date("2026-10-31T12:00:00Z"), pause: async () => undefined, postJson: async () => gib };
+const baseInput = { now: new Date("2026-10-31T12:00:00Z"), pause: async () => undefined, postJson: async () => gib, readPdfText: async () => ({ text: "", truncated: false }) };
 const gazetteDays = (days: ReturnType<typeof memoryStore>["days"]) => days.filter(day => day.source === "resmi_gazete");
 
-test("GİB keeps nationwide matching announcements and links to the official page", () => {
+test("GİB keeps matching nationwide and provincial announcements and shows the region", () => {
   const items = parseGibAnnouncements(gib);
-  assert.deepEqual(items.map(item => [item.url, item.issueDate]), [["https://gib.gov.tr/duyuru-arsivi/guncel/19314_kvk", "2026-10-30"]]);
+  assert.deepEqual(items.map(item => [item.url, item.issueDate, item.region]), [
+    ["https://gib.gov.tr/duyuru-arsivi/guncel/19314_kvk", "2026-10-30", null],
+    ["https://gib.gov.tr/duyuru-arsivi/guncel/19081_il", "2026-09-30", "OSMANIYE"],
+  ]);
 });
 
 test("an unexpected GİB response is an error, not an empty result", () => {
   assert.throws(() => parseGibAnnouncements("{}"));
   assert.throws(() => parseGibAnnouncements(JSON.stringify({ resultContainer: { content: [] } })));
+});
+
+test("scanned PDF text is searched, and PDFs that fail, are empty or are cut short are counted", async () => {
+  const { store, items, days } = memoryStore();
+  const page = ['1', '2', '3', '4'].map(n => `<a href="20261031-${n}.pdf">–– Karar ${n}</a>`).join("");
+  const texts: Record<string, () => Promise<{ text: string; truncated: boolean }>> = {
+    "1": async () => ({ text: "Gelir Vergisi Kanununun 94 üncü maddesi", truncated: false }),
+    "2": async () => { throw new Error("OCR_FAILED"); },
+    "3": async () => ({ text: "   ", truncated: false }),
+    "4": async () => ({ text: "uzun andlaşma", truncated: true }),
+  };
+  await runRegulationWatch({ ...baseInput, store, lookbackDays: 1, fetchHtml: async () => page, readPdfText: url => texts[url.slice(-5, -4)]() });
+  assert.deepEqual(items.filter(item => item.source === "resmi_gazete").map(item => [item.url.slice(-5), item.matchScope]), [["1.pdf", "body"]]);
+  assert.equal(gazetteDays(days)[0].status, "checked");
+  assert.equal(gazetteDays(days)[0].unreadCount, 3);
 });
 
 test("a day stores title matches, reads decision bodies, and counts PDFs it could not read", async () => {
@@ -84,7 +103,7 @@ test("a day stores title matches, reads decision bodies, and counts PDFs it coul
   const gazette = items.filter(item => item.source === "resmi_gazete");
   assert.deepEqual(gazette.map(item => [item.url.slice(-14), item.matchScope]), [["20261031-5.htm", "title"], ["20261031-8.htm", "body"]]);
   assert.deepEqual(gazetteDays(days), [{ source: "resmi_gazete", issueDate: "2026-10-31", status: "checked", matchedCount: 2, unreadCount: 1, errorCode: null }]);
-  assert.ok(!fetched.some(url => url.endsWith(".pdf")), "PDF bytes are not read as text");
+  assert.ok(!fetched.some(url => url.endsWith(".pdf")), "PDFs go through the OCR reader");
   assert.ok(!fetched.some(url => url.endsWith("-5.htm")), "a title match needs no body request");
   assert.equal(result.failed, 0);
 });
@@ -119,4 +138,26 @@ test("days already checked are not fetched again", async () => {
   const requested: string[] = [];
   await runRegulationWatch({ ...baseInput, store, lookbackDays: 2, fetchHtml: async url => { requested.push(url); return '<a href="20261030-1.htm">–– Damga Vergisi</a>'; } });
   assert.deepEqual(requested, ["https://www.resmigazete.gov.tr/eskiler/2026/10/20261030.htm"]);
+});
+
+test("OCR reads pages one by one, stops at the page limit, and says so", async () => {
+  const calls: string[] = [];
+  const result = await ocrPdfText(Buffer.from("%PDF"), async (tool, args) => {
+    calls.push(tool);
+    if (tool === "pdfinfo") return "Title: x\nPages:          25\n";
+    if (tool === "pdftoppm") {
+      const { writeFile } = await import("node:fs/promises");
+      await writeFile(`${args.at(-1)}-1.pgm`, "image");
+      return "";
+    }
+    return "tevkifat ";
+  });
+  assert.equal(calls.filter(tool => tool === "tesseract").length, 20);
+  assert.equal(result.truncated, true);
+  assert.match(result.text, /tevkifat/);
+});
+
+test("an unreadable page count is an error instead of an empty document", () => {
+  assert.equal(pageCountFromPdfInfo("Pages: 3"), 3);
+  assert.throws(() => pageCountFromPdfInfo("bozuk"), /PDF_PAGE_COUNT_UNREADABLE/);
 });

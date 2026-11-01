@@ -1,5 +1,6 @@
 import { gazetteBodyText, gazetteIssueUrl, matchRegulationKeywords, parseGazetteIssue, recentIssueDates } from "./gazette";
 import { GIB_ANNOUNCEMENTS_URL, parseGibAnnouncements } from "./gib";
+import type { PdfText } from "./pdf-text";
 
 export const REGULATION_WATCH_LOOKBACK_DAYS = 7;
 const LAYOUT_UNRECOGNIZED = "GAZETTE_LAYOUT_UNRECOGNIZED";
@@ -14,6 +15,7 @@ export interface RegulationWatchItemInput {
   title: string;
   url: string;
   matchedKeywords: string[];
+  region?: string | null;
 }
 
 export interface RegulationWatchDayInput {
@@ -35,6 +37,7 @@ interface WatchInput {
   store: RegulationWatchStore;
   fetchHtml: (url: string) => Promise<string>;
   postJson: (url: string, body: unknown) => Promise<string>;
+  readPdfText: (url: string) => Promise<PdfText>;
   now: Date;
   lookbackDays?: number;
   pause?: () => Promise<void>;
@@ -57,7 +60,12 @@ async function scanGazetteDay(input: WatchInput, issueDate: string) {
     if (titleMatches.length) {
       items.push({ ...base, matchScope: "title", matchedKeywords: titleMatches });
     } else if (entry.url.toLowerCase().endsWith(".pdf")) {
-      unreadCount += 1;
+      await (input.pause ?? defaultPause)();
+      // One unreadable PDF must not hide the rest of the day; it is counted and shown instead.
+      const pdf = await input.readPdfText(entry.url).catch(() => null);
+      const bodyMatches = matchRegulationKeywords(pdf?.text ?? "");
+      if (bodyMatches.length) items.push({ ...base, matchScope: "body", matchedKeywords: bodyMatches });
+      if (!pdf || pdf.truncated || !pdf.text.trim()) unreadCount += 1;
     } else {
       await (input.pause ?? defaultPause)();
       const bodyMatches = matchRegulationKeywords(gazetteBodyText(await input.fetchHtml(entry.url)));

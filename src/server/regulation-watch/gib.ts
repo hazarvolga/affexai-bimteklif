@@ -17,11 +17,10 @@ const responseSchema = z.object({
   }).passthrough(),
 }).passthrough();
 
-/** Provincial tax office notices are left out; only nationwide announcements can change a rule. */
+/** Provincial notices stay in because local practice can differ; the region is kept so a reader can judge them. */
 export function parseGibAnnouncements(json: string) {
   const { resultContainer } = responseSchema.parse(JSON.parse(json));
   return resultContainer.content.flatMap(entry => {
-    if (entry.ilkodu !== NATIONWIDE) return [];
     const matchedKeywords = matchRegulationKeywords(`${entry.title} ${entry.summary ?? ""}`);
     if (!matchedKeywords.length) return [];
     return [{
@@ -31,6 +30,7 @@ export function parseGibAnnouncements(json: string) {
       title: entry.title.trim(),
       url: `${GIB_ANNOUNCEMENT_BASE}${encodeURI(entry.slug)}`,
       matchedKeywords,
+      region: entry.ilkodu && entry.ilkodu !== NATIONWIDE ? entry.ilkodu : null,
     }];
   });
 }

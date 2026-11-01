@@ -187,7 +187,7 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
     id: "durum",
     title: "Uygulama durumu (1 Kasım 2026 · Rev. 148 geliştirme kaydı)",
     blocks: [
-      { type: "callout", tone: "info", title: "Rev. 148 · Mevzuat Bekçisi", text: "Resmî Gazete ve GİB genel duyuruları taranır, eşleşenler yönetici ekranına düşer, kontrol edilemeyen günler gösterilir. Hiçbir oran otomatik değişmez. PDF kararlarda yalnız başlık okunur, sayısı gösterilir." },
+      { type: "callout", tone: "info", title: "Rev. 148 · Mevzuat Bekçisi", text: "Resmî Gazete ve GİB duyuruları (il duyuruları bölge bilgisiyle) taranır, eşleşenler yönetici ekranına düşer, kontrol edilemeyen günler gösterilir. Taranmış PDF kararlar Türkçe OCR ile okunur. Hiçbir oran otomatik değişmez." },
       { type: "callout", tone: "info", title: "Rev. 147 · Teklif ve aktarım kapıları", text: "Teklif durum geçişleri sınırlandı, IFC satırları yalnız kanıt kontrollü aktarımdan geçer, düzeltilen belirsiz sayı bulgusu kalkar ve eski kayıtlar ham hata kodu göstermez." },
       { type: "callout", tone: "info", title: "Rev. 146 · Poz kodları katalogla eşit", text: "Calm icmaldeki 8 sabit poz, örnek CSV ve ana sayfa tablosu resmî ÇŞB 2026 kodlarına çevrildi; test bu eşleşmeyi korur. Laminat, süpürgelik, XPS ve gazbeton kalemleri bilinçli olarak çözümsüz kaldı. Poz seçimi teknik ön değerlendirmedir." },
       { type: "callout", tone: "info", title: "Rev. 145 · Sayı okuma ve alt endeks", text: "Metin hücresindeki 1.250 gibi belirsiz sayılar artık sessizce okunmaz, kullanıcıya gösterilir. Excel sayısal hücreleri ve IFC miktarları kesin okunur. Küçük harfli Türkçe malzeme adları doğru fiyat farkı alt endeksine eşleşir." },
@@ -1192,7 +1192,7 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
             "Rev. 147", "1 Kasım 2026 · Teklif ve aktarım kapıları", "BIM-CALC-2026-11-01.5", "B-05 ve B-06 kapatıldı. B-04 iddiası kodda doğrulanmadı, ama aynı yerde Rev. 145 belirsiz sayı bulgusunun temizlenmemesi düzeltildi.",
           ],
           [
-            "Rev. 148", "1 Kasım 2026 · Mevzuat Bekçisi", "BIM-CALC-2026-11-01.6", "Migration 0042 iki tablo ekler. Tarama yalnız kayıt üretir; oran değişikliği yetkili kişi kararıyla yapılır. PDF kararların metni okunmaz.",
+            "Rev. 148", "1 Kasım 2026 · Mevzuat Bekçisi", "BIM-CALC-2026-11-01.6", "Migration 0042 iki tablo ekler. Tarama yalnız kayıt üretir; oran değişikliği yetkili kişi kararıyla yapılır. PDF kararlar OCR ile ilk 20 sayfaya kadar okunur.",
           ],
         ],
       },
