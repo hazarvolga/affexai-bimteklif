@@ -109,11 +109,11 @@ test("buildCalmIfcDatasetFromElements explodes multi-layer IfcCovering, converts
 
   // marka.md M-13.6: the subtitle may only claim deducted openings when the model carries them.
   assert.match(ds.projectSubtitle, /Kapı\/Pencere Bilgisi Bulunamadı/);
-  assert.doesNotMatch(ds.projectSubtitle, /Minha Düşülmüş/);
+  assert.doesNotMatch(ds.projectSubtitle, /Kapı\/Pencere Okundu/);
   assert.match(buildCalmIfcDatasetFromElements(sampleElements, { openings: [] }, "Test_Konut.ifc").projectSubtitle, /Modelde Kapı\/Pencere Yok/);
   assert.match(
     buildCalmIfcDatasetFromElements(sampleElements, { openings: [{ id: "o1", kind: "door", widthM: 0.9, heightM: 2.1, hostGlobalId: null } as never] }, "Test_Konut.ifc").projectSubtitle,
-    /Minha Düşülmüş Net Metraj/,
+    /1 Kapı\/Pencere Okundu/,
   );
 
   const sap = flat.find((i) => i.id === "sap-3cm");

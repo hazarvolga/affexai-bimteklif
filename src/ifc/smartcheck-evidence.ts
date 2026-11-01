@@ -252,6 +252,15 @@ function resolveAuthoringSoftware(summary: IfcParseSummary): AuthoringSoftwareDe
   return undefined;
 }
 
+/** The fields of stored evidence that the result screen needs next to the rows. */
+export function pickIfcScreenSummary(metadata: unknown): Pick<IfcParseSummary, "openings" | "authoringSoftware"> {
+  const summary = (metadata as { summary?: Partial<IfcParseSummary> } | null)?.summary;
+  return {
+    ...(Array.isArray(summary?.openings) ? { openings: summary.openings } : {}),
+    ...(summary?.authoringSoftware && typeof summary.authoringSoftware === "object" ? { authoringSoftware: summary.authoringSoftware } : {}),
+  };
+}
+
 export function buildIfcSmartCheckEvidenceArtifact(
   elements: ParsedIfcElement[],
   summary: IfcParseSummary,

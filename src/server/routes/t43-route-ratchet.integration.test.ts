@@ -1005,6 +1005,10 @@ test("T43 R+1 route coverage ratchet: admin, pricing-file-import, academy, billi
     const docRows = await reqJson("GET", `/api/smartcheck/documents/${sampleDocId}/rows`, ownerToken);
     assert.equal(docRows.status, 200);
 
+    const docIfcSummary = await reqJson("GET", `/api/smartcheck/documents/${sampleDocId}/ifc-summary`, ownerToken);
+    assert.equal(docIfcSummary.status, 200);
+    assert.equal((await reqJson("GET", `/api/smartcheck/documents/${crypto.randomUUID()}/ifc-summary`, ownerToken)).status, 404);
+
     const docEpys = await reqJson("GET", `/api/smartcheck/documents/${sampleDocId}/epys-preflight`, ownerToken);
     assert.ok([200, 404].includes(docEpys.status));
 

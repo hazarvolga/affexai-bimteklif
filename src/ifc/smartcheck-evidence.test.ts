@@ -4,7 +4,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, it } from "node:test";
 import { parseIfcText } from "./parser/legacy-parser";
-import { buildIfcSmartCheckEvidenceArtifact } from "./smartcheck-evidence";
+import { buildIfcSmartCheckEvidenceArtifact, pickIfcScreenSummary } from "./smartcheck-evidence";
 import { buildCalmIfcDatasetFromArtifact } from "./calm-icmal";
 import type { IfcParseSummary, ParsedIfcElement } from "./types";
 
@@ -322,4 +322,19 @@ describe("IFC SmartCheck evidence adapter", () => {
     assert.equal(artifact.rows[0].normalizedQuantity, "42.5");
     assert.equal(artifact.rows[0].normalizedPositionCode, "15.275.1104");
   });
+});
+
+it("the screen summary keeps openings and source software from stored evidence, and nothing else", () => {
+  const openings = [{ id: "1", kind: "door", widthM: 0.9, heightM: 2.1 }];
+  const authoringSoftware = { family: "revit", rawApplicationName: "Autodesk Revit 2015" };
+  assert.deepEqual(
+    pickIfcScreenSummary({ summary: { openings, authoringSoftware, parserContract: { fileSha256: "x" } } }),
+    { openings, authoringSoftware },
+  );
+});
+
+it("evidence from before these fields, or of another shape, gives an empty summary", () => {
+  assert.deepEqual(pickIfcScreenSummary(null), {});
+  assert.deepEqual(pickIfcScreenSummary({ summary: {} }), {});
+  assert.deepEqual(pickIfcScreenSummary({ summary: { openings: "x", authoringSoftware: 3 } }), {});
 });

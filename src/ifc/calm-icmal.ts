@@ -1109,7 +1109,7 @@ export function buildCalmIfcDatasetFromElements(
     ? "Kapı/Pencere Bilgisi Bulunamadı — Boşluk Düşümü Değerlendirilemedi"
     : summary.openings.length === 0
       ? "Modelde Kapı/Pencere Yok"
-      : "Minha Düşülmüş Net Metraj";
+      : `${summary.openings.length.toLocaleString("tr-TR")} Kapı/Pencere Okundu`;
   const layerNote = hasMultiLayerCoverings
     ? "Çok Katmanlı IfcCovering Ayrıştırması Aktif"
     : "Modelde Çoklu Katman (materialLayers) Bilgisi Yok — Tekil Eleman Metrajı";
