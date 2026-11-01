@@ -36,5 +36,7 @@ export function smartCheckFailureMessage(error: unknown): string | null {
 }
 
 export function queueFailureLabel(run: { errorCode: string | null; errorMessage: string | null }): string {
+  // Runs stored before this message existed carry the raw code in errorMessage.
+  if (run.errorCode === NO_ADMISSIBLE_QUANTITY_CODE) return NO_ADMISSIBLE_QUANTITY_MESSAGE;
   return isPermanentFailureCode(run.errorCode) && run.errorMessage ? run.errorMessage : GENERIC_FAILURE_LABEL;
 }

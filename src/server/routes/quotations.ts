@@ -8,7 +8,7 @@ import { manualQuotationInput, quotationStatusInput } from "../../services/quota
 import { createManualQuotation, createQuotationRevision, QuotationIntegrityError } from "../../services/quotations/integrity";
 import { auditQuotationItems } from "../../lib/quotation-audit";
 import { generateQuotationPdf } from "../../services/pdf/generate";
-import { tenantOf, withAppTenant } from "../../db/app-tenant";
+import { tenantOf, withAppTenant, withAppTenantTransaction } from "../../db/app-tenant";
 import type { TenantDatabase } from "../../db/tenant-context";
 import { PdfRenderError } from "../../services/pdf/renderer";
 import { quotationPdfErrorResponse } from './quotation-pdf-error';
@@ -18,6 +18,7 @@ import { QuotaError } from "../../services/billing/quota";
 import type { UsageSubject } from "../../services/billing/feature-quota";
 import { consumeRateLimit } from "../auth/security";
 import { captureError, hashReportingIdentifier } from "../observability/error-tracking";
+import { canChangeQuotationStatus } from "../../services/quotations/status-transitions";
 
 export function quotationAuditReportingContext(action: string, quotationId?: string) {
   return { area: 'quotation-audit', action, quotationId: hashReportingIdentifier(quotationId) };
@@ -170,17 +171,22 @@ export function registerQuotationRoutes(app: Express, canMutate: any) {
       if (!parsed.success) return res.status(400).json({ error: "Invalid quotation status" });
       const status = parsed.data;
 
-      const updated = await withAppTenant(tenantOf(req.user), async (tenantDb) => {
-        const [row] = await tenantDb.update(quotations)
+      const result = await withAppTenantTransaction(tenantOf(req.user), async (tx) => {
+        const [current] = await tx.select({ status: quotations.status }).from(quotations)
+          .where(and(eq(quotations.id, id), eq(quotations.companyId, req.user.companyId))).for("update");
+        if (!current) return { notFound: true as const };
+        if (!canChangeQuotationStatus(current.status, status)) return { blockedFrom: current.status };
+        const [row] = await tx.update(quotations)
           .set({ status, updatedAt: new Date() })
           .where(and(eq(quotations.id, id), eq(quotations.companyId, req.user.companyId)))
           .returning();
-        if (row) await auditQuotationInTransaction(tenantDb, req, "quotation.status_updated", row.id, { status });
-        return row;
+        await auditQuotationInTransaction(tx, req, "quotation.status_updated", row.id, { status });
+        return { row };
       });
 
-      if (!updated) return res.status(404).json({ error: "Quotation not found" });
-      res.json(updated);
+      if ("notFound" in result) return res.status(404).json({ error: "Quotation not found" });
+      if ("blockedFrom" in result) return res.status(409).json({ error: "Teklif bu durumdan seçilen duruma geçirilemez.", code: "QUOTATION_STATUS_TRANSITION_BLOCKED", from: result.blockedFrom, to: status });
+      res.json(result.row);
     } catch (error) {
       captureError(error, quotationAuditReportingContext("quotation.status_updated", req.params.id));
       res.status(500).json({ error: "Failed to update status" });

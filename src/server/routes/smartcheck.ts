@@ -86,6 +86,12 @@ const viewerContentRateLimit = createViewerRateLimit("content");
 const viewerContextAdmission = createViewerAdmissionMiddleware(acquireViewerContext);
 const viewerContentAdmission = createViewerAdmissionMiddleware(acquireViewerContent);
 
+/** IFC evidence rows go through the Calm transfer, which checks the evidence artifact and provenance. */
+function isIfcEvidenceRow(row: { quantitySource: string }) {
+  return row.quantitySource === "ifc_qto" || row.quantitySource === "ifc_property";
+}
+const USE_CALM_TRANSFER = { error: "IFC satırları kanıt kontrollü aktarım ile teklife geçirilir.", code: "IFC_REQUIRES_CALM_TRANSFER" };
+
 function hasUnverifiedIfcQuantity(row: { quantitySource: string; formulaJson: Record<string, string> | null }): boolean {
   if (!row.quantitySource.startsWith("ifc")) return false;
   const path = row.formulaJson?.quantitySourcePath?.trim();
@@ -782,7 +788,7 @@ export function registerSmartCheckRoutes(app: Express) {
       const [validated] = validateRows([corrected], Number(company?.maxWaste ?? 20), { machineDecimals: current.quantitySource.startsWith("ifc") && patch.quantity === undefined });
       if (!validated) return { status: 500, body: { error: "Satır yeniden doğrulanamadı." } };
       if ((dup?.count ?? 0) > 0 && !validated.findings.some(f => f.code === "DUPLICATE_POSITION_CODE")) validated.findings.push({ code: "DUPLICATE_POSITION_CODE", severity: "medium", message: "Poz kodu dosyada tekrarlanıyor.", ruleVersion: "pilot-integrity-v1", suggestion: "Mükerrerliğin kapsam farkından kaynaklandığını doğrulayın." });
-      const recomputed = new Set(["MISSING_POSITION_CODE:pilot-integrity-v1", "DUPLICATE_POSITION_CODE:pilot-integrity-v1", "UNKNOWN_UNIT:pilot-unit-v1", "INVALID_QUANTITY:pilot-quantity-v1", "MISSING_PRICE_SOURCE:pilot-cost-v1", "WASTE_LIMIT_EXCEEDED:pilot-waste-v1"]);
+      const recomputed = new Set(["MISSING_POSITION_CODE:pilot-integrity-v1", "DUPLICATE_POSITION_CODE:pilot-integrity-v1", "UNKNOWN_UNIT:pilot-unit-v1", "INVALID_QUANTITY:pilot-quantity-v1", "MISSING_PRICE_SOURCE:pilot-cost-v1", "WASTE_LIMIT_EXCEEDED:pilot-waste-v1", "AMBIGUOUS_NUMBER:pilot-number-v1"]);
       if (!Array.isArray(current.findingsJson)) return { status: 409, body: { error: "Satır bulguları okunamadı; kayıt yeniden işlenmelidir.", code: "REVIEW_FINDINGS_INVALID" } };
       const sourceFindings = current.findingsJson.filter((f: any) => !f || typeof f !== "object" || !recomputed.has(`${f.code}:${f.ruleVersion}`));
       const findings = [...sourceFindings, ...validated.findings.filter(f => !sourceFindings.some((source: any) => source?.code === f.code && source?.ruleVersion === f.ruleVersion))];
@@ -836,6 +842,7 @@ export function registerSmartCheckRoutes(app: Express) {
     if (!quotation) return res.status(404).json({ error: "Aktarım için taslak teklif bulunamadı." });
     const selected = documentRows.filter((row) => rowIds.includes(row.id));
     if (selected.length !== new Set(rowIds).size) return res.status(404).json({ error: "Bir veya daha fazla satır bu şirkete/dokümana ait değil." });
+    if (selected.some(isIfcEvidenceRow)) return res.status(409).json(USE_CALM_TRANSFER);
     if (selected.some((row) => row.reviewStatus !== "approved" && (row.reviewStatus !== "accepted_exception" || !row.reviewerNotes?.trim()))) return res.status(409).json({ error: "Yalnız onaylı veya gerekçeli istisna satırlar teklife aktarılabilir." });
     const overrides = parsedRequest.data.overrides ?? {};
     const requestedSnapshotIds = selected.map((row) => typeof overrides[row.id]?.priceSnapshotId === "string" ? String(overrides[row.id].priceSnapshotId) : null).filter((id): id is string => Boolean(id));
@@ -980,6 +987,7 @@ export function registerSmartCheckRoutes(app: Express) {
       );
       const selected = documentRows.filter((row) => rowIds.includes(row.id));
       if (selected.length !== new Set(rowIds).size) return res.status(404).json({ error: "Bir veya daha fazla satır bu şirkete/dokümana ait değil." });
+    if (selected.some(isIfcEvidenceRow)) return res.status(409).json(USE_CALM_TRANSFER);
       if (selected.some((row) => row.reviewStatus !== "approved" && (row.reviewStatus !== "accepted_exception" || !row.reviewerNotes?.trim()))) return res.status(409).json({ error: "Yalnız onaylı veya gerekçeli istisna satırlar teklife aktarılabilir." });
 
       const requestedSnapshotIds = selected.map((row) => typeof overrides[row.id]?.priceSnapshotId === "string" ? String(overrides[row.id].priceSnapshotId) : null).filter((id): id is string => Boolean(id));
