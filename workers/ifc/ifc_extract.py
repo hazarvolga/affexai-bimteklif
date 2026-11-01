@@ -1503,6 +1503,28 @@ def read_authoring_software(model: Any) -> Dict[str, Any]:
 MAX_OPENINGS = 3000
 
 
+# Building classes a person looks for when comparing this file with another viewer. Subtypes are included
+# (IfcWall counts IfcWallStandardCase), as in the usual IFC viewers.
+INVENTORY_CLASSES = (
+    "IfcWall", "IfcSlab", "IfcBeam", "IfcColumn", "IfcCovering", "IfcSpace", "IfcDoor", "IfcWindow",
+    "IfcStair", "IfcStairFlight", "IfcRamp", "IfcRailing", "IfcCurtainWall", "IfcRoof", "IfcMember", "IfcPlate",
+    "IfcFooting", "IfcPile", "IfcBuildingElementProxy", "IfcOpeningElement",
+)
+
+
+def build_class_inventory(model: Any) -> List[Dict[str, Any]]:
+    """How many instances of each building class the file holds, whether or not they reach the icmal."""
+    inventory: List[Dict[str, Any]] = []
+    for name in INVENTORY_CLASSES:
+        try:
+            count = len(model.by_type(name))
+        except Exception:
+            continue  # the schema of this file does not define the class
+        if count > 0:
+            inventory.append({"ifcClass": name, "count": count})
+    return inventory
+
+
 def extract_openings(model: Any) -> List[Dict[str, Any]]:
     """Kapı/pencere ölçülerini IFC özniteliklerinden (OverallWidth/OverallHeight) okur.
 
@@ -2542,6 +2564,7 @@ def extract_ifc(input_path: str, output_path: str, file_name: str, run_id: str =
         "elementsMissingPozNoCount": sum(1 for el in parsed_elements if not el.get("pozNo")),
         "authoringSoftwareRaw": read_authoring_software(model),
         "openings": extract_openings(model),
+        "classInventory": build_class_inventory(model),
         "consistencyReport": consistency_report,
         "parserContract": parser_contract,
     }

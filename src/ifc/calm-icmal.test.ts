@@ -753,3 +753,14 @@ test("the subtitle separates the rows backed by evidence from the elements of th
   assert.doesNotMatch(full.projectSubtitle, /Toplam 1 IFC/);
   assert.match(buildCalmIfcDatasetFromElements(elements, { consistencyReport: report(1) }, "Model.ifc").projectSubtitle, /Toplam 1 IFC Elemanı/);
 });
+
+test("a concrete line says which element classes actually fed it, instead of implying all of them", () => {
+  const row = { rawDescription: "IfcSlab · Beton_C30", rawUnit: "m3", rawQuantity: "2", rawPositionCode: "15.150.1006", quantitySource: "ifc_property", formulaJson: { quantitySourcePath: "#1/AllplanAttributes/Hacim" } };
+  const artifact = { document: { fileName: "a.ifc" }, summary: {}, rows: [row, { ...row, rawQuantity: "3" }, { ...row, rawDescription: "IfcColumn · Beton_C30", rawQuantity: "1" }] } as unknown as Parameters<typeof buildCalmIfcDatasetFromArtifact>[0];
+  const item = buildCalmIfcDatasetFromArtifact(artifact).groups.flatMap(group => group.items).find(entry => entry.pozCode === "15.150.1006")!;
+  assert.match(item.subtitle, /Bu modelde: 2 döşeme, 1 kolon/);
+  const slabsOnly = { ...artifact, rows: [row] } as unknown as Parameters<typeof buildCalmIfcDatasetFromArtifact>[0];
+  const only = buildCalmIfcDatasetFromArtifact(slabsOnly).groups.flatMap(group => group.items).find(entry => entry.pozCode === "15.150.1006")!;
+  assert.match(only.subtitle, /Bu modelde: 1 döşeme\)?$|Bu modelde: 1 döşeme/);
+  assert.doesNotMatch(only.subtitle, /kolon|kiriş|perde/);
+});

@@ -359,3 +359,13 @@ describe("apartment schedule in the stored evidence", () => {
     assert.deepEqual(pickIfcScreenSummary({ summary: artifact.summary }).apartmentSchedule, apartmentSchedule);
   });
 });
+
+describe("class inventory in the stored evidence", () => {
+  it("is copied from the worker summary and returned by the screen summary", () => {
+    const classInventory = [{ ifcClass: "IfcSpace", count: 178 }, { ifcClass: "IfcRailing", count: 144 }];
+    const artifact = buildIfcSmartCheckEvidenceArtifact([], { ...succeededSummary, totalElements: 0, classInventory } as IfcParseSummary, { fileName: "u.ifc", checksumSha256: "a".repeat(64), schemaName: "IFC4" });
+    assert.deepEqual(artifact.summary.classInventory, classInventory);
+    assert.deepEqual(pickIfcScreenSummary({ summary: artifact.summary }).classInventory, classInventory);
+    assert.deepEqual(pickIfcScreenSummary({ summary: { classInventory: "x" } }), {});
+  });
+});
