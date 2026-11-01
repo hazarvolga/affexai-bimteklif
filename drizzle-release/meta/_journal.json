@@ -297,6 +297,13 @@
       "when": 1791417600041,
       "tag": "0041_plan_catalog_alignment",
       "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "7",
+      "when": 1791417600042,
+      "tag": "0042_regulation_watch",
+      "breakpoints": true
     }
   ]
 }

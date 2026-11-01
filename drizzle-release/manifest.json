@@ -295,6 +295,13 @@
       "sha256": "c3e4810f3859d933dd7018ae917434485f102eb7acdc325617b024d7777bd4a3",
       "snapshotSha256": "9afbf43b04414f7f981f35de29a0137c983c70efa3e6358a98dd734c0cdf212b",
       "statements": 3
+    },
+    {
+      "idx": 42,
+      "tag": "0042_regulation_watch",
+      "sha256": "a100eb624e3684da1feb195b2d3c2924890d1d194c0348c9da43a7ae0ec508eb",
+      "snapshotSha256": "a1704b866a47f3b3285636781ccac0f38e2cc6fee4361dbe340db974d3209b4f",
+      "statements": 3
     }
   ]
 }

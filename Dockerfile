@@ -88,6 +88,14 @@ CMD ["node", "dist/ifc-worker.mjs"]
 FROM ifc-runtime AS ifc-worker
 
 FROM runtime AS app
+USER root
+# Official Gazette PDFs are scanned images; the regulation watch reads them with Turkish OCR.
+RUN apt-get update \
+    && apt-get install --no-install-recommends -y tesseract-ocr tesseract-ocr-tur poppler-utils \
+    && rm -rf /var/lib/apt/lists/* \
+    && tesseract --list-langs | grep -qx tur \
+    && command -v pdftoppm pdfinfo >/dev/null
+USER node
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
   CMD node -e "fetch('http://127.0.0.1:'+(process.env.PORT||3000)+'/readyz',{signal:AbortSignal.timeout(4000)}).then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
 
