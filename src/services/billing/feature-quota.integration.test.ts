@@ -36,7 +36,8 @@ test('the enterprise package gets its own AI allowance instead of the starter 20
   const report = await import('./usage-report').then(module => module.readBillingUsage({ companyId: company.id, userId: user.id }));
   const pdf = report.usage.find(row => row.feature === 'PDF_GENERATED');
   assert.equal(pdf?.enforced, true);
-  assert.equal(pdf?.limit, 20, 'unset PDF column falls back to the legacy limit');
+  assert.equal(pdf?.limit, null, 'unset PDF column is unavailable, not a legacy limit');
+  assert.equal(pdf?.reason, 'PDF_QUOTA_UNAVAILABLE');
 });
 
 test('re-rendering the same quotation version reuses its PDF reservation; a new version or a released one consumes again', async () => {

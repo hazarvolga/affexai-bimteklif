@@ -185,8 +185,9 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
   },
   {
     id: "durum",
-    title: "Uygulama durumu (1 Kasım 2026 · Rev. 143 geliştirme kaydı)",
+    title: "Uygulama durumu (1 Kasım 2026 · Rev. 144 geliştirme kaydı)",
     blocks: [
+      { type: "callout", tone: "info", title: "Rev. 144 · Paket değerleri panele ait", text: "Panelden yapılan kota, fiyat ve yayın değişikliği için kod gerekmez. Katalog eşitlemesi ve betik yalnız eksik paketi ekler, boş alanı doldurur; dolu değerleri ezmez, korunan olarak raporlar." },
       { type: "callout", tone: "info", title: "Rev. 143 · Miktarsız IFC ve GAP temizliği", text: "Miktarsız model artık tekrar denenmez, kullanıcı nedeni ve çözümü görür. NULL plan limiti kapalı başarısız olur, fatura dönemi takvim ayıyla hesaplanır, Kurumsal paket 1 eşzamanlı IFC satar, kullanılmayan uç, worker ve stripe bağımlılığı kaldırıldı. Migration 0041 canlı planları adla da eşleştirir." },
       { type: "callout", tone: "info", title: "Rev. 142 · IFC işleyici düşmesi ve ölçüm", text: "Açık lisanslı dört modelle yapılan ölçümde 93 MB dosya 8 çekirdek görünen ortamda düştü. Neden 2 GiB adres sınırı ile OpenBLAS'ın çekirdek başına bellek ayırmasıydı; işleyici tek iş parçacığına sabitlendi. Dört model 6-23 s ve en çok 1,75 GB ile tamamlandı. T45 kısmi kalır: gerçek müşteri dosyası ve uçtan uca işlem ölçülmedi." },
       { type: "callout", tone: "info", title: "Rev. 141 · Deneme kotası ve Kurumsal paket metni", text: "Deneme paketinde teklif, IFC ve AI/PDF kotaları takvim ayı yerine 14 günlük deneme dönemine bağlandı; ay sınırı geçilince kota yenilenmez. Ücretli paketler takvim ayıyla devam eder. Migration 0040 worker için dar bir dönem fonksiyonu ekler. Kurumsal paket açıklamasından karşılığı olmayan ekip yönetimi ve öncelikli işleme vaadi Hazar'ın onayıyla çıkarıldı." },
@@ -1173,6 +1174,9 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
           ],
           [
             "Rev. 143", "1 Kasım 2026 · Miktarsız IFC ve GAP temizliği", "BIM-CALC-2026-11-01.1", "Sixty5 canlı denemesinde miktarsız model hatasının yeniden denendiği ve nedeninin görünmediği görüldü; ikisi düzeltildi. P2-1, P2-2, P2-4, P2-5, P3-1 ve P3-2 kapatıldı. Migration 0041 canlı planları kimlik veya adla eşleştirir, yalnız boş limitleri doldurur.",
+          ],
+          [
+            "Rev. 144", "1 Kasım 2026 · Paket değerleri panele ait", "BIM-CALC-2026-11-01.2", "Katalog eşitleme düğmesi paket değerlerini eziyor, manuel betik farklı değerde duruyordu. İkisi de artık yalnız eksikleri tamamlıyor ve panel değerlerini koruyor.",
           ],
         ],
       },
@@ -2236,6 +2240,9 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
           ],
           [
             "Rev. 143 · 1 Kasım 2026 (GAP temizliği)", "Takvim ayı dönemi ve kapalı limit", "Fatura dönemi 30/180/365/730 gün yerine takvim ayıyla hesaplanır; yeni ve uzatılan abonelikler etkilenir. NULL plan limiti eski enum limitine düşmez. Kurumsal paket 1 eşzamanlı IFC satar, çünkü 120 MB model tek başına 1,75 GB kullanır ve worker 2 GB ile sınırlıdır.", "src/services/billing/billing-periods.ts; src/services/billing/feature-limits.ts; src/smartcheck/import/failure-policy.ts; drizzle-release/0041_plan_catalog_alignment.sql",
+          ],
+          [
+            "Rev. 144 · 1 Kasım 2026 (Paket kataloğu)", "Panel sahipliği", "Paket oluştuktan sonra değerler panele aittir. Katalog yalnız ilk kurulum değerini verir; panelde değiştirilen kota için kod değişikliği gerekmez.", "src/services/billing/plan-catalog.ts; src/server/admin/plan-catalog-sync.ts; src/pages/admin/PlansList.tsx",
           ],
         ],
       },
