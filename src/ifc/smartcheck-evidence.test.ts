@@ -333,6 +333,12 @@ it("the screen summary keeps openings and source software from stored evidence, 
   );
 });
 
+it("the stored consistency report is kept, so the coverage card counts every element of the model", () => {
+  const consistencyReport = { totalElementCount: 1731, measuredElementCount: 1731, pozMatchedElementCount: 160 };
+  assert.deepEqual(pickIfcScreenSummary({ summary: { consistencyReport } }), { consistencyReport });
+  assert.deepEqual(pickIfcScreenSummary({ summary: { consistencyReport: "x" } }), {});
+});
+
 it("evidence from before these fields, or of another shape, gives an empty summary", () => {
   assert.deepEqual(pickIfcScreenSummary(null), {});
   assert.deepEqual(pickIfcScreenSummary({ summary: {} }), {});

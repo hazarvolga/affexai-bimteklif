@@ -185,8 +185,9 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
   },
   {
     id: "durum",
-    title: "Uygulama durumu (1 Kasım 2026 · Rev. 152 geliştirme kaydı)",
+    title: "Uygulama durumu (1 Kasım 2026 · Rev. 153 geliştirme kaydı)",
     blocks: [
+      { type: "callout", tone: "info", title: "Rev. 153 · Kapsam kartı gerçek sayıyı gösterir", text: "1.731 elemanlı bir modelde, yalnız kanıtlı 160 satır yerine modelin tamamı sayılır ve poz eşleşmesi 160/1.731 görünür. Kapı/pencere düşüm kartı yalnız m² kalemlerinde çıkar. Hesap değişmedi." },
       { type: "callout", tone: "info", title: "Rev. 152 · TÜİK veri akışı yapısı", text: "Canlı liste koddaki kimliklerin yanlış olduğunu gösterdi. Yönetici her endeks akışının boyutlarını ve son değerlerini görebilir; otomatik çekim bu çıktıya göre yazılacak." },
       { type: "callout", tone: "info", title: "Rev. 151 · IFC ekranı", text: "Sunucuda işlenen modelin kapı/pencere listesi ve kaynak yazılımı ekrana gelir. Düşüm özeti kalemlere otomatik uygulanmaz; ekran bunu açıkça söyler. Canlıya alımdan önce açılmış sekmede 3B görüntüleyici sayfayı yenilemeyi söyler." },
       { type: "callout", tone: "warn", title: "Rev. 150 · Boşluk düşüm hesabı değişti", text: "ÇŞB 2026 analizlerine göre sıva, alçı ve boyada tüm boşluklar düşülür. Duvarda 0,10 m², alçı levhada 0,50 m², asma tavanda 0,25 m²'den küçük boşluk düşülmez. Uzman kabulü açıktır." },
@@ -1209,6 +1210,9 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
           ],
           [
             "Rev. 152", "1 Kasım 2026 · TÜİK akış yapısı", "BIM-CALC-2026-11-01.10", "Yönetici bir endeks akışının boyutlarını ve son değerlerini görür. Veri kaydedilmez, hesap değişmez.",
+          ],
+          [
+            "Rev. 153", "1 Kasım 2026 · Kapsam kartı", "BIM-CALC-2026-11-01.11", "Kapsam oranı modelin tüm elemanlarına göre gösterilir. Hesap değişmedi.",
           ],
         ],
       },
@@ -2290,6 +2294,9 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
           ],
           [
             "Rev. 149 · 1 Kasım 2026 (TÜİK)", "Bağlantı kontrolü", "Anahtarın kabulü ve endeks veri akışları panelden görülür. Veri kaydedilmez.", "src/server/crawler/tuik-connection.ts; src/server/routes/admin.ts; src/pages/admin/TuikConnectionCard.tsx",
+          ],
+          [
+            "Rev. 153 · 1 Kasım 2026 (IFC ekranı)", "Kapsam kartı", "Gerçek eleman sayısı ve oranı gösterilir; yalnız m² kalemlerinde düşüm kartı çıkar.", "src/ifc/smartcheck-evidence.ts; src/ifc/openings-minha.ts; src/components/smartcheck/CalmIcmalEvidenceCard.tsx",
           ],
           [
             "Rev. 150 · 1 Kasım 2026 (Minha)", "ÇŞB boşluk düşümü", "Sıva, alçı ve boyada tüm boşluklar düşülür; duvar, alçı levha ve asma tavanın kendi sınırı vardır.", "src/smartcheck/rules/minha.ts; src/ifc/openings-minha.ts; src/components/smartcheck/CalmIcmalEvidenceCard.tsx",

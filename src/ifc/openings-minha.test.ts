@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { parseThresholdInput, summarizeOpeningsMinha } from "./openings-minha";
+import { appliesOpeningDeduction, parseThresholdInput, summarizeOpeningsMinha } from "./openings-minha";
 import type { ParsedOpening } from "./types";
 
 const openings: ParsedOpening[] = [
@@ -51,4 +51,10 @@ test("boşluk listesi yoksa no_openings döner; eşik girdisi ayrıştırılır"
   assert.equal(parseThresholdInput(""), null);
   assert.equal(parseThresholdInput("-2"), null);
   assert.equal(parseThresholdInput("x"), null);
+});
+
+test("an opening deduction is only meaningful on a line measured in square metres", () => {
+  assert.equal(appliesOpeningDeduction("m²"), true);
+  assert.equal(appliesOpeningDeduction("m2"), true);
+  for (const unit of ["m³", "adet", "mtül", "kg", ""]) assert.equal(appliesOpeningDeduction(unit), false, unit);
 });
