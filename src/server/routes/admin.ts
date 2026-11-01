@@ -65,6 +65,7 @@ import {
 import { syncPlanCatalog } from "../admin/plan-catalog-sync";
 import { readRegulationWatch, reviewRegulationWatchItem } from "../regulation-watch/store";
 import { checkTuikConnection } from "../crawler/tuik-connection";
+import { probeTuikDataflow } from "../crawler/tuik-probe";
 import {
   canonicalPricingSources,
   PRICING_SOURCE_CATALOG_VERSION,
@@ -490,6 +491,14 @@ export function registerAdminRoutes(app: Express) {
   router.get("/tuik/connection", async (_req, res) => {
     const result = await checkTuikConnection(process.env.TUIK_SDMX_API_KEY);
     if (result.errorCode) console.error("TÜİK connection check failed:", result.errorCode);
+    return res.json(result);
+  });
+
+  router.get("/tuik/dataflows/:id", async (req, res) => {
+    const version = typeof req.query.version === "string" ? req.query.version : "1.0";
+    const result = await probeTuikDataflow(process.env.TUIK_SDMX_API_KEY, req.params.id, version);
+    if (result.errorCode === "TUIK_INVALID_IDENTIFIER") return res.status(400).json({ error: "Geçersiz veri akışı bilgisi." });
+    if (result.errorCode) console.error("TÜİK dataflow probe failed:", result.errorCode);
     return res.json(result);
   });
 

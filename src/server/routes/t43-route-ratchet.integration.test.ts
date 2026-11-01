@@ -221,9 +221,11 @@ test("T43 R+1 route coverage ratchet: admin, pricing-file-import, academy, billi
   const previousTuikKey = process.env.TUIK_SDMX_API_KEY;
   delete process.env.TUIK_SDMX_API_KEY;
   const tuikConnection = await reqJson("GET", "/api/admin/tuik/connection", adminToken);
-  if (previousTuikKey !== undefined) process.env.TUIK_SDMX_API_KEY = previousTuikKey;
   assert.equal(tuikConnection.status, 200);
   assert.equal(tuikConnection.json.status, "not_configured");
+  assert.equal((await reqJson("GET", "/api/admin/tuik/dataflows/..%2Fx", adminToken)).status, 400);
+  assert.equal((await reqJson("GET", "/api/admin/tuik/dataflows/DF_UFE_INSAAT_V1?version=1.0", adminToken)).json.status, "not_configured");
+  if (previousTuikKey !== undefined) process.env.TUIK_SDMX_API_KEY = previousTuikKey;
 
   const usageReport = await reqJson("GET", "/api/admin/reports/usage", adminToken);
   assert.equal(usageReport.status, 200);
