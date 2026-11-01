@@ -62,10 +62,7 @@ import {
   reviewBankTransferByAdmin,
   saveBankAccountsByAdmin,
 } from "../../services/billing/bank-transfer";
-import {
-  canonicalPlans,
-  PLAN_CATALOG_VERSION,
-} from "../../services/billing/plan-catalog";
+import { syncPlanCatalog } from "../admin/plan-catalog-sync";
 import {
   canonicalPricingSources,
   PRICING_SOURCE_CATALOG_VERSION,
@@ -465,78 +462,10 @@ export function registerAdminRoutes(app: Express) {
   // 6b. Sync Canonical Plan Catalog (Prices & Server-Safe Quotas)
   router.post("/plans/sync-catalog", async (req, res) => {
     try {
-      await getControlDatabase().db.transaction(async (tx) => {
-        for (const item of canonicalPlans) {
-          await tx
-            .insert(plans)
-            .values({
-              id: item.id,
-              name: item.name,
-              monthlyPrice: item.monthlyPrice,
-              monthlyQuoteLimit: item.monthlyQuoteLimit,
-              monthlyIfcLimit: item.monthlyIfcLimit,
-              ifcMaxFileMb: item.ifcMaxFileMb,
-              ifcMaxConcurrent: item.ifcMaxConcurrent,
-              monthlyAiLimit: item.monthlyAiLimit,
-              monthlyPdfLimit: item.monthlyPdfLimit,
-              monthlyCrmLimit: item.monthlyCrmLimit,
-              monthlyRegulationLimit: item.monthlyRegulationLimit,
-              monthlyProfitAnalysisLimit: item.monthlyProfitAnalysisLimit,
-              storageMaxBytes: item.storageMaxBytes,
-              maxDocuments: item.maxDocuments,
-              isTrial: item.isTrial,
-              isActive: item.isActive,
-              isPublished: item.isPublished,
-              isFeatured: item.isFeatured,
-              displayOrder: item.displayOrder,
-              marketingBadge: item.marketingBadge,
-              marketingDescription: item.marketingDescription,
-            })
-            .onConflictDoUpdate({
-              target: plans.id,
-              set: {
-                name: item.name,
-                monthlyPrice: item.monthlyPrice,
-                monthlyQuoteLimit: item.monthlyQuoteLimit,
-                monthlyIfcLimit: item.monthlyIfcLimit,
-                ifcMaxFileMb: item.ifcMaxFileMb,
-                ifcMaxConcurrent: item.ifcMaxConcurrent,
-                monthlyAiLimit: item.monthlyAiLimit,
-                monthlyPdfLimit: item.monthlyPdfLimit,
-                monthlyCrmLimit: item.monthlyCrmLimit,
-                monthlyRegulationLimit: item.monthlyRegulationLimit,
-                monthlyProfitAnalysisLimit: item.monthlyProfitAnalysisLimit,
-                storageMaxBytes: item.storageMaxBytes,
-                maxDocuments: item.maxDocuments,
-                isTrial: item.isTrial,
-                isActive: item.isActive,
-                isPublished: item.isPublished,
-                isFeatured: item.isFeatured,
-                displayOrder: item.displayOrder,
-                marketingBadge: item.marketingBadge,
-                marketingDescription: item.marketingDescription,
-              },
-            });
-        }
-      });
-
-      await db.insert(adminAuditLogs).values({
-        adminId: req.user.userId,
-        action: "plan_catalog.synced",
-        details: {
-          version: PLAN_CATALOG_VERSION,
-          syncedPlanIds: canonicalPlans.map((p) => p.id),
-        },
-      });
-
-      return res.json({
-        success: true,
-        version: PLAN_CATALOG_VERSION,
-        count: canonicalPlans.length,
-      });
+      return res.json({ success: true, ...await syncPlanCatalog(req.user.userId) });
     } catch (error) {
       console.error("Plan catalog sync error:", error);
-      return res.status(500).json({ error: "Standart paket kataloğu senkronize edilemedi." });
+      return res.status(500).json({ error: "Eksik standart paketler eklenemedi." });
     }
   });
 

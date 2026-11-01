@@ -978,6 +978,31 @@ export function injectDataTransitions(tag: string, schemaStatements: readonly st
     const cumulative = fullSnapshot ? injectDataTransitions('0034_admin_mfa', schemaStatements) : [...schemaStatements];
     return [...cumulative, ...priceReviewProtection];
   }
+  if (tag === '0041_plan_catalog_alignment') {
+    const cumulative = schemaStatements.some(statement => statement.startsWith('CREATE TABLE "cde_transition_events"'))
+      ? injectDataTransitions('0040_trial_quota_period', schemaStatements) : [...schemaStatements];
+    // Live plan rows can carry their own ids, so each catalog plan is matched by id or by name.
+    return [...cumulative,
+      `UPDATE public.plans AS p SET
+  monthly_ai_limit = COALESCE(p.monthly_ai_limit, c.ai),
+  monthly_pdf_limit = COALESCE(p.monthly_pdf_limit, c.pdf),
+  monthly_crm_limit = COALESCE(p.monthly_crm_limit, c.crm),
+  monthly_regulation_limit = COALESCE(p.monthly_regulation_limit, c.regulation),
+  monthly_profit_analysis_limit = COALESCE(p.monthly_profit_analysis_limit, c.profit),
+  storage_max_bytes = COALESCE(p.storage_max_bytes, c.storage),
+  max_documents = COALESCE(p.max_documents, c.documents)
+FROM (VALUES
+  ('2b507e20-83d1-4b21-9fc1-000000000001'::uuid, '14 Günlük Ücretsiz Deneme', 5, 3, 15, 5, 5, 268435456::bigint, 25),
+  ('2b507e20-83d1-4b21-9fc1-000000000002'::uuid, 'e-PYS & BIM Standart Denetçi', 10, 8, 25, 15, 5, 1073741824::bigint, 150),
+  ('2b507e20-83d1-4b21-9fc1-000000000003'::uuid, 'Teklif & Şantiye', 25, 15, 150, 30, 25, 2147483648::bigint, 300),
+  ('2b507e20-83d1-4b21-9fc1-000000000004'::uuid, '5D BIM & SmartCheck', 60, 35, 500, 100, 75, 5368709120::bigint, 750),
+  ('2b507e20-83d1-4b21-9fc1-000000000005'::uuid, 'Kurumsal Taahhüt & e-PYS', 150, 75, 1500, 250, 200, 16106127360::bigint, 2000)
+) AS c(id, name, ai, pdf, crm, regulation, profit, storage, documents)
+WHERE p.id = c.id OR p.name = c.name;`,
+      `UPDATE public.plans SET ifc_max_concurrent = 1 WHERE ifc_max_concurrent > 1 AND (id = '2b507e20-83d1-4b21-9fc1-000000000005' OR name = 'Kurumsal Taahhüt & e-PYS');`,
+      `UPDATE public.plans SET marketing_description = 'Yüksek teklif ve IFC kapasitesi için.' WHERE marketing_description = 'Ekip yönetimi, yüksek kapasite ve öncelikli işleme için.' AND (id = '2b507e20-83d1-4b21-9fc1-000000000005' OR name = 'Kurumsal Taahhüt & e-PYS');`,
+    ];
+  }
   if (tag === '0040_trial_quota_period') {
     const cumulative = schemaStatements.some(statement => statement.startsWith('CREATE TABLE "cde_transition_events"'))
       ? injectDataTransitions('0039_atomic_tenant_deletion', schemaStatements) : [...schemaStatements];

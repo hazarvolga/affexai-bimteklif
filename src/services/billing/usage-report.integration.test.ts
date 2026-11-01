@@ -53,8 +53,8 @@ test("billing reads authoritative quota without consuming or rejecting exhausted
     const pdf = response.body.usage.find((item: any) => item.feature === "PDF_GENERATED");
     assert.equal(pdf.current, 4);
     assert.equal(pdf.enforced, true, "PDF is limited per package (P0-6)");
-    assert.equal(pdf.limit, 20, "unset plan column keeps the legacy limit");
-    assert.equal(pdf.remaining, 16);
+    assert.equal(pdf.limit, null, "unset plan column is unavailable, not a legacy limit");
+    assert.equal(pdf.reason, "PDF_QUOTA_UNAVAILABLE");
     assert.equal(pdf.cost, 1.25);
     assert.deepEqual(response.body.payments, { available: false, upgradeAvailable: false });
     assert.equal((await db.select().from(usageRecords).where(eq(usageRecords.companyId, company.id))).length, 2);

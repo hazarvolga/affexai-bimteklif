@@ -2,6 +2,7 @@ import { attachProcessHeartbeat } from "./process-heartbeat";
 import { assertProductionEnvironment, validateSmartcheckStorageEnvironment } from "../../server/config/production";
 import { run } from "graphile-worker";
 import { processSmartCheckDocument } from "./processor";
+import { settleIfcJobFailure } from "./failure-policy";
 import { graphileWorkerSchema } from "./config";
 import { withDisabledGraphileCron } from "./worker-config";
 import { captureError, initErrorTracking } from "../../server/observability/error-tracking";
@@ -12,9 +13,8 @@ export const ifcWorkerTaskList = {
     try {
       return await processSmartCheckDocument(job, helpers.job.id);
     } catch (error) {
-      // Graphile retries the job; the failure still reaches error tracking each time.
-      captureError(error, { task: "process_smartcheck_ifc_document", processingRunId: job.processingRunId });
-      throw error;
+      // Graphile retries a rethrown job; the failure still reaches error tracking each time.
+      settleIfcJobFailure(error, failure => captureError(failure, { task: "process_smartcheck_ifc_document", processingRunId: job.processingRunId }));
     }
   },
 };

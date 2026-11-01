@@ -362,8 +362,8 @@ export const plans = pgTable("plans", {
   displayOrder: integer("display_order").default(0).notNull(),
   marketingBadge: text("marketing_badge"),
   marketingDescription: text("marketing_description"),
-  // Per-package feature limits. NULL means "not yet configured": runtime falls back to the
-  // legacy PLAN_LIMITS for the subscription's enum plan until the catalog bootstrap fills it.
+  // Per-package feature limits. NULL means "not yet configured": the feature is unavailable
+  // on this plan until the catalog bootstrap or an admin fills the column.
   monthlyAiLimit: integer("monthly_ai_limit"),
   monthlyPdfLimit: integer("monthly_pdf_limit"),
   monthlyCrmLimit: integer("monthly_crm_limit"),

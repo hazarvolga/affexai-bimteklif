@@ -132,9 +132,6 @@ importers:
       sonner:
         specifier: ^2.0.7
         version: 2.0.8(@types/react@19.2.18)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      stripe:
-        specifier: 23.0.0
-        version: 23.0.0(@types/node@22.20.1)
       tailwind-merge:
         specifier: ^3.6.0
         version: 3.7.0
@@ -4216,15 +4213,6 @@ packages:
   strip-final-newline@4.0.0:
     resolution: {integrity: sha512-aulFJcD6YK8V1G7iRB5tigAP4TsHBZZrOV8pjV++zdUwmeV8uzbY7yn6h9MswN62adStNZFuCIx4haBnRuMDaw==}
     engines: {node: '>=18'}
-
-  stripe@23.0.0:
-    resolution: {integrity: sha512-MDE2A5ZVVluYURORaZEVghSmnLJc3w6aHAlZSxDQMsOjOb3V0O6ro/CiaeFlJS4N7uIVmsg98ocRsPmUK6YfyA==}
-    engines: {node: '>=20'}
-    peerDependencies:
-      '@types/node': '>=20'
-    peerDependenciesMeta:
-      '@types/node':
-        optional: true
 
   supports-color@7.2.0:
     resolution: {integrity: sha512-qpCAvRl9stuOHveKsn7HncJRvv501qIacKzQlO/+Lwxc9+0q2wLyv4Dfvt80/DPn2pqOBsJdDiogXGR9+OvwRw==}
@@ -8614,10 +8602,6 @@ snapshots:
   strip-final-newline@2.0.0: {}
 
   strip-final-newline@4.0.0: {}
-
-  stripe@23.0.0(@types/node@22.20.1):
-    optionalDependencies:
-      '@types/node': 22.20.1
 
   supports-color@7.2.0:
     dependencies:

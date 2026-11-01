@@ -26,7 +26,7 @@ import { toast } from 'sonner';
 import { adminPlansSchema, readAdminResponse } from './admin-data';
 import { removeBankAt } from './bank-account-list';
 import { affectedCount, previewBanks, previewChanges, PREVIEW_STALE_NOTICE } from './admin-change-preview';
-import { canonicalPlans } from '../../services/billing/plan-catalog';
+import { planCatalogChanges, type CatalogPlan } from '../../services/billing/plan-catalog';
 import {
   formatBillingCycleLabel,
   type BillingCycleId,
@@ -365,12 +365,18 @@ export function PlansList() {
 
   const handleSyncCatalog = async () => {
     if (loading || error) return toast.error('Güncel paketleri yükleyip yeniden deneyin.');
-    const fields = ['name', 'monthlyPrice', 'monthlyQuoteLimit', 'monthlyIfcLimit', 'ifcMaxFileMb', 'ifcMaxConcurrent', 'monthlyAiLimit', 'monthlyPdfLimit', 'monthlyCrmLimit', 'monthlyRegulationLimit', 'monthlyProfitAnalysisLimit', 'storageMaxBytes', 'maxDocuments', 'isTrial', 'isActive', 'isPublished', 'isFeatured', 'displayOrder', 'marketingBadge', 'marketingDescription'];
-    const summary = canonicalPlans.map(target => {
-      const previous = plans.find(plan => plan.id === target.id);
-      return `${target.name}:\n${previewChanges(previous ?? {}, { ...target }, fields)}`;
-    }).join('\n\n');
-    if (!window.confirm(`Standart katalog eşitleme önizlemesi\n\n${summary}\n\nEtkilenen firma sayısı: Bilinmiyor\n${PREVIEW_STALE_NOTICE}\nKaydedilsin mi?`)) return;
+    let preview: ReturnType<typeof planCatalogChanges>;
+    try {
+      preview = planCatalogChanges(plans as unknown as CatalogPlan[]);
+    } catch {
+      return toast.error('Aynı ada sahip birden fazla paket var. Önce bunları düzeltin.');
+    }
+    const lines = [
+      `Eklenecek eksik paket: ${preview.insert.map(plan => plan.name).join(', ') || 'yok'}`,
+      `Boş limiti doldurulacak paket: ${preview.limitUpdates.map(plan => plan.name).join(', ') || 'yok'}`,
+      `Panel değeri korunacak paket: ${preview.preserved.map(plan => `${plan.name} (${plan.fields.join(', ')})`).join('; ') || 'yok'}`,
+    ];
+    if (!window.confirm(`Standart katalog önizlemesi\n\nDolu değerler değiştirilmez.\n\n${lines.join('\n')}\n\n${PREVIEW_STALE_NOTICE}\nDevam edilsin mi?`)) return;
     setSyncingCatalog(true);
     try {
       const res = await fetchWithAuth('/api/admin/plans/sync-catalog', {
@@ -378,9 +384,9 @@ export function PlansList() {
       });
       const body = await res.json().catch(() => ({}));
       if (!res.ok) {
-        throw new Error(body.error || 'Standart paket kataloğu senkronize edilemedi.');
+        throw new Error(body.error || 'Eksik standart paketler eklenemedi.');
       }
-      toast.success('5 standart paket güncel fiyat ve sunucu kotalarıyla senkronize edildi.');
+      toast.success(`${body.inserted} eksik paket eklendi, ${body.limitBackfilled} paketin boş limiti dolduruldu, ${body.preserved.length} pakette panel değerleri korundu.`);
       await loadPlans();
     } catch (err: any) {
       toast.error(err.message || 'Katalog senkronizasyonu başarısız oldu.');
@@ -409,7 +415,7 @@ export function PlansList() {
             className="border-amber-500/40 bg-amber-500/10 text-amber-200 hover:bg-amber-500/20"
           >
             <ArrowRightLeft size={15} className="mr-2" />
-            {syncingCatalog ? 'Eşitleniyor...' : 'Standart Katalogla Eşitle'}
+            {syncingCatalog ? 'Ekleniyor...' : 'Eksik Standart Paketleri Ekle'}
           </Button>
           <Button onClick={() => openPlanEditor()} className="bg-indigo-600 text-white hover:bg-indigo-700">
             <Plus size={16} className="mr-2" /> Yeni Paket Ekle

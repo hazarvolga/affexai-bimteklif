@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test, { describe, it } from "node:test";
-import { calculateLineBreakdown, calculateLineItemTotal, calculateQuotationTotals, normalizeOverheadProfitPercent, roundMoney, validateQuotationItems } from "./calculations";
+import { calculateLineBreakdown, calculateLineItemTotal, calculateQuotationTotals, normalizeLineItem, normalizeOverheadProfitPercent, roundMoney, toFiniteNumber, validateQuotationItems } from "./calculations";
 import { calculateQuotationFinancials, escalationPremiumFor } from "./financial-calculations";
 import { auditQuotationItems } from "./quotation-audit";
 
@@ -239,4 +239,16 @@ test("profitability counts profit and overhead as revenue on top of the evidence
   const withShare = calculateQuotationFinancials(items, { overheadProfitPercent: 15 });
   assert.deepEqual([withShare.salesNet, withShare.totalCost, withShare.profit, withShare.margin], [85330, 74200, 11130, 13.04]);
   assert.equal(withShare.salesNet, calculateQuotationTotals(items, { overheadProfitPercent: 15 }).subtotal + 11130, "same revenue as the quotation totals");
+});
+
+test("toFiniteNumber applies the fallback to missing input, not to a real zero", () => {
+  for (const missing of [null, undefined, "", "   "]) assert.equal(toFiniteNumber(missing, 20), 20);
+  assert.equal(toFiniteNumber(0, 20), 0);
+  assert.equal(toFiniteNumber("0", 20), 0);
+  assert.equal(toFiniteNumber("abc", 20), 20);
+});
+
+test("a line item with a missing VAT rate uses the default instead of a silent zero", () => {
+  assert.equal(normalizeLineItem({ quantity: 1, unitPrice: 100, discountPercent: 0, vatPercent: null as unknown as number }).vatPercent, 20);
+  assert.equal(normalizeLineItem({ quantity: 1, unitPrice: 100, discountPercent: 0, vatPercent: 0 }).vatPercent, 0);
 });

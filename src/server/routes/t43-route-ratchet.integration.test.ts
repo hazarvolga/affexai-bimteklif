@@ -204,6 +204,13 @@ test("T43 R+1 route coverage ratchet: admin, pricing-file-import, academy, billi
   const syncCatalog = await reqJson("POST", "/api/admin/plans/sync-catalog", adminToken, {});
   assert.equal(syncCatalog.status, 200);
   assert.equal(syncCatalog.json.success, true);
+  const catalogPlanId = "2b507e20-83d1-4b21-9fc1-000000000005";
+  const tunePlan = await reqJson("PATCH", `/api/admin/plans/${catalogPlanId}`, adminToken, { ifcMaxFileMb: 100 });
+  assert.equal(tunePlan.status, 200);
+  const resync = await reqJson("POST", "/api/admin/plans/sync-catalog", adminToken, {});
+  assert.equal(resync.status, 200);
+  assert.equal(resync.json.inserted, 0);
+  assert.ok(resync.json.preserved.some((plan: { id: string; fields: string[] }) => plan.id === catalogPlanId && plan.fields.includes("ifcMaxFileMb")));
 
   const usageReport = await reqJson("GET", "/api/admin/reports/usage", adminToken);
   assert.equal(usageReport.status, 200);

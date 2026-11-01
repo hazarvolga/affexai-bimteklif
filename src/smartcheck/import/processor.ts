@@ -12,6 +12,7 @@ import { buildIfcSmartCheckEvidenceFromContent } from "../../ifc/smartcheck-proc
 import { parseIfcText } from "../../ifc/parser/legacy-parser";
 import { buildIfcSmartCheckEvidenceArtifact } from "../../ifc/smartcheck-evidence";
 import { IfcWorkerError, runPythonIfcExtractor } from "./ifc-python-runner";
+import { smartCheckFailureMessage } from "./failure-policy";
 import { consumeIfcUsage } from "../../services/billing/quota";
 import { applyIfcRuleEvaluations, evaluateIfcRulePacks } from "../rules/ifc-rule-run";
 import { runEpysPreflight, summarizeEpysPreflight } from "./epys-preflight-runner";
@@ -642,9 +643,9 @@ async function processClaimedSmartCheckDocument(
     const errorCode = error instanceof IfcWorkerError ? error.code : error instanceof Error ? error.message : "PROCESSING_FAILED";
     const errorMessage = error instanceof IfcWorkerError
       ? error.sanitizedMessage
-      : error instanceof Error
+      : smartCheckFailureMessage(error) ?? (error instanceof Error
         ? (error.message.includes("/") || error.message.includes("\\") || error.message.includes("Traceback") ? "İşlem sırasında beklenmeyen bir hata oluştu." : error.message)
-        : "PROCESSING_FAILED";
+        : "PROCESSING_FAILED");
     if (!(error instanceof SmartCheckRunLeaseLostError)) {
       await db.transaction(async (tx) => {
         await assertRunLease(tx, run.id, companyId, leaseToken);

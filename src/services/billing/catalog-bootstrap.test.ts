@@ -35,6 +35,15 @@ test('bootstrap backfills unset limits once and never overwrites admin-set limit
   assert.deepEqual(changes.existing, [adminTuned.id]);
 });
 
+test('bootstrap backfills one unset limit without waiting for the AI limit to be unset', () => {
+  const partlyTuned = { ...canonicalPlans[2], monthlyAiLimit: 45, monthlyPdfLimit: null };
+  assert.deepEqual(planCatalogChanges([partlyTuned]).limitUpdates, [{ ...canonicalPlans[2], monthlyAiLimit: 45, monthlyPdfLimit: canonicalPlans[2].monthlyPdfLimit }]);
+});
+
+test('no catalog package sells more parallel IFC work than the single worker slot', () => {
+  assert.deepEqual(canonicalPlans.map(plan => plan.ifcMaxConcurrent), [1, 1, 1, 1, 1]);
+});
+
 test('IFC auditor package is sold as a pilot until server SmartCheck is live', () => {
   const auditor = canonicalPlans.find(p => p.id.endsWith('000000000002'))!;
   assert.equal(auditor.marketingBadge, 'Pilot');
@@ -44,15 +53,32 @@ test('IFC auditor package is sold as a pilot until server SmartCheck is live', (
   assert.match(auditor.marketingDescription ?? '', /resmî uygunluk kararı değildir/i);
 });
 
-test('bootstrap adopts exact existing names, backfills public metadata, but refuses drift and duplicate identities', () => {
+test('panel values win: a tuned plan is reported as preserved and is never rewritten', () => {
+  const kurumsal = canonicalPlans[4];
+  const tuned = { ...kurumsal, id: '33333333-3333-4333-8333-333333333333', ifcMaxFileMb: 100, monthlyPrice: 9900, isPublished: false, displayOrder: 7 };
+  const changes = planCatalogChanges([tuned]);
+  assert.deepEqual(changes.existing, [tuned.id]);
+  assert.deepEqual(changes.preserved, [{ id: tuned.id, name: kurumsal.name, fields: ['monthlyPrice', 'ifcMaxFileMb', 'isPublished', 'displayOrder'] }]);
+  assert.deepEqual(changes.presentationUpdates, []);
+  assert.deepEqual(changes.limitUpdates, []);
+  assert.equal(changes.insert.length, 4);
+});
+
+test('a plan renamed in the panel keeps its id match and new name', () => {
+  const renamed = { ...canonicalPlans[1], name: 'Denetçi' };
+  const changes = planCatalogChanges([renamed]);
+  assert.deepEqual(changes.existing, [renamed.id]);
+  assert.deepEqual(changes.preserved, [{ id: renamed.id, name: canonicalPlans[1].name, fields: ['name'] }]);
+});
+
+test('bootstrap adopts exact existing names, backfills empty public metadata, but refuses duplicate identities', () => {
   const existing = { ...canonicalPlans[0], id: '22222222-2222-4222-8222-222222222222', isPublished: false, displayOrder: 0, marketingBadge: null, marketingDescription: null };
   const preview = planCatalogChanges([existing]);
   assert.equal(preview.insert.length, 4);
   assert.deepEqual(preview.existing, [existing.id]);
-  assert.deepEqual(preview.presentationUpdates, [{ ...canonicalPlans[0], id: existing.id }]);
+  assert.deepEqual(preview.presentationUpdates, [{ ...existing, marketingBadge: canonicalPlans[0].marketingBadge, marketingDescription: canonicalPlans[0].marketingDescription }]);
   assert.equal(planCatalogChanges(canonicalPlans).insert.length, 0);
   assert.equal(planCatalogChanges(canonicalPlans).presentationUpdates.length, 0);
-  assert.throws(() => planCatalogChanges([{ ...existing, monthlyQuoteLimit: 99 }]), /CATALOG_CONFLICT/);
   assert.throws(() => planCatalogChanges([existing, canonicalPlans[0]]), /CATALOG_CONFLICT/);
 });
 

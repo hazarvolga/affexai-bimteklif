@@ -58,7 +58,15 @@ try {
     assert.deepEqual(await applyMigrations(migrator, migrations, 38, { requireWorkersDrained: true }), ['0038_admin_tenant_deletion']);
     assert.deepEqual(await applyMigrations(migrator, migrations, 39, { requireWorkersDrained: true }), ['0039_atomic_tenant_deletion']);
     assert.deepEqual(await applyMigrations(migrator, migrations, 40, { requireWorkersDrained: true }), ['0040_trial_quota_period']);
+    // A live plan row with its own id: 0041 must match it by name and keep the limit an admin already set.
+    const livePlanId = '7c1f4d2e-5b6a-4c3d-8e9f-0a1b2c3d4e5f';
+    await admin.query(`INSERT INTO plans(id,name,monthly_price,monthly_quote_limit,ifc_max_concurrent,monthly_ai_limit,marketing_description)
+      VALUES ($1,'Kurumsal Taahhüt & e-PYS',8900,200,2,45,'Ekip yönetimi, yüksek kapasite ve öncelikli işleme için.')`, [livePlanId]);
+    assert.deepEqual(await applyMigrations(migrator, migrations, 41, { requireWorkersDrained: true }), ['0041_plan_catalog_alignment']);
+    const { rows: [livePlan] } = await admin.query(`SELECT ifc_max_concurrent, monthly_ai_limit, monthly_pdf_limit, marketing_description FROM plans WHERE id=$1`, [livePlanId]);
+    assert.deepEqual(livePlan, { ifc_max_concurrent: 1, monthly_ai_limit: 45, monthly_pdf_limit: 75, marketing_description: 'Yüksek teklif ve IFC kapasitesi için.' });
+    await admin.query('DELETE FROM plans WHERE id=$1', [livePlanId]);
   } finally { await migrator.end(); }
   await provisionDatabaseRoles(admin, credentials, target, decodeURIComponent(url.password));
-  process.stdout.write('0032 → 0033 → 0034 → 0035 → 0036 → 0037 → 0038 → 0039 → 0040 migrator/owner upgrade and role provisioning verified\n');
+  process.stdout.write('0032 → 0033 → 0034 → 0035 → 0036 → 0037 → 0038 → 0039 → 0040 → 0041 migrator/owner upgrade and role provisioning verified\n');
 } finally { await admin.end(); }

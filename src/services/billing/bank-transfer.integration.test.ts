@@ -3,6 +3,7 @@ import crypto from "node:crypto";
 import test from "node:test";
 import { eq } from "drizzle-orm";
 import { useTestIsolation } from "../../server/routes/test-isolation";
+import { billingPeriodEnd } from "./billing-periods";
 
 useTestIsolation();
 
@@ -258,7 +259,7 @@ test("a second approved payment extends an active matching subscription", { time
   await purchase("EXTENSION-2");
   const [second] = await db.select().from(subscriptions).where(eq(subscriptions.companyId, company.id));
   assert.equal(second.currentPeriodStart.getTime(), first.currentPeriodStart.getTime());
-  assert.equal(second.currentPeriodEnd!.getTime() - first.currentPeriodEnd.getTime(), 30 * 24 * 60 * 60 * 1000);
+  assert.equal(second.currentPeriodEnd!.toISOString(), billingPeriodEnd(first.currentPeriodEnd, "monthly").toISOString());
 });
 
 test("receipt replay is serialized globally and inactive plans fail closed at review", { timeout: 30_000 }, async () => {

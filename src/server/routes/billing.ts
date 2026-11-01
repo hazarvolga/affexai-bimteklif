@@ -4,7 +4,6 @@ import { and, asc, desc, eq } from "drizzle-orm";
 import { db } from "../../db";
 import { companies, plans, subscriptions, usageAlerts } from "../../db/schema";
 import { authenticate, checkRole } from "../middleware/auth";
-import { PLAN_LIMITS } from "../middleware/usage";
 import { readBillingUsage } from "../../services/billing/usage-report";
 import {
   createInitialPaymentOrder,
@@ -62,10 +61,6 @@ export function registerBillingRoutes(app: Express) {
     } catch {
       res.status(503).json({ error: "Abonelik bilgisi alınamadı.", code: "BILLING_SUBSCRIPTION_UNAVAILABLE" });
     }
-  });
-
-  app.get("/api/billing/plans", (_req, res) => {
-    res.json(PLAN_LIMITS);
   });
 
   app.get("/api/billing/usage-stats", authenticate, async (req, res) => {

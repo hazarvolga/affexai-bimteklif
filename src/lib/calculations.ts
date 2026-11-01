@@ -46,6 +46,7 @@ export interface ValidationIssue {
 }
 
 export function toFiniteNumber(value: number | string | null | undefined, fallback = 0): number {
+  if (value === null || value === undefined || (typeof value === "string" && !value.trim())) return fallback;
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
 }

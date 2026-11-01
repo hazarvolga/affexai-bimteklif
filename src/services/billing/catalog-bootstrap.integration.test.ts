@@ -30,8 +30,10 @@ test('bootstrap is atomic, idempotent, audited and preserves existing tenant ent
     assert.deepEqual((await client.query('SELECT row_to_json(u) AS value FROM usage_records u')).rows, beforeUsage);
     await client.query('DELETE FROM plans WHERE id=$1', [canonicalPlans[4].id]);
     await client.query('UPDATE plans SET monthly_price=1 WHERE id=$1', [canonicalPlans[0].id]);
-    await assert.rejects(bootstrapPlanCatalog(client, actor.id, true), /CATALOG_CONFLICT/);
-    assert.equal((await client.query('SELECT count(*)::int AS count FROM plans')).rows[0].count, 4, 'conflict never partially inserts missing plans');
+    const tuned = await bootstrapPlanCatalog(client, actor.id, true);
+    assert.equal(tuned.insertedCount, 1);
+    assert.deepEqual(tuned.preserved, [{ id: canonicalPlans[0].id, name: canonicalPlans[0].name, fields: ['monthlyPrice'] }]);
+    assert.equal((await client.query('SELECT monthly_price AS price FROM plans WHERE id=$1', [canonicalPlans[0].id])).rows[0].price, 1, 'panel price survives bootstrap');
     await client.query('UPDATE users SET is_super_admin=false WHERE id=$1', [actor.id]);
     await assert.rejects(bootstrapPlanCatalog(client, actor.id, true), /CATALOG_SUPERADMIN_REQUIRED/);
   } finally { client.release(); }

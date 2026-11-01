@@ -6,7 +6,6 @@ export interface BillingPeriodOption {
   shortLabel: string;
   months: number;
   discountPercent: number;
-  durationDays: number;
   badge: string | null;
 }
 
@@ -17,7 +16,6 @@ export const BILLING_PERIOD_OPTIONS: readonly BillingPeriodOption[] = [
     shortLabel: "1 Ay",
     months: 1,
     discountPercent: 0,
-    durationDays: 30,
     badge: null,
   },
   {
@@ -26,7 +24,6 @@ export const BILLING_PERIOD_OPTIONS: readonly BillingPeriodOption[] = [
     shortLabel: "6 Ay",
     months: 6,
     discountPercent: 10,
-    durationDays: 180,
     badge: "%10 İndirim",
   },
   {
@@ -35,7 +32,6 @@ export const BILLING_PERIOD_OPTIONS: readonly BillingPeriodOption[] = [
     shortLabel: "12 Ay",
     months: 12,
     discountPercent: 20,
-    durationDays: 365,
     badge: "%20 İndirim",
   },
   {
@@ -44,7 +40,6 @@ export const BILLING_PERIOD_OPTIONS: readonly BillingPeriodOption[] = [
     shortLabel: "24 Ay",
     months: 24,
     discountPercent: 30,
-    durationDays: 730,
     badge: "%30 İndirim",
   },
 ] as const;
@@ -72,12 +67,28 @@ export function getBillingPeriodOption(cycle: unknown): BillingPeriodOption {
   );
 }
 
+/** Adds the cycle's calendar months in UTC; a day missing from the target month clamps to its last day. */
+export function billingPeriodEnd(start: Date, cycle: unknown): Date {
+  const { months } = getBillingPeriodOption(cycle);
+  const firstOfTarget = Date.UTC(start.getUTCFullYear(), start.getUTCMonth() + months, 1);
+  const target = new Date(firstOfTarget);
+  const lastDay = new Date(Date.UTC(target.getUTCFullYear(), target.getUTCMonth() + 1, 0)).getUTCDate();
+  return new Date(Date.UTC(
+    target.getUTCFullYear(),
+    target.getUTCMonth(),
+    Math.min(start.getUTCDate(), lastDay),
+    start.getUTCHours(),
+    start.getUTCMinutes(),
+    start.getUTCSeconds(),
+    start.getUTCMilliseconds(),
+  ));
+}
+
 export interface BillingPeriodPricing {
   cycle: BillingCycleId;
   label: string;
   shortLabel: string;
   months: number;
-  durationDays: number;
   discountPercent: number;
   baseMonthlyPriceTry: number;
   effectiveMonthlyPriceTry: number;
@@ -99,8 +110,7 @@ export function calculateBillingPeriodPricing(
       label: option.label,
       shortLabel: option.shortLabel,
       months: 1,
-      durationDays: 14,
-      discountPercent: 0,
+        discountPercent: 0,
       baseMonthlyPriceTry: 0,
       effectiveMonthlyPriceTry: 0,
       totalBeforeDiscountTry: 0,
@@ -121,7 +131,6 @@ export function calculateBillingPeriodPricing(
     label: option.label,
     shortLabel: option.shortLabel,
     months: option.months,
-    durationDays: option.durationDays,
     discountPercent: option.discountPercent,
     baseMonthlyPriceTry: safeBase,
     effectiveMonthlyPriceTry,

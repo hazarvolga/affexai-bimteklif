@@ -10,6 +10,7 @@ import {
   type BillingCycleId,
   calculateBillingPeriodPricing,
   formatBillingCycleLabel,
+  billingPeriodEnd,
   getBillingPeriodOption,
   normalizeBillingCycle,
 } from "./billing-periods";
@@ -615,7 +616,6 @@ export async function reviewBankTransferByAdmin(input: {
 
     if (input.decision === "approved") {
       const now = new Date();
-      const durationDays = getBillingPeriodOption(lockedTarget.billingCycle).durationDays;
 
       await lockCompanyQuota(tx, lockedTarget.companyId);
       const [company] = await tx
@@ -645,7 +645,7 @@ export async function reviewBankTransferByAdmin(input: {
           && existingSub.currentPeriodEnd > now;
         const periodStart = extendsCurrentPeriod ? existingSub.currentPeriodStart : now;
         const periodEndBase = extendsCurrentPeriod ? existingSub.currentPeriodEnd! : now;
-        const periodEnd = new Date(periodEndBase.getTime() + durationDays * 24 * 60 * 60 * 1000);
+        const periodEnd = billingPeriodEnd(periodEndBase, lockedTarget.billingCycle);
         await tx
           .update(subscriptions)
           .set({
@@ -659,7 +659,7 @@ export async function reviewBankTransferByAdmin(input: {
           })
           .where(eq(subscriptions.id, existingSub.id));
       } else {
-        const periodEnd = new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000);
+        const periodEnd = billingPeriodEnd(now, lockedTarget.billingCycle);
         await tx.insert(subscriptions).values({
           companyId: lockedTarget.companyId,
           planId: lockedTarget.planId,
@@ -721,7 +721,7 @@ export async function reviewBankTransferByAdmin(input: {
           detailRows: [
             { label: "Çalışma Alanı (Firma)", value: target.companyName },
             { label: "Aktif Edilen Paket", value: target.planName, highlight: true },
-            { label: "Faturalama Dönemi", value: `${formatBillingCycleLabel(target.billingCycle)} (${periodOpt.durationDays} Gün)` },
+            { label: "Faturalama Dönemi", value: `${formatBillingCycleLabel(target.billingCycle)} (${periodOpt.shortLabel})` },
             { label: "Onaylanan Tutar", value: `₺${target.amountTry.toLocaleString("tr-TR")} (KDV Hariç)` },
             { label: "Sipariş Referans Kodu", value: target.referenceCode, mono: true },
           ],

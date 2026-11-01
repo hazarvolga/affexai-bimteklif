@@ -22,6 +22,7 @@ import { buildCalmTransferSelection, calmTransferAttemptScope, calmTransferTarge
 import { buildTenantPriceCatalogImportPayload, type TenantPriceCatalogRow } from "@/smartcheck/pricing/catalog-import";
 import { parsePriceCatalogCsv } from "@/lib/price-catalog-import";
 import { isLegacyXls, LEGACY_XLS_MESSAGE, readFileHead, spreadsheetKind } from "@/lib/spreadsheet-format";
+import { isPermanentFailureCode, queueFailureLabel } from "@/smartcheck/import/failure-policy";
 
 type Finding = { code: string; message: string; ruleVersion: string; suggestion: string };
 
@@ -1178,7 +1179,7 @@ export function SmartCheckImportWorkspace() {
                             {item.status === "succeeded"
                               ? "Analiz tamamlandı"
                               : item.status === "failed"
-                                ? "İşleme hatası"
+                                ? queueFailureLabel(item)
                                 : `${item.progressMessage ?? item.currentStage} · %${item.progressPercent}`}
                           </p>
                         </div>
@@ -1192,7 +1193,7 @@ export function SmartCheckImportWorkspace() {
                               İcmali Aç
                             </button>
                           )}
-                          {item.status === "failed" && (
+                          {item.status === "failed" && !isPermanentFailureCode(item.errorCode) && (
                             <button
                               type="button"
                               onClick={() => retry(item.documentId)}
