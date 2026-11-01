@@ -1,3 +1,4 @@
+import { isAmbiguousNumberText, parseImportNumber } from "../../lib/tr-number";
 export type SpreadsheetArchetype =
   | "flat_table"
   | "multi_header_pivot"
@@ -52,15 +53,7 @@ export function normalizeUnit(value: string): string | null {
   return unitAliases[cleaned] ?? null;
 }
 
-export function parseLocalizedNumber(value: string): number | null {
-  const raw = value.trim().replace(/\s/g, "").replace(/[₺$€]/g, "");
-  if (!raw) return null;
-  const normalized = raw.includes(",") && raw.includes(".")
-    ? raw.lastIndexOf(",") > raw.lastIndexOf(".") ? raw.replace(/\./g, "").replace(",", ".") : raw.replace(/,/g, "")
-    : raw.replace(",", ".");
-  const number = Number(normalized);
-  return Number.isFinite(number) ? number : null;
-}
+export const parseLocalizedNumber = parseImportNumber;
 
 export function cleanTurkishHeader(value: string): string {
   return value
@@ -122,21 +115,30 @@ export function suggestMapping(headers: string[]): ColumnMapping {
   };
 }
 
-export function validateRows(rows: ParsedQuantityRow[], maxWastePercent = 20) {
+/** Machine decimals come from the IFC worker: their dot is always a decimal point. */
+export function validateRows(rows: ParsedQuantityRow[], maxWastePercent = 20, options: { machineDecimals?: boolean } = {}) {
+  const readNumber = (raw: string) => {
+    if (!options.machineDecimals) return parseImportNumber(raw);
+    const value = raw.trim() ? Number(raw) : Number.NaN;
+    return Number.isFinite(value) ? value : null;
+  };
+  const isAmbiguous = (raw: string) => !options.machineDecimals && isAmbiguousNumberText(raw);
   const positionCounts = new Map<string, number>();
   for (const row of rows) if (row.rawPositionCode.trim()) positionCounts.set(row.rawPositionCode.trim(), (positionCounts.get(row.rawPositionCode.trim()) ?? 0) + 1);
   return rows.map((row) => {
     const findings: Finding[] = [];
     const positionCode = row.rawPositionCode.trim();
     const unit = normalizeUnit(row.rawUnit);
-    const quantity = parseLocalizedNumber(row.rawQuantity);
-    const price = parseLocalizedNumber(row.rawPrice);
-    const wastePercent = parseLocalizedNumber(row.rawWastePercent) ?? 0;
+    const quantity = readNumber(row.rawQuantity);
+    const price = readNumber(row.rawPrice);
+    const wastePercent = readNumber(row.rawWastePercent) ?? 0;
+    const ambiguous = [row.rawQuantity, row.rawPrice, row.rawWastePercent].filter(isAmbiguous);
+    for (const raw of ambiguous) findings.push({ code: "AMBIGUOUS_NUMBER", severity: "high", message: `"${raw.trim()}" belirsiz: binlik mi ondalık mı olduğu anlaşılamıyor.`, ruleVersion: "pilot-number-v1", suggestion: "Ondalık için virgül kullanın (1,250) veya binlik için noktasız yazın (1250)." });
     if (!positionCode) findings.push({ code: "MISSING_POSITION_CODE", severity: "high", message: "Poz kodu eksik.", ruleVersion: "pilot-integrity-v1", suggestion: "Kaynak satırdaki poz kodunu girin." });
     else if ((positionCounts.get(positionCode) ?? 0) > 1) findings.push({ code: "DUPLICATE_POSITION_CODE", severity: "medium", message: "Poz kodu dosyada tekrarlanıyor.", ruleVersion: "pilot-integrity-v1", suggestion: "Mükerrerliğin kapsam farkından kaynaklandığını doğrulayın." });
     if (!unit) findings.push({ code: "UNKNOWN_UNIT", severity: "high", message: "Birim boş veya tanınmıyor.", ruleVersion: "pilot-unit-v1", suggestion: "Desteklenen canonical birimi seçin." });
-    if (quantity === null || quantity <= 0) findings.push({ code: "INVALID_QUANTITY", severity: "high", message: "Miktar sıfır, negatif veya geçersiz.", ruleVersion: "pilot-quantity-v1", suggestion: "Kaynak miktarı doğrulayın." });
-    if (price === null || price < 0) findings.push({ code: "MISSING_PRICE_SOURCE", severity: "medium", message: "Maliyet/fiyat kaynağı eksik veya geçersiz.", ruleVersion: "pilot-cost-v1", suggestion: "Gerçek maliyeti ve fiyat kaynağını belirtin." });
+    if ((quantity === null && !isAmbiguous(row.rawQuantity)) || (quantity !== null && quantity <= 0)) findings.push({ code: "INVALID_QUANTITY", severity: "high", message: "Miktar sıfır, negatif veya geçersiz.", ruleVersion: "pilot-quantity-v1", suggestion: "Kaynak miktarı doğrulayın." });
+    if ((price === null && !isAmbiguous(row.rawPrice)) || (price !== null && price < 0)) findings.push({ code: "MISSING_PRICE_SOURCE", severity: "medium", message: "Maliyet/fiyat kaynağı eksik veya geçersiz.", ruleVersion: "pilot-cost-v1", suggestion: "Gerçek maliyeti ve fiyat kaynağını belirtin." });
     if (wastePercent > maxWastePercent) findings.push({ code: "WASTE_LIMIT_EXCEEDED", severity: "medium", message: `Zayiat şirket limitini (%${maxWastePercent}) aşıyor.`, ruleVersion: "pilot-waste-v1", suggestion: "Zayiatı düzeltin veya istisna gerekçesi girin." });
     return { row, normalized: { positionCode: positionCode || null, description: row.rawDescription.trim() || null, unit, quantity, price, wastePercent }, findings };
   });

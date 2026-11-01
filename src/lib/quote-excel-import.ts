@@ -12,6 +12,7 @@
 import type { QuoteItem } from "@/types";
 import { calculateLineItemTotal } from "./calculations";
 import { parseCsv, serializeCsv } from "./tabular-data";
+import { isAmbiguousNumberText, isNumberText, numericCellText, parseImportNumber } from "./tr-number";
 
 export const MAX_QUOTE_IMPORT_BYTES = 5 * 1024 * 1024;
 
@@ -48,27 +49,7 @@ function normalizeUnit(raw: string): string {
 export function parseNumberCell(raw: unknown): number | null {
   if (raw === null || raw === undefined) return null;
   if (typeof raw === "number") return Number.isFinite(raw) ? raw : null;
-  const str = String(raw).trim().replace(/\s+/g, "").replace(/[₺$€]/g, "");
-  if (!str) return null;
-
-  // Türkçe biçim: 1.250,50 -> 1250.50
-  if (/^-?\d{1,3}(\.\d{3})*,\d+$/.test(str)) {
-    const n = Number(str.replace(/\./g, "").replace(",", "."));
-    return Number.isFinite(n) ? n : null;
-  }
-  // Standart virgüllü: 1,250.50 -> 1250.50
-  if (/^-?\d{1,3}(,\d{3})*\.\d+$/.test(str)) {
-    const n = Number(str.replace(/,/g, ""));
-    return Number.isFinite(n) ? n : null;
-  }
-  // Yalnızca virgüllü: 125,50 -> 125.50
-  if (/^-?\d+,\d+$/.test(str)) {
-    const n = Number(str.replace(",", "."));
-    return Number.isFinite(n) ? n : null;
-  }
-  // Düz sayı: 1250 / 1250.50
-  const n = Number(str);
-  return Number.isFinite(n) ? n : null;
+  return parseImportNumber(String(raw));
 }
 
 interface ColumnSpans {
@@ -104,7 +85,8 @@ function getRowSpans(row: SheetCell[] | undefined): CellSpan[] {
   if (!row || row.length === 0) return [];
   const spans: CellSpan[] = [];
   for (let c = 0; c < row.length; c += 1) {
-    const text = String(row[c] ?? "").trim();
+    const cell = row[c];
+    const text = typeof cell === "number" ? numericCellText(cell) : String(cell ?? "").trim();
     if (!text) continue;
     const prev = spans[spans.length - 1];
     if (prev && prev.endCol === c - 1 && prev.text === text) {
@@ -436,7 +418,7 @@ function findHeaderRow(
 
       const hasDataRowBelow = rows
         .slice(r + 1, Math.min(stopRow, r + 15))
-        .some((dRow) => dRow && dRow.some((cell) => parseNumberCell(cell) !== null));
+        .some((dRow) => dRow && dRow.some((cell) => parseNumberCell(cell) !== null || isNumberText(String(cell ?? ""))));
       if (!hasDataRowBelow) continue;
 
       const score =
@@ -600,6 +582,11 @@ export function parseQuoteRows(
     }
 
     const quantity = parseNumberCell(qtyRaw);
+    if (quantity === null && isAmbiguousNumberText(String(qtyRaw ?? ""))) {
+      warnings.push(`Satır ${r + 1} (${effectiveDesc.slice(0, 30)}): "${String(qtyRaw).trim()}" belirsiz olduğu için atlandı. Ondalık için virgül kullanın (1,250) veya binlik için noktasız yazın (1250).`);
+      skippedRowCount++;
+      continue;
+    }
     if (quantity === null || quantity <= 0) {
       warnings.push(`Satır ${r + 1} (${effectiveDesc.slice(0, 30)}): geçerli miktar bulunamadığı için atlandı.`);
       skippedRowCount++;
@@ -611,7 +598,9 @@ export function parseQuoteRows(
     lastNamedUnit = normalizeUnit(unitRaw);
 
     const unitPrice = parseNumberCell(priceRaw) ?? 0;
-    if (unitPrice === 0 && priceRaw !== 0 && priceRaw !== "0") {
+    if (isAmbiguousNumberText(String(priceRaw ?? "")) && typeof priceRaw !== "number") {
+      warnings.push(`Satır ${r + 1} (${effectiveDesc.slice(0, 30)}): birim fiyat "${String(priceRaw).trim()}" belirsiz, 0 ₺ olarak kaydedildi. Ondalık için virgül kullanın (1,250) veya binlik için noktasız yazın (1250).`);
+    } else if (unitPrice === 0 && priceRaw !== 0 && priceRaw !== "0") {
       warnings.push(`Satır ${r + 1} (${effectiveDesc.slice(0, 30)}): birim fiyat bulunamadı, 0 ₺ olarak kaydedildi.`);
     }
 

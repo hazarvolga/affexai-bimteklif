@@ -356,7 +356,9 @@ function round6(n: number): number {
  * Poz kodu veya imalat tanımına göre 21 resmi ÇŞB-TÜİK alt endeksinden en uygun olanını eşleştirir.
  */
 export function resolveTuikSubIndexForPoz(pozCodeOrLabel: string): TuikSubIndexDefinition {
-  const text = (pozCodeOrLabel || '').toUpperCase();
+  // Both casings: patterns list Turkish (ÇİMENTO) and ASCII (CIMENTO) spellings, and i upper-cases differently in each.
+  const label = pozCodeOrLabel || '';
+  const text = `${label.toLocaleUpperCase('tr-TR')} ${label.toUpperCase()}`;
 
   if (/15\.180|KALIP|KERESTE|AHŞAP|AHSAP/.test(text)) {
     return CSB_2026_TUIK_SUB_INDICES.find((x) => x.code === 'TUIK-16.1-KERESTE')!;

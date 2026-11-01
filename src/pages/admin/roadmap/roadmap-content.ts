@@ -185,8 +185,9 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
   },
   {
     id: "durum",
-    title: "Uygulama durumu (1 Kasım 2026 · Rev. 144 geliştirme kaydı)",
+    title: "Uygulama durumu (1 Kasım 2026 · Rev. 145 geliştirme kaydı)",
     blocks: [
+      { type: "callout", tone: "info", title: "Rev. 145 · Sayı okuma ve alt endeks", text: "Metin hücresindeki 1.250 gibi belirsiz sayılar artık sessizce okunmaz, kullanıcıya gösterilir. Excel sayısal hücreleri ve IFC miktarları kesin okunur. Küçük harfli Türkçe malzeme adları doğru fiyat farkı alt endeksine eşleşir." },
       { type: "callout", tone: "info", title: "Rev. 144 · Paket değerleri panele ait", text: "Panelden yapılan kota, fiyat ve yayın değişikliği için kod gerekmez. Katalog eşitlemesi ve betik yalnız eksik paketi ekler, boş alanı doldurur; dolu değerleri ezmez, korunan olarak raporlar." },
       { type: "callout", tone: "info", title: "Rev. 143 · Miktarsız IFC ve GAP temizliği", text: "Miktarsız model artık tekrar denenmez, kullanıcı nedeni ve çözümü görür. NULL plan limiti kapalı başarısız olur, fatura dönemi takvim ayıyla hesaplanır, Kurumsal paket 1 eşzamanlı IFC satar, kullanılmayan uç, worker ve stripe bağımlılığı kaldırıldı. Migration 0041 canlı planları adla da eşleştirir." },
       { type: "callout", tone: "info", title: "Rev. 142 · IFC işleyici düşmesi ve ölçüm", text: "Açık lisanslı dört modelle yapılan ölçümde 93 MB dosya 8 çekirdek görünen ortamda düştü. Neden 2 GiB adres sınırı ile OpenBLAS'ın çekirdek başına bellek ayırmasıydı; işleyici tek iş parçacığına sabitlendi. Dört model 6-23 s ve en çok 1,75 GB ile tamamlandı. T45 kısmi kalır: gerçek müşteri dosyası ve uçtan uca işlem ölçülmedi." },
@@ -1177,6 +1178,9 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
           ],
           [
             "Rev. 144", "1 Kasım 2026 · Paket değerleri panele ait", "BIM-CALC-2026-11-01.2", "Katalog eşitleme düğmesi paket değerlerini eziyor, manuel betik farklı değerde duruyordu. İkisi de artık yalnız eksikleri tamamlıyor ve panel değerlerini koruyor.",
+          ],
+          [
+            "Rev. 145", "1 Kasım 2026 · Sayı okuma ve alt endeks", "BIM-CALC-2026-11-01.3", "Harici rapordaki iki bulgu kodda doğrulanıp düzeltildi. Raporun önerdiği her 1.250 değerini 1250 okuma çözümü Excel sayısal hücrelerini bozacağı için uygulanmadı; kaynak ayrımı yapıldı.",
           ],
         ],
       },
@@ -2243,6 +2247,9 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
           ],
           [
             "Rev. 144 · 1 Kasım 2026 (Paket kataloğu)", "Panel sahipliği", "Paket oluştuktan sonra değerler panele aittir. Katalog yalnız ilk kurulum değerini verir; panelde değiştirilen kota için kod değişikliği gerekmez.", "src/services/billing/plan-catalog.ts; src/server/admin/plan-catalog-sync.ts; src/pages/admin/PlansList.tsx",
+          ],
+          [
+            "Rev. 145 · 1 Kasım 2026 (Sayı okuma)", "Belirsiz sayı kapısı", "Noktadan sonra üç hane içeren metin belirsizdir, satır incelemeye düşer. Virgüllü 1,250 Türkçe ondalık olarak 1,25 okunur. Fiyat farkı alt endeks eşleşmesi küçük harfli Türkçe yazımı tanır.", "src/lib/tr-number.ts; src/smartcheck/import/normalize.ts; src/lib/quote-excel-import.ts; src/lib/price-escalation.ts",
           ],
         ],
       },

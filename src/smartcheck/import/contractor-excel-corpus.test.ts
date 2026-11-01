@@ -190,9 +190,9 @@ describe("Turkish contractor Excel multi-archetype adapter & corpus", () => {
     assert.equal(parsed.rows[0]?.rawPositionCode, "Beton_C25");
     assert.equal(parsed.rows[0]?.rawDescription, "Beton Duvar");
     assert.equal(parsed.rows[0]?.rawUnit, "m²");
-    assert.equal(parsed.rows[0]?.rawQuantity, "32.952");
+    assert.equal(parsed.rows[0]?.rawQuantity, "32.9520");
     assert.equal(parsed.rows[1]?.rawPositionCode, "C30/37");
-    assert.equal(parsed.rows[1]?.rawQuantity, "133.155");
+    assert.equal(parsed.rows[1]?.rawQuantity, "133.1550");
     assert.equal(parsed.rows[2]?.rawPositionCode, "BLOK-3");
     assert.equal(parsed.rows[2]?.rawDescription, "Kapı Sembolü");
     assert.equal(parsed.rows[2]?.rawQuantity, "12");
