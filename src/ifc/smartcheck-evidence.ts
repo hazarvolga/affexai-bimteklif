@@ -78,6 +78,8 @@ export interface IfcSmartCheckEvidenceArtifact {
     openings?: ParsedOpening[];
     /** Bağımsız bölüm ve oda cetveli (IfcZone + IfcSpace); yoksa yok. */
     apartmentSchedule?: IfcParseSummary["apartmentSchedule"];
+    /** Dosyadaki yapı sınıflarının sayıları; eski kayıtlarda yok. */
+    classInventory?: IfcParseSummary["classInventory"];
     /** IFC Tutarlılık ve Metraj Kapsama Raporu (Rev. 36). */
     consistencyReport?: IfcConsistencyReport;
     parserContract?: IfcParserContract;
@@ -255,13 +257,14 @@ function resolveAuthoringSoftware(summary: IfcParseSummary): AuthoringSoftwareDe
 }
 
 /** The fields of stored evidence that the result screen needs next to the rows. */
-export function pickIfcScreenSummary(metadata: unknown): Pick<IfcParseSummary, "openings" | "authoringSoftware" | "consistencyReport" | "apartmentSchedule"> {
+export function pickIfcScreenSummary(metadata: unknown): Pick<IfcParseSummary, "openings" | "authoringSoftware" | "consistencyReport" | "apartmentSchedule" | "classInventory"> {
   const summary = (metadata as { summary?: Partial<IfcParseSummary> } | null)?.summary;
   return {
     ...(Array.isArray(summary?.openings) ? { openings: summary.openings } : {}),
     ...(summary?.authoringSoftware && typeof summary.authoringSoftware === "object" ? { authoringSoftware: summary.authoringSoftware } : {}),
     ...(summary?.consistencyReport && typeof summary.consistencyReport === "object" ? { consistencyReport: summary.consistencyReport } : {}),
     ...(Array.isArray(summary?.apartmentSchedule) ? { apartmentSchedule: summary.apartmentSchedule } : {}),
+    ...(Array.isArray(summary?.classInventory) ? { classInventory: summary.classInventory } : {}),
   };
 }
 
@@ -294,6 +297,7 @@ export function buildIfcSmartCheckEvidenceArtifact(
         authoringSoftware: resolveAuthoringSoftware(summary),
         openings: summary.openings,
         apartmentSchedule: summary.apartmentSchedule,
+        classInventory: summary.classInventory,
         consistencyReport: summary.consistencyReport,
         parserContract: summary.parserContract,
       },
@@ -363,6 +367,7 @@ export function buildIfcSmartCheckEvidenceArtifact(
       authoringSoftware: resolveAuthoringSoftware(summary),
       openings: summary.openings,
       apartmentSchedule: summary.apartmentSchedule,
+      classInventory: summary.classInventory,
       consistencyReport: summary.consistencyReport,
       parserContract: summary.parserContract,
     },

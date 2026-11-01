@@ -6,6 +6,8 @@ import { parseThresholdInput, summarizeOpeningsMinha } from "@/ifc/openings-minh
 import { parseRatioInput, resolveApartmentGross, sumResidentialGross, type GrossRatios } from "@/ifc/apartment-gross";
 import { AuthoringAdvisoryBanner } from "@/components/smartcheck/AuthoringAdvisoryBanner";
 import { IfcCoverageCard } from "@/components/smartcheck/IfcCoverageCard";
+import { ModelInventoryCard } from "@/components/smartcheck/ModelInventoryCard";
+import { OpeningsOverviewCard } from "@/components/smartcheck/OpeningsOverviewCard";
 import { ResultSummaryPanel } from "@/components/smartcheck/ResultSummaryPanel";
 import { buildResultSummary } from "@/ifc/result-summary";
 import { openingsAvailability } from "@/ifc/calculation-trace";
@@ -483,6 +485,10 @@ export const CalmIfcWorkspace: React.FC<CalmIfcWorkspaceProps> = ({
           if (selection) setActiveStep("icmal");
         }}
       />
+
+      {/* MODEL ENVANTERİ: dosyadaki sınıflar ve sayıldı/sayılmadı durumu */}
+      <ModelInventoryCard dataset={dataset} />
+      <OpeningsOverviewCard openings={dataset.openings} />
 
       {documentId && dataset.elements?.some((element) => element.sourceIdentity) && (
         <IfcReviewViewer

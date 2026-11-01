@@ -100,6 +100,8 @@ export interface CalmIfcDataset {
   authoringAdvisory?: AuthoringAdvisory;
   /** Modeldeki kapı/pencere listesi; sözleşmesel minha için. Yoksa undefined. */
   openings?: ParsedOpening[];
+  /** Dosyadaki yapı sınıflarının sayıları; eski kayıtlarda yok. */
+  classInventory?: Array<{ ifcClass: string; count: number }>;
   /** IFC Tutarlılık ve Metraj Kapsama Raporu (Rev. 36). */
   consistencyReport?: IfcConsistencyReport;
   /** Ham eleman listesi (kapsama kartı filtrelemesi için). */
@@ -161,6 +163,15 @@ function concreteSpec(id: string, concreteClass: SupportedConcreteClass, pozCode
     unit: "m³",
     formulaNote: "IFC Qto_SlabBaseQuantities / Qto_WallBaseQuantities NetVolume",
   });
+}
+
+const CLASS_NOUNS: Record<string, string> = { IfcSlab: "döşeme", IfcColumn: "kolon", IfcBeam: "kiriş", IfcWall: "perde/duvar" };
+
+/** "2 döşeme, 1 kolon": what actually fed a structural line, so its generic title does not imply more. */
+function includedClassesNote(contributions: readonly CalmQuantityContribution[]): string {
+  const counts = new Map<string, number>();
+  for (const contribution of contributions) counts.set(contribution.ifcClass, (counts.get(contribution.ifcClass) ?? 0) + 1);
+  return [...counts].map(([ifcClass, count]) => `${count} ${CLASS_NOUNS[ifcClass] ?? ifcClass}`).join(", ");
 }
 
 const MASONRY_SPEC: ClassifiedLayerSpec = {
@@ -1053,7 +1064,9 @@ export function buildCalmIfcDatasetFromElements(
       id: entry.spec.id,
       groupKey: entry.spec.groupKey,
       title: entry.spec.title,
-      subtitle: entry.spec.subtitle,
+      subtitle: entry.spec.groupKey === "structural" && entry.contributions.length > 0
+        ? `${entry.spec.subtitle} · Bu modelde: ${includedClassesNote(entry.contributions)}`
+        : entry.spec.subtitle,
       pozCode: entry.spec.pozCode,
       unit: entry.spec.unit,
       netQuantity: Number(entry.netQuantity.toFixed(2)),
@@ -1134,6 +1147,7 @@ export function buildCalmIfcDatasetFromElements(
         ? buildAuthoringAdvisory(classifyAuthoringSoftware(summary.authoringSoftwareRaw))
         : undefined,
     openings: summary?.openings,
+    classInventory: summary?.classInventory,
     consistencyReport: resolvedConsistencyReport,
     elements: elements.map((el, i) => (placements[i] ? { ...el, ...placements[i] } : el)),
   };
@@ -1161,6 +1175,7 @@ export function buildCalmIfcDatasetFromArtifact(artifact: IfcSmartCheckEvidenceA
     {
       consistencyReport: artifact.summary.consistencyReport,
       openings: artifact.summary.openings,
+      classInventory: artifact.summary.classInventory,
       authoringSoftware: artifact.summary.authoringSoftware,
     },
     fileName,
@@ -1171,6 +1186,7 @@ export function buildCalmIfcDatasetFromArtifact(artifact: IfcSmartCheckEvidenceA
     projectSubtitle: excludedSourceCount ? `${dataset.projectSubtitle} · ${excludedSourceCount} doğrulanamayan kaynak satırı güvenli inceleme için icmal dışında` : dataset.projectSubtitle,
     ...(authoring ? { authoringAdvisory: buildAuthoringAdvisory(authoring) } : {}),
     openings: artifact.summary.openings,
+    classInventory: artifact.summary.classInventory,
   };
 }
 

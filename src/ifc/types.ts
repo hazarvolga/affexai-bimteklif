@@ -253,6 +253,8 @@ export interface IfcParseSummary {
   authoringSoftwareRaw?: AuthoringSoftwareRaw;
   /** Kapı/pencere listesi (sunucu yolu); sözleşmesel minha için. */
   openings?: ParsedOpening[];
+  /** Dosyadaki yapı sınıflarının örnek sayıları (metraja girmeyenler dahil). */
+  classInventory?: Array<{ ifcClass: string; count: number }>;
   /** IFC Tutarlılık ve Metraj Kapsama Raporu (Rev. 36). */
   consistencyReport?: IfcConsistencyReport;
 }

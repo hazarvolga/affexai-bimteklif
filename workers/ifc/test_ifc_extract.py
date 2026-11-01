@@ -1059,3 +1059,25 @@ def test_multi_context_covering_polyline_uses_separate_scaled_curve_path(tmp_pat
     assert item['quantitySource'] == 'geometry'
     assert 'DerivedLength' in item['quantitySourcePath']
     assert not any(f['globalId'] == covering.GlobalId and f['code'] == 'GEOMETRY_CONTEXT_UNVERIFIED' for f in parsed['summary']['consistencyReport']['findings'])
+
+
+def test_class_inventory_counts_every_building_class_in_the_file(tmp_path):
+    import ifcopenshell
+    from workers.ifc import ifc_extract
+
+    model = ifcopenshell.file(schema="IFC4")
+    model.create_entity("IfcProject", GlobalId="0000000000000000000001", Name="Test")
+    for index in range(2):
+        model.create_entity("IfcWall", GlobalId=f"000000000000000000100{index}", Name=f"W{index}")
+    model.create_entity("IfcWallStandardCase", GlobalId="0000000000000000001010", Name="WS")
+    for index in range(3):
+        model.create_entity("IfcSpace", GlobalId=f"000000000000000000200{index}", Name=f"S{index}")
+    model.create_entity("IfcRailing", GlobalId="0000000000000000003000", Name="R")
+
+    inventory = {row["ifcClass"]: row["count"] for row in ifc_extract.build_class_inventory(model)}
+    assert inventory["IfcWall"] == 3  # subtypes are included, as in the viewers
+    assert inventory["IfcSpace"] == 3
+    assert inventory["IfcRailing"] == 1
+    assert "IfcDoor" not in inventory  # classes the file does not contain are left out
+    rows = ifc_extract.build_class_inventory(model)
+    assert [row["ifcClass"] for row in rows] == [name for name in ifc_extract.INVENTORY_CLASSES if name in inventory]

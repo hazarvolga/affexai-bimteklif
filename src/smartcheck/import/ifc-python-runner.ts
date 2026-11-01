@@ -241,6 +241,7 @@ export const IfcParseSummarySchema = z.object({
     })
     .optional(),
   openings: z.array(ParsedOpeningSchema).optional(),
+  classInventory: z.array(z.object({ ifcClass: z.string().max(64), count: z.number().int().nonnegative() })).max(64).optional(),
   consistencyReport: IfcConsistencyReportSchema,
   parserContract: IfcParserContractSchema,
 });
