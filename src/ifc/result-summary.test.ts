@@ -57,6 +57,20 @@ test("without a consistency report element counts are said to be unknown", () =>
   assert.match(summary.lines.find(line => line.key === "quantity")!.text, /belirlenemedi/);
 });
 
+test("elements without quantity evidence are not reported as read", () => {
+  const summary = buildResultSummary({ ...base, totalElementCount: 1731, measuredElementCount: 1731, pozMatchedElementCount: 160, evidenceElementCount: 160 });
+  const quantity = summary.lines.find(line => line.key === "quantity")!;
+  assert.equal(quantity.tone, "attention");
+  assert.match(quantity.text, /160\/1731/);
+  assert.match(quantity.text, /1571/);
+  assert.match(quantity.text, /geometri/);
+});
+
+test("when every element has quantity evidence the quantity line stays confirmed", () => {
+  const summary = buildResultSummary({ ...base, evidenceElementCount: 3 });
+  assert.equal(summary.lines.find(line => line.key === "quantity")?.tone, "ok");
+});
+
 test("elements that were read but matched no line say so, instead of blaming the file", () => {
   const summary = buildResultSummary({ ...base, icmalItemCount: 0, totalElementCount: 1655, measuredElementCount: 1655, pozMatchedElementCount: 0 });
   assert.equal(summary.nextStep.action, "check_file");

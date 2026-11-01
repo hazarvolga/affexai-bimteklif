@@ -1110,13 +1110,17 @@ export function buildCalmIfcDatasetFromElements(
     : summary.openings.length === 0
       ? "Modelde Kapı/Pencere Yok"
       : `${summary.openings.length.toLocaleString("tr-TR")} Kapı/Pencere Okundu`;
+  const modelElementCount = summary?.consistencyReport?.totalElementCount;
+  const elementsNote = typeof modelElementCount === "number" && modelElementCount > elements.length
+    ? `${elements.length.toLocaleString("tr-TR")} Kanıtlı Eleman · Modelde ${modelElementCount.toLocaleString("tr-TR")} Eleman`
+    : `Toplam ${elements.length.toLocaleString("tr-TR")} IFC Elemanı`;
   const layerNote = hasMultiLayerCoverings
     ? "Çok Katmanlı IfcCovering Ayrıştırması Aktif"
     : "Modelde Çoklu Katman (materialLayers) Bilgisi Yok — Tekil Eleman Metrajı";
 
   return {
     projectTitle: fileName ? `${fileName}` : "Yüklenen IFC Proje İcmali",
-    projectSubtitle: `Toplam ${elements.length.toLocaleString("tr-TR")} IFC Elemanı · ${layerNote} · ${openingsNote}`,
+    projectSubtitle: `${elementsNote} · ${layerNote} · ${openingsNote}`,
     residentialUnitCount: residentialUnits.length,
     totalNetSweepableM2,
     totalBalconyM2,
