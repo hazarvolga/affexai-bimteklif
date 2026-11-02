@@ -185,8 +185,9 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
   },
   {
     id: "durum",
-    title: "Uygulama durumu (1 Kasım 2026 · Rev. 157 geliştirme kaydı)",
+    title: "Uygulama durumu (1 Kasım 2026 · Rev. 158 geliştirme kaydı)",
     blocks: [
+      { type: "callout", tone: "info", title: "Rev. 158 · TÜİK akış yapısı isteği", text: "Yapıyı göster düğmesi TÜİK belgesindeki biçimle (SDMX-CSV) veri ister; önceki SDMX-JSON isteği 406 ile reddediliyordu. Veri kaydedilmez." },
       { type: "callout", tone: "info", title: "Rev. 157 · Düşey kesit", text: "3B görüntüleyicide kesit yönü seçilir (yatay, sağ-sol düşey, ön-arka düşey) ve oynat düğmesiyle kesit kendiliğinden kayar. Metraj etkilenmez." },
       { type: "callout", tone: "info", title: "Rev. 156 · Model envanteri", text: "Dosyadaki sınıflar ve sayıları ekranda görünür; her biri için icmalde mi, ayrı listede mi, metraja girmiyor mu ve nedeni yazılır. Kapı ve pencere bloğu kalem seçmeden görünür. Hesap değişmedi." },
       { type: "callout", tone: "info", title: "Rev. 155 · Daire ve oda cetveli", text: "Sunucuda işlenen modelde bağımsız bölümler ve odalar ekrana gelir. Önceki kayıtlarda cetvel yoktur, dosya yeniden işlenmelidir. Hesap değişmedi." },
@@ -1230,6 +1231,9 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
           [
             "Rev. 157", "1 Kasım 2026 · Düşey kesit", "BIM-CALC-2026-11-01.15", "3B görüntüleyicide düşey kesit ve oynat düğmesi. Metraj etkilenmez.",
           ],
+          [
+            "Rev. 158", "2 Kasım 2026 · TÜİK akış isteği", "BIM-CALC-2026-11-01.16", "Akış yapısı isteği belgedeki SDMX-CSV biçimine çevrildi. Veri kaydedilmez, hesap değişmez.",
+          ],
         ],
       },
       {
@@ -2120,6 +2124,9 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
             "1) engine.ts içinde renderer.setPixelRatio(2) ile birlikte renderer.setSize(width, height, false) çağrıldığı ve kapsayıcıda overflow-hidden bulunmadığı için Retina ekranlarda <canvas> elemanı 2 kat fiziksel boyutta taşarak altındaki İmalat Cetveli ve Hesap Kanıtı kartlarıyla üst üste biniyor, bina modeli sağ alt köşede yarım kalıyordu. 2) 3B uzayda kaydırma (Pan), hazır bakış açıları (Üst/Ön/Sağ/İzometrik), seçili elemana odaklanma, kat kesiti (Section Cut) ve tel kafes görünümü bulunmuyordu.",
             "1) renderer.setSize(width, height, true), canvas CSS boyutu (100%x100%) ve overflow-hidden ile Retina tuval taşması tamamen giderildi; computeFitCameraDistance ile model her ekran oranında tam merkeze sığdırıldı. 2) IfcReviewViewer.tsx ve engine.ts içine Döndür/Kaydır (Orbit/Pan) modu, sağ tık / Shift+sol tık Pan, Yakınlaş/Uzaklaş/Modele Sığdır/Seçime Odakla, İzometrik/Üst (Plan)/Ön/Sağ/Sol kamera açıları, Z-ekseni Kat Kesiti sürgüsü (Three.js Plane clipping), Tel Kafes görünümü ve Standart/Geniş/Tam Ekran/Daralt kontrolleri eklendi.",
             "src/ifc/viewer/model.ts, src/ifc/viewer/model.test.ts, src/ifc/viewer/engine.ts, src/components/smartcheck/viewer/IfcReviewViewer.tsx",
+          ],
+          [
+            "Rev. 158 · 2 Kasım 2026 (TÜİK)", "Akış isteği", "Veri isteği belgedeki adres ve SDMX-CSV biçimiyle yapılır; 406 hatası giderildi.", "src/server/crawler/tuik-probe.ts",
           ],
           [
             "Rev. 112 · 28 Ekim 2026 (Faz 0 güven ve ticari doğruluk)",
