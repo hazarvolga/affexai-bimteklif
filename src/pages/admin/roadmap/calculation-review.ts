@@ -2963,7 +2963,7 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
   },
   {
     revision: "Rev. 148",
-    commit: "pending",
+    commit: "d9b400ac2b46a3daac691dec2ea62f937141890b",
     version: "BIM-CALC-2026-11-01.6",
     date: "1 Kasım 2026",
     trigger: "Vergi ve ihale oranlarının değişikliğini kaçırmama ihtiyacı, Hazar kararı",
@@ -2974,7 +2974,7 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
   },
   {
     revision: "Rev. 149",
-    commit: "pending",
+    commit: "ecc8683048a19331b0090d7283bbe257da7faa33",
     version: "BIM-CALC-2026-11-01.7",
     date: "1 Kasım 2026",
     trigger: "TÜİK Veri Portalı API anahtarının sunucuya eklenmesi, Hazar kararı",
@@ -2985,7 +2985,7 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
   },
   {
     revision: "Rev. 150",
-    commit: "pending",
+    commit: "7c6ec1f0f599fd32a88043fff7d2262fd8350af3",
     version: "BIM-CALC-2026-11-01.9",
     date: "1 Kasım 2026",
     trigger: "ÇŞB 2026 kitaplarının poz poz okunması, Hazar kararı",
@@ -2996,7 +2996,7 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
   },
   {
     revision: "Rev. 151",
-    commit: "pending",
+    commit: "dba8e2d0be10d263aad7396ee25d345be57e4a13",
     version: "BIM-CALC-2026-11-01.9",
     date: "1 Kasım 2026",
     trigger: "west_riverside_hospital IFC denemesi, Hazar",
@@ -3007,7 +3007,7 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
   },
   {
     revision: "Rev. 152",
-    commit: "pending",
+    commit: "2d82a0bdc99be4dcc58c09da7336ddd974153008",
     version: "BIM-CALC-2026-11-01.10",
     date: "1 Kasım 2026",
     trigger: "TÜİK veri akışı listesinin canlıda okunması, Hazar",
@@ -3018,7 +3018,7 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
   },
   {
     revision: "Rev. 153",
-    commit: "pending",
+    commit: "e449f2766815d017d2e54c7ae77e2ba29b04f630",
     version: "BIM-CALC-2026-11-01.11",
     date: "1 Kasım 2026",
     trigger: "2026_45 Allplan modelinin canlı denemesi, Hazar",
@@ -3029,7 +3029,7 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
   },
   {
     revision: "Rev. 154",
-    commit: "pending",
+    commit: "9662b057e4ea7ad360ab911cf85c95fef48d0ced",
     version: "BIM-CALC-2026-11-01.12",
     date: "1 Kasım 2026",
     trigger: "2026_45 Allplan modelinin canlı denemesi, Hazar",
@@ -3040,7 +3040,7 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
   },
   {
     revision: "Rev. 155",
-    commit: "pending",
+    commit: "963d7bed1c82c00cc45518d3b3de14bddb87dd63",
     version: "BIM-CALC-2026-11-01.13",
     date: "1 Kasım 2026",
     trigger: "2026_45 modelinin uzmanla canlı denemesi, Melih Bey'in oda sayısı sorusu",
@@ -3051,7 +3051,7 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
   },
   {
     revision: "Rev. 156",
-    commit: "pending",
+    commit: "6f3c9b56cea33f9c27fb0e47abadfd2ceca98ebf",
     version: "BIM-CALC-2026-11-01.14",
     date: "1 Kasım 2026",
     trigger: "2026_45 modelinin uzmanla canlı denemesi, Melih Bey'in oda, kapı/pencere ve eleman sayısı soruları",
@@ -3062,7 +3062,7 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
   },
   {
     revision: "Rev. 157",
-    commit: "pending",
+    commit: "d3c09782b1b1b732a335c7768cae8a47d481f3f2",
     version: "BIM-CALC-2026-11-01.15",
     date: "1 Kasım 2026",
     trigger: "2026_45 modelinin uzmanla canlı denemesi, Melih Bey'in düşey kesit isteği",
@@ -3073,7 +3073,7 @@ export const CALC_REVIEW_CHANGELOG: CalcReviewRevisionEntry[] = [
   },
   {
     revision: "Rev. 158",
-    commit: "pending",
+    commit: "f1bdedd17efc2a2be165cd0e3460ea7adef11a37",
     version: "BIM-CALC-2026-11-01.16",
     date: "2 Kasım 2026",
     trigger: "TÜİK akış yapısı düğmesinin HTTP 406 vermesi, Hazar",
