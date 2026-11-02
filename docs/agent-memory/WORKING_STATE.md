@@ -1,6 +1,6 @@
 # Working State: BIMMetraj
 
-Last updated: 2026-11-01. Keep this file to one page: current truth only. Move
+Last updated: 2026-11-02. Keep this file to one page: current truth only. Move
 history to `archive/` (latest: `archive/WORKING_STATE_until_2026-10-24.md`).
 
 ## Production
@@ -8,22 +8,14 @@ history to `archive/` (latest: `archive/WORKING_STATE_until_2026-10-24.md`).
 - `https://bimmetraj.com` on Coolify (app `ibjv2zbpecdcbd71lxo1vqd7`), Docker
   Compose `compose.coolify.yaml`: `app`, `worker`, `ifc-worker`, `migrate`,
   `backup`. Vercel files are legacy.
-- **Rev. 158 (PR until deployed):** TÜİK probe request fixed per the portal documentation: `GET /rest/data/TR,{flow},{ver}?format=SDMX-CSV&startPeriod={year-1}` (formats: SDMX_2.1_STRUCTURED, SDMX-CSV, JSON = JSON-stat; default SDMX-ML 2.1 Generic; no SDMX-JSON). The earlier SDMX-JSON request got 406.
-- **Rev. 157 (live, d3c0978):** 3D viewer: choose section axis (floor, side, front), per-axis slider and a play button; picking ignores cut-away parts. Not exercised in a real browser yet (WebGL); the pure step helper and types are tested.
-- **Rev. 156 (PR until deployed):** worker emits `classInventory` (instances per building class); the screen shows a model inventory card and a standalone door/window block; concrete lines say which classes fed them. Verified against Allplan's own slab report for 2026_45: 160 slabs, 322.37 m³, identical per element. The 13 geometry-only slabs (9 named ST_TML_BETON-C35, 294.55 m³ by geometry) are absent from Allplan's report too; their role is an open question for the expert.
-- **Rev. 155 (live after deploy):** the worker's apartment/room schedule is copied into the stored IFC evidence and shown on the server result screen (2026_45: 16 dwellings, 1,265.44 m², 172 rooms of 178 IfcSpace). Records processed before this have no schedule; reprocess the file. Known: the other summary fields the worker produces (e.g. trPsetCsb) are not shown on this screen either.
-- **Rev. 154 (live, 9662b05):** result summary and subtitle separate evidenced elements from the whole model (2026_45: 160 evidenced of 1,731). The line "Modelde Çoklu Katman Bilgisi Yok" still only looks at IfcCovering.
-- **Rev. 153 (live, e449f27):** result screen now passes the stored consistency report, so the coverage card counts all model elements (2026_45: 160/1,731 = 9.2%, was 160/160). Still open: 1,571 geometry-only elements are not listed as uncovered, only counted in the total. Opening-deduction card shows on m² lines only.
-- **Rev. 152 (PR until deployed):** TÜİK dataflow structure view (`GET /api/admin/tuik/dataflows/:id`). Real list read live on 1 Kasım 2026: agency is `TR`; İME is `DF_UFE_INSAAT_V1`, Yİ-ÜFE `DF_YIUFE_EDO_V1`/`DF_UFE_V6`, TÜFE only as `DF_TUFE_SDMX_*`; the adapter's `TUIK`/`DF_IME`/`DF_YI_UFE` are wrong. Automatic sync waits for the structure output.
-- **Rev. 151 (PR until deployed):** server-processed IFC screen now gets openings and authoring software through `GET /api/smartcheck/documents/:id/ifc-summary`; before this it passed a null summary, so every server result said no door/window data. Foreign models with non-Turkish, non-concrete materials still give an empty summary by rule; the message now says why.
-- **Rev. 150 (PR until deployed):** CSB_2026 opening rules now follow the "Ölçü" clauses of the 2026 İnşaat analyses, read for all 1,879 analyses: plaster, gypsum finish and paint deduct every opening and add reveals; walls 0.10, gypsum board 0.50, suspended ceilings 0.25 m² (smaller stays). Genel Teknik Şartname was not read. Expert acceptance open. Writing the price rows into the product needs ÇŞB written permission (FSEK notice in the books).
-- **Rev. 149 (PR until deployed):** admin TÜİK connection check (`GET /api/admin/tuik/connection`, card on Mevzuat Bekçisi). The adapter's agency `TUIK` and flow ids are unverified until the real list is read; no automatic index sync yet.
-- **Live revision: `d9b400a` (Rev. 148, deployed 1 Kasım 2026 with `verify` green, migration 0042). Plan values belong to the admin panel; the catalog only fills missing plans and empty columns.** T45 measurement (Rev. 142, arm64, 1.5 CPU, 2 GB, four open-license models 62-120 MB): 6-23 s, peak 1.75 GB; real customer file still missing. Previous live: `3812e82` (Rev. 138), before it `3a9bb7d` (Rev. 133):
+- **Rev. 149–158 (1–2 Kasım 2026, all live):** TÜİK connection check and dataflow structure view; ÇŞB opening-deduction rules from the 2026 analyses; server IFC screen shows openings, source software, apartment/room schedule, class inventory and a standalone door/window block; coverage counts the whole model (160/1,731 on 2026_45); 3D viewer vertical sections and play. Details, open items and pitfalls: `HANDOFF_2026-11-02_UZMAN_TESTI.md`.
+- **Open (short):** TÜİK auto-sync waits for the "Yapıyı göster" output; expert answers (foundation-named slabs, name vs material, 15.275/15.380 openings); column/beam/wall comparison; visibility tree by storey/class; 15-character material limit still wrongly an error in `epys.ts`; ÇŞB permission for the 18,848 embedded rows.
+- **Live revision: `f1bdedd` (Rev. 158, deployed 2 Kasım 2026 with `verify` green; last migration 0042, Rev. 148). Plan values belong to the admin panel; the catalog only fills missing plans and empty columns.** T45 measurement (Rev. 142, arm64, 1.5 CPU, 2 GB, four open-license models 62-120 MB): 6-23 s, peak 1.75 GB; real customer file still missing. Previous live: `3812e82` (Rev. 138), before it `3a9bb7d` (Rev. 133):
   T41 8B: `bimmetraj_worker_get_entitlement()` SECURITY DEFINER capability function aktif;
   `bimmetraj_worker` — `subscriptions` ve `plans` tablolarında 0 privilege (db-provision contract).
   T44: Docker PG16 kurtarma tatbikatı tamamlandı (5 sütun, 30 Ekim 2026);
   pg_dump/pg_restore 130/522 ms, RPO 0 kayıp, katalog e5e4d3d1, 38 migration doğrulandı.
-  Active handoff: `docs/agent-memory/HANDOFF_2026-10-30_T41_8B_TAMAMLANDI.md`.
+  Active handoff: `docs/agent-memory/HANDOFF_2026-11-02_UZMAN_TESTI.md` (before it: `HANDOFF_2026-10-30_T41_8B_TAMAMLANDI.md`).
   Release migrations `0022..0029` are applied in
   `bimmetraj_production`; all 5 containers (`app`, `worker`, `ifc-worker`,
   `backup`, `postgres`) are `Up` and healthy. Worker control-plane isolation
