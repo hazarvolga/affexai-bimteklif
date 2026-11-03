@@ -29,7 +29,7 @@ export interface EpysValidationResult {
 const SCOPE = {
   checked: [
     "m.12(2) & EK-6 Tablo 6.55: TREpys_ParselOzellikSeti (TAKS, KAKS, CekmeOn, CekmeYan, CekmeArka) varlığı",
-    "m.12(2) & EK-6: Malzeme İsmi_Dayanım (örn. Beton_C25, Çelik_S355) formatı ve 15 karakter CAD şablon uyumu",
+    "m.12(2) & EK-6: Malzeme İsmi_Dayanım (örn. Beton_C25, Çelik_S355) formatı",
     "m.10(2) & EK-3 Tablo 3.1: Mahal numarası (Kat_Bölüm_SıraNo) biçimi",
     "5D BIM Metraj Köprüsü: TREpys_PozOzellikSeti.PozNo (CSBPozNo) eleman kapsamı (bilgi/uyarı)",
   ],
@@ -95,17 +95,14 @@ export function validateEpysRules(input: EpysRuleInput): EpysValidationResult {
     }
   }
 
-  // KURAL 3: Malzeme İsimlendirmesi — m.12(2) & EK-6 'Malzeme İsmi_Dayanım' formatı + 15 karakter CAD şablon kontrolü
+  // KURAL 3: Malzeme İsimlendirmesi — m.12(2) & EK-6 'Malzeme İsmi_Dayanım' formatı
+  // NOT: EPYS_IDS v0.1.3 (2026-10-14) güncellemesinde 15 karakter uzunluk sınırı
+  // IDS şemasında yer almamaktadır; yönetmelik metninde de zorunlu değildir.
   if (input.materialNames) {
     const missingStrengthFormat = input.materialNames.filter(m => !m.includes("_"));
     if (missingStrengthFormat.length > 0) {
       warnings.push(`[m.12 / EK-6 Malzeme Uyarısı] ${missingStrengthFormat.length} adet malzeme adı 'Malzeme İsmi_Dayanım' (örn. Beton_C25, Çelik_S355) biçiminde değil. Örn: ${missingStrengthFormat[0]}`);
       penaltyPoints += 10;
-    }
-    const invalidMaterials = input.materialNames.filter(m => m.length > 15);
-    if (invalidMaterials.length > 0) {
-      errors.push(`[EK-6 / CAD Şablon İhlali] Modelde 15 karakter malzeme kodu sınırını aşan malzeme isimleri bulundu (${invalidMaterials.length} adet). Örn: ${invalidMaterials[0]}`);
-      penaltyPoints += 20;
     }
   }
 
@@ -145,7 +142,7 @@ export function validateEpysRules(input: EpysRuleInput): EpysValidationResult {
   const automaticScore = Math.max(0, 100 - Math.round(penaltyPoints));
   const hasCoreEvidence = Boolean(compliance.source);
   const parcelFailed = errors.some(error => /m\.12 \/ EK-6 Tablo 6\.55/.test(error));
-  const materialFailed = errors.some(error => /Malzeme|CAD Şablon/.test(error));
+  const materialFailed = errors.some(error => /EK-6 Malzeme/.test(error));
   const spaceFailed = warnings.some(warning => /EK-3 Uyarısı/.test(warning));
   const elementFailed = errors.some(error => /EK-6 İhlali/.test(error));
   const checks: EpysValidationResult["checks"] = [

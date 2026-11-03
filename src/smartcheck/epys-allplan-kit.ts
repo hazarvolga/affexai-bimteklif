@@ -212,7 +212,7 @@ export function buildAllplanEpysKitV1(): AllplanEpysKitV1 {
     },
     ek5ElementNamingAndMaterials: {
       elementNamePattern: "Disiplin(2)-KategoriKodu(3)-Aciklama (örn. MM-DVR-dis_20cm, ST-KLN-k101) — m.11 & EK-5 5.5",
-      materialRule: "Malzeme İsmi_Dayanım formatı (m.12(2) & EK-6, örn. Beton_C25, Çelik_S355) ve en fazla 15 karakter CAD şablon standardı",
+      materialRule: "Malzeme İsmi_Dayanım formatı (m.12(2) & EK-6, örn. Beton_C25, Çelik_S355) — EPYS_IDS v0.1.3 itibarıyla 15 karakter uzunluk sınırı IDS şemasında zorunlu değildir",
       maxMaterialCharLength: 15 as const,
       approved15CharMaterials: APPROVED_15_CHAR_MATERIALS,
       zorunluSinifCount: ek5.zorunlu.length,

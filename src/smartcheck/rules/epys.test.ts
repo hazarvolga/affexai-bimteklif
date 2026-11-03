@@ -14,7 +14,7 @@ describe("e-PYS Validation Rules", () => {
     assert.ok(result.warnings.some(w => w.includes("CSBPozNo")));
   });
 
-  it("should catch material names longer than 15 characters and check m.13(3) Malzeme İsmi_Dayanım format", () => {
+  it("should warn for material names missing Malzeme İsmi_Dayanım format (15-char limit is not enforced per EPYS_IDS v0.1.3)", () => {
     const result = validateEpysRules({
       complianceData: { source: "ifc_site", taks: 0.4, kaks: 1.5, cekmeOn: 5, cekmeYan: 3, cekmeArka: 3 },
       pozExtraction: { pozNoByStepId: new Map() },
@@ -22,7 +22,7 @@ describe("e-PYS Validation Rules", () => {
       materialNames: ["KısaMalzeme", "BuMalzemeIsmiOnBesKarakterdenUzun_C30"]
     });
     assert.strictEqual(result.isValid, false);
-    assert.ok(result.errors.some(e => e.includes("15 karakter")));
+    assert.ok(!result.errors.some(e => e.includes("15 karakter")), "15-char limit must not generate an error");
     assert.ok(result.warnings.some(w => w.includes("Malzeme İsmi_Dayanım")));
   });
 
