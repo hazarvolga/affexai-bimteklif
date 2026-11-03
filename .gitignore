@@ -35,3 +35,10 @@ test-results/
 
 # Official price catalogues: large and copyright-restricted, never committed
 Birim Fiyat Katalogları/
+
+# Local working files: test guides, analysis sheets, workflow docs
+*.xlsx
+1.xlsx
+BIMMetraj*.pdf
+epys_otomatik_isimlendirm*.pdf
+DEVOPS*.md
