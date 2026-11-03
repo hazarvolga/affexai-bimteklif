@@ -1,0 +1,51 @@
+{
+  "context": [
+    "CLAUDE.md",
+    "CODEX.md",
+    "AGENTS.md",
+    "docs/agent-memory/WORKING_STATE.md"
+  ],
+  "permissions": {
+    "allow": [
+      "Bash(git status)",
+      "Bash(git log:*)",
+      "Bash(git diff:*)",
+      "Bash(git branch:*)",
+      "Bash(git show:*)",
+      "Bash(git stash list)",
+      "Bash(ls:*)",
+      "Bash(find:*)",
+      "Bash(grep:*)",
+      "Bash(cat:*)",
+      "Bash(head:*)",
+      "Bash(tail:*)",
+      "Bash(wc:*)",
+      "Bash(pnpm lint)",
+      "Bash(pnpm test)",
+      "Bash(pnpm run lint)",
+      "Bash(pnpm run test)",
+      "Bash(pnpm run test:coverage)",
+      "Bash(pnpm run verify)",
+      "Bash(pnpm run build)",
+      "Bash(pnpm run smartcheck:*)",
+      "Bash(pnpm run test:database-roles:*)",
+      "Bash(pnpm run test:tenant-rls:*)",
+      "Bash(pnpm run prisma:*)",
+      "Bash(pnpm run database-roles:inspect)",
+      "Bash(pnpm run contracts:generate)",
+      "Bash(pnpm run excel:corpus)",
+      "Bash(pnpm run academy:parity)",
+      "Bash(pnpm run allplan:*)",
+      "Bash(pnpm run postgres:restore-drill:plan)",
+      "Bash(pnpm run postgres:restore-drill:verify)",
+      "Bash(tsx:*)",
+      "Bash(node:*)",
+      "Bash(tsc:*)",
+      "Bash(gh pr list:*)",
+      "Bash(gh pr view:*)",
+      "Bash(gh run list:*)",
+      "Bash(gh run view:*)",
+      "Bash(gh search:*)"
+    ]
+  }
+}

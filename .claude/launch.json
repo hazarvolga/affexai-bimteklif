@@ -19,6 +19,15 @@
         "set -a; . ./.env.review.local; set +a; exec pnpm run dev"
       ],
       "port": 3001
+    },
+    {
+      "name": "teklifpro-fresh",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": [
+        "-c",
+        "set -a; . ./.env.fresh-rehearsal.local; set +a; export PORT=3002 NODE_ENV=development SMARTCHECK_IMPORT_ENABLED=true SMARTCHECK_PILOT_COMPANY_IDS=00000000-0000-4000-8000-000000000000 DATABASE_URL=\"$APP_DATABASE_URL\" CONTROL_DATABASE_URL=\"$APP_CONTROL_DATABASE_URL\" WORKER_DATABASE_URL=\"$APP_WORKER_DATABASE_URL\" PUPPETEER_EXECUTABLE_PATH=\"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome\"; unset DATABASE_ROLE_ADMIN_URL DATABASE_ROLE_INSPECT_URL RELEASE_DATABASE_URL BIMMETRAJ_APP_DB_PASSWORD BIMMETRAJ_CONTROL_DB_PASSWORD BIMMETRAJ_WORKER_DB_PASSWORD BIMMETRAJ_MIGRATOR_DB_PASSWORD BIMMETRAJ_BACKUP_DB_PASSWORD; exec pnpm run dev"
+      ],
+      "port": 3002
     }
   ]
 }
