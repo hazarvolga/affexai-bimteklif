@@ -9,15 +9,6 @@ import { ACADEMY_ENABLED } from '../../config/features';
 import { PLAN_CATALOG_VERSION } from '../../services/billing/plan-catalog';
 import type { PublicPlanView } from '../../services/billing/public-plans';
 
-/** Firebase (Academy profile/certificates) is the only third-party runtime the SPA talks to. */
-const FIREBASE_ORIGINS = [
-  'https://firestore.googleapis.com',
-  'https://firebase.googleapis.com',
-  'https://firebaseinstallations.googleapis.com',
-  'https://identitytoolkit.googleapis.com',
-  'https://securetoken.googleapis.com',
-];
-
 function httpsOrigin(raw: string | undefined): URL | null {
   if (!raw) return null;
   try {
@@ -42,7 +33,7 @@ export function contentSecurityPolicy(env: Record<string, string | undefined>): 
     'style-src': ["'self'", "'unsafe-inline'"],
     'img-src': ["'self'", 'data:', 'blob:'],
     'font-src': ["'self'", 'data:'],
-    'connect-src': ["'self'", 'https://cloudflareinsights.com', ...storageOrigins, ...(ACADEMY_ENABLED ? FIREBASE_ORIGINS : [])],
+    'connect-src': ["'self'", 'https://cloudflareinsights.com', ...storageOrigins],
     'worker-src': ["'self'", 'blob:'],
     'object-src': ["'none'"],
     'base-uri': ["'self'"],

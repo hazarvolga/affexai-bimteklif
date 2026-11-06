@@ -185,8 +185,9 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
   },
   {
     id: "durum",
-    title: "Uygulama durumu (1 Kasım 2026 · Rev. 158 geliştirme kaydı)",
+    title: "Uygulama durumu (6 Kasım 2026 · Rev. 159 geliştirme kaydı)",
     blocks: [
+      { type: "callout", tone: "info", title: "Rev. 159 · Firebase kaldırıldı", text: "Kullanılmayan Firebase katmanı, iki proje yapılandırması ve bağımlılığı kaldırıldı; Academy tipleri ayrı dosyaya taşındı. CSP'de Firebase adresi yok. Uygulama davranışı değişmez." },
       { type: "callout", tone: "info", title: "Rev. 158 · TÜİK akış yapısı isteği", text: "Yapıyı göster düğmesi TÜİK belgesindeki biçimle (SDMX-CSV) veri ister; önceki SDMX-JSON isteği 406 ile reddediliyordu. Veri kaydedilmez." },
       { type: "callout", tone: "info", title: "Rev. 157 · Düşey kesit", text: "3B görüntüleyicide kesit yönü seçilir (yatay, sağ-sol düşey, ön-arka düşey) ve oynat düğmesiyle kesit kendiliğinden kayar. Metraj etkilenmez." },
       { type: "callout", tone: "info", title: "Rev. 156 · Model envanteri", text: "Dosyadaki sınıflar ve sayıları ekranda görünür; her biri için icmalde mi, ayrı listede mi, metraja girmiyor mu ve nedeni yazılır. Kapı ve pencere bloğu kalem seçmeden görünür. Hesap değişmedi." },
@@ -1234,6 +1235,9 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
           [
             "Rev. 158", "2 Kasım 2026 · TÜİK akış isteği", "BIM-CALC-2026-11-01.16", "Akış yapısı isteği belgedeki SDMX-CSV biçimine çevrildi. Veri kaydedilmez, hesap değişmez.",
           ],
+          [
+            "Rev. 159", "6 Kasım 2026 · Firebase kaldırıldı", "BIM-CALC-2026-11-06.17", "Kullanılmayan Firebase katmanı ve bağımlılığı silindi. Uygulama davranışı ve hesap değişmez.",
+          ],
         ],
       },
       {
@@ -2127,6 +2131,9 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
           ],
           [
             "Rev. 158 · 2 Kasım 2026 (TÜİK)", "Akış isteği", "Veri isteği belgedeki adres ve SDMX-CSV biçimiyle yapılır; 406 hatası giderildi.", "src/server/crawler/tuik-probe.ts",
+          ],
+          [
+            "Rev. 159 · 6 Kasım 2026 (Güvenlik)", "Firebase kaldırıldı", "Hiç çağrılmayan Firestore katmanı, public repodaki iki Firebase yapılandırması ve firebase bağımlılığı silindi; CSP testi beş Firebase adresinin yokluğunu doğrular.", "src/features/academy/types.ts; src/server/security/web-hardening.ts; package.json; pnpm-workspace.yaml",
           ],
           [
             "Rev. 112 · 28 Ekim 2026 (Faz 0 güven ve ticari doğruluk)",

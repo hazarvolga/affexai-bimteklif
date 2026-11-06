@@ -1,10 +1,8 @@
 allowBuilds:
-  '@firebase/util': false
   '@google/genai': true
   '@prisma/engines': true
   esbuild: true
   prisma: true
-  protobufjs: true
   puppeteer: false
 overrides:
   'body-parser@>=1.0.0 <1.20.9': 1.20.9
@@ -15,6 +13,5 @@ overrides:
   'deepmerge-ts@<8.0.0': 8.0.0
   'qs@>=6.0.0 <6.16.0': 6.16.0
   'hono@>=4.0.0 <4.13.7': 4.13.7
-  '@grpc/grpc-js@>=1.0.0 <1.13.6': 1.13.6
   'uuid@>=8.0.0 <11.1.1': 11.1.1
   're2js@>=2.2.0 <2.8.7': 2.8.7

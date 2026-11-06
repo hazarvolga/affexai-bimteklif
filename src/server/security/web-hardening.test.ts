@@ -15,7 +15,9 @@ test('CSP locks scripts to self (+ wasm-unsafe-eval for web-ifc 3D viewer & Clou
   assert.ok(directives['connect-src'].includes('https://cloudflareinsights.com'));
   assert.ok(directives['connect-src'].includes('https://acct.r2.cloudflarestorage.com'));
   assert.ok(directives['connect-src'].includes('https://*.acct.r2.cloudflarestorage.com'), 'virtual-hosted bucket uploads');
-  assert.ok(!directives['connect-src'].includes('https://firestore.googleapis.com'), 'academy Firebase omitted while ACADEMY_ENABLED is false');
+  for (const origin of ['https://firestore.googleapis.com', 'https://firebase.googleapis.com', 'https://firebaseinstallations.googleapis.com', 'https://identitytoolkit.googleapis.com', 'https://securetoken.googleapis.com']) {
+    assert.ok(!policy.includes(origin), `Firebase removed (2026-11-06): ${origin} must not appear in CSP`);
+  }
   assert.ok(!policy.includes('fonts.googleapis.com'), 'KVKK/SEC-3: no external Google Fonts in CSP');
   assert.ok(!policy.includes('fonts.gstatic.com'), 'KVKK/SEC-3: no external Google Fonts in CSP');
   assert.ok(!directives['script-src'].includes("'unsafe-eval'"), 'JS unsafe-eval stays forbidden; only wasm-unsafe-eval is allowed');

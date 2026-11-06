@@ -51,6 +51,8 @@ history to `archive/` (latest: `archive/WORKING_STATE_until_2026-10-24.md`).
 
 ## Code (main / working branch)
 
+- **Rev. 159 (6 Kasım 2026, branch `chore/remove-firebase`, PR until deployed):** unused Firebase layer removed (`src/lib/firebase.ts`, `firebase-applet-config.json`, AI Studio `metadata.json`, `firebase` dependency; protobufjs/grpc left the tree with it). Academy view types now in `src/features/academy/types.ts`. CSP test asserts no Firebase origin. **Open for Hazar:** both Firebase projects (`gen-lang-client-0518126114`, `gen-lang-client-0852060838`) still exist in Google Console with keys in git history; delete them or lock rules and rotate keys, and make the repo private. Source: external audit `Quder-rapor.md` (SEC-01), verified in code.
+
 - **Rev. 133 (`3a9bb7d`, production'da):** T41 8B worker entitlement capability function + T44 kurtarma tatbikatı tamamlandı (30 Ekim 2026). Bkz: `docs/agent-memory/HANDOFF_2026-10-30_T41_8B_TAMAMLANDI.md`.
 - **Rev. 132 (main'de, production'a dahil):** Kalıp metraj → teklif köprüsü: `formworkAreaM2` artık varsayılan olarak IFC ön analiz teklifine `needs_review` kalemi olarak aktarılır; `FORMWORK_REQUIRES_MODEL_EVIDENCE` kaldırıldı. E-posta doğrulama banner'ı sadece learner değil tüm doğrulanmamış workspace kullanıcılarına gösterilir.
 - **Rev. 131:** Firma sahibi/yöneticisi müşteri ad, iletişim ve müşteri not alanlarında inceleme/bekleme/maskeleme yapabilir. Teklif ve finansal kayıtlar korunur; serbest metin, ayrı aday, önceden indirilen PDF, yedek ve dış servis kopyaları kapsam dışıdır. 0037 migration, bağımsız CI ve canlı dağıtım ayrı doğrulanır; bu kayıt yasal kabul değildir.
