@@ -80,7 +80,7 @@ export const subGuidesData: Record<string, SubGuide> = {
       'BEP yaşayan bir dokümandır; ihale öncesi (pre-appointment) ve sözleşme sonrası (post-appointment) olarak iki aşamalı güncellenir.'
     ],
     practicalCaseStudy: '30.000 m² hastane projesinde işveren EIR şartnamesine MED-01 tıbbi gaz ekipman kodlarını eklemiş; yüklenici MIDP planına uygun olarak teslim aşamasında 1.200 adet IfcMedicalDevice nesnesini COBie şemasına eksiksiz aktarmıştır.',
-    teklifProIntegrationNote: 'TeklifPro, ihale öncesi oluşturulan EIR şartnamesindeki metraj güvenlik katsayılarını otomatik okuyarak teklif risk primi marjını hesaplar.',
+    teklifProIntegrationNote: 'BIMMetraj, ihale öncesi oluşturulan EIR şartnamesindeki metraj güvenlik katsayılarını otomatik okuyarak teklif risk primi marjını hesaplar.',
     checkpointQuestions: [
       {
         question: 'ISO 19650-2 standartlarına göre işverenin ihale dokümanına koyduğu zorunlu bilgi teslim şartnamesi hangisidir?',
@@ -135,7 +135,7 @@ export const subGuidesData: Record<string, SubGuide> = {
       'IFC 4.0 MVD (Model View Definition) validation araçlarıyla model teslim edilmeden önce otomatik doğrulanmalıdır.'
     ],
     practicalCaseStudy: 'AVM projesinde kule klimaları PIM aşamasında LOD 400 geometrisiyle modellenmiş; AIM tesliminde gereksiz poligonlar hafifletilerek yalnızca COBie Component ve Pset_Warranty verileri saklanmıştır.',
-    teklifProIntegrationNote: 'TeklifPro IFC 4.0 Parser motoru, yüklenen modeldeki COBie verilerini otomatik süzerek hakediş ve yedek parça teklif kalemlerine dönüştürür.'
+    teklifProIntegrationNote: 'BIMMetraj IFC 4.0 Parser motoru, yüklenen modeldeki COBie verilerini otomatik süzerek hakediş ve yedek parça teklif kalemlerine dönüştürür.'
   },
 
   'iso-19650-rbac-security': {
@@ -165,7 +165,7 @@ export const subGuidesData: Record<string, SubGuide> = {
       'Her CDE geçişinde silinemez zaman damgalı Audit Trail (Denetim İzi) kaydı tutulmalıdır.'
     ],
     practicalCaseStudy: 'Veri merkezi projesinde ISO 19650-5 uyarınca sunucu odalarının MEP detayları kısıtlı RBAC rolüyle gizlenmiş, CDE üzerinden yalnız yetkili mühendislere onaylı yayınlanmıştır.',
-    teklifProIntegrationNote: 'TeklifPro kullanıcı izin yönetim sistemi, ISO 19650-5 RBAC matrisini esas alarak maliyet yetkilerini gizler veya yayınlar.'
+    teklifProIntegrationNote: 'BIMMetraj kullanıcı izin yönetim sistemi, ISO 19650-5 RBAC matrisini esas alarak maliyet yetkilerini gizler veya yayınlar.'
   },
 
   'iso-19650-loin-matrix': {
@@ -196,7 +196,7 @@ export const subGuidesData: Record<string, SubGuide> = {
       'SmartCheck denetimleri LOIN şartnamesindeki eksik LOI parametrelerini tespit eder.'
     ],
     practicalCaseStudy: 'Statik projede donatı filizleri 3D geometri yerine LOI parametresi olarak verilerek 1.2 GB model boyutu 180 MB seviyesine düşürülmüştür.',
-    teklifProIntegrationNote: 'TeklifPro metraj motoru, LOI 300 verisinden Poz Numarası ve Şartname maddelerini doğrudan okuyarak teklif kalemlerini otomatik eşleştirir.'
+    teklifProIntegrationNote: 'BIMMetraj metraj motoru, LOI 300 verisinden Poz Numarası ve Şartname maddelerini doğrudan okuyarak teklif kalemlerini otomatik eşleştirir.'
   },
 
   // ===================================================================
@@ -229,7 +229,7 @@ export const subGuidesData: Record<string, SubGuide> = {
       'Zamansal çakışmalar (4D Clash) şantiyede vinç çakışmasını ve malzeme yığılmasını engeller.'
     ],
     practicalCaseStudy: 'Köprü inşaatında ayak betonarme dökümleri Primavera P6 iş programı ile GUID üzerinden eşleştirilmiş, 4D simülasyonda viyadük ayağının 3 gün gecikmeyle döküleceği önceden görülmüştür.',
-    teklifProIntegrationNote: 'TeklifPro 5D motoru, Primavera P6 iş programı süresini alarak nakit akışı ve aylık hakediş projeksiyonunu otomatik hesaplar.'
+    teklifProIntegrationNote: 'BIMMetraj 5D motoru, Primavera P6 iş programı süresini alarak nakit akışı ve aylık hakediş projeksiyonunu otomatik hesaplar.'
   },
 
   '4d-5d-evm-calculator': {
@@ -256,10 +256,10 @@ export const subGuidesData: Record<string, SubGuide> = {
     keyTakeaways: [
       'Sadece harcanan paraya (AC) bakarak projenin kârlı olduğu anlaşılamaz; fiziki gerçekleşme (EV) mutlaka ölçülmelidir.',
       'CPI < 0.85 seviyesine düştüğünde proje ivme kaybına girer ve acil mühendislik revizyonu gerektirir.',
-      'TeklifPro hakediş ekranında EVM grafiği canlı model verisiyle güncellenir.'
+      'BIMMetraj hakediş ekranında EVM grafiği canlı model verisiyle güncellenir.'
     ],
     practicalCaseStudy: '6. ay görünümünde PV=1.000.000 ₺, EV=700.000 ₺, AC=720.000 ₺ olan projede SPI=0.70 (gecikme) ve CPI=0.97 (hafif bütçe aşımı) tespit edilerek şantiye vardiyası artırılmıştır.',
-    teklifProIntegrationNote: 'TeklifPro, teklif hazırlama esnasında CPI/SPI risk tolerans katsayılarını otomatik simüle eder.'
+    teklifProIntegrationNote: 'BIMMetraj, teklif hazırlama esnasında CPI/SPI risk tolerans katsayılarını otomatik simüle eder.'
   },
 
   '4d-5d-lump-sum-risk': {
@@ -270,7 +270,7 @@ export const subGuidesData: Record<string, SubGuide> = {
     badge: '5D İhale Risk Yönetimi',
     summary: 'Sözleşme tipi (Lump Sum vs Remeasurement), metraj belirsizliği, enflasyon volatilite primi ve clash riskinin teklif marjına etkisi.',
     formulaOrRule: '\\text{Teklif Fiyatı} = \\text{Net Metraj} \\times \\text{Birim Fiyat} \\times (1 + R_{\\text{sözleşme}} + R_{\\text{enflasyon}} + R_{\\text{clash}})',
-    standards: ['FIDIC Red Book (Birim Fiyat)', 'FIDIC Yellow/Silver Book (Götürü Bedel)', 'TeklifPro Risk Engine v2'],
+    standards: ['FIDIC Red Book (Birim Fiyat)', 'FIDIC Yellow/Silver Book (Götürü Bedel)', 'BIMMetraj Risk Engine v2'],
     tables: [
       {
         title: 'Sözleşme Tipine Göre Risk Paylaşımı ve Risk Primi Dağılımı',
@@ -286,10 +286,10 @@ export const subGuidesData: Record<string, SubGuide> = {
     keyTakeaways: [
       'Götürü bedel ihalelerde metraj %15 eksik hesaplansa bile işveren ilave ödeme yapmaz; risk primi teklife eklenmelidir.',
       'LOD 200 modellerde götürü bedel teklif vermek iflas riski taşır; model en az LOD 300 olmalıdır.',
-      'TeklifPro risk motoru belirsizlik katsayılarını otomatik tarayarak P90 güven aralığında teklif önerir.'
+      'BIMMetraj risk motoru belirsizlik katsayılarını otomatik tarayarak P90 güven aralığında teklif önerir.'
     ],
-    practicalCaseStudy: 'Endüstriyel tesis ihalesinde götürü bedel teklif veren firma, donatı paspayı metrajındaki %12 sapmayı üstlenmek zorunda kalmış; TeklifPro risk motoru kullanan firma ise risk primi ekleyerek kârlılığını korumuştur.',
-    teklifProIntegrationNote: 'TeklifPro panelinde sözleşme tipini "Götürü Bedel" seçtiğinizde sistem otomatik olarak %5 belirsizlik primi ekler.'
+    practicalCaseStudy: 'Endüstriyel tesis ihalesinde götürü bedel teklif veren firma, donatı paspayı metrajındaki %12 sapmayı üstlenmek zorunda kalmış; BIMMetraj risk motoru kullanan firma ise risk primi ekleyerek kârlılığını korumuştur.',
+    teklifProIntegrationNote: 'BIMMetraj panelinde sözleşme tipini "Götürü Bedel" seçtiğinizde sistem otomatik olarak %5 belirsizlik primi ekler.'
   },
 
   '4d-5d-minha-rules': {
@@ -316,10 +316,10 @@ export const subGuidesData: Record<string, SubGuide> = {
     keyTakeaways: [
       'Almanya projelerinde ÇŞB mantığıyla metraj çıkarmak %8 ila %12 arası teklif kaybına sebep olur.',
       'Türkiye kamu ihalelerinde 3 m² altı düşülmez kuralı geçerli değildir; tüm boşluklar net minha edilir.',
-      'TeklifPro metraj motoru hedef ülke seçimine göre minha kurallarını otomatik değiştirir.'
+      'BIMMetraj metraj motoru hedef ülke seçimine göre minha kurallarını otomatik değiştirir.'
     ],
     practicalCaseStudy: 'Münih\'te konut projesinde 1.8 m² pencere boşlukları DIN 18350 uyarınca minha edilmemiş; Türk taşeron firma ise yanlışlıkla boşlukları düşerek %9 işçilik zararı etmiştir.',
-    teklifProIntegrationNote: 'TeklifPro ayarlarında "Almanya DIN 18350" şablonunu seçtiğinizde 2.50 m² altı boşluk minha hesaplayıcısı otomatik devreye girer.'
+    teklifProIntegrationNote: 'BIMMetraj ayarlarında "Almanya DIN 18350" şablonunu seçtiğinizde 2.50 m² altı boşluk minha hesaplayıcısı otomatik devreye girer.'
   },
 
   // ===================================================================
@@ -352,7 +352,7 @@ export const subGuidesData: Record<string, SubGuide> = {
       'SmartCheck BEM denetimi izolasyon malzemesi eksik dış duvarları otomatik raporlar.'
     ],
     practicalCaseStudy: 'Ankara projesinde cam U-değeri 2.4\'ten 1.1 W/m²K seviyesine düşürülmüş, yıllık ısıtma yükünde %28 tasarruf sağlanarak BREEAM sertifikası alınmıştır.',
-    teklifProIntegrationNote: 'TeklifPro risk ekranında BEM sonuçlarına göre iklimlendirme cihaz kapasitesi ve yeşil tedarik marjı simüle edilir.'
+    teklifProIntegrationNote: 'BIMMetraj risk ekranında BEM sonuçlarına göre iklimlendirme cihaz kapasitesi ve yeşil tedarik marjı simüle edilir.'
   },
 
   'sustainability-6d-lca-phases': {
@@ -383,7 +383,7 @@ export const subGuidesData: Record<string, SubGuide> = {
       'EPD (Environmental Product Declaration) sertifikası olmayan ürünler jenerik veritabanı katsayısı alır.'
     ],
     practicalCaseStudy: 'İstanbul projesinde geri dönüştürülmüş donatı çeliği kullanılarak A1-A3 imalat aşaması gömülü karbon emisyonunda %34 azalma elde edilmiştir.',
-    teklifProIntegrationNote: 'TeklifPro yeşil tedarik modülü, EPD veritabanından malzeme karbon katsayılarını çekerek karbon primi maliyetini hesaplar.'
+    teklifProIntegrationNote: 'BIMMetraj yeşil tedarik modülü, EPD veritabanından malzeme karbon katsayılarını çekerek karbon primi maliyetini hesaplar.'
   },
 
   'sustainability-6d-embodied-carbon': {
@@ -410,10 +410,10 @@ export const subGuidesData: Record<string, SubGuide> = {
     keyTakeaways: [
       'Gömülü karbon bina inşa edilip bittiği an kilitlenir; işletme döneminde değiştirilemez.',
       'CBAM (AB Sınırda Karbon Düzenleme Mekanizması) ihracatçı müteahhitler için karbon vergi riski yaratır.',
-      'TeklifPro karbon hesaplayıcısı malzeme pozu bazında GWP tonajını listeler.'
+      'BIMMetraj karbon hesaplayıcısı malzeme pozu bazında GWP tonajını listeler.'
     ],
     practicalCaseStudy: 'Köprü projesinde çimentoda %50 curuf ikamesi yapılarak 42.000 Ton gömülü karbon salınımı engellenmiştir.',
-    teklifProIntegrationNote: 'TeklifPro risk ayarlarında CBAM Karbon Risk Primini aktif ettiğinizde yüksek emisyonlu çelik kalemlerine varsayım katsayısı ekler.'
+    teklifProIntegrationNote: 'BIMMetraj risk ayarlarında CBAM Karbon Risk Primini aktif ettiğinizde yüksek emisyonlu çelik kalemlerine varsayım katsayısı ekler.'
   },
 
   'sustainability-6d-green-building-leed': {
@@ -440,10 +440,10 @@ export const subGuidesData: Record<string, SubGuide> = {
     keyTakeaways: [
       'LEED Gold veya Platinum hedefleyen projelerde EPD verisi olan malzemeler tercih edilmelidir.',
       'BIM modelinde malzeme boya ve kaplamalarının VOC parametreleri eksikse iç hava kalitesi kredisi kaybedilir.',
-      'TeklifPro green sertifika raporu kredileri poz kodlarıyla eşleştirir.'
+      'BIMMetraj green sertifika raporu kredileri poz kodlarıyla eşleştirir.'
     ],
     practicalCaseStudy: 'Ofis kulesi projesinde BIM modelinden otomatik çıkarılan EPD ve VOC verileri sayesinde LEED v4.1 Platinum sertifikası 82 puanla kazanılmıştır.',
-    teklifProIntegrationNote: 'TeklifPro teklif çıktısında yeşil bina sertifika puan kartını ve onaylı pozları teklif ekine otomatik koyar.'
+    teklifProIntegrationNote: 'BIMMetraj teklif çıktısında yeşil bina sertifika puan kartını ve onaylı pozları teklif ekine otomatik koyar.'
   },
 
   // ===================================================================
@@ -477,7 +477,7 @@ export const subGuidesData: Record<string, SubGuide> = {
       'SmartCheck Scan-to-BIM kural motoru tarama ile model arasındaki sapmaları süzmektedir.'
     ],
     practicalCaseStudy: 'Tarihi hamam restorasyonunda LOA 50 karasal lazer tarama yapılarak kubbedeki 3 mm deformasyon taranmış ve HBIM modeline işlenmiştir.',
-    teklifProIntegrationNote: 'TeklifPro rölöve tekliflerinde LOA seviyesini seçtiğinizde tarama adam-saat maliyeti otomatik hesaplanır.'
+    teklifProIntegrationNote: 'BIMMetraj rölöve tekliflerinde LOA seviyesini seçtiğinizde tarama adam-saat maliyeti otomatik hesaplanır.'
   },
 
   'scan-to-bim-heatmap-analysis': {
@@ -504,10 +504,10 @@ export const subGuidesData: Record<string, SubGuide> = {
     keyTakeaways: [
       'Heatmap analizi betonarme kalıp sökümünden hemen sonra yapılarak kolon eğiklikleri erkenden tespit edilir.',
       'Sözleşmede tolerans dışı kırmızı bölgeler BCF sorunu (Issue) olarak şantiye ekibine iletilmelidir.',
-      'TeklifPro saha kontrol ekranında deformasyon katsayısı rework maliyeti olarak işlenir.'
+      'BIMMetraj saha kontrol ekranında deformasyon katsayısı rework maliyeti olarak işlenir.'
     ],
     practicalCaseStudy: 'Endüstriyel yapıda döşeme betonu dökümünden sonra yapılan Heatmap analizinde zemin döşemesinde 32 mm sehim görülmüş, şap öncesi düzeltme yapılmıştır.',
-    teklifProIntegrationNote: 'TeklifPro risk modülü, kaba inşaat sapmalarını süzerek şap ve düzeltme malzemesi ilave maliyetini hesaplar.'
+    teklifProIntegrationNote: 'BIMMetraj risk modülü, kaba inşaat sapmalarını süzerek şap ve düzeltme malzemesi ilave maliyetini hesaplar.'
   },
 
   'scan-to-bim-generative-design': {
@@ -534,10 +534,10 @@ export const subGuidesData: Record<string, SubGuide> = {
     keyTakeaways: [
       'Üretken tasarım binlerce seçeneği saniyeler içinde tarar; ancak en iyi çözümü seçme sorumluluğu mimar/mühendistedir.',
       'Pareto sınırındaki çözümler zıt hedeflerin dengelendiği en rasyonel tasarım alternatifleridir.',
-      'TeklifPro üretken tasarım opsiyonlarının maliyet matrisini canlı kıyaslar.'
+      'BIMMetraj üretken tasarım opsiyonlarının maliyet matrisini canlı kıyaslar.'
     ],
     practicalCaseStudy: 'Kampüs projesinde NSGA-II ile 500 tasarım varyasyonu taranmış; inşaat maliyetini %8 düşürürken gün ışığı performansını %15 artıran opsiyon seçilmiştir.',
-    teklifProIntegrationNote: 'TeklifPro mimari opsiyon seçim ekranında üretken tasarım varyasyonlarının 5D maliyet farklarını listeler.'
+    teklifProIntegrationNote: 'BIMMetraj mimari opsiyon seçim ekranında üretken tasarım varyasyonlarının 5D maliyet farklarını listeler.'
   },
 
   'scan-to-bim-human-in-the-loop': {
@@ -567,7 +567,7 @@ export const subGuidesData: Record<string, SubGuide> = {
       'SmartCheck tüm yapay zeka bulgularını onay mekanizmasıyla sunar.'
     ],
     practicalCaseStudy: 'Hastane ihalesinde AI metraj asistanının çıkardığı 140 kalemden donatı büküm boyu uyarısı mühendis tarafından incelenmiş ve onaylanarak ihale dosyasına girmiştir.',
-    teklifProIntegrationNote: 'TeklifPro onay matrisi ekranında AI tarafından oluşturulan teklif kalemlerinin kimin tarafından ne zaman onaylandığını loglar.'
+    teklifProIntegrationNote: 'BIMMetraj onay matrisi ekranında AI tarafından oluşturulan teklif kalemlerinin kimin tarafından ne zaman onaylandığını loglar.'
   },
 
   // ===================================================================
@@ -597,10 +597,10 @@ export const subGuidesData: Record<string, SubGuide> = {
     keyTakeaways: [
       'WIP alanları şantiye veya işverene açılmamalıdır; olgunlaşmamış veri karmaşaya yol açar.',
       'CDE yayınlama işlemleri (WIP -> Shared) disiplin liderinin onay imzasıyla gerçekleşmelidir.',
-      'TeklifPro CDE entegrasyonu rol bazlı dosya indirme kısıtı uygular.'
+      'BIMMetraj CDE entegrasyonu rol bazlı dosya indirme kısıtı uygular.'
     ],
     practicalCaseStudy: 'Havalimanı projesinde yanlışlıkla WIP klasöründen ihale çekilen statik pafta düzeltilmiş; CDE RBAC matrisi kurularak yetkisiz pafta kullanımı engellenmiştir.',
-    teklifProIntegrationNote: 'TeklifPro CDE kilit ekranı, yetkisi olmayan kullanıcıların maliyet ve marj tablolarını indirmesini engeller.'
+    teklifProIntegrationNote: 'BIMMetraj CDE kilit ekranı, yetkisi olmayan kullanıcıların maliyet ve marj tablolarını indirmesini engeller.'
   },
 
   'security-field-e-ruhsat-arc': {
@@ -630,7 +630,7 @@ export const subGuidesData: Record<string, SubGuide> = {
       'SmartCheck ruhsat denetim modülü imar aykırılıklarını kırmızı renkle gösterir.'
     ],
     practicalCaseStudy: 'Konut projesinde ön çekme mesafesinde 80 cm ihlal otomatik ARC kontrolünde tespit edilmiş, ruhsat reddi yaşanmadan proje revize edilmiştir.',
-    teklifProIntegrationNote: 'TeklifPro imar analitiği ekranında emsal dışı net satılabilir alan hesabı otomatik sunulur.'
+    teklifProIntegrationNote: 'BIMMetraj imar analitiği ekranında emsal dışı net satılabilir alan hesabı otomatik sunulur.'
   },
 
   'security-field-vdc-clash': {
@@ -656,10 +656,10 @@ export const subGuidesData: Record<string, SubGuide> = {
     keyTakeaways: [
       'Şantiyede tespit edilen bir Hard Clash ortalama 15.000 ₺ kır-dök maliyetine yol açarken, modelde çözmek 0 ₺ maliyettir.',
       'Clash tespitleri PDF değil, BCF (BIM Collaboration Format) dosyası olarak mühendise atanmalıdır.',
-      'TeklifPro risk motoru çözülmemiş clash sayılarını ek maliyet primi olarak teklife yansıtır.'
+      'BIMMetraj risk motoru çözülmemiş clash sayılarını ek maliyet primi olarak teklife yansıtır.'
     ],
     practicalCaseStudy: 'Hastane projesinde 3.400 adet Hard Clash BCF akışıyla şantiyeye inmeden modelde çözülmüş, tahmini 4.5 Milyon ₺ rework önlenmiştir.',
-    teklifProIntegrationNote: 'TeklifPro risk ekranında BCF çakışma raporu yüklendiğinde çözülmeyen her çakışma için kaba/ince işler risk primi eklenir.'
+    teklifProIntegrationNote: 'BIMMetraj risk ekranında BCF çakışma raporu yüklendiğinde çözülmeyen her çakışma için kaba/ince işler risk primi eklenir.'
   },
 
   'security-field-bvbs-rebar': {
@@ -704,7 +704,7 @@ export const subGuidesData: Record<string, SubGuide> = {
       'Türkiye çelik piyasasında donatılar 12.00 metre standart boyda satılır; BVBS ile imalat firesi %8\'den %1.5 seviyesine indirilir.'
     ],
     practicalCaseStudy: '32 katlı projede Eurocode 2 $l_0$ bindirme boyu formülüyle paspayı katsayıları optimize edilmiş, toplam çelik tonajında %4.2 net tasarruf sağlanmıştır.',
-    teklifProIntegrationNote: 'TeklifPro donatı hesaplayıcısı Eurocode 2 $l_{bd}$ formülünü ve BVBS kesim optimizasyonunu canlı çalıştırır.',
+    teklifProIntegrationNote: 'BIMMetraj donatı hesaplayıcısı Eurocode 2 $l_{bd}$ formülünü ve BVBS kesim optimizasyonunu canlı çalıştırır.',
     checkpointQuestions: [
       {
         question: 'TBDY 2018 uyarınca deprem etriyelerinin kanca büküm açısı ve minimum kanca uzantı boyu ne olmalıdır?',
@@ -759,10 +759,10 @@ export const subGuidesData: Record<string, SubGuide> = {
     keyTakeaways: [
       'BIM sadece 3D çizim değildir; nesnelerin birbiriyle kurduğu anlamsal ilişki (relational ontology) ağından oluşur.',
       'IfcRelContainedInSpatialStructure nesnesi elemanın hangi katta olduğunu gösteren hukuki bağdır.',
-      'TeklifPro ontoloji tarayıcısı nesne ilişkilerini süzerek kat kat metraj çıkartır.'
+      'BIMMetraj ontoloji tarayıcısı nesne ilişkilerini süzerek kat kat metraj çıkartır.'
     ],
     practicalCaseStudy: 'Karma projede kolonların kat ilişkileri ontolojik olarak doğru kurulduğu için 3. kat betonarme metrajı tek tıkla kat bazında ayrıştırılmıştır.',
-    teklifProIntegrationNote: 'TeklifPro kat bazlı metraj kırılım ekranında IFC spatial structure hiyerarşisini doğrudan görüntüler.'
+    teklifProIntegrationNote: 'BIMMetraj kat bazlı metraj kırılım ekranında IFC spatial structure hiyerarşisini doğrudan görüntüler.'
   },
 
   'bim-core-loin-guide': {
@@ -791,7 +791,7 @@ export const subGuidesData: Record<string, SubGuide> = {
       'SmartCheck LOIN doğrulayıcısı eksik LOI parametrelerini kırmızı bayrakla işaretler.'
     ],
     practicalCaseStudy: 'İhale aşamasında pompalar LOG 200 / LOI 300 seviyesinde tutularak model kasması önlenmiş, gerekli poz kodları LOI verisiyle ihaleye girmiştir.',
-    teklifProIntegrationNote: 'TeklifPro LOIN kontrol modülü, modeldeki LOI parametrelerini okuyarak eksik poz numaralarını tespit eder.'
+    teklifProIntegrationNote: 'BIMMetraj LOIN kontrol modülü, modeldeki LOI parametrelerini okuyarak eksik poz numaralarını tespit eder.'
   },
 
   'bim-core-ifc-bcf-flow': {
@@ -818,10 +818,10 @@ export const subGuidesData: Record<string, SubGuide> = {
     keyTakeaways: [
       'BCF sayesinde ağır 3D modelleri e-posta ile göndermeye gerek kalmaz; sadece 10 KB\'lık görünüm ve yorum verisi aktarılır.',
       'BCF kamerası tıkladığınız an modelde hatanın olduğu yere otomatik zoom yapar.',
-      'TeklifPro BCF entegrasyonu teklif hatalarını BCF issue olarak yönetir.'
+      'BIMMetraj BCF entegrasyonu teklif hatalarını BCF issue olarak yönetir.'
     ],
     practicalCaseStudy: '45 katlı projede 2.300 çakışma BCF uzantısı üzerinden Allplan ve Revit kullanıcılarına dağıtılmış, 2 haftada sıfırlanmıştır.',
-    teklifProIntegrationNote: 'TeklifPro risk yönetiminde BCF açık issue sayısı arttıkça şantiye sürpriz maliyet katsayısı otomatik yükselir.'
+    teklifProIntegrationNote: 'BIMMetraj risk yönetiminde BCF açık issue sayısı arttıkça şantiye sürpriz maliyet katsayısı otomatik yükselir.'
   },
 
   'bim-core-bep-raci-matrix': {
@@ -848,9 +848,9 @@ export const subGuidesData: Record<string, SubGuide> = {
     keyTakeaways: [
       'BEP hazırlanmadan başlanan projelerde yazılım versiyon uyumsuzlukları ve sıfır noktası (origin) kaymaları yaşanır.',
       'MIDP (Master Information Delivery Plan) tüm teslim tarihleri ve formatlarının bağlayıcı takvimidir.',
-      'TeklifPro BEP onay takipçisi teslim tarihlerini takip eder.'
+      'BIMMetraj BEP onay takipçisi teslim tarihlerini takip eder.'
     ],
     practicalCaseStudy: 'Altyapı projesinde sıfır noktası (0,0,0) BEP içinde koordinatlanmadığı için mimari ve statik modeller 120 metre kayık çakışmış, BEP revizyonu ile sorun çözülmüştür.',
-    teklifProIntegrationNote: 'TeklifPro proje açılış sihirbazında BEP teslim formatları seçilerek varsayılan metraj birimleri kilitlenir.'
+    teklifProIntegrationNote: 'BIMMetraj proje açılış sihirbazında BEP teslim formatları seçilerek varsayılan metraj birimleri kilitlenir.'
   }
 };

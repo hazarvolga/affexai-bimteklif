@@ -358,7 +358,7 @@ export function BimIfcParser(_props: BimIfcParserProps) {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.setAttribute('href', url);
-    link.setAttribute('download', `TeklifPro_5D_IFC_Metraj_${new Date().toISOString().slice(0, 10)}.csv`);
+    link.setAttribute('download', `BIMMetraj_5D_IFC_Metraj_${new Date().toISOString().slice(0, 10)}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

@@ -12,7 +12,7 @@ import { SmartCheckDemoProvider } from '@/smartcheck/SmartCheckDemoContext';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { NotFound } from '@/pages/NotFound';
 
-import { ACADEMY_ENABLED, REGISTER_PLAN_PICKER_ENABLED } from '@/config/features';
+import { ACADEMY_ENABLED, ACADEMY_LIBRARY_ENABLED, REGISTER_PLAN_PICKER_ENABLED } from '@/config/features';
 import { protectedRouteTitle } from '@/lib/protected-route-title';
 const page = <T extends Record<string, unknown>>(loader: () => Promise<T>, name: keyof T) =>
   lazy(async () => {
@@ -81,6 +81,9 @@ const AllplanAccessGate = page(() => import('@/pages/AllplanAccessGate'), 'Allpl
 const Login = page(() => import('@/pages/Login'), 'Login');
 const Register = page(() => import('@/pages/Register'), 'Register');
 const RegisterSimple = page(() => import('@/pages/RegisterSimple'), 'RegisterSimple');
+const AcademyLibrary = page(() => import('@/pages/AcademyLibrary'), 'AcademyLibrary');
+const AcademyTopic = page(() => import('@/pages/AcademyTopic'), 'AcademyTopic');
+const AcademyGuide = page(() => import('@/pages/AcademyGuide'), 'AcademyGuide');
 
 /** Expert test period: plain form unless the package picker is enabled or an Academy sign-up needs the original page. */
 function RegisterRoute() {
@@ -148,6 +151,11 @@ function AppRoutes() {
         <Route path="/academy/allplan/:pathSlug" element={<AllplanAccessGate />} />
         <Route path="/academy/allplan/lesson/:lessonSlug" element={<AllplanAccessGate />} />
         <Route path="/academy/:slug" element={<PublicAcademyDetail />} />
+      </> : ACADEMY_LIBRARY_ENABLED ? <>
+        <Route path="/academy" element={<AcademyLibrary />} />
+        <Route path="/academy/:slug" element={<AcademyTopic />} />
+        <Route path="/academy/:slug/:guide" element={<AcademyGuide />} />
+        <Route path="/academy/*" element={<Navigate to="/academy" replace />} />
       </> : <Route path="/academy/*" element={<Navigate to="/" replace />} />}
       <Route path="/pilot" element={<PilotApplication />} />
       <Route path="/login" element={<Login />} />
