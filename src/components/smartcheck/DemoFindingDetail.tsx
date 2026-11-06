@@ -4,12 +4,12 @@
  */
 
 import React from 'react';
-import { RefreshCw, SlidersHorizontal } from 'lucide-react';
+import { BookMarked, ChevronRight, RefreshCw, ScanSearch, Settings2, SlidersHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { SEVERITY_LABEL } from '@/i18n/ui-terms';
 import type { DemoFinding } from '@/smartcheck/demoData';
-import type { DemoWalkthrough } from '@/smartcheck/demo-walkthrough';
+import type { DemoEngineStep, DemoWalkthrough } from '@/smartcheck/demo-walkthrough';
 import { DemoStatusBadge } from './DemoStatusBadge';
 
 interface DemoFindingDetailProps {
@@ -26,6 +26,48 @@ const RULE_TYPE_LABEL: Record<DemoFinding['ruleType'], string> = {
   demo_engineering_rule: 'Mühendislik kuralı (örnek)',
   demo_office_rule: 'Ofis modelleme kuralı (örnek)',
 };
+
+const ENGINE_ICON: Record<DemoEngineStep['icon'], React.ReactNode> = {
+  read: <ScanSearch size={14} />,
+  rule: <BookMarked size={14} />,
+  detect: <ScanSearch size={14} />,
+  fix: <Settings2 size={14} />,
+};
+
+const ENGINE_ICON_COLOR: Record<DemoEngineStep['icon'], string> = {
+  read: 'text-blue-500 dark:text-blue-400',
+  rule: 'text-amber-500 dark:text-amber-400',
+  detect: 'text-red-500 dark:text-red-400',
+  fix: 'text-emerald-500 dark:text-emerald-400',
+};
+
+function EngineFlow({ steps }: { steps: ReadonlyArray<DemoEngineStep> }) {
+  return (
+    <section data-testid="demo-engine-flow" aria-label="Motor nasıl çalıştı" className="rounded-sm border border-border bg-muted/30 p-4">
+      <h3 className="mb-3 font-mono text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+        Motor nasıl çalıştı?
+      </h3>
+      <ol className="flex flex-col gap-2 sm:flex-row sm:items-start sm:gap-0">
+        {steps.map((step, i) => (
+          <React.Fragment key={step.label}>
+            <li className="flex min-w-0 flex-1 flex-col gap-1">
+              <span className={`flex items-center gap-1.5 font-mono text-[11px] font-semibold ${ENGINE_ICON_COLOR[step.icon]}`}>
+                {ENGINE_ICON[step.icon]}
+                {step.label}
+              </span>
+              <span className="font-mono text-[10px] leading-relaxed text-muted-foreground">{step.detail}</span>
+            </li>
+            {i < steps.length - 1 && (
+              <span className="hidden shrink-0 items-center px-2 text-muted-foreground/50 sm:flex" aria-hidden="true">
+                <ChevronRight size={12} />
+              </span>
+            )}
+          </React.Fragment>
+        ))}
+      </ol>
+    </section>
+  );
+}
 
 function Step({ index, title, children }: { index: number; title: string; children: React.ReactNode }) {
   return (
@@ -46,6 +88,8 @@ export function DemoFindingDetail({ finding, walkthrough, isRechecking, onApplyF
         <h2 className="text-sm font-bold text-foreground">{finding.title}</h2>
         <DemoStatusBadge status={finding.status} />
       </div>
+
+      <EngineFlow steps={walkthrough.engineSteps} />
 
       <Step index={1} title="Problem">
         <p>{walkthrough.problem}</p>
