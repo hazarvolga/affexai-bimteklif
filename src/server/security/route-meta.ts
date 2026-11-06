@@ -14,6 +14,7 @@ import type { PublicPlanView } from '../../services/billing/public-plans';
 import { BILLING_PERIOD_OPTIONS } from '../../services/billing/billing-periods';
 import { ACADEMY_ENABLED, ACADEMY_LIBRARY_ENABLED, REGISTER_PLAN_PICKER_ENABLED } from '../../config/features';
 import { ACADEMY_TOPICS } from '../../academy/library/topics';
+import { ACADEMY_GUIDES } from '../../academy/library/guides';
 
 const tl = (value: number) => value.toLocaleString('tr-TR');
 
@@ -46,6 +47,7 @@ function academyLibraryMeta(): Record<string, RouteMeta> {
       description: 'BIM, ISO 19650, 4D/5D maliyet, sürdürülebilirlik, Scan-to-BIM ve saha konularında yazılımdan bağımsız, açık bilgi kütüphanesi.',
     },
     ...Object.fromEntries(ACADEMY_TOPICS.map(topic => [`/academy/${topic.slug}`, { title: `${topic.title} | ${SITE} Akademi`, description: topic.summary }])),
+    ...Object.fromEntries(ACADEMY_GUIDES.map(guide => [`/academy/${guide.topicSlug}/${guide.slug}`, { title: `${guide.title} | ${SITE} Akademi`, description: guide.summary }])),
   };
 }
 
@@ -141,6 +143,7 @@ const ACADEMY_ROUTE_BODY: Readonly<Record<string, readonly string[]>> = ACADEMY_
   ? {
       '/academy': ACADEMY_TOPICS.map(topic => `${topic.title}: ${topic.summary}`),
       ...Object.fromEntries(ACADEMY_TOPICS.map(topic => [`/academy/${topic.slug}`, [topic.why, ...topic.modules.map(module => `${module.title}: ${module.body}`)]])),
+      ...Object.fromEntries(ACADEMY_GUIDES.map(guide => [`/academy/${guide.topicSlug}/${guide.slug}`, [...(guide.rule ? [guide.rule] : []), ...guide.takeaways, guide.example]])),
     }
   : {};
 

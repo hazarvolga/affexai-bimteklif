@@ -140,10 +140,10 @@ test('T46: llms.txt describes capabilities only through the registry and package
 
 test('SEO-02: yalın Akademi açıkken yalnız kütüphane sayfaları açılır, eski Academy rotaları /academy adresine yönlenir', async () => {
   const { disabledFeatureRedirect } = await import('./web-hardening');
-  for (const pathname of ['/academy', '/academy/', '/academy/bim-temelleri', '/academy/guvenlik-ve-saha/']) {
+  for (const pathname of ['/academy', '/academy/', '/academy/bim-temelleri', '/academy/guvenlik-ve-saha/', '/academy/guvenlik-ve-saha/cde-yetki-matrisi']) {
     assert.equal(disabledFeatureRedirect(pathname), null, pathname);
   }
-  for (const pathname of ['/academy/complete', '/academy/allplan', '/academy/allplan/lesson/x', '/academy/iso-19650']) {
+  for (const pathname of ['/academy/complete', '/academy/allplan', '/academy/allplan/lesson/x', '/academy/iso-19650', '/academy/bim-temelleri/olmayan-rehber']) {
     assert.equal(disabledFeatureRedirect(pathname), '/academy', pathname);
   }
   for (const pathname of ['/', '/academyx', '/app/academy', '/pricing']) {

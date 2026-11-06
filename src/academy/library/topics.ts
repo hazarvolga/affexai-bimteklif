@@ -4,6 +4,7 @@
  * the yuksek-muhendis-mimar skill, no claims about features the product does not have.
  * Brand-specific guides come later, one brand at a time, in their own files.
  */
+import { ACADEMY_GUIDES } from './guides';
 
 export interface AcademyModule {
   title: string;
@@ -268,7 +269,12 @@ export const ACADEMY_TOPICS: readonly AcademyTopic[] = [
   },
 ];
 
-export const ACADEMY_LIBRARY_PATHS: readonly string[] = ['/academy', ...ACADEMY_TOPICS.map(topic => `/academy/${topic.slug}`)];
+/** Every published library page: the list, the topics and their guides (src/academy/library/guides.ts). */
+export const ACADEMY_LIBRARY_PATHS: readonly string[] = [
+  '/academy',
+  ...ACADEMY_TOPICS.map(topic => `/academy/${topic.slug}`),
+  ...ACADEMY_GUIDES.map(guide => `/academy/${guide.topicSlug}/${guide.slug}`),
+];
 
 export function findAcademyTopic(slug: string | undefined): AcademyTopic | undefined {
   return slug ? ACADEMY_TOPICS.find(topic => topic.slug === slug) : undefined;

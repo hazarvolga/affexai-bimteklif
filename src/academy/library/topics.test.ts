@@ -1,13 +1,13 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
+import { CONTENT_RULES } from './content-rules';
 import { ACADEMY_LIBRARY_PATHS, ACADEMY_TOPICS, findAcademyTopic } from './topics';
 
 // Lean Academy v1 (Hazar, 2026-11-06): five vendor-neutral topics, one page template, no
 // unverified engineering numbers, no labs. Brand-specific tracks come later, one brand at a time.
 
 const PUBLIC_ROUTES = new Set(['/smartcheck', '/bim-sozlugu', '/hesaplayicilar', '/features', '/about']);
-const SOFTWARE_BRANDS = /Allplan|Revit|Archicad|Tekla|Navisworks|Solibri|Primavera|MS Project|Synchro|Dalux|Autodesk|Bentley|Nemetschek|Trimble/;
 
 const allText = (topic: (typeof ACADEMY_TOPICS)[number]) =>
   [topic.title, topic.summary, topic.why, ...topic.sources, topic.tryIn.label,
@@ -27,19 +27,12 @@ test('ilk sürüm beş ortak konudan oluşur ve her konu aynı kalıbı doldurur
 test('içerik markadan bağımsızdır ve yayına uygun olmayan ifadeler taşımaz', () => {
   for (const topic of ACADEMY_TOPICS) {
     const text = allText(topic);
-    assert.doesNotMatch(text, SOFTWARE_BRANDS, `${topic.slug}: yazılım markası`);
-    assert.doesNotMatch(text, /\$|\\text|\^/, `${topic.slug}: ham formül`);
-    assert.doesNotMatch(text, /kaynak HTML|native react|kaynakta /i, `${topic.slug}: geliştirici notu`);
-    assert.doesNotMatch(text, /Teklif ?Pro|BIMPlan/, `${topic.slug}: eski ad`);
-    assert.doesNotMatch(text, /—/, `${topic.slug}: uzun tire`);
-    assert.doesNotMatch(text, /yüksek lisans|AKTS|ECTS|garanti (?:eder|ediyor)|garantili|%\s*100|sıfırla/i, `${topic.slug}: abartılı iddia`);
-    // v1 carries no engineering or cost figures; they return after yuksek-muhendis-mimar review.
-    assert.doesNotMatch(text, /\d+(?:[.,]\d+)?\s*(?:mm|m²|m2|kg|%|TL|₺)/, `${topic.slug}: doğrulanmamış sayı`);
+    for (const [label, pattern] of CONTENT_RULES) assert.doesNotMatch(text, pattern, `${topic.slug}: ${label}`);
   }
 });
 
 test('yollar ve konu araması veri dosyasından üretilir', () => {
-  assert.deepEqual(ACADEMY_LIBRARY_PATHS, ['/academy', ...ACADEMY_TOPICS.map(topic => `/academy/${topic.slug}`)]);
+  for (const path of ['/academy', ...ACADEMY_TOPICS.map(topic => `/academy/${topic.slug}`)]) assert.ok(ACADEMY_LIBRARY_PATHS.includes(path), path);
   assert.equal(findAcademyTopic('bim-temelleri')?.slug, 'bim-temelleri');
   assert.equal(findAcademyTopic('allplan'), undefined);
   assert.equal(findAcademyTopic(undefined), undefined);
