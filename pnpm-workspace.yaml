@@ -1,8 +1,8 @@
 allowBuilds:
   '@google/genai': true
-  '@prisma/engines': true
+  '@prisma/engines': false
   esbuild: true
-  prisma: true
+  prisma: false
   puppeteer: false
 overrides:
   'body-parser@>=1.0.0 <1.20.9': 1.20.9
@@ -11,7 +11,7 @@ overrides:
   'fast-uri@>=3.0.0 <3.1.8': 3.1.8
   'ip-address@>=10.0.0 <10.7.1': 10.7.1
   'deepmerge-ts@<8.0.0': 8.0.0
-  'qs@>=6.0.0 <6.16.0': 6.16.0
+  'qs@>=6.0.0 <=6.16.0': 6.16.1
   'hono@>=4.0.0 <4.13.7': 4.13.7
   'uuid@>=8.0.0 <11.1.1': 11.1.1
   're2js@>=2.2.0 <2.8.7': 2.8.7
