@@ -51,8 +51,8 @@ function EngineFlow({ steps }: { steps: ReadonlyArray<DemoEngineStep> }) {
         {steps.map((step, i) => (
           <React.Fragment key={step.label}>
             <li className="flex min-w-0 flex-1 flex-col gap-1">
-              <span className={`flex items-center gap-1.5 font-mono text-[11px] font-semibold ${ENGINE_ICON_COLOR[step.icon]}`}>
-                {ENGINE_ICON[step.icon]}
+              <span className="flex items-center gap-1.5 font-mono text-[11px] font-semibold text-foreground">
+                <span className={ENGINE_ICON_COLOR[step.icon]} aria-hidden="true">{ENGINE_ICON[step.icon]}</span>
                 {step.label}
               </span>
               <span className="font-mono text-[10px] leading-relaxed text-muted-foreground">{step.detail}</span>
