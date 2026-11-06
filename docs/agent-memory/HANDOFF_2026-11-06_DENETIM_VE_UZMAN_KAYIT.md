@@ -12,7 +12,8 @@ Kaynak: kök dizindeki `Quder-rapor.md` (dış denetim, 27 bulgu, git'te izlenmi
 | [#65](https://github.com/hazarvolga/affexai-bimteklif/pull/65) | `chore/release-hygiene-p2` → #64 | 160 | PERF-01 (entry artık charts chunk'ını çekmez, ilk yükleme 126 KB → 8,7 KB gzip; T45-2 kontrolü), SEO-01 (meta kaydı olmayan rotalar `noindex`, token yolları robots.txt'de kapalı), SEO-02 (`/academy*` 301), A11Y-01/02 (320–1200 px taşma yok, hedefler ≥ 24 px), eski `package-lock.json` silindi, `.dockerignore`. Ana sayfada Paketler ve 14 gün deneme bölümleri gizlendi. |
 | [#66](https://github.com/hazarvolga/affexai-bimteklif/pull/66) | `feat/register-simple` → #65 | 161 | Uzman dönemi için ayrı, sade kayıt sayfası `src/pages/RegisterSimple.tsx`. Orijinal `src/pages/Register.tsx` hiç değişmedi. Ana sayfa ve giriş butonlarında deneme ibaresi yerine "Kayıt Ol / Kaydolun". `/register` meta başlığı "Kayıt Ol \| BIMMetraj". |
 
-| (bu dal) | `fix/brand-visible-bimmetraj` → #66 | 162 | Görünür "TeklifPro" metinleri BIMMetraj oldu (arayüz, Academy, `llms.txt`, AI asistanı, indirme adı, demo şirket, User-Agent). JSON-LD `WebSite` + `alternateName` (BIM Metraj, Bimmetraj); ana sayfa açıklaması iki yazımı içerir. İç adlar (`teklifpro_queue`, `teklifpro_release`, test DB'leri) bilerek kaldı. |
+| [#67](https://github.com/hazarvolga/affexai-bimteklif/pull/67) | `fix/brand-visible-bimmetraj` → #66 | 162 | Görünür "TeklifPro" metinleri BIMMetraj oldu (arayüz, Academy, `llms.txt`, AI asistanı, indirme adı, demo şirket, User-Agent). JSON-LD `WebSite` + `alternateName` (BIM Metraj, Bimmetraj); ana sayfa açıklaması iki yazımı içerir. İç adlar (`teklifpro_queue`, `teklifpro_release`, test DB'leri) bilerek kaldı. |
+| (bu dal) | `feat/academy-library` → #67 | 163 | Yalın Akademi: `/academy` ve beş ortak konu, tek kalıp, kayıtsız. Laboratuvar, alt rehber, sınav, sertifika ve marka dersleri kapalı; sayı içeren içerik doğrulamadan sonra. |
 
 Auto-fix #64 ve #65 için açık (CI hatası, çakışma, inceleme yorumu olursa oturum uyanır).
 
@@ -48,7 +49,7 @@ Hepsi `false`. Tek satırla geri açılır; kod silinmedi.
 4. **Paket 3, SEC-02:** süper admin MFA zorunluluğu. Yanlış kurgulanırsa Hazar'ın hesabını kilitler; başlamadan akış onayı alınacak.
 5. **Paket 4, TEST-01:** CI'da çalışmayan 4 pgtest (`database-role-provision`, `finance-quotation-rls`, `t44-recovery-drill`, `process-heartbeat`) CI'a bağlanacak; CI bootstrap'ına `provisionDatabaseRoles`.
 6. Sonra: graceful shutdown (OPS-04), Express async yamasına test, global hız sınırı (SEC-03), origin sıkıştırması (PERF-02), PITR (OPS-02), `strict` + ESLint (ARCH-01).
-7. Academy'yi yeniden açmak (Hazar'ın isteği, rapor işlerinden sonra).
+7. Akademi ikinci aşama: eski 24 alt rehber (`src/academy/subGuidesData.ts`) **yan panelde değil, kendi sayfalarında** gösterilecek (Hazar, 6 Kasım 2026): `/academy/{konu}/{rehber}`, konu sayfasındaki modülden "Ayrıntılı rehber" linki, aynı sayfa kalıbı, sitemap ve meta kaydı. 24 rehberin hepsinde formül ham LaTeX (düz metne çevrilecek), 9'unda birimli sayı (`yuksek-muhendis-mimar` ile doğrulanacak), 3'ünde yazılım markası var; yalnız onaylanan rehberler yayınlanır. Sonra markaya özgü rehberler, her marka ayrı (Hazar: önce ortak temeller).
 8. **Arama:** "BIM Metraj" genel sektör terimi de olduğu için sıralama garantisi yok. Deploy sonrası Google Search Console'da sorgu raporu ve Zengin Sonuçlar Testi ile `WebSite` verisi izlenmeli.
 9. Uygulama içi (giriş sonrası) abonelik ve kota ekranlarındaki deneme ifadeleri bu oturumda değişmedi.
 

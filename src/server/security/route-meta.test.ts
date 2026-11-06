@@ -210,3 +210,17 @@ test('T46: index.html site JSON-LD yedeği geçerli JSON ve sunucunun değiştir
   assert.ok(match);
   assert.doesNotThrow(() => JSON.parse(match[1]));
 });
+
+test('yalın Akademi: kütüphane ve konu sayfaları indekslenebilir, kendi başlığı ve ön-render metni vardır', async () => {
+  const { ACADEMY_TOPICS } = await import('../../academy/library/topics');
+  const library = injectRouteMeta(SHELL, { pathname: '/academy', origin: 'https://bimmetraj.com' });
+  assert.match(library, /<title>Akademi/);
+  assert.match(library, /<link rel="canonical" href="https:\/\/bimmetraj\.com\/academy" \/>/);
+  assert.equal(/name="robots"/.test(library), false);
+  for (const topic of ACADEMY_TOPICS) {
+    const html = injectRouteMeta(SHELL, { pathname: `/academy/${topic.slug}`, origin: 'https://bimmetraj.com' });
+    assert.ok(html.includes(`<link rel="canonical" href="https://bimmetraj.com/academy/${topic.slug}" />`), topic.slug);
+    assert.equal(/name="robots"/.test(html), false, `${topic.slug} indekslenebilir`);
+    assert.ok(html.includes(topic.modules[0].title.replace(/&/g, '&amp;')), `${topic.slug} ön-render modül başlığı`);
+  }
+});

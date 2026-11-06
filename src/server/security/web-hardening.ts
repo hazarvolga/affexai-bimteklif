@@ -5,7 +5,8 @@ import {
   getPilotCapabilities,
   getRoadmapCapabilities,
 } from '../../capabilities/registry';
-import { ACADEMY_ENABLED } from '../../config/features';
+import { ACADEMY_ENABLED, ACADEMY_LIBRARY_ENABLED } from '../../config/features';
+import { ACADEMY_LIBRARY_PATHS } from '../../academy/library/topics';
 import { PLAN_CATALOG_VERSION } from '../../services/billing/plan-catalog';
 import type { PublicPlanView } from '../../services/billing/public-plans';
 
@@ -61,7 +62,7 @@ const CALCULATOR_PAGES = [
   '/hesaplayicilar/yambis-muteahhitlik-grubu',
   '/hesaplayicilar/kat-karsiligi-ve-kentsel-donusum',
 ];
-const PUBLIC_PAGES = ['/', '/about', '/features', '/pricing', '/smartcheck', '/bim-sozlugu', ...CALCULATOR_PAGES, ...(ACADEMY_ENABLED ? ACADEMY_PAGES : []), '/pilot', '/terms', '/privacy'];
+const PUBLIC_PAGES = ['/', '/about', '/features', '/pricing', '/smartcheck', '/bim-sozlugu', ...CALCULATOR_PAGES, ...(ACADEMY_ENABLED ? ACADEMY_PAGES : ACADEMY_LIBRARY_ENABLED ? ACADEMY_LIBRARY_PATHS : []), '/pilot', '/terms', '/privacy'];
 
 const EXACT_SPA_ROUTES = new Set([
   '/',
@@ -108,7 +109,11 @@ export function isKnownSpaRoute(pathname: string): boolean {
  */
 export function disabledFeatureRedirect(pathname: string): string | null {
   if (ACADEMY_ENABLED) return null;
-  return pathname === '/academy' || pathname.startsWith('/academy/') ? '/' : null;
+  if (pathname !== '/academy' && !pathname.startsWith('/academy/')) return null;
+  if (!ACADEMY_LIBRARY_ENABLED) return '/';
+  // Lean Academy v1: library pages are served; every other old Academy path lands on the library.
+  const normalized = pathname.length > 1 && pathname.endsWith('/') ? pathname.slice(0, -1) : pathname;
+  return ACADEMY_LIBRARY_PATHS.includes(normalized) ? null : '/academy';
 }
 
 /**

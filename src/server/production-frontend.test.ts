@@ -54,13 +54,17 @@ test('production static serving keeps frontend assets and SPA while rejecting se
     assert.equal(response.status, 200, route);
     assert.equal(await response.text(), files['index.html']);
   }
-  // SEO-02: Academy is out of scope; its routes redirect permanently instead of a 200 soft-404.
+  // SEO-02: old Academy routes redirect permanently to the lean library; library pages are served.
   const academy = await fetch(`${base}/academy/allplan/lessons/example`, { redirect: 'manual' });
   if (ACADEMY_ENABLED) {
     assert.equal(academy.status, 200);
   } else {
     assert.equal(academy.status, 301);
-    assert.equal(academy.headers.get('location'), '/');
+    assert.equal(academy.headers.get('location'), '/academy');
+    for (const route of ['/academy', '/academy/bim-temelleri']) {
+      const page = await fetch(base + route, { redirect: 'manual' });
+      assert.equal(page.status, 200, route);
+    }
   }
   for (const unknownRoute of ['/bu-sayfa-yok-404', '/quotes/123']) {
     const response = await fetch(base + unknownRoute);

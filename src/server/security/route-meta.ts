@@ -12,7 +12,8 @@ import { renderJsonLdScript, routeJsonLd } from './route-jsonld';
 import { siteJsonLd } from './site-jsonld';
 import type { PublicPlanView } from '../../services/billing/public-plans';
 import { BILLING_PERIOD_OPTIONS } from '../../services/billing/billing-periods';
-import { REGISTER_PLAN_PICKER_ENABLED } from '../../config/features';
+import { ACADEMY_ENABLED, ACADEMY_LIBRARY_ENABLED, REGISTER_PLAN_PICKER_ENABLED } from '../../config/features';
+import { ACADEMY_TOPICS } from '../../academy/library/topics';
 
 const tl = (value: number) => value.toLocaleString('tr-TR');
 
@@ -36,6 +37,17 @@ export interface RouteMeta {
 }
 
 const SITE = 'BIMMetraj';
+
+/** Lean Academy v1: one indexable entry per library page, generated from the topic data. */
+function academyLibraryMeta(): Record<string, RouteMeta> {
+  return {
+    '/academy': {
+      title: `Akademi | ${SITE}`,
+      description: 'BIM, ISO 19650, 4D/5D maliyet, sürdürülebilirlik, Scan-to-BIM ve saha konularında yazılımdan bağımsız, açık bilgi kütüphanesi.',
+    },
+    ...Object.fromEntries(ACADEMY_TOPICS.map(topic => [`/academy/${topic.slug}`, { title: `${topic.title} | ${SITE} Akademi`, description: topic.summary }])),
+  };
+}
 
 const PUBLIC_ROUTE_META: Readonly<Record<string, RouteMeta>> = {
   '/': {
@@ -114,6 +126,7 @@ const PUBLIC_ROUTE_META: Readonly<Record<string, RouteMeta>> = {
     description: 'BIMMetraj hesap şifrenizi e-posta doğrulamasıyla sıfırlayın.',
     noindex: true,
   },
+  ...(ACADEMY_LIBRARY_ENABLED && !ACADEMY_ENABLED ? academyLibraryMeta() : {}),
 };
 
 /**
@@ -124,7 +137,15 @@ const PUBLIC_ROUTE_META: Readonly<Record<string, RouteMeta>> = {
  * JS çalışmayan tarayıcıda `<noscript>` stili onu görünür yapar.
  * Yalnız kodla desteklenen ve kaynağı belirtilen bilgiler yazılır.
  */
+const ACADEMY_ROUTE_BODY: Readonly<Record<string, readonly string[]>> = ACADEMY_LIBRARY_ENABLED && !ACADEMY_ENABLED
+  ? {
+      '/academy': ACADEMY_TOPICS.map(topic => `${topic.title}: ${topic.summary}`),
+      ...Object.fromEntries(ACADEMY_TOPICS.map(topic => [`/academy/${topic.slug}`, [topic.why, ...topic.modules.map(module => `${module.title}: ${module.body}`)]])),
+    }
+  : {};
+
 const ROUTE_BODY: Readonly<Record<string, readonly string[]>> = {
+  ...ACADEMY_ROUTE_BODY,
   '/': [
     'BIMMetraj; Türkiye inşaat, mimarlık ve teknik ofis ekipleri için IFC 2x3, IFC4 ve IFC4.3 açık BIM modellerinden ve Excel metraj cetvellerinden otomatik miktar çıkarımı (QTO), ÇŞB 2026 poz birim fiyat eşleştirme, RG 33331 e-PYS dijital ruhsat ön kontrolü ve SmartCheck 3×3 kalite denetimi sağlayan 5D ihale ve metraj platformudur.',
     'Tüm mühendislik ve mevzuat kontrolleri insan onaylı ön kontrol niteliğindedir; imzalı uzman onayı gerektiren kararlarda resmî mevzuat metinleri ve yetkili mühendis görüşü esastır.',
@@ -182,7 +203,7 @@ const ROUTE_BODY: Readonly<Record<string, readonly string[]>> = {
 
 const NAV_LINKS: readonly (readonly [string, string])[] = [
   ['/', 'Ana sayfa'], ['/features', 'Özellikler'], ['/pricing', 'Paketler'], ['/bim-sozlugu', 'BIM ve mevzuat sözlüğü'],
-  ['/hesaplayicilar', 'Ücretsiz hesaplayıcılar'], ['/pilot', 'Pilot başvurusu'], ['/terms', 'Kullanım koşulları'], ['/privacy', 'KVKK ve gizlilik'],
+  ['/hesaplayicilar', 'Ücretsiz hesaplayıcılar'], ...(ACADEMY_LIBRARY_ENABLED ? [['/academy', 'Akademi'] as const] : []), ['/pilot', 'Pilot başvurusu'], ['/terms', 'Kullanım koşulları'], ['/privacy', 'KVKK ve gizlilik'],
 ];
 
 /**

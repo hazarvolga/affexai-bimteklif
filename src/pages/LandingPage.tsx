@@ -20,7 +20,7 @@ import {
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useEffect, useState, type ReactNode } from 'react';
 import { PublicPricingSection } from '@/features/public-pricing/PublicPricingSection';
-import { PRICING_SECTION_ENABLED, TRIAL_SECTION_ENABLED } from '@/config/features';
+import { ACADEMY_LIBRARY_ENABLED, PRICING_SECTION_ENABLED, TRIAL_SECTION_ENABLED } from '@/config/features';
 import { PublicMetadata } from '@/components/PublicMetadata';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { PaftaDrawing } from '@/components/ui/PaftaDrawing';
@@ -169,6 +169,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
           <a href="#features" className="text-xs font-medium text-muted-foreground transition-colors hover:text-primary">Özellikler</a>
           {PRICING_SECTION_ENABLED && <a href="#pricing" className="text-xs font-medium text-muted-foreground transition-colors hover:text-primary">Paketler</a>}
           <Link to="/smartcheck" className="text-xs font-medium text-muted-foreground transition-colors hover:text-primary">SmartCheck Demo</Link>
+          {ACADEMY_LIBRARY_ENABLED && <Link to="/academy" className="text-xs font-medium text-muted-foreground transition-colors hover:text-primary">Akademi</Link>}
 
           <div className="h-5 w-px bg-border mx-1" />
 
@@ -257,6 +258,15 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
           >
             SmartCheck Demo
           </Link>
+          {ACADEMY_LIBRARY_ENABLED && (
+            <Link
+              to="/academy"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block text-sm text-muted-foreground py-1 hover:text-foreground"
+            >
+              Akademi
+            </Link>
+          )}
           <div className="pt-2 flex flex-col gap-2 border-t border-border">
             <ThemeToggle className="w-full justify-center min-[400px]:hidden" />
             <Button variant="outline" className="w-full" onClick={() => { setMobileMenuOpen(false); onGetStarted(); }}>
@@ -819,6 +829,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
               <a href="#features" className="block hover:text-foreground">Özellikler</a>
               {PRICING_SECTION_ENABLED && <a href="#pricing" className="block hover:text-foreground">Paketler</a>}
               <Link to="/smartcheck" className="block hover:text-foreground">SmartCheck Doğrulama</Link>
+              {ACADEMY_LIBRARY_ENABLED && <Link to="/academy" className="block hover:text-foreground">Akademi</Link>}
               <Link to="/bim-sozlugu" className="block hover:text-foreground">BIM & e-PYS Sözlüğü</Link>
               <Link to="/hesaplayicilar" className="block hover:text-foreground">Ücretsiz Hesaplayıcılar</Link>
               {TRIAL_SECTION_ENABLED && <Link to="/register" className="block text-primary hover:underline">14 Gün Ücretsiz Deneme</Link>}
