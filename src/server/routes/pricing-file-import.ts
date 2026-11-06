@@ -457,7 +457,7 @@ export function registerPricingFileImportRoutes(app: Express) {
             headers: {
               Authorization: `Bearer ${data.bearerToken}`,
               Accept: 'application/vnd.sdmx.data+json;version=1.0.0-wd, application/json',
-              'User-Agent': 'TeklifPro-TUIK-SDMX-Client/2.1 (+https://bimmetraj.com)',
+              'User-Agent': 'BIMMetraj-TUIK-SDMX-Client/2.1 (+https://bimmetraj.com)',
             },
             signal: AbortSignal.timeout(15_000),
           });

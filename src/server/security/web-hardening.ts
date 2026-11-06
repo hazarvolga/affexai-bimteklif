@@ -189,7 +189,7 @@ export function llmsTxt(publicAppUrl: string, publicPlans: readonly PublicPlanVi
     (c) => `- **[${c.level} YOL HARİTASI] ${c.title}**: ${c.shortClaim}`,
   );
   return [
-    '# BIMMetraj (TeklifPro) — openBIM (IFC) Metraj, RG 33331 e-PYS & 5D İhale Masası',
+    '# BIMMetraj (BIM Metraj) — openBIM (IFC) Metraj, RG 33331 e-PYS & 5D İhale Masası',
     '',
     '> BIMMetraj; Türkiye inşaat, mimarlık ve teknik ofis ekipleri için IFC 2x3 / IFC4 / IFC4.3 model tabanlı metraj (QTO) çıkarma, çok katmanlı IfcCovering imalat ayrıştırma, ÇŞB 2026 poz birim fiyat eşleştirme, 4734 KİK m.38 kullanıcı girdili sınır değer & %80 sıralı iş kalemleri analizi, TS EN ISO 19650-2 / EN 17412-1 (LOIN) dosya adı ve eleman üstveri desteği, SmartCheck 3x3 & Minha kalite denetimi ve 5 Ağustos 2026 tarihli RG 33331 e-PYS EK-9 dijital ruhsat ön-kontrol platformudur.',
     '',

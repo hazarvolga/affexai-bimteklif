@@ -690,7 +690,7 @@ export function Settings() {
         </TabsContent>
 
         <TabsContent value="industries" className="space-y-8 animate-in slide-in-from-left-2 duration-300">
-          <SectionWrapper title="Sektörel Uyumluluk Modülleri" description="TeklifPro AI'nın hangi uzmanlık alanlarında akıllı teklif asistanlığı yapacağını seçin.">
+          <SectionWrapper title="Sektörel Uyumluluk Modülleri" description="BIMMetraj'ın hangi uzmanlık alanlarında akıllı teklif asistanlığı yapacağını seçin.">
             <Card className="bg-card border-border shadow-none">
               <CardContent className="pt-8">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

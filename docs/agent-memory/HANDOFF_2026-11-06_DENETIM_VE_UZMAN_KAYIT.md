@@ -10,7 +10,9 @@ Kaynak: kök dizindeki `Quder-rapor.md` (dış denetim, 27 bulgu, git'te izlenmi
 |---|---|---|---|
 | [#64](https://github.com/hazarvolga/affexai-bimteklif/pull/64) | `chore/remove-firebase` → `main` | 159 | Kullanılmayan Firebase katmanı silindi: `src/lib/firebase.ts`, `firebase-applet-config.json`, AI Studio `metadata.json`, `firebase` bağımlılığı (protobufjs ve @grpc/grpc-js de ağaçtan çıktı). Academy tipleri `src/features/academy/types.ts`. CSP testi Firebase adreslerinin yokluğunu doğrular. CI yeşil. |
 | [#65](https://github.com/hazarvolga/affexai-bimteklif/pull/65) | `chore/release-hygiene-p2` → #64 | 160 | PERF-01 (entry artık charts chunk'ını çekmez, ilk yükleme 126 KB → 8,7 KB gzip; T45-2 kontrolü), SEO-01 (meta kaydı olmayan rotalar `noindex`, token yolları robots.txt'de kapalı), SEO-02 (`/academy*` 301), A11Y-01/02 (320–1200 px taşma yok, hedefler ≥ 24 px), eski `package-lock.json` silindi, `.dockerignore`. Ana sayfada Paketler ve 14 gün deneme bölümleri gizlendi. |
-| (bu dal) | `feat/register-simple` → #65 | 161 | Uzman dönemi için ayrı, sade kayıt sayfası `src/pages/RegisterSimple.tsx`. Orijinal `src/pages/Register.tsx` hiç değişmedi. Ana sayfa ve giriş butonlarında deneme ibaresi yerine "Kayıt Ol / Kaydolun". `/register` meta başlığı "Kayıt Ol \| BIMMetraj". |
+| [#66](https://github.com/hazarvolga/affexai-bimteklif/pull/66) | `feat/register-simple` → #65 | 161 | Uzman dönemi için ayrı, sade kayıt sayfası `src/pages/RegisterSimple.tsx`. Orijinal `src/pages/Register.tsx` hiç değişmedi. Ana sayfa ve giriş butonlarında deneme ibaresi yerine "Kayıt Ol / Kaydolun". `/register` meta başlığı "Kayıt Ol \| BIMMetraj". |
+
+| (bu dal) | `fix/brand-visible-bimmetraj` → #66 | 162 | Görünür "TeklifPro" metinleri BIMMetraj oldu (arayüz, Academy, `llms.txt`, AI asistanı, indirme adı, demo şirket, User-Agent). JSON-LD `WebSite` + `alternateName` (BIM Metraj, Bimmetraj); ana sayfa açıklaması iki yazımı içerir. İç adlar (`teklifpro_queue`, `teklifpro_release`, test DB'leri) bilerek kaldı. |
 
 Auto-fix #64 ve #65 için açık (CI hatası, çakışma, inceleme yorumu olursa oturum uyanır).
 
@@ -47,7 +49,8 @@ Hepsi `false`. Tek satırla geri açılır; kod silinmedi.
 5. **Paket 4, TEST-01:** CI'da çalışmayan 4 pgtest (`database-role-provision`, `finance-quotation-rls`, `t44-recovery-drill`, `process-heartbeat`) CI'a bağlanacak; CI bootstrap'ına `provisionDatabaseRoles`.
 6. Sonra: graceful shutdown (OPS-04), Express async yamasına test, global hız sınırı (SEC-03), origin sıkıştırması (PERF-02), PITR (OPS-02), `strict` + ESLint (ARCH-01).
 7. Academy'yi yeniden açmak (Hazar'ın isteği, rapor işlerinden sonra).
-8. Uygulama içi (giriş sonrası) abonelik ve kota ekranlarındaki deneme ifadeleri bu oturumda değişmedi.
+8. **Arama:** "BIM Metraj" genel sektör terimi de olduğu için sıralama garantisi yok. Deploy sonrası Google Search Console'da sorgu raporu ve Zengin Sonuçlar Testi ile `WebSite` verisi izlenmeli.
+9. Uygulama içi (giriş sonrası) abonelik ve kota ekranlarındaki deneme ifadeleri bu oturumda değişmedi.
 
 ## Doğrulama notları
 

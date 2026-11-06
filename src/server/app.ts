@@ -366,7 +366,7 @@ export async function startServer() {
         logger.info("Seeding initial company and admin...");
         const controlDb = getControlDatabase().db;
         const [company] = await controlDb.insert(companies).values({
-          name: "TeklifPro Demo Şirketi",
+          name: "BIMMetraj Demo Şirketi",
           defaultCurrency: "TRY",
         }).returning();
         

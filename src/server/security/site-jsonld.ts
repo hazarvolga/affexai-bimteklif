@@ -6,6 +6,12 @@
 import { getLiveCapabilities, getPilotCapabilities } from '../../capabilities/registry';
 import type { PublicPlanView } from '../../services/billing/public-plans';
 
+/**
+ * Spelling variants people type into search engines. "BIMMetraj" ranks for the joined form; the spaced
+ * "BIM Metraj" does not, so the variants are declared for Google's site-name and entity matching (2026-11-06).
+ */
+export const BRAND_ALTERNATE_NAMES = ['BIM Metraj', 'Bimmetraj'] as const;
+
 const ORGANIZATION_DESCRIPTION =
   'Türkiye inşaat ve mühendislik sektörü için openBIM (IFC) tabanlı metraj, maliyet, ÇŞB 2026 poz ve RG 33331 e-PYS ön kontrol araçları. Sonuçlar ön kontrol niteliğindedir.';
 
@@ -32,9 +38,19 @@ export function siteJsonLd(origin: string, publicPlans: readonly PublicPlanView[
     '@context': 'https://schema.org',
     '@graph': [
       {
+        '@type': 'WebSite',
+        '@id': `${origin}/#website`,
+        name: 'BIMMetraj',
+        alternateName: [...BRAND_ALTERNATE_NAMES],
+        url: origin,
+        inLanguage: 'tr-TR',
+        publisher: { '@id': `${origin}/#organization` },
+      },
+      {
         '@type': 'Organization',
         '@id': `${origin}/#organization`,
         name: 'BIMMetraj',
+        alternateName: [...BRAND_ALTERNATE_NAMES],
         url: origin,
         logo: { '@type': 'ImageObject', url: `${origin}/og-image.png`, width: 1200, height: 630 },
         image: `${origin}/og-image.png`,
@@ -48,6 +64,7 @@ export function siteJsonLd(origin: string, publicPlans: readonly PublicPlanView[
         '@type': 'SoftwareApplication',
         '@id': `${origin}/#software`,
         name: 'BIMMetraj',
+        alternateName: [...BRAND_ALTERNATE_NAMES],
         applicationCategory: 'BusinessApplication',
         operatingSystem: 'Web',
         url: origin,

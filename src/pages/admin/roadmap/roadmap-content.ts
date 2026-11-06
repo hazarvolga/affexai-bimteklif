@@ -185,8 +185,9 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
   },
   {
     id: "durum",
-    title: "Uygulama durumu (6 Kasım 2026 · Rev. 161 geliştirme kaydı)",
+    title: "Uygulama durumu (6 Kasım 2026 · Rev. 162 geliştirme kaydı)",
     blocks: [
+      { type: "callout", tone: "info", title: "Rev. 162 · Marka adı ve arama görünürlüğü", text: "Kullanıcıya, arama motorlarına ve yapay zekâ tarayıcılarına görünen yerlerde eski ürün adı kalmadı. Site verisi artık BIMMetraj ile birlikte BIM Metraj ve Bimmetraj yazımlarını da tanıtır. İç teknik adlar değişmedi. Hesap değişmez." },
       { type: "callout", tone: "info", title: "Rev. 161 · Uzman dönemi kayıt sayfası", text: "Kayıt ekranı uzman testi süresince yalnız formu gösterir; paket, fiyat ve deneme ifadesi yoktur, ödeme siparişi oluşmaz. Orijinal kayıt sayfası korunur ve bayrakla geri gelir. Kayıtlar yine deneme planıyla açılır. Hesap değişmez." },
       { type: "callout", tone: "info", title: "Rev. 160 · Yayın hijyeni", text: "İlk yüklemede grafik paketi artık inmez (126 KB yerine 8,7 KB). Özel ve token rotaları indekslenmez, kapalı Academy rotaları ana sayfaya kalıcı yönlenir. Ana sayfa, paketler ve kayıt ekranı 320 px'te yatay taşmaz. Ana sayfadaki Paketler bölümü geçici olarak, 14 gün deneme bölümü uzman testleri bitene kadar gizlidir. Hesap değişmez." },
       { type: "callout", tone: "info", title: "Rev. 159 · Firebase kaldırıldı", text: "Kullanılmayan Firebase katmanı, iki proje yapılandırması ve bağımlılığı kaldırıldı; Academy tipleri ayrı dosyaya taşındı. CSP'de Firebase adresi yok. Uygulama davranışı değişmez." },
@@ -833,7 +834,7 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
             "Rev. 77",
             "25 Ekim 2026 (T46 Üçüncü Dilim ve Tam Kapanış: Mevzuat, Sözlük ve Admin Metinlerinin Tek Kaynağa Hizalanması; Platform Süper Admin Bootstrap Koruması)",
             "BIM-CALC-2026-10-25.71 (a32b997)",
-            "T46 tamamlandı: 1) LegislationView.tsx doğrudan CAPABILITY_REGISTRY'ye bağlandı; 6 resmi kitap / 18.848 satır kapsamı küçültülmeden yapısal satır varlığı ile ticari kullanım lisansı, yürürlük dönemi ve uzman onayı ayrımı gösterildi; veraPDF 1.30.3 + verapdf_report_xml akışı hizalandı. 2) BimGlossary.tsx, BimDashboard.tsx, DeveloperRoadmap.tsx, CalculationMethods.tsx, AdminDashboard.tsx ve PricingSources.tsx üzerindeki eski sabit 'Rev. 5', 'TeklifPro' ve doğrulanmamış ifadeler temizlenerek public-copy.test.ts kapısına dahil edildi. 3) Platform sahibi e-postası (hazarvolga@gmail.com) kayıt ve giriş akışlarında otomatik is_super_admin = true ve bm_admin çerezi alacak şekilde koruma altına alındı.",
+            "T46 tamamlandı: 1) LegislationView.tsx doğrudan CAPABILITY_REGISTRY'ye bağlandı; 6 resmi kitap / 18.848 satır kapsamı küçültülmeden yapısal satır varlığı ile ticari kullanım lisansı, yürürlük dönemi ve uzman onayı ayrımı gösterildi; veraPDF 1.30.3 + verapdf_report_xml akışı hizalandı. 2) BimGlossary.tsx, BimDashboard.tsx, DeveloperRoadmap.tsx, CalculationMethods.tsx, AdminDashboard.tsx ve PricingSources.tsx üzerindeki eski sabit 'Rev. 5', eski ürün adı ve doğrulanmamış ifadeler temizlenerek public-copy.test.ts kapısına dahil edildi. 3) Platform sahibi e-postası (hazarvolga@gmail.com) kayıt ve giriş akışlarında otomatik is_super_admin = true ve bm_admin çerezi alacak şekilde koruma altına alındı.",
           ],
           [
             "Rev. 78",
@@ -1245,6 +1246,9 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
           ],
           [
             "Rev. 161", "6 Kasım 2026 · Uzman dönemi kaydı", "BIM-CALC-2026-11-06.19", "Sade kayıt sayfası; paket ve deneme ifadesi yok. Hesap değişmez.",
+          ],
+          [
+            "Rev. 162", "6 Kasım 2026 · Marka adı", "BIM-CALC-2026-11-06.20", "Görünür eski ürün adı kaldırıldı; BIM Metraj yazımı site verisine eklendi. Hesap değişmez.",
           ],
         ],
       },
@@ -1895,7 +1899,7 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
           [
             "Rev. 77 · 25 Ekim 2026 (T46 mevzuat, sözlük ve admin metinlerinin tek kaynağa hizalanması)",
             "GAP planı T46 üçüncü dilimi (SEO-01, SEO-02, GAP-01) ve süper admin bootstrap koruması",
-            "LegislationView.tsx yetenek kaydına doğrudan bağlı değildi; DeveloperRoadmap.tsx ve CalculationMethods.tsx başlıklarında eski 'Rev. 5' ifadesi, AdminDashboard.tsx'te 'TeklifPro' adı ve BimDashboard.tsx/BimGlossary.tsx/PricingSources.tsx'te public-copy kapısına girmeyen ifadeler bulunuyordu; temiz kurulum sonrasında platform sahibi e-postası için otomatik super_admin koruması yoktu.",
+            "LegislationView.tsx yetenek kaydına doğrudan bağlı değildi; DeveloperRoadmap.tsx ve CalculationMethods.tsx başlıklarında eski 'Rev. 5' ifadesi, AdminDashboard.tsx'te eski ürün adı ve BimDashboard.tsx/BimGlossary.tsx/PricingSources.tsx'te public-copy kapısına girmeyen ifadeler bulunuyordu; temiz kurulum sonrasında platform sahibi e-postası için otomatik super_admin koruması yoktu.",
             "LegislationView.tsx doğrudan CAPABILITY_REGISTRY'den canlı/pilot/yol haritası sayılarını ve 18.848 resmi katalog satır sınırını gösterir; DeveloperRoadmap.tsx ve CalculationMethods.tsx son revizyonu CALC_REVIEW_CHANGELOG'dan dinamik okur; public-copy.test.ts mevzuat, sözlük ve admin yüzeylerini de kapsayacak şekilde genişletildi; isPlatformSuperAdminEmail ile hazarvolga@gmail.com kayıt/girişte otomatik is_super_admin alır.",
             "src/components/bimplan/LegislationView.tsx, src/components/bimplan/BimGlossary.tsx, src/components/bimplan/BimDashboard.tsx, src/pages/admin/DeveloperRoadmap.tsx, src/pages/admin/CalculationMethods.tsx, src/pages/admin/AdminDashboard.tsx, src/pages/admin/PricingSources.tsx, src/pages/public-copy.test.ts, src/server/auth/registration.ts, src/server/routes/auth.ts, docs/audits/phase-8/PHASE_8_T46_SINGLE_SOURCE_COPY_2026-10-25.md",
           ],
@@ -2148,6 +2152,9 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
           ],
           [
             "Rev. 161 · 6 Kasım 2026 (Kayıt)", "Uzman dönemi kayıt sayfası", "REGISTER_PLAN_PICKER_ENABLED kapalıyken /register yalnız formu gösterir ve paket seçmeden kaydeder; ana sayfa ve giriş butonları deneme yerine Kayıt Ol der. Orijinal sayfa değişmedi.", "src/pages/RegisterSimple.tsx; src/features/registration/simple-registration.ts; src/App.tsx; src/config/features.ts; src/server/security/route-meta.ts",
+          ],
+          [
+            "Rev. 162 · 6 Kasım 2026 (Marka)", "Görünür ad ve arama", "Arayüz, Academy içeriği, llms.txt, yapay zekâ asistanı, indirme dosyası adı ve dış isteklerin User-Agent değeri BIMMetraj oldu. JSON-LD WebSite düğümü ve alternateName (BIM Metraj, Bimmetraj) eklendi; ana sayfa açıklaması iki yazımı içerir. Test eski adın görünür dosyalara geri dönmesini engeller.", "src/server/security/site-jsonld.ts; src/server/security/route-meta.ts; src/server/security/web-hardening.ts; index.html; src/contracts/brand-visible-name.test.ts",
           ],
           [
             "Rev. 112 · 28 Ekim 2026 (Faz 0 güven ve ticari doğruluk)",

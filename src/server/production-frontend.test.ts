@@ -93,7 +93,7 @@ test('production frontend serves sitemap.xml and robots.txt for the canonical or
   assert.equal(llms.status, 200);
   assert.match(llms.headers.get('content-type') ?? '', /text\/plain/);
   const llmsBody = await llms.text();
-  assert.match(llmsBody, /# BIMMetraj \(TeklifPro\)/);
+  assert.match(llmsBody, /# BIMMetraj \(BIM Metraj\)/);
   assert.ok(llmsBody.includes(publishedPlan.name));
 });
 

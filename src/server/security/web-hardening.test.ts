@@ -57,7 +57,7 @@ test('sitemap lists public pages on the canonical origin and robots/llms/securit
   assert.match(secTxt, /Contact: mailto:info@bimmetraj\.com/);
   assert.match(secTxt, /Canonical: https:\/\/bimmetraj\.com\/\.well-known\/security\.txt/);
   const llms = llmsTxt('https://bimmetraj.com');
-  assert.match(llms, /# BIMMetraj \(TeklifPro\)/);
+  assert.match(llms, /# BIMMetraj \(BIM Metraj\)/);
   assert.match(llms, /RG 33331 e-PYS/);
   assert.match(llms, /https:\/\/bimmetraj\.com\/bim-sozlugu/);
 

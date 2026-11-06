@@ -41,7 +41,7 @@ const PUBLIC_ROUTE_META: Readonly<Record<string, RouteMeta>> = {
   '/': {
     title: `${SITE} | openBIM (IFC) Metraj, e-PYS & 5D İhale Masası`,
     description:
-      'İnşaat ve teknik ofis ekipleri için IFC ve Excel tabanlı metraj, ÇŞB 2026 poz eşleştirme, RG 33331 e-PYS ön kontrolü ve SmartCheck denetimli teklif hazırlama. Sonuçlar ön kontrol niteliğindedir.',
+      'BIMMetraj (BIM Metraj): İnşaat ve teknik ofis ekipleri için IFC ve Excel tabanlı metraj, ÇŞB 2026 poz eşleştirme, RG 33331 e-PYS ön kontrolü ve SmartCheck denetimli teklif hazırlama. Sonuçlar ön kontrol niteliğindedir.',
   },
   '/features': {
     title: `Özellikler — IFC Metraj, SmartCheck ve e-PYS Ön Kontrol | ${SITE}`,
