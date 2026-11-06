@@ -12,6 +12,7 @@ import { renderJsonLdScript, routeJsonLd } from './route-jsonld';
 import { siteJsonLd } from './site-jsonld';
 import type { PublicPlanView } from '../../services/billing/public-plans';
 import { BILLING_PERIOD_OPTIONS } from '../../services/billing/billing-periods';
+import { REGISTER_PLAN_PICKER_ENABLED } from '../../config/features';
 
 const tl = (value: number) => value.toLocaleString('tr-TR');
 
@@ -101,8 +102,11 @@ const PUBLIC_ROUTE_META: Readonly<Record<string, RouteMeta>> = {
     noindex: true,
   },
   '/register': {
-    title: `Kayıt Ol — 14 Günlük Ücretsiz Deneme | ${SITE}`,
-    description: 'BIMMetraj 14 günlük ücretsiz deneme hesabı oluşturun ve IFC/Excel tabanlı metraj ile teklif hazırlamaya başlayın.',
+    // Expert test period: the plain /register page carries no trial wording (REGISTER_PLAN_PICKER_ENABLED).
+    title: REGISTER_PLAN_PICKER_ENABLED ? `Kayıt Ol — 14 Günlük Ücretsiz Deneme | ${SITE}` : `Kayıt Ol | ${SITE}`,
+    description: REGISTER_PLAN_PICKER_ENABLED
+      ? 'BIMMetraj 14 günlük ücretsiz deneme hesabı oluşturun ve IFC/Excel tabanlı metraj ile teklif hazırlamaya başlayın.'
+      : 'BIMMetraj çalışma alanı hesabı oluşturun; e-posta doğrulamasının ardından giriş yapın.',
     noindex: true,
   },
   '/forgot-password': {

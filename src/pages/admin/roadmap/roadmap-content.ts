@@ -185,8 +185,9 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
   },
   {
     id: "durum",
-    title: "Uygulama durumu (6 Kasım 2026 · Rev. 160 geliştirme kaydı)",
+    title: "Uygulama durumu (6 Kasım 2026 · Rev. 161 geliştirme kaydı)",
     blocks: [
+      { type: "callout", tone: "info", title: "Rev. 161 · Uzman dönemi kayıt sayfası", text: "Kayıt ekranı uzman testi süresince yalnız formu gösterir; paket, fiyat ve deneme ifadesi yoktur, ödeme siparişi oluşmaz. Orijinal kayıt sayfası korunur ve bayrakla geri gelir. Kayıtlar yine deneme planıyla açılır. Hesap değişmez." },
       { type: "callout", tone: "info", title: "Rev. 160 · Yayın hijyeni", text: "İlk yüklemede grafik paketi artık inmez (126 KB yerine 8,7 KB). Özel ve token rotaları indekslenmez, kapalı Academy rotaları ana sayfaya kalıcı yönlenir. Ana sayfa, paketler ve kayıt ekranı 320 px'te yatay taşmaz. Ana sayfadaki Paketler bölümü geçici olarak, 14 gün deneme bölümü uzman testleri bitene kadar gizlidir. Hesap değişmez." },
       { type: "callout", tone: "info", title: "Rev. 159 · Firebase kaldırıldı", text: "Kullanılmayan Firebase katmanı, iki proje yapılandırması ve bağımlılığı kaldırıldı; Academy tipleri ayrı dosyaya taşındı. CSP'de Firebase adresi yok. Uygulama davranışı değişmez." },
       { type: "callout", tone: "info", title: "Rev. 158 · TÜİK akış yapısı isteği", text: "Yapıyı göster düğmesi TÜİK belgesindeki biçimle (SDMX-CSV) veri ister; önceki SDMX-JSON isteği 406 ile reddediliyordu. Veri kaydedilmez." },
@@ -1242,6 +1243,9 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
           [
             "Rev. 160", "6 Kasım 2026 · Yayın hijyeni", "BIM-CALC-2026-11-06.18", "İlk yükleme, indeksleme ve 320 px yerleşim düzeltmeleri. Hesap değişmez.",
           ],
+          [
+            "Rev. 161", "6 Kasım 2026 · Uzman dönemi kaydı", "BIM-CALC-2026-11-06.19", "Sade kayıt sayfası; paket ve deneme ifadesi yok. Hesap değişmez.",
+          ],
         ],
       },
       {
@@ -2141,6 +2145,9 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
           ],
           [
             "Rev. 160 · 6 Kasım 2026 (Yayın hijyeni)", "İlk yükleme, SEO ve 320 px", "Entry dosyası charts chunk'ını statik çekmez (T45-2 kontrolü); meta kaydı olmayan rotalar noindex alır, token yolları robots.txt'de kapalı; Academy kapalıyken /academy 301; ana sayfa, kayıt ve giriş ekranı 320 px'te taşmaz ve dokunma hedefleri en az 24 px.", "vite.config.ts; src/server/security/route-meta.ts; src/server/security/web-hardening.ts; src/server/app.ts; src/pages/LandingPage.tsx; src/pages/Register.tsx; src/pages/Login.tsx",
+          ],
+          [
+            "Rev. 161 · 6 Kasım 2026 (Kayıt)", "Uzman dönemi kayıt sayfası", "REGISTER_PLAN_PICKER_ENABLED kapalıyken /register yalnız formu gösterir ve paket seçmeden kaydeder; ana sayfa ve giriş butonları deneme yerine Kayıt Ol der. Orijinal sayfa değişmedi.", "src/pages/RegisterSimple.tsx; src/features/registration/simple-registration.ts; src/App.tsx; src/config/features.ts; src/server/security/route-meta.ts",
           ],
           [
             "Rev. 112 · 28 Ekim 2026 (Faz 0 güven ve ticari doğruluk)",

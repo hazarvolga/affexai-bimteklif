@@ -1,6 +1,6 @@
 # Working State: BIMMetraj
 
-Last updated: 2026-11-02. Keep this file to one page: current truth only. Move
+Last updated: 2026-11-06. Keep this file to one page: current truth only. Move
 history to `archive/` (latest: `archive/WORKING_STATE_until_2026-10-24.md`).
 
 ## Production
@@ -15,7 +15,7 @@ history to `archive/` (latest: `archive/WORKING_STATE_until_2026-10-24.md`).
   `bimmetraj_worker` — `subscriptions` ve `plans` tablolarında 0 privilege (db-provision contract).
   T44: Docker PG16 kurtarma tatbikatı tamamlandı (5 sütun, 30 Ekim 2026);
   pg_dump/pg_restore 130/522 ms, RPO 0 kayıp, katalog e5e4d3d1, 38 migration doğrulandı.
-  Active handoff: `docs/agent-memory/HANDOFF_2026-11-02_UZMAN_TESTI.md` (before it: `HANDOFF_2026-10-30_T41_8B_TAMAMLANDI.md`).
+  Active handoff: `docs/agent-memory/HANDOFF_2026-11-06_DENETIM_VE_UZMAN_KAYIT.md` (before it: `HANDOFF_2026-11-02_UZMAN_TESTI.md`).
   Release migrations `0022..0029` are applied in
   `bimmetraj_production`; all 5 containers (`app`, `worker`, `ifc-worker`,
   `backup`, `postgres`) are `Up` and healthy. Worker control-plane isolation
@@ -51,6 +51,7 @@ history to `archive/` (latest: `archive/WORKING_STATE_until_2026-10-24.md`).
 
 ## Code (main / working branch)
 
+- **Rev. 161 (6 Kasım 2026, branch `feat/register-simple`, stacked on #65):** expert-period registration. `REGISTER_PLAN_PICKER_ENABLED=false` routes `/register` to the new `src/pages/RegisterSimple.tsx` (same fields, consents, honeypot and API; no package, price, discount, transfer or trial wording; sends no `selectedPlanId`, so no payment order). Original `src/pages/Register.tsx` unchanged. Landing and login buttons say "Kayıt Ol / Kaydolun" while `TRIAL_SECTION_ENABLED=false`; `/register` meta title "Kayıt Ol | BIMMetraj". **Risk:** registrations still get the 14-day trial and the admin panel cannot extend `currentPeriodEnd`; see the 2026-11-06 handoff.
 - **Rev. 160 (6 Kasım 2026, branch `chore/release-hygiene-p2`, stacked on PR #64, PR until deployed):** audit fixes PERF-01 (`clsx`/`tailwind-merge` → `ui-utils` chunk; T45-2 asserts the entry never statically imports charts/exceljs/ifc-viewer; first load 126 KB gzip → 8.7 KB), SEO-01 (routes without meta get no canonical + `noindex, nofollow`; robots.txt closes `/reset-password/`, `/verify-email/`, `/accept-invite/`), SEO-02 (`/academy*` 301 → `/` while `ACADEMY_ENABLED=false`), A11Y-01/02 (landing nav switches at `lg`, theme and login move into the dropdown under 400 px; register grid `min-w-0`; consent rows and forgot-password link ≥ 24 px). Measured in a real browser: `/`, `/pricing`, `/register`, `/login`, `/features`, `/about`, `/smartcheck` at 320 px all `scrollWidth = 320`; 768 and 1024 px also clean. Stale `package-lock.json` removed (it caused the audit's wrong npm-audit counts); `.dockerignore` excludes `.venv`, `coverage`, sample Excel and catalog folders. **Hidden on the landing page (Hazar, 6 Kasım 2026):** the "Paketler" section and its three nav/footer links (`PRICING_SECTION_ENABLED=false`, temporary; `/pricing` renders the same landing page so it shows no cards either) and the "14 Gün Ücretsiz Deneyin" section with its footer link (`TRIAL_SECTION_ENABLED=false`, until the expert tests finish). Flags live in `src/config/features.ts`.
 - **Rev. 159 (6 Kasım 2026, branch `chore/remove-firebase`, PR until deployed):** unused Firebase layer removed (`src/lib/firebase.ts`, `firebase-applet-config.json`, AI Studio `metadata.json`, `firebase` dependency; protobufjs/grpc left the tree with it). Academy view types now in `src/features/academy/types.ts`. CSP test asserts no Firebase origin. **Open for Hazar:** both Firebase projects (`gen-lang-client-0518126114`, `gen-lang-client-0852060838`) still exist in Google Console with keys in git history; delete them or lock rules and rotate keys, and make the repo private. Source: external audit `Quder-rapor.md` (SEC-01), verified in code.
 

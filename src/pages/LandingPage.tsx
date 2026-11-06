@@ -204,7 +204,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
             onClick={() => navigate('/register')}
             className="bg-primary text-xs text-primary-foreground px-3 font-semibold"
           >
-            Ücretsiz Başla
+            {TRIAL_SECTION_ENABLED ? 'Ücretsiz Başla' : 'Kayıt Ol'}
           </Button>
           <button
             type="button"
@@ -263,7 +263,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
               Giriş Yap
             </Button>
             <Button className="w-full bg-primary text-primary-foreground font-medium" onClick={() => { setMobileMenuOpen(false); navigate('/register'); }}>
-              14 Gün Ücretsiz Başla
+              {TRIAL_SECTION_ENABLED ? '14 Gün Ücretsiz Başla' : 'Kayıt Ol'}
             </Button>
           </div>
         </div>
@@ -298,7 +298,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
                     onClick={() => navigate('/register')}
                     className="pafta-button"
                   >
-                    <span>14 Gün Ücretsiz Başlayın</span>
+                    <span>{TRIAL_SECTION_ENABLED ? '14 Gün Ücretsiz Başlayın' : 'Kayıt Olun'}</span>
                     <ArrowRight size={15} />
                   </button>
                   <button

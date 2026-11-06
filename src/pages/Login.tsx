@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ACADEMY_ENABLED } from '@/config/features';
+import { ACADEMY_ENABLED, TRIAL_SECTION_ENABLED } from '@/config/features';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent } from '@/components/ui/card';
@@ -159,7 +159,7 @@ export function Login() {
               <p className="text-xs text-muted-foreground">
                 Hesabınız yok mu?{' '}
                 <Link to="/register" className="text-primary font-semibold underline underline-offset-2 hover:opacity-80">
-                  14 Gün Ücretsiz Kaydolun
+                  {TRIAL_SECTION_ENABLED ? '14 Gün Ücretsiz Kaydolun' : 'Kaydolun'}
                 </Link>
               </p>
             </div>
