@@ -58,6 +58,47 @@ export function AcademyGuide() {
         </section>
       )}
 
+      {guide.calculation && (
+        <section className="mt-10" aria-labelledby="calculation">
+          <h2 id="calculation" className="text-xl font-semibold text-foreground">{guide.calculation.title}</h2>
+          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{guide.calculation.note}</p>
+          <p className="mt-3 font-mono text-xs text-muted-foreground">
+            {Object.entries(guide.calculation.inputs).map(([name, value]) => `${name} = ${formatNumber(value)}`).join(' · ')}
+          </p>
+          <div className="mt-3 overflow-x-auto border border-border">
+            <table className="w-full min-w-[20rem] text-left text-sm">
+              <thead className="bg-muted text-xs uppercase tracking-wider text-muted-foreground">
+                <tr>
+                  <th scope="col" className="px-4 py-3 font-semibold">Sonuç</th>
+                  <th scope="col" className="px-4 py-3 font-semibold">Formül</th>
+                  <th scope="col" className="px-4 py-3 text-right font-semibold">Değer</th>
+                </tr>
+              </thead>
+              <tbody>
+                {guide.calculation.results.map((result) => (
+                  <tr key={result.label} className="border-t border-border">
+                    <td className="px-4 py-3 font-mono font-medium text-foreground">{result.label}</td>
+                    <td className="px-4 py-3 font-mono text-muted-foreground">{result.formula}</td>
+                    <td className="px-4 py-3 text-right font-mono tabular-nums text-foreground">{formatNumber(result.value)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
+
+      {guide.review && (
+        <aside className="mt-8 border border-border bg-muted/40 p-4 text-xs leading-relaxed text-muted-foreground" aria-label="İnceleme notu">
+          <p className="font-semibold text-foreground">İnceleme notu ({guide.review.reviewedOn})</p>
+          <p className="mt-1">{guide.review.note}</p>
+          <p className="mt-2">Yöntem: {guide.review.method}</p>
+          <ul className="mt-1 list-disc pl-5">
+            {guide.review.sources.map((source) => <li key={source}>{source}</li>)}
+          </ul>
+        </aside>
+      )}
+
       <section className="mt-10 grid gap-6 lg:grid-cols-2">
         <div>
           <h2 className="text-xl font-semibold text-foreground">Önemli noktalar</h2>
@@ -101,4 +142,8 @@ export function AcademyGuide() {
       </Link>
     </AcademyShell>
   );
+}
+
+function formatNumber(value: number): string {
+  return value.toLocaleString('tr-TR', { maximumFractionDigits: 3 });
 }

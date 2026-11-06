@@ -185,8 +185,9 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
   },
   {
     id: "durum",
-    title: "Uygulama durumu (6 Kasım 2026 · Rev. 164 geliştirme kaydı)",
+    title: "Uygulama durumu (6 Kasım 2026 · Rev. 165 geliştirme kaydı)",
     blocks: [
+      { type: "callout", tone: "info", title: "Rev. 165 · Akademi rehberleri tamamlandı", text: "Eski 24 rehberin tamamı işlendi: 22 rehber sayfası. Mühendislik sayıları yalnız inceleme kaydı olan rehberlerde (boşluk düşümü, LOA, donatı); kaynağı olmayan karbon katsayıları ve renk eşikleri yayınlanmadı. Hesap yöntemi değişmez." },
       { type: "callout", tone: "info", title: "Rev. 164 · Akademi rehberleri 1. paket", text: "On iki ayrıntılı rehber kendi sayfasında açıldı; konu sayfasındaki modülden bağlanır. Sayı, yazılım markası ve uydurma vaka istatistiği yok; BIMMetraj notları yalnız pilot özelliklere bağlı. Sayı içeren rehberler doğrulama bekliyor. Hesap değişmez." },
       { type: "callout", tone: "info", title: "Rev. 163 · Yalın Akademi", text: "Akademi BIMMetraj içinde tek bölüm olarak açıldı: beş ortak konu, tek sayfa kalıbı, kayıt gerekmez. Sınav, sertifika, profil, laboratuvarlar ve markaya özgü dersler kapalı; sayı içeren içerik doğrulamadan sonra açılacak. Hesap değişmez." },
       { type: "callout", tone: "info", title: "Rev. 162 · Marka adı ve arama görünürlüğü", text: "Kullanıcıya, arama motorlarına ve yapay zekâ tarayıcılarına görünen yerlerde eski ürün adı kalmadı. Site verisi artık BIMMetraj ile birlikte BIM Metraj ve Bimmetraj yazımlarını da tanıtır. İç teknik adlar değişmedi. Hesap değişmez." },
@@ -1258,6 +1259,9 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
           [
             "Rev. 164", "6 Kasım 2026 · Akademi rehberleri", "BIM-CALC-2026-11-06.22", "On iki rehber sayfası; sayı ve formül kodu yok. Hesap değişmez.",
           ],
+          [
+            "Rev. 165", "6 Kasım 2026 · Rehberler 2. ve 3. paket", "BIM-CALC-2026-11-06.23", "On rehber daha; sayılar inceleme kaydıyla. Hesap değişmez.",
+          ],
         ],
       },
       {
@@ -2169,6 +2173,9 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
           ],
           [
             "Rev. 164 · 6 Kasım 2026 (Akademi)", "Rehberler 1. paket", "Eski yan panel verisinden 12 rehber yeniden yazıldı ve /academy/{konu}/{rehber} adresinde yayınlandı (yan panel yok). Doğrulanmamış U değerleri, risk yüzdeleri, uydurma vaka sayıları ve standart dışı LOG tablosu çıkarıldı; yetenek kaydında karşılığı olmayan ürün notları kaldırıldı. Ortak yayın kuralları Türkçe yüzde yazımını ve bileşik birimleri de yakalar.", "src/academy/library/guides.ts; src/academy/library/content-rules.ts; src/pages/AcademyGuide.tsx; src/pages/AcademyTopic.tsx; src/server/security/route-meta.ts",
+          ],
+          [
+            "Rev. 165 · 6 Kasım 2026 (Akademi)", "Rehberler 2. ve 3. paket", "Marka adları genelleştirildi, uydurma rakamlar çıkarıldı. EVM ve boşluk düşümü örnek hesapları testte yeniden hesaplanır (11,82 / 14 m² eng_calc ile çapraz). ÇŞB 2026 eşikleri minha.ts kaynağından, LOA aralıkları USIBD, donatı kütlesi ve TBDY sıklaştırma skill referansından; her biri sayfada inceleme notuyla. Karbon katsayıları, nokta bulutu renk eşikleri ve TBDY kanca uç uzunluğu kaynaksız olduğu için yayınlanmadı.", "src/academy/library/guides.ts; src/academy/library/guides.test.ts; src/pages/AcademyGuide.tsx",
           ],
           [
             "Rev. 112 · 28 Ekim 2026 (Faz 0 güven ve ticari doğruluk)",
