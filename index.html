@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="BIMMetraj — İnşaat ve teknik ofis ekipleri için açık BIM (IFC) ve Excel tabanlı metraj çıkarma, ÇŞB 2026 poz entegrasyonu, RG 33331 e-PYS ön-kontrol ve SmartCheck denetimli 5D teklif platformu." />
+    <meta name="description" content="BIMMetraj (BIM Metraj): İnşaat ve teknik ofis ekipleri için açık BIM (IFC) ve Excel tabanlı metraj çıkarma, ÇŞB 2026 poz entegrasyonu, RG 33331 e-PYS ön-kontrol ve SmartCheck denetimli 5D teklif platformu." />
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="tr_TR" />
     <meta property="og:site_name" content="BIMMetraj" />
@@ -27,9 +27,19 @@
         "@context": "https://schema.org",
         "@graph": [
           {
+            "@type": "WebSite",
+            "@id": "https://bimmetraj.com/#website",
+            "name": "BIMMetraj",
+            "alternateName": ["BIM Metraj", "Bimmetraj"],
+            "url": "https://bimmetraj.com",
+            "inLanguage": "tr-TR",
+            "publisher": { "@id": "https://bimmetraj.com/#organization" }
+          },
+          {
             "@type": "Organization",
             "@id": "https://bimmetraj.com/#organization",
             "name": "BIMMetraj",
+            "alternateName": ["BIM Metraj", "Bimmetraj"],
             "url": "https://bimmetraj.com",
             "logo": {
               "@type": "ImageObject",
@@ -56,6 +66,7 @@
             "@type": "SoftwareApplication",
             "@id": "https://bimmetraj.com/#software",
             "name": "BIMMetraj",
+            "alternateName": ["BIM Metraj", "Bimmetraj"],
             "applicationCategory": "BusinessApplication",
             "operatingSystem": "Web",
             "url": "https://bimmetraj.com",

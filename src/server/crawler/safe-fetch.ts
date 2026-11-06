@@ -119,7 +119,7 @@ export async function fetchCrawlerBytes(input: string, maxBytes: number, redirec
       agent: false,
       headers: {
         ...(jsonBody === undefined ? {} : { 'Content-Type': 'application/json' }),
-        'User-Agent': 'TeklifPro-PriceReview/1.0 (+https://bimmetraj.com)',
+        'User-Agent': 'BIMMetraj-PriceReview/1.0 (+https://bimmetraj.com)',
         Accept: 'text/html,application/xhtml+xml,application/json,text/csv,*/*;q=0.8',
         'Accept-Encoding': 'gzip, deflate, br, identity',
       },
