@@ -40,6 +40,11 @@ export default defineConfig(({mode}) => {
             if (!id.includes('node_modules/')) return;
             const parts = id.split('node_modules/');
             const pkg = parts[parts.length - 1] || '';
+            if (pkg.startsWith('clsx/') || pkg.startsWith('tailwind-merge/')) {
+              // cn() runs on every page. recharts also depends on clsx, so without this
+              // rule Rollup hoists clsx into 'charts' and the entry imports charts statically.
+              return 'ui-utils';
+            }
             if (pkg.startsWith('recharts/') || pkg.startsWith('d3-') || pkg.startsWith('victory-vendor/')) {
               return 'charts';
             }

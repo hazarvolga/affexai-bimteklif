@@ -260,10 +260,10 @@ export function Register() {
           </p>
         </div>
 
-        <div className={`grid gap-6 ${isAcademy ? 'grid-cols-1' : 'lg:grid-cols-12 items-start'}`}>
+        <div className={`grid gap-6 ${isAcademy ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-12 items-start'}`}>
           {/* Sol Sütun: Paket Seçimi (Workspace Kaydı İçin) */}
           {!isAcademy && (
-            <div className="lg:col-span-7 space-y-4">
+            <div className="min-w-0 lg:col-span-7 space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                 <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-primary flex items-center gap-2">
                   <Sparkles size={14} /> 1. Adım: Paket ve Ödeme Periyodunuzu Seçin
@@ -477,7 +477,7 @@ export function Register() {
           )}
 
           {/* Sağ Sütun: Hesap ve Firma Kayıt Formu */}
-          <div className={isAcademy ? 'w-full' : 'lg:col-span-5'}>
+          <div className={isAcademy ? 'w-full' : 'min-w-0 lg:col-span-5'}>
             <Card className="border border-border bg-card shadow-lg rounded-md">
               <CardContent className="pt-6 space-y-4">
                 {!isAcademy && (
@@ -610,7 +610,7 @@ export function Register() {
                   </div>
 
                   <div className="space-y-2 border-t border-border pt-3 text-xs leading-relaxed text-muted-foreground">
-                    <label htmlFor="register-terms" className="flex items-start gap-2.5 cursor-pointer">
+                    <label htmlFor="register-terms" className="flex min-h-6 items-start gap-2.5 py-1 cursor-pointer">
                       <input
                         id="register-terms"
                         aria-label="Kullanım koşullarını okudum ve kabul ediyorum"
@@ -618,7 +618,7 @@ export function Register() {
                         checked={termsAccepted}
                         onChange={(event) => setTermsAccepted(event.target.checked)}
                         required
-                        className="mt-0.5 accent-primary"
+                        className="mt-0.5 size-4 shrink-0 accent-primary"
                       />
                       <span>
                         <Link to="/terms" target="_blank" className="text-primary underline underline-offset-2 hover:opacity-80">
@@ -627,7 +627,7 @@ export function Register() {
                         okudum ve kabul ediyorum.
                       </span>
                     </label>
-                    <label htmlFor="register-privacy" className="flex items-start gap-2.5 cursor-pointer">
+                    <label htmlFor="register-privacy" className="flex min-h-6 items-start gap-2.5 py-1 cursor-pointer">
                       <input
                         id="register-privacy"
                         aria-label="Gizlilik bildirimini okudum ve kabul ediyorum"
@@ -635,7 +635,7 @@ export function Register() {
                         checked={privacyAccepted}
                         onChange={(event) => setPrivacyAccepted(event.target.checked)}
                         required
-                        className="mt-0.5 accent-primary"
+                        className="mt-0.5 size-4 shrink-0 accent-primary"
                       />
                       <span>
                         <Link to="/privacy" target="_blank" className="text-primary underline underline-offset-2 hover:opacity-80">
@@ -644,14 +644,14 @@ export function Register() {
                         okudum ve kabul ediyorum.
                       </span>
                     </label>
-                    <label htmlFor="register-marketing" className="flex items-start gap-2.5 cursor-pointer">
+                    <label htmlFor="register-marketing" className="flex min-h-6 items-start gap-2.5 py-1 cursor-pointer">
                       <input
                         id="register-marketing"
                         aria-label="Ürün ve teknik eğitim duyurularını e-posta ile almak istiyorum"
                         type="checkbox"
                         checked={marketingConsent}
                         onChange={(event) => setMarketingConsent(event.target.checked)}
-                        className="mt-0.5 accent-primary"
+                        className="mt-0.5 size-4 shrink-0 accent-primary"
                       />
                       <span>Ürün ve teknik eğitim duyurularını e-posta ile almak istiyorum.</span>
                     </label>

@@ -56,7 +56,7 @@ import { registerAdminRoutes } from "./routes/admin";
 import { registerAdminLogRoutes } from "./routes/admin-logs";
 import { registerAcademyRoutes } from "./routes/academy";
 import { captureError, hashReportingIdentifier, readBuildRevision, sanitizeErrorForReporting } from "./observability/error-tracking";
-import { aiTrainingPolicyFromEnv, canonicalHostRedirect, contentSecurityPolicy, isKnownSpaRoute, llmsFullTxt, llmsTxt, robotsTxt, securityTxt, sitemapXml } from "./security/web-hardening";
+import { aiTrainingPolicyFromEnv, canonicalHostRedirect, contentSecurityPolicy, disabledFeatureRedirect, isKnownSpaRoute, llmsFullTxt, llmsTxt, robotsTxt, securityTxt, sitemapXml } from "./security/web-hardening";
 import { injectRouteMeta } from "./security/route-meta";
 import { readPublicPlans } from '../services/billing/public-plans';
 import { createBoundedCatalogReader } from './security/public-catalog-reader';
@@ -307,6 +307,8 @@ export function registerProductionFrontend(app: express.Express, distPath: strin
   app.get('*', async (req, res) => {
     const pathname = decodeURIComponent(req.path);
     if (pathname !== '/index.html' && path.posix.extname(pathname)) return res.status(404).end();
+    const featureRedirect = disabledFeatureRedirect(pathname);
+    if (featureRedirect) return res.redirect(301, featureRedirect);
     res.setHeader('Cache-Control', 'no-cache');
     const known = isKnownSpaRoute(pathname);
     if (!known) {
@@ -364,7 +366,7 @@ export async function startServer() {
         logger.info("Seeding initial company and admin...");
         const controlDb = getControlDatabase().db;
         const [company] = await controlDb.insert(companies).values({
-          name: "TeklifPro Demo Şirketi",
+          name: "BIMMetraj Demo Şirketi",
           defaultCurrency: "TRY",
         }).returning();
         

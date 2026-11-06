@@ -185,8 +185,14 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
   },
   {
     id: "durum",
-    title: "Uygulama durumu (6 Kasım 2026 · Rev. 159 geliştirme kaydı)",
+    title: "Uygulama durumu (6 Kasım 2026 · Rev. 165 geliştirme kaydı)",
     blocks: [
+      { type: "callout", tone: "info", title: "Rev. 165 · Akademi rehberleri tamamlandı", text: "Eski 24 rehberin tamamı işlendi: 22 rehber sayfası. Mühendislik sayıları yalnız inceleme kaydı olan rehberlerde (boşluk düşümü, LOA, donatı); kaynağı olmayan karbon katsayıları ve renk eşikleri yayınlanmadı. Hesap yöntemi değişmez." },
+      { type: "callout", tone: "info", title: "Rev. 164 · Akademi rehberleri 1. paket", text: "On iki ayrıntılı rehber kendi sayfasında açıldı; konu sayfasındaki modülden bağlanır. Sayı, yazılım markası ve uydurma vaka istatistiği yok; BIMMetraj notları yalnız pilot özelliklere bağlı. Sayı içeren rehberler doğrulama bekliyor. Hesap değişmez." },
+      { type: "callout", tone: "info", title: "Rev. 163 · Yalın Akademi", text: "Akademi BIMMetraj içinde tek bölüm olarak açıldı: beş ortak konu, tek sayfa kalıbı, kayıt gerekmez. Sınav, sertifika, profil, laboratuvarlar ve markaya özgü dersler kapalı; sayı içeren içerik doğrulamadan sonra açılacak. Hesap değişmez." },
+      { type: "callout", tone: "info", title: "Rev. 162 · Marka adı ve arama görünürlüğü", text: "Kullanıcıya, arama motorlarına ve yapay zekâ tarayıcılarına görünen yerlerde eski ürün adı kalmadı. Site verisi artık BIMMetraj ile birlikte BIM Metraj ve Bimmetraj yazımlarını da tanıtır. İç teknik adlar değişmedi. Hesap değişmez." },
+      { type: "callout", tone: "info", title: "Rev. 161 · Uzman dönemi kayıt sayfası", text: "Kayıt ekranı uzman testi süresince yalnız formu gösterir; paket, fiyat ve deneme ifadesi yoktur, ödeme siparişi oluşmaz. Orijinal kayıt sayfası korunur ve bayrakla geri gelir. Kayıtlar yine deneme planıyla açılır. Hesap değişmez." },
+      { type: "callout", tone: "info", title: "Rev. 160 · Yayın hijyeni", text: "İlk yüklemede grafik paketi artık inmez (126 KB yerine 8,7 KB). Özel ve token rotaları indekslenmez, kapalı Academy rotaları ana sayfaya kalıcı yönlenir. Ana sayfa, paketler ve kayıt ekranı 320 px'te yatay taşmaz. Ana sayfadaki Paketler bölümü geçici olarak, 14 gün deneme bölümü uzman testleri bitene kadar gizlidir. Hesap değişmez." },
       { type: "callout", tone: "info", title: "Rev. 159 · Firebase kaldırıldı", text: "Kullanılmayan Firebase katmanı, iki proje yapılandırması ve bağımlılığı kaldırıldı; Academy tipleri ayrı dosyaya taşındı. CSP'de Firebase adresi yok. Uygulama davranışı değişmez." },
       { type: "callout", tone: "info", title: "Rev. 158 · TÜİK akış yapısı isteği", text: "Yapıyı göster düğmesi TÜİK belgesindeki biçimle (SDMX-CSV) veri ister; önceki SDMX-JSON isteği 406 ile reddediliyordu. Veri kaydedilmez." },
       { type: "callout", tone: "info", title: "Rev. 157 · Düşey kesit", text: "3B görüntüleyicide kesit yönü seçilir (yatay, sağ-sol düşey, ön-arka düşey) ve oynat düğmesiyle kesit kendiliğinden kayar. Metraj etkilenmez." },
@@ -831,7 +837,7 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
             "Rev. 77",
             "25 Ekim 2026 (T46 Üçüncü Dilim ve Tam Kapanış: Mevzuat, Sözlük ve Admin Metinlerinin Tek Kaynağa Hizalanması; Platform Süper Admin Bootstrap Koruması)",
             "BIM-CALC-2026-10-25.71 (a32b997)",
-            "T46 tamamlandı: 1) LegislationView.tsx doğrudan CAPABILITY_REGISTRY'ye bağlandı; 6 resmi kitap / 18.848 satır kapsamı küçültülmeden yapısal satır varlığı ile ticari kullanım lisansı, yürürlük dönemi ve uzman onayı ayrımı gösterildi; veraPDF 1.30.3 + verapdf_report_xml akışı hizalandı. 2) BimGlossary.tsx, BimDashboard.tsx, DeveloperRoadmap.tsx, CalculationMethods.tsx, AdminDashboard.tsx ve PricingSources.tsx üzerindeki eski sabit 'Rev. 5', 'TeklifPro' ve doğrulanmamış ifadeler temizlenerek public-copy.test.ts kapısına dahil edildi. 3) Platform sahibi e-postası (hazarvolga@gmail.com) kayıt ve giriş akışlarında otomatik is_super_admin = true ve bm_admin çerezi alacak şekilde koruma altına alındı.",
+            "T46 tamamlandı: 1) LegislationView.tsx doğrudan CAPABILITY_REGISTRY'ye bağlandı; 6 resmi kitap / 18.848 satır kapsamı küçültülmeden yapısal satır varlığı ile ticari kullanım lisansı, yürürlük dönemi ve uzman onayı ayrımı gösterildi; veraPDF 1.30.3 + verapdf_report_xml akışı hizalandı. 2) BimGlossary.tsx, BimDashboard.tsx, DeveloperRoadmap.tsx, CalculationMethods.tsx, AdminDashboard.tsx ve PricingSources.tsx üzerindeki eski sabit 'Rev. 5', eski ürün adı ve doğrulanmamış ifadeler temizlenerek public-copy.test.ts kapısına dahil edildi. 3) Platform sahibi e-postası (hazarvolga@gmail.com) kayıt ve giriş akışlarında otomatik is_super_admin = true ve bm_admin çerezi alacak şekilde koruma altına alındı.",
           ],
           [
             "Rev. 78",
@@ -1237,6 +1243,24 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
           ],
           [
             "Rev. 159", "6 Kasım 2026 · Firebase kaldırıldı", "BIM-CALC-2026-11-06.17", "Kullanılmayan Firebase katmanı ve bağımlılığı silindi. Uygulama davranışı ve hesap değişmez.",
+          ],
+          [
+            "Rev. 160", "6 Kasım 2026 · Yayın hijyeni", "BIM-CALC-2026-11-06.18", "İlk yükleme, indeksleme ve 320 px yerleşim düzeltmeleri. Hesap değişmez.",
+          ],
+          [
+            "Rev. 161", "6 Kasım 2026 · Uzman dönemi kaydı", "BIM-CALC-2026-11-06.19", "Sade kayıt sayfası; paket ve deneme ifadesi yok. Hesap değişmez.",
+          ],
+          [
+            "Rev. 162", "6 Kasım 2026 · Marka adı", "BIM-CALC-2026-11-06.20", "Görünür eski ürün adı kaldırıldı; BIM Metraj yazımı site verisine eklendi. Hesap değişmez.",
+          ],
+          [
+            "Rev. 163", "6 Kasım 2026 · Yalın Akademi", "BIM-CALC-2026-11-06.21", "Beş ortak konu, sayı ve formül içermeyen ilk sürüm. Hesap değişmez.",
+          ],
+          [
+            "Rev. 164", "6 Kasım 2026 · Akademi rehberleri", "BIM-CALC-2026-11-06.22", "On iki rehber sayfası; sayı ve formül kodu yok. Hesap değişmez.",
+          ],
+          [
+            "Rev. 165", "6 Kasım 2026 · Rehberler 2. ve 3. paket", "BIM-CALC-2026-11-06.23", "On rehber daha; sayılar inceleme kaydıyla. Hesap değişmez.",
           ],
         ],
       },
@@ -1887,7 +1911,7 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
           [
             "Rev. 77 · 25 Ekim 2026 (T46 mevzuat, sözlük ve admin metinlerinin tek kaynağa hizalanması)",
             "GAP planı T46 üçüncü dilimi (SEO-01, SEO-02, GAP-01) ve süper admin bootstrap koruması",
-            "LegislationView.tsx yetenek kaydına doğrudan bağlı değildi; DeveloperRoadmap.tsx ve CalculationMethods.tsx başlıklarında eski 'Rev. 5' ifadesi, AdminDashboard.tsx'te 'TeklifPro' adı ve BimDashboard.tsx/BimGlossary.tsx/PricingSources.tsx'te public-copy kapısına girmeyen ifadeler bulunuyordu; temiz kurulum sonrasında platform sahibi e-postası için otomatik super_admin koruması yoktu.",
+            "LegislationView.tsx yetenek kaydına doğrudan bağlı değildi; DeveloperRoadmap.tsx ve CalculationMethods.tsx başlıklarında eski 'Rev. 5' ifadesi, AdminDashboard.tsx'te eski ürün adı ve BimDashboard.tsx/BimGlossary.tsx/PricingSources.tsx'te public-copy kapısına girmeyen ifadeler bulunuyordu; temiz kurulum sonrasında platform sahibi e-postası için otomatik super_admin koruması yoktu.",
             "LegislationView.tsx doğrudan CAPABILITY_REGISTRY'den canlı/pilot/yol haritası sayılarını ve 18.848 resmi katalog satır sınırını gösterir; DeveloperRoadmap.tsx ve CalculationMethods.tsx son revizyonu CALC_REVIEW_CHANGELOG'dan dinamik okur; public-copy.test.ts mevzuat, sözlük ve admin yüzeylerini de kapsayacak şekilde genişletildi; isPlatformSuperAdminEmail ile hazarvolga@gmail.com kayıt/girişte otomatik is_super_admin alır.",
             "src/components/bimplan/LegislationView.tsx, src/components/bimplan/BimGlossary.tsx, src/components/bimplan/BimDashboard.tsx, src/pages/admin/DeveloperRoadmap.tsx, src/pages/admin/CalculationMethods.tsx, src/pages/admin/AdminDashboard.tsx, src/pages/admin/PricingSources.tsx, src/pages/public-copy.test.ts, src/server/auth/registration.ts, src/server/routes/auth.ts, docs/audits/phase-8/PHASE_8_T46_SINGLE_SOURCE_COPY_2026-10-25.md",
           ],
@@ -2134,6 +2158,24 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
           ],
           [
             "Rev. 159 · 6 Kasım 2026 (Güvenlik)", "Firebase kaldırıldı", "Hiç çağrılmayan Firestore katmanı, public repodaki iki Firebase yapılandırması ve firebase bağımlılığı silindi; CSP testi beş Firebase adresinin yokluğunu doğrular.", "src/features/academy/types.ts; src/server/security/web-hardening.ts; package.json; pnpm-workspace.yaml",
+          ],
+          [
+            "Rev. 160 · 6 Kasım 2026 (Yayın hijyeni)", "İlk yükleme, SEO ve 320 px", "Entry dosyası charts chunk'ını statik çekmez (T45-2 kontrolü); meta kaydı olmayan rotalar noindex alır, token yolları robots.txt'de kapalı; Academy kapalıyken /academy 301; ana sayfa, kayıt ve giriş ekranı 320 px'te taşmaz ve dokunma hedefleri en az 24 px.", "vite.config.ts; src/server/security/route-meta.ts; src/server/security/web-hardening.ts; src/server/app.ts; src/pages/LandingPage.tsx; src/pages/Register.tsx; src/pages/Login.tsx",
+          ],
+          [
+            "Rev. 161 · 6 Kasım 2026 (Kayıt)", "Uzman dönemi kayıt sayfası", "REGISTER_PLAN_PICKER_ENABLED kapalıyken /register yalnız formu gösterir ve paket seçmeden kaydeder; ana sayfa ve giriş butonları deneme yerine Kayıt Ol der. Orijinal sayfa değişmedi.", "src/pages/RegisterSimple.tsx; src/features/registration/simple-registration.ts; src/App.tsx; src/config/features.ts; src/server/security/route-meta.ts",
+          ],
+          [
+            "Rev. 162 · 6 Kasım 2026 (Marka)", "Görünür ad ve arama", "Arayüz, Academy içeriği, llms.txt, yapay zekâ asistanı, indirme dosyası adı ve dış isteklerin User-Agent değeri BIMMetraj oldu. JSON-LD WebSite düğümü ve alternateName (BIM Metraj, Bimmetraj) eklendi; ana sayfa açıklaması iki yazımı içerir. Test eski adın görünür dosyalara geri dönmesini engeller.", "src/server/security/site-jsonld.ts; src/server/security/route-meta.ts; src/server/security/web-hardening.ts; index.html; src/contracts/brand-visible-name.test.ts",
+          ],
+          [
+            "Rev. 163 · 6 Kasım 2026 (Akademi)", "Yalın Akademi ilk sürümü", "ACADEMY_LIBRARY_ENABLED: /academy ve beş konu sayfası (BIM temelleri ve ISO 19650, 4D/5D, 6D, Scan-to-BIM, güvenlik ve saha). İçerik tek veri dosyasından gelir; yazılım markası, doğrulanmamış sayı, ham formül ve eski ad testle engellenir. Eski Academy adresleri /academy adresine 301 ile yönlenir; sayfalar sitemap ve arama motoru meta kaydında.", "src/academy/library/topics.ts; src/pages/AcademyLibrary.tsx; src/pages/AcademyTopic.tsx; src/features/academy/AcademyShell.tsx; src/server/security/web-hardening.ts; src/server/security/route-meta.ts",
+          ],
+          [
+            "Rev. 164 · 6 Kasım 2026 (Akademi)", "Rehberler 1. paket", "Eski yan panel verisinden 12 rehber yeniden yazıldı ve /academy/{konu}/{rehber} adresinde yayınlandı (yan panel yok). Doğrulanmamış U değerleri, risk yüzdeleri, uydurma vaka sayıları ve standart dışı LOG tablosu çıkarıldı; yetenek kaydında karşılığı olmayan ürün notları kaldırıldı. Ortak yayın kuralları Türkçe yüzde yazımını ve bileşik birimleri de yakalar.", "src/academy/library/guides.ts; src/academy/library/content-rules.ts; src/pages/AcademyGuide.tsx; src/pages/AcademyTopic.tsx; src/server/security/route-meta.ts",
+          ],
+          [
+            "Rev. 165 · 6 Kasım 2026 (Akademi)", "Rehberler 2. ve 3. paket", "Marka adları genelleştirildi, uydurma rakamlar çıkarıldı. EVM ve boşluk düşümü örnek hesapları testte yeniden hesaplanır (11,82 / 14 m² eng_calc ile çapraz). ÇŞB 2026 eşikleri minha.ts kaynağından, LOA aralıkları USIBD, donatı kütlesi ve TBDY sıklaştırma skill referansından; her biri sayfada inceleme notuyla. Karbon katsayıları, nokta bulutu renk eşikleri ve TBDY kanca uç uzunluğu kaynaksız olduğu için yayınlanmadı.", "src/academy/library/guides.ts; src/academy/library/guides.test.ts; src/pages/AcademyGuide.tsx",
           ],
           [
             "Rev. 112 · 28 Ekim 2026 (Faz 0 güven ve ticari doğruluk)",
