@@ -185,8 +185,9 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
   },
   {
     id: "durum",
-    title: "Uygulama durumu (6 Kasım 2026 · Rev. 163 geliştirme kaydı)",
+    title: "Uygulama durumu (6 Kasım 2026 · Rev. 164 geliştirme kaydı)",
     blocks: [
+      { type: "callout", tone: "info", title: "Rev. 164 · Akademi rehberleri 1. paket", text: "On iki ayrıntılı rehber kendi sayfasında açıldı; konu sayfasındaki modülden bağlanır. Sayı, yazılım markası ve uydurma vaka istatistiği yok; BIMMetraj notları yalnız pilot özelliklere bağlı. Sayı içeren rehberler doğrulama bekliyor. Hesap değişmez." },
       { type: "callout", tone: "info", title: "Rev. 163 · Yalın Akademi", text: "Akademi BIMMetraj içinde tek bölüm olarak açıldı: beş ortak konu, tek sayfa kalıbı, kayıt gerekmez. Sınav, sertifika, profil, laboratuvarlar ve markaya özgü dersler kapalı; sayı içeren içerik doğrulamadan sonra açılacak. Hesap değişmez." },
       { type: "callout", tone: "info", title: "Rev. 162 · Marka adı ve arama görünürlüğü", text: "Kullanıcıya, arama motorlarına ve yapay zekâ tarayıcılarına görünen yerlerde eski ürün adı kalmadı. Site verisi artık BIMMetraj ile birlikte BIM Metraj ve Bimmetraj yazımlarını da tanıtır. İç teknik adlar değişmedi. Hesap değişmez." },
       { type: "callout", tone: "info", title: "Rev. 161 · Uzman dönemi kayıt sayfası", text: "Kayıt ekranı uzman testi süresince yalnız formu gösterir; paket, fiyat ve deneme ifadesi yoktur, ödeme siparişi oluşmaz. Orijinal kayıt sayfası korunur ve bayrakla geri gelir. Kayıtlar yine deneme planıyla açılır. Hesap değişmez." },
@@ -1254,6 +1255,9 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
           [
             "Rev. 163", "6 Kasım 2026 · Yalın Akademi", "BIM-CALC-2026-11-06.21", "Beş ortak konu, sayı ve formül içermeyen ilk sürüm. Hesap değişmez.",
           ],
+          [
+            "Rev. 164", "6 Kasım 2026 · Akademi rehberleri", "BIM-CALC-2026-11-06.22", "On iki rehber sayfası; sayı ve formül kodu yok. Hesap değişmez.",
+          ],
         ],
       },
       {
@@ -2162,6 +2166,9 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
           ],
           [
             "Rev. 163 · 6 Kasım 2026 (Akademi)", "Yalın Akademi ilk sürümü", "ACADEMY_LIBRARY_ENABLED: /academy ve beş konu sayfası (BIM temelleri ve ISO 19650, 4D/5D, 6D, Scan-to-BIM, güvenlik ve saha). İçerik tek veri dosyasından gelir; yazılım markası, doğrulanmamış sayı, ham formül ve eski ad testle engellenir. Eski Academy adresleri /academy adresine 301 ile yönlenir; sayfalar sitemap ve arama motoru meta kaydında.", "src/academy/library/topics.ts; src/pages/AcademyLibrary.tsx; src/pages/AcademyTopic.tsx; src/features/academy/AcademyShell.tsx; src/server/security/web-hardening.ts; src/server/security/route-meta.ts",
+          ],
+          [
+            "Rev. 164 · 6 Kasım 2026 (Akademi)", "Rehberler 1. paket", "Eski yan panel verisinden 12 rehber yeniden yazıldı ve /academy/{konu}/{rehber} adresinde yayınlandı (yan panel yok). Doğrulanmamış U değerleri, risk yüzdeleri, uydurma vaka sayıları ve standart dışı LOG tablosu çıkarıldı; yetenek kaydında karşılığı olmayan ürün notları kaldırıldı. Ortak yayın kuralları Türkçe yüzde yazımını ve bileşik birimleri de yakalar.", "src/academy/library/guides.ts; src/academy/library/content-rules.ts; src/pages/AcademyGuide.tsx; src/pages/AcademyTopic.tsx; src/server/security/route-meta.ts",
           ],
           [
             "Rev. 112 · 28 Ekim 2026 (Faz 0 güven ve ticari doğruluk)",

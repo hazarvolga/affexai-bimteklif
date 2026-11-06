@@ -224,3 +224,14 @@ test('yalın Akademi: kütüphane ve konu sayfaları indekslenebilir, kendi baş
     assert.ok(html.includes(topic.modules[0].title.replace(/&/g, '&amp;')), `${topic.slug} ön-render modül başlığı`);
   }
 });
+
+test('Akademi rehberleri: her rehber sayfası indekslenebilir, kendi başlığı ve ön-render metni vardır', async () => {
+  const { ACADEMY_GUIDES } = await import('../../academy/library/guides');
+  for (const guide of ACADEMY_GUIDES) {
+    const path = `/academy/${guide.topicSlug}/${guide.slug}`;
+    const html = injectRouteMeta(SHELL, { pathname: path, origin: 'https://bimmetraj.com' });
+    assert.ok(html.includes(`<link rel="canonical" href="https://bimmetraj.com${path}" />`), path);
+    assert.equal(/name="robots"/.test(html), false, `${path} indekslenebilir`);
+    assert.ok(html.includes(guide.takeaways[0].replace(/&/g, '&amp;').replace(/"/g, '&quot;')), `${path} ön-render`);
+  }
+});

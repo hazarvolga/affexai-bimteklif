@@ -83,6 +83,7 @@ const Register = page(() => import('@/pages/Register'), 'Register');
 const RegisterSimple = page(() => import('@/pages/RegisterSimple'), 'RegisterSimple');
 const AcademyLibrary = page(() => import('@/pages/AcademyLibrary'), 'AcademyLibrary');
 const AcademyTopic = page(() => import('@/pages/AcademyTopic'), 'AcademyTopic');
+const AcademyGuide = page(() => import('@/pages/AcademyGuide'), 'AcademyGuide');
 
 /** Expert test period: plain form unless the package picker is enabled or an Academy sign-up needs the original page. */
 function RegisterRoute() {
@@ -153,6 +154,7 @@ function AppRoutes() {
       </> : ACADEMY_LIBRARY_ENABLED ? <>
         <Route path="/academy" element={<AcademyLibrary />} />
         <Route path="/academy/:slug" element={<AcademyTopic />} />
+        <Route path="/academy/:slug/:guide" element={<AcademyGuide />} />
         <Route path="/academy/*" element={<Navigate to="/academy" replace />} />
       </> : <Route path="/academy/*" element={<Navigate to="/" replace />} />}
       <Route path="/pilot" element={<PilotApplication />} />

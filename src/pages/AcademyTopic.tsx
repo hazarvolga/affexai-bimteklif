@@ -3,6 +3,7 @@ import { ArrowLeft, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { PublicMetadata } from '@/components/PublicMetadata';
 import { AcademyShell } from '@/features/academy/AcademyShell';
 import { findAcademyTopic } from '@/academy/library/topics';
+import { guidesForModule } from '@/academy/library/guides';
 
 /** Lean Academy v1: one template for every topic (why it matters, modules, sources, try it). */
 export function AcademyTopic() {
@@ -46,6 +47,15 @@ export function AcademyTopic() {
                       </li>
                     ))}
                   </ul>
+                  {guidesForModule(topic.slug, module.title).length > 0 && (
+                    <div className="mt-4 flex flex-col items-start gap-2">
+                      {guidesForModule(topic.slug, module.title).map((guide) => (
+                        <Link key={guide.slug} to={`/academy/${topic.slug}/${guide.slug}`} className="inline-flex min-h-6 items-center gap-1.5 text-sm font-medium text-primary hover:underline">
+                          Ayrıntılı rehber: {guide.title} <ArrowRight size={14} className="shrink-0" />
+                        </Link>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             </li>
