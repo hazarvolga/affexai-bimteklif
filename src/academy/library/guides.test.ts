@@ -11,11 +11,12 @@ import { ACADEMY_LIBRARY_PATHS, ACADEMY_TOPICS } from './topics';
 
 const guideText = (guide: (typeof ACADEMY_GUIDES)[number]) => [
   guide.title, guide.summary, guide.rule ?? '', guide.example, ...guide.takeaways, ...guide.sources,
-  guide.bimmetraj?.text ?? '', ...(guide.table ? [guide.table.title, ...guide.table.headers, ...guide.table.rows.flat()] : []),
+  guide.bimmetraj?.text ?? '', guide.review?.note ?? '', ...(guide.table ? [guide.table.title, ...guide.table.headers, ...guide.table.rows.flat()] : []),
+  ...(guide.calculation ? [guide.calculation.title, guide.calculation.note, ...guide.calculation.results.map(result => `${result.label} ${result.formula}`)] : []),
 ].join('\n');
 
-test('birinci pakette on iki rehber vardır ve her biri bir konunun bir modülüne bağlıdır', () => {
-  assert.equal(ACADEMY_GUIDES.length, 12);
+test('üç pakette yirmi iki rehber vardır ve her biri bir konunun bir modülüne bağlıdır', () => {
+  assert.equal(ACADEMY_GUIDES.length, 22);
   const keys = new Set<string>();
   for (const guide of ACADEMY_GUIDES) {
     const topic = ACADEMY_TOPICS.find(item => item.slug === guide.topicSlug);
@@ -29,10 +30,23 @@ test('birinci pakette on iki rehber vardır ve her biri bir konunun bir modülü
   }
 });
 
-test('rehber içeriği yayın kurallarına uyar', () => {
+test('rehber içeriği yayın kurallarına uyar; sayı yalnız inceleme kaydı olan rehberde bulunur', () => {
   for (const guide of ACADEMY_GUIDES) {
     const text = guideText(guide);
-    for (const [label, pattern] of CONTENT_RULES) assert.doesNotMatch(text, pattern, `${guide.slug}: ${label}`);
+    for (const [label, pattern] of CONTENT_RULES) {
+      if (label === 'doğrulanmamış sayı' && guide.review) continue;
+      assert.doesNotMatch(text, pattern, `${guide.slug}: ${label}`);
+    }
+  }
+});
+
+test('sayı içeren rehberlerin inceleme kaydı tarihli, yöntemli ve kaynaklıdır', () => {
+  const reviewed = ACADEMY_GUIDES.filter(guide => guide.review);
+  assert.deepEqual(reviewed.map(guide => guide.slug).sort(), ['donati-detaylandirma', 'loa-seviyeleri', 'minha-kurallari']);
+  for (const guide of reviewed) {
+    assert.match(guide.review!.reviewedOn, /^\d{4}-\d{2}-\d{2}$/, guide.slug);
+    assert.match(guide.review!.method, /yuksek-muhendis-mimar/, guide.slug);
+    assert.ok(guide.review!.sources.length >= 1, `${guide.slug}: kaynak`);
   }
 });
 
@@ -58,5 +72,31 @@ test('rehber yolları kütüphane yollarına eklenir ve konu modülünden bulunu
 test('rehber sayfası tema değişkenleri kullanır ve eski yan paneli çağırmaz', () => {
   const page = readFileSync('src/pages/AcademyGuide.tsx', 'utf8');
   assert.doesNotMatch(page, /#[0-9a-f]{6}|orange-|text-white|BIMPlan/i);
+  assert.match(page, /guide\.calculation/, 'örnek hesap sayfada gösterilir');
+  assert.match(page, /guide\.review/, 'inceleme notu sayfada gösterilir');
   assert.doesNotMatch(page, /SubGuideDrawer|subGuidesData|dangerouslySetInnerHTML/);
+});
+
+// Package 2: worked examples are unitless and their arithmetic is recomputed here.
+function evaluate(formula: string, scope: Readonly<Record<string, number>>): number {
+  const expression = formula.replace(/÷/g, '/').replace(/×/g, '*').replace(/−/g, '-')
+    .replace(/[A-Z]+/g, name => {
+      assert.ok(name in scope, `bilinmeyen değişken: ${name}`);
+      return `(${scope[name]})`;
+    });
+  assert.match(expression, /^[\d\s().+\-*/]+$/, `güvenli ifade: ${formula}`);
+  return Function(`"use strict"; return (${expression});`)() as number;
+}
+
+test('örnek hesaplar birimsizdir ve her sonuç formülünden yeniden hesaplanınca tutar', () => {
+  const withCalculation = ACADEMY_GUIDES.filter(guide => guide.calculation);
+  assert.ok(withCalculation.length >= 3, 'EVM, minha ve donatı örnek hesapları');
+  for (const guide of withCalculation) {
+    const scope: Record<string, number> = { ...guide.calculation!.inputs };
+    for (const result of guide.calculation!.results) {
+      const value = evaluate(result.formula, scope);
+      assert.ok(Math.abs(value - result.value) <= 0.005 * Math.max(1, Math.abs(value)), `${guide.slug}: ${result.label} = ${value}, yazılan ${result.value}`);
+      scope[result.label] = value;
+    }
+  }
 });

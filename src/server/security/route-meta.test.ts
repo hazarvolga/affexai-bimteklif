@@ -232,6 +232,6 @@ test('Akademi rehberleri: her rehber sayfası indekslenebilir, kendi başlığı
     const html = injectRouteMeta(SHELL, { pathname: path, origin: 'https://bimmetraj.com' });
     assert.ok(html.includes(`<link rel="canonical" href="https://bimmetraj.com${path}" />`), path);
     assert.equal(/name="robots"/.test(html), false, `${path} indekslenebilir`);
-    assert.ok(html.includes(guide.takeaways[0].replace(/&/g, '&amp;').replace(/"/g, '&quot;')), `${path} ön-render`);
+    assert.ok(html.includes(guide.takeaways[0].replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;')), `${path} ön-render`);
   }
 });
