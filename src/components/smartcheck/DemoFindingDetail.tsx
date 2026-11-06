@@ -35,10 +35,10 @@ const ENGINE_ICON: Record<DemoEngineStep['icon'], React.ReactNode> = {
 };
 
 const ENGINE_ICON_COLOR: Record<DemoEngineStep['icon'], string> = {
-  read: 'text-blue-500 dark:text-blue-400',
-  rule: 'text-amber-500 dark:text-amber-400',
-  detect: 'text-red-500 dark:text-red-400',
-  fix: 'text-emerald-500 dark:text-emerald-400',
+  read: 'text-blue-700 dark:text-blue-400',
+  rule: 'text-amber-700 dark:text-amber-400',
+  detect: 'text-red-700 dark:text-red-400',
+  fix: 'text-emerald-700 dark:text-emerald-400',
 };
 
 function EngineFlow({ steps }: { steps: ReadonlyArray<DemoEngineStep> }) {
