@@ -40,7 +40,7 @@ const DEFAULT_DEMO_USER: User = {
 
 const DEFAULT_DEMO_COMPANY: Company = {
   id: 'demo-company-id',
-  name: 'BIMPlan & TeklifPro Demo Şirketi',
+  name: 'BIMMetraj Demo Şirketi',
   defaultCurrency: Currency.TRY,
   defaultVatRate: 20,
 };

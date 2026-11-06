@@ -134,7 +134,7 @@ export function AcceptInvite() {
           <div className="mx-auto w-12 h-12 bg-orange-600/10 rounded-full flex items-center justify-center mb-4 border border-orange-500/20">
             <UserPlus className="text-orange-500" size={24} />
           </div>
-          <CardTitle className="text-2xl font-bold text-foreground tracking-tight">TeklifPro AI'ya Katılın</CardTitle>
+          <CardTitle className="text-2xl font-bold text-foreground tracking-tight">BIMMetraj'a Katılın</CardTitle>
           <CardDescription className="text-muted-foreground">
             {invite?.email} adresi ile davet edildiniz.
           </CardDescription>

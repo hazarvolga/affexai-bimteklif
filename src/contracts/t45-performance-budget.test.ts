@@ -109,6 +109,18 @@ test("T45-2: Production frontend bundle enforces entry ceiling and isolates exce
     `Entry chunk ${entryFile} (${entrySizeBytes} B) exceeds ceiling (${PERFORMANCE_BUDGETS.frontend.entryChunkMaxBytes} B)`,
   );
 
+  // Preload filtering alone is not enough: a shared dependency hoisted into a heavy
+  // chunk makes the entry import it statically (audit PERF-01, clsx in charts).
+  const entrySource = readFileSync(path.join(distAssetsDir, entryFile), "utf8");
+  for (const heavyFile of [chartsFile, exceljsFile, ifcViewerFile]) {
+    const escaped = heavyFile!.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    assert.doesNotMatch(
+      entrySource,
+      new RegExp(`(?:from|import)\\s*"\\./${escaped}"`),
+      `Entry chunk ${entryFile} must not statically import ${heavyFile}`,
+    );
+  }
+
   for (const routePrefix of PERFORMANCE_BUDGETS.frontend.exceljsIsolatedFromRouteChunks) {
     const routeChunk = assetFiles.find((f) =>
       new RegExp(`^${routePrefix}-[A-Za-z0-9_-]+\\.js$`).test(f),

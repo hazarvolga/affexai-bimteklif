@@ -4,7 +4,7 @@
  */
 
 import { lazy, Suspense, useEffect, type ComponentType } from 'react';
-import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation, Navigate, useSearchParams } from 'react-router-dom';
 import { AuthProvider } from '@/hooks/useAuth';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { Toaster } from '@/components/ui/sonner';
@@ -12,7 +12,7 @@ import { SmartCheckDemoProvider } from '@/smartcheck/SmartCheckDemoContext';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { NotFound } from '@/pages/NotFound';
 
-import { ACADEMY_ENABLED } from '@/config/features';
+import { ACADEMY_ENABLED, ACADEMY_LIBRARY_ENABLED, REGISTER_PLAN_PICKER_ENABLED } from '@/config/features';
 import { protectedRouteTitle } from '@/lib/protected-route-title';
 const page = <T extends Record<string, unknown>>(loader: () => Promise<T>, name: keyof T) =>
   lazy(async () => {
@@ -80,6 +80,17 @@ const CompleteAcademyContent = page(() => import('@/pages/CompleteAcademyContent
 const AllplanAccessGate = page(() => import('@/pages/AllplanAccessGate'), 'AllplanAccessGate');
 const Login = page(() => import('@/pages/Login'), 'Login');
 const Register = page(() => import('@/pages/Register'), 'Register');
+const RegisterSimple = page(() => import('@/pages/RegisterSimple'), 'RegisterSimple');
+const AcademyLibrary = page(() => import('@/pages/AcademyLibrary'), 'AcademyLibrary');
+const AcademyTopic = page(() => import('@/pages/AcademyTopic'), 'AcademyTopic');
+const AcademyGuide = page(() => import('@/pages/AcademyGuide'), 'AcademyGuide');
+
+/** Expert test period: plain form unless the package picker is enabled or an Academy sign-up needs the original page. */
+function RegisterRoute() {
+  const [searchParams] = useSearchParams();
+  const academySignup = ACADEMY_ENABLED && searchParams.get('intent') === 'academy';
+  return REGISTER_PLAN_PICKER_ENABLED || academySignup ? <Register /> : <RegisterSimple />;
+}
 const LegalPage = page(() => import('@/pages/LegalPage'), 'LegalPage');
 const PasswordRecovery = page(() => import('@/pages/PasswordRecovery'), 'PasswordRecovery');
 const SmartCheck = page(() => import('@/pages/SmartCheck'), 'SmartCheck');
@@ -140,10 +151,15 @@ function AppRoutes() {
         <Route path="/academy/allplan/:pathSlug" element={<AllplanAccessGate />} />
         <Route path="/academy/allplan/lesson/:lessonSlug" element={<AllplanAccessGate />} />
         <Route path="/academy/:slug" element={<PublicAcademyDetail />} />
+      </> : ACADEMY_LIBRARY_ENABLED ? <>
+        <Route path="/academy" element={<AcademyLibrary />} />
+        <Route path="/academy/:slug" element={<AcademyTopic />} />
+        <Route path="/academy/:slug/:guide" element={<AcademyGuide />} />
+        <Route path="/academy/*" element={<Navigate to="/academy" replace />} />
       </> : <Route path="/academy/*" element={<Navigate to="/" replace />} />}
       <Route path="/pilot" element={<PilotApplication />} />
       <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
+      <Route path="/register" element={<RegisterRoute />} />
       <Route path="/terms" element={<LegalPage />} />
       <Route path="/privacy" element={<LegalPage />} />
       <Route path="/forgot-password" element={<PasswordRecovery />} />

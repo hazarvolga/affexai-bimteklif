@@ -29,3 +29,13 @@ walkthrough.md
 harici-kaynaklar
 .DS_Store
 
+# Local-only bulk data and tool caches (audit OPS-01). Coolify builds from a git
+# clone where these are absent; this keeps local `docker build` contexts small too.
+**/.venv
+**/__pycache__
+coverage
+.nyc_output
+örnek-exceller
+Birim Fiyat Katalogları
+**/*.xlsx
+**/*.xls

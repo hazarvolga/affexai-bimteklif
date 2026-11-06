@@ -65,7 +65,7 @@ const details: Record<string, Detail> = {
     ],
     outputs: ['Örnek OIR/PIR/AIR/EIR ilişkisi', 'CDE durum kodları ve gateway haritası', 'Rol–sorumluluk–teslim matrisi', 'Teklif öncesi bilgi gereksinimi kontrol listesi'],
     standards: ['ISO 19650-1 / -2 / -3 / -4 / -5', 'buildingSMART / IFC / MVD', 'COBie ve bilgi teslim yaklaşımı'],
-    next: 'TeklifPro’da teklif hazırlarken bilgi kaynağını, sorumluluğu ve kontrol sınırını görünür kılın.',
+    next: 'BIMMetraj’da teklif hazırlarken bilgi kaynağını, sorumluluğu ve kontrol sınırını görünür kılın.',
   },
   'bim-core': {
     title: 'BIM Core: veriyi geometriye bağlayan düşünce sistemi',
@@ -153,7 +153,7 @@ const details: Record<string, Detail> = {
         points: [
           'GWP Göstergesi: Küresel Isınma Potansiyeli ($kg CO_2eq$) metriği',
           'Düşük Karbonlu Malzeme: Yeşil çimento, geri dönüştürülmüş donatı ve ahşap karkas seçimi',
-          'TeklifPro Karbon Primi: Teklif risk motorunda karbon tedarik volatilite senaryoları'
+          'BIMMetraj Karbon Primi: Teklif risk motorunda karbon tedarik volatilite senaryoları'
         ] 
       },
       { 
@@ -168,11 +168,11 @@ const details: Record<string, Detail> = {
     ],
     outputs: ['LCA veri sınırı ve varsayım notu', 'Malzeme karbon karşılaştırma şeması', 'Sertifika kredi takip matrisi', 'Tedarik sınıfı için senaryo özeti'],
     standards: ['ISO 52000-1 / TS EN ISO 13790', 'ISO 14040 / 14044 ve EN 15978', 'ISO 16745-1, GHG Protocol, PAS 2080', 'LEED v4.1, BREEAM, EDGE'],
-    next: 'TeklifPro risk ekranında karbon/tedarik varsayımlarını kesin vergi sonucu değil, izlenebilir senaryo olarak değerlendirin.',
+    next: 'BIMMetraj risk ekranında karbon/tedarik varsayımlarını kesin vergi sonucu değil, izlenebilir senaryo olarak değerlendirin.',
   },
   '4d-5d': {
     title: '4D / 5D: zaman, maliyet ve nakit akışı',
-    label: 'Uygulamalı laboratuvar · TeklifPro bağlantısı',
+    label: 'Uygulamalı laboratuvar · BIMMetraj bağlantısı',
     intro: '4D ve 5D laboratuvarı, statik metraj listesini iş programına ve maliyet gerçekleşmesine bağlar. Model yalnızca “ne kadar” değil, “ne zaman” sorusunu da yanıtlamaya başlar.',
     why: 'Kaynakta GUID tabanlı eşleştirme, 4D şantiye fazları ve EVM göstergeleri birlikte kullanılıyor. Bu, teklif hazırlama ile uygulama takibi arasında doğrudan bir veri köprüsü kurar.',
     modules: [
@@ -200,7 +200,7 @@ const details: Record<string, Detail> = {
         points: [
           'Götürü Bedel vs Birim Fiyat: Risk sahibinin sözleşme tipine göre belirlenmesi',
           'Enflasyon Volatilite Primi: Proje süresince aylık malzeme fiyat artış senaryoları',
-          'TeklifPro Entegrasyonu: Teklif oluşturucuda otomatik risk primi marj hesabı'
+          'BIMMetraj Entegrasyonu: Teklif oluşturucuda otomatik risk primi marj hesabı'
         ] 
       },
       { 
@@ -213,9 +213,9 @@ const details: Record<string, Detail> = {
         ] 
       },
     ],
-    outputs: ['4D faz ve bağımlılık haritası', 'PV/EV/AC izleme tablosu', 'Teklif varsayımları ve risk notu', 'TeklifPro’ya aktarılabilir kontrol listesi'],
+    outputs: ['4D faz ve bağımlılık haritası', 'PV/EV/AC izleme tablosu', 'Teklif varsayımları ve risk notu', 'BIMMetraj’a aktarılabilir kontrol listesi'],
     standards: ['EVM: PV / EV / AC mantığı', 'LOD/LOIN bilgi seviyesi yaklaşımı', 'Proje sözleşmesi ve BIM protokolü birlikte okuma'],
-    next: 'Gerçek teklifinizi TeklifPro pilotunda hazırlarken süre, sözleşme ve belirsizlik varsayımlarını kayda alın.',
+    next: 'Gerçek teklifinizi BIMMetraj pilotunda hazırlarken süre, sözleşme ve belirsizlik varsayımlarını kayda alın.',
   },
   'scan-to-bim': {
     title: 'AI, Scan-to-BIM ve algoritmik tasarım',

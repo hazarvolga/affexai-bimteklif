@@ -429,7 +429,6 @@ export const ExamInterface: React.FC<ExamInterfaceProps> = ({ onFinishExam, onCl
       <footer className="h-6 bg-graphite-900 border-t border-graphite-500 px-8 flex items-center justify-between text-[10px] font-mono text-graphite-500 uppercase tracking-widest">
         <div className="flex gap-6">
           <span>CONNECTION: SECURE</span>
-          <span>SERVER: CLOUD-RUN-FIREBASE</span>
           <span>VERSION: 24.1.08</span>
         </div>
         <div className="flex items-center gap-2">

@@ -37,6 +37,16 @@ test('bilinmeyen rota noindex alır ve başlığı bozulmaz', () => {
   assert.equal(html.includes('rel="canonical"'), false, '404 sayfası ana sayfaya canonical vermemeli');
 });
 
+test('SEO-01: meta kaydı olmayan özel ve token rotaları ana sayfa canonical almaz ve indekslenmez', () => {
+  for (const pathname of ['/app', '/app/quotes/new', '/admin/roadmap', '/reset-password/abc', '/verify-email/abc', '/accept-invite/abc']) {
+    const html = injectRouteMeta(SHELL, { pathname, origin: 'https://bimmetraj.com' });
+    assert.equal(html.includes('rel="canonical"'), false, `${pathname} ana sayfaya canonical vermemeli`);
+    assert.match(html, /<meta name="robots" content="noindex, nofollow" \/>/, pathname);
+  }
+  const publicHtml = injectRouteMeta(SHELL, { pathname: '/pricing', origin: 'https://bimmetraj.com' });
+  assert.equal(/name="robots"/.test(publicHtml), false, 'genel sayfa indekslenebilir kalır');
+});
+
 test('paylaşım görseli yalnız verildiğinde ve bir kez eklenir', () => {
   const once = injectRouteMeta(SHELL, { pathname: '/', origin: 'https://bimmetraj.com', ogImagePath: '/og-image.png' });
   assert.match(once, /property="og:image" content="https:\/\/bimmetraj\.com\/og-image\.png"/);
@@ -199,4 +209,29 @@ test('T46: index.html site JSON-LD yedeği geçerli JSON ve sunucunun değiştir
   const match = html.match(/<script id="site-jsonld" type="application\/ld\+json">([\s\S]*?)<\/script>/);
   assert.ok(match);
   assert.doesNotThrow(() => JSON.parse(match[1]));
+});
+
+test('yalın Akademi: kütüphane ve konu sayfaları indekslenebilir, kendi başlığı ve ön-render metni vardır', async () => {
+  const { ACADEMY_TOPICS } = await import('../../academy/library/topics');
+  const library = injectRouteMeta(SHELL, { pathname: '/academy', origin: 'https://bimmetraj.com' });
+  assert.match(library, /<title>Akademi/);
+  assert.match(library, /<link rel="canonical" href="https:\/\/bimmetraj\.com\/academy" \/>/);
+  assert.equal(/name="robots"/.test(library), false);
+  for (const topic of ACADEMY_TOPICS) {
+    const html = injectRouteMeta(SHELL, { pathname: `/academy/${topic.slug}`, origin: 'https://bimmetraj.com' });
+    assert.ok(html.includes(`<link rel="canonical" href="https://bimmetraj.com/academy/${topic.slug}" />`), topic.slug);
+    assert.equal(/name="robots"/.test(html), false, `${topic.slug} indekslenebilir`);
+    assert.ok(html.includes(topic.modules[0].title.replace(/&/g, '&amp;')), `${topic.slug} ön-render modül başlığı`);
+  }
+});
+
+test('Akademi rehberleri: her rehber sayfası indekslenebilir, kendi başlığı ve ön-render metni vardır', async () => {
+  const { ACADEMY_GUIDES } = await import('../../academy/library/guides');
+  for (const guide of ACADEMY_GUIDES) {
+    const path = `/academy/${guide.topicSlug}/${guide.slug}`;
+    const html = injectRouteMeta(SHELL, { pathname: path, origin: 'https://bimmetraj.com' });
+    assert.ok(html.includes(`<link rel="canonical" href="https://bimmetraj.com${path}" />`), path);
+    assert.equal(/name="robots"/.test(html), false, `${path} indekslenebilir`);
+    assert.ok(html.includes(guide.takeaways[0].replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;')), `${path} ön-render`);
+  }
 });

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import express from 'express';
 import http from 'node:http';
+import { ACADEMY_LIBRARY_PATHS } from '../../academy/library/topics';
 import { AI_SEARCH_CRAWLERS, AI_TRAINING_CRAWLERS, aiTrainingPolicyFromEnv, canonicalHostRedirect, contentSecurityPolicy, isKnownSpaRoute, llmsTxt, robotsTxt, securityTxt, sitemapXml } from './web-hardening';
 
 test('CSP locks scripts to self (+ wasm-unsafe-eval for web-ifc 3D viewer & Cloudflare Insights beacon) and only opens the origins the app really uses', () => {
@@ -15,7 +16,9 @@ test('CSP locks scripts to self (+ wasm-unsafe-eval for web-ifc 3D viewer & Clou
   assert.ok(directives['connect-src'].includes('https://cloudflareinsights.com'));
   assert.ok(directives['connect-src'].includes('https://acct.r2.cloudflarestorage.com'));
   assert.ok(directives['connect-src'].includes('https://*.acct.r2.cloudflarestorage.com'), 'virtual-hosted bucket uploads');
-  assert.ok(!directives['connect-src'].includes('https://firestore.googleapis.com'), 'academy Firebase omitted while ACADEMY_ENABLED is false');
+  for (const origin of ['https://firestore.googleapis.com', 'https://firebase.googleapis.com', 'https://firebaseinstallations.googleapis.com', 'https://identitytoolkit.googleapis.com', 'https://securetoken.googleapis.com']) {
+    assert.ok(!policy.includes(origin), `Firebase removed (2026-11-06): ${origin} must not appear in CSP`);
+  }
   assert.ok(!policy.includes('fonts.googleapis.com'), 'KVKK/SEC-3: no external Google Fonts in CSP');
   assert.ok(!policy.includes('fonts.gstatic.com'), 'KVKK/SEC-3: no external Google Fonts in CSP');
   assert.ok(!directives['script-src'].includes("'unsafe-eval'"), 'JS unsafe-eval stays forbidden; only wasm-unsafe-eval is allowed');
@@ -46,7 +49,9 @@ test('sitemap lists public pages on the canonical origin and robots/llms/securit
   assert.equal(xml.includes('<lastmod>'), false, 'SEO-03: sayfa başına gerçek tarih yokken lastmod yazılmaz');
   assert.ok(!xml.includes('/app'));
   assert.ok(!xml.includes('/login'));
-  assert.ok(!xml.includes('/academy'), 'Academy is out of scope while ACADEMY_ENABLED is false');
+  // Lean Academy v1: only the library pages are listed; the old Academy routes never are.
+  for (const page of ACADEMY_LIBRARY_PATHS) assert.ok(xml.includes(`<loc>https://bimmetraj.com${page}</loc>`), page);
+  for (const old of ['/academy/complete', '/academy/allplan', '/academy/iso-19650']) assert.ok(!xml.includes(`${old}</loc>`), old);
   const robots = robotsTxt('https://bimmetraj.com');
   assert.match(robots, /Sitemap: https:\/\/bimmetraj.com\/sitemap.xml/);
   assert.match(robots, /Disallow: \/app\//);
@@ -55,7 +60,7 @@ test('sitemap lists public pages on the canonical origin and robots/llms/securit
   assert.match(secTxt, /Contact: mailto:info@bimmetraj\.com/);
   assert.match(secTxt, /Canonical: https:\/\/bimmetraj\.com\/\.well-known\/security\.txt/);
   const llms = llmsTxt('https://bimmetraj.com');
-  assert.match(llms, /# BIMMetraj \(TeklifPro\)/);
+  assert.match(llms, /# BIMMetraj \(BIM Metraj\)/);
   assert.match(llms, /RG 33331 e-PYS/);
   assert.match(llms, /https:\/\/bimmetraj\.com\/bim-sozlugu/);
 
@@ -104,7 +109,7 @@ function robotsGroups(robots: string): Map<string, string[]> {
 
 test('GEO-01: robots.txt names AI search and training crawlers and keeps private routes closed for each', () => {
   const groups = robotsGroups(robotsTxt('https://bimmetraj.com'));
-  const privateRules = ['Disallow: /app/', 'Disallow: /admin/', 'Disallow: /api/'];
+  const privateRules = ['Disallow: /app/', 'Disallow: /admin/', 'Disallow: /api/', 'Disallow: /reset-password/', 'Disallow: /verify-email/', 'Disallow: /accept-invite/'];
   for (const agent of ['*', ...AI_SEARCH_CRAWLERS, ...AI_TRAINING_CRAWLERS]) {
     assert.deepEqual(groups.get(agent), privateRules, agent);
   }
@@ -130,5 +135,18 @@ test('T46: llms.txt describes capabilities only through the registry and package
   for (const capability of CAPABILITY_REGISTRY) assert.ok(llms.includes(capability.title), capability.id);
   for (const plan of canonicalPlans.filter(p => p.isActive && p.isPublished)) {
     assert.ok(llms.includes(`**${plan.name}**: ${plan.monthlyPrice.toLocaleString('tr-TR')} ₺/ay`), plan.name);
+  }
+});
+
+test('SEO-02: yalın Akademi açıkken yalnız kütüphane sayfaları açılır, eski Academy rotaları /academy adresine yönlenir', async () => {
+  const { disabledFeatureRedirect } = await import('./web-hardening');
+  for (const pathname of ['/academy', '/academy/', '/academy/bim-temelleri', '/academy/guvenlik-ve-saha/', '/academy/guvenlik-ve-saha/cde-yetki-matrisi']) {
+    assert.equal(disabledFeatureRedirect(pathname), null, pathname);
+  }
+  for (const pathname of ['/academy/complete', '/academy/allplan', '/academy/allplan/lesson/x', '/academy/iso-19650', '/academy/bim-temelleri/olmayan-rehber']) {
+    assert.equal(disabledFeatureRedirect(pathname), '/academy', pathname);
+  }
+  for (const pathname of ['/', '/academyx', '/app/academy', '/pricing']) {
+    assert.equal(disabledFeatureRedirect(pathname), null, pathname);
   }
 });

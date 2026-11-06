@@ -5,18 +5,10 @@ import {
   getPilotCapabilities,
   getRoadmapCapabilities,
 } from '../../capabilities/registry';
-import { ACADEMY_ENABLED } from '../../config/features';
+import { ACADEMY_ENABLED, ACADEMY_LIBRARY_ENABLED } from '../../config/features';
+import { ACADEMY_LIBRARY_PATHS } from '../../academy/library/topics';
 import { PLAN_CATALOG_VERSION } from '../../services/billing/plan-catalog';
 import type { PublicPlanView } from '../../services/billing/public-plans';
-
-/** Firebase (Academy profile/certificates) is the only third-party runtime the SPA talks to. */
-const FIREBASE_ORIGINS = [
-  'https://firestore.googleapis.com',
-  'https://firebase.googleapis.com',
-  'https://firebaseinstallations.googleapis.com',
-  'https://identitytoolkit.googleapis.com',
-  'https://securetoken.googleapis.com',
-];
 
 function httpsOrigin(raw: string | undefined): URL | null {
   if (!raw) return null;
@@ -42,7 +34,7 @@ export function contentSecurityPolicy(env: Record<string, string | undefined>): 
     'style-src': ["'self'", "'unsafe-inline'"],
     'img-src': ["'self'", 'data:', 'blob:'],
     'font-src': ["'self'", 'data:'],
-    'connect-src': ["'self'", 'https://cloudflareinsights.com', ...storageOrigins, ...(ACADEMY_ENABLED ? FIREBASE_ORIGINS : [])],
+    'connect-src': ["'self'", 'https://cloudflareinsights.com', ...storageOrigins],
     'worker-src': ["'self'", 'blob:'],
     'object-src': ["'none'"],
     'base-uri': ["'self'"],
@@ -70,7 +62,7 @@ const CALCULATOR_PAGES = [
   '/hesaplayicilar/yambis-muteahhitlik-grubu',
   '/hesaplayicilar/kat-karsiligi-ve-kentsel-donusum',
 ];
-const PUBLIC_PAGES = ['/', '/about', '/features', '/pricing', '/smartcheck', '/bim-sozlugu', ...CALCULATOR_PAGES, ...(ACADEMY_ENABLED ? ACADEMY_PAGES : []), '/pilot', '/terms', '/privacy'];
+const PUBLIC_PAGES = ['/', '/about', '/features', '/pricing', '/smartcheck', '/bim-sozlugu', ...CALCULATOR_PAGES, ...(ACADEMY_ENABLED ? ACADEMY_PAGES : ACADEMY_LIBRARY_ENABLED ? ACADEMY_LIBRARY_PATHS : []), '/pilot', '/terms', '/privacy'];
 
 const EXACT_SPA_ROUTES = new Set([
   '/',
@@ -112,6 +104,19 @@ export function isKnownSpaRoute(pathname: string): boolean {
 }
 
 /**
+ * SEO-02: Academy kapalıyken `/academy*` 200 + istemci yönlendirmesi yerine sunucuda kalıcı yönlenir
+ * (soft-404 ve çift yönlendirme olmaz). Yönlendirme gerekmiyorsa `null`.
+ */
+export function disabledFeatureRedirect(pathname: string): string | null {
+  if (ACADEMY_ENABLED) return null;
+  if (pathname !== '/academy' && !pathname.startsWith('/academy/')) return null;
+  if (!ACADEMY_LIBRARY_ENABLED) return '/';
+  // Lean Academy v1: library pages are served; every other old Academy path lands on the library.
+  const normalized = pathname.length > 1 && pathname.endsWith('/') ? pathname.slice(0, -1) : pathname;
+  return ACADEMY_LIBRARY_PATHS.includes(normalized) ? null : '/academy';
+}
+
+/**
  * SEO-03 / T47: sayfa başına gerçek bir içerik değişiklik tarihi tutulmadığı için `lastmod` yazılmaz.
  * Tüm sayfalara aynı (derleme veya sabit) tarihi vermek, arama motorlarına yanlış güncelleme sinyali olurdu.
  */
@@ -128,7 +133,8 @@ export const AI_TRAINING_CRAWLERS = ['GPTBot', 'ClaudeBot', 'Google-Extended', '
 
 export type AiTrainingPolicy = 'allow' | 'disallow';
 
-const PRIVATE_DISALLOWS = ['Disallow: /app/', 'Disallow: /admin/', 'Disallow: /api/'];
+// Token-bearing links (reset, verify, invite) must not be crawled or indexed if shared (SEO-01).
+const PRIVATE_DISALLOWS = ['Disallow: /app/', 'Disallow: /admin/', 'Disallow: /api/', 'Disallow: /reset-password/', 'Disallow: /verify-email/', 'Disallow: /accept-invite/'];
 
 /** `ROBOTS_AI_TRAINING=disallow` eğitim tarayıcılarını kapatır; tanımsız veya başka değer varsayılanı (izin) korur. */
 export function aiTrainingPolicyFromEnv(value: string | undefined): AiTrainingPolicy {
@@ -188,7 +194,7 @@ export function llmsTxt(publicAppUrl: string, publicPlans: readonly PublicPlanVi
     (c) => `- **[${c.level} YOL HARİTASI] ${c.title}**: ${c.shortClaim}`,
   );
   return [
-    '# BIMMetraj (TeklifPro) — openBIM (IFC) Metraj, RG 33331 e-PYS & 5D İhale Masası',
+    '# BIMMetraj (BIM Metraj) — openBIM (IFC) Metraj, RG 33331 e-PYS & 5D İhale Masası',
     '',
     '> BIMMetraj; Türkiye inşaat, mimarlık ve teknik ofis ekipleri için IFC 2x3 / IFC4 / IFC4.3 model tabanlı metraj (QTO) çıkarma, çok katmanlı IfcCovering imalat ayrıştırma, ÇŞB 2026 poz birim fiyat eşleştirme, 4734 KİK m.38 kullanıcı girdili sınır değer & %80 sıralı iş kalemleri analizi, TS EN ISO 19650-2 / EN 17412-1 (LOIN) dosya adı ve eleman üstveri desteği, SmartCheck 3x3 & Minha kalite denetimi ve 5 Ağustos 2026 tarihli RG 33331 e-PYS EK-9 dijital ruhsat ön-kontrol platformudur.',
     '',

@@ -20,6 +20,7 @@ import {
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useEffect, useState, type ReactNode } from 'react';
 import { PublicPricingSection } from '@/features/public-pricing/PublicPricingSection';
+import { ACADEMY_LIBRARY_ENABLED, PRICING_SECTION_ENABLED, TRIAL_SECTION_ENABLED } from '@/config/features';
 import { PublicMetadata } from '@/components/PublicMetadata';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { PaftaDrawing } from '@/components/ui/PaftaDrawing';
@@ -150,24 +151,25 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
       </div>
 
       {/* STICKY NAVBAR (PAFTA ANTETİ) */}
-      <nav className="sticky top-0 z-50 flex h-20 items-center justify-between border-b border-border bg-background/95 px-6 backdrop-blur-md md:px-10">
-        <a href="#top" className="flex items-center gap-3 text-foreground">
-          <span className="flex h-8 w-8 items-center justify-center border border-primary bg-primary text-xs font-mono font-bold text-primary-foreground">
+      <nav className="sticky top-0 z-50 flex h-20 items-center justify-between gap-2 border-b border-border bg-background/95 px-4 backdrop-blur-md sm:px-6 md:px-10">
+        <a href="#top" className="flex min-w-0 items-center gap-2 text-foreground sm:gap-3">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center border border-primary bg-primary text-xs font-mono font-bold text-primary-foreground">
             BM
           </span>
-          <div className="flex flex-col">
-            <span className="font-display-serif text-2xl leading-none tracking-tight">BIMMetraj</span>
-            <span className="mt-1 text-[10px] text-muted-foreground font-mono tracking-widest uppercase">openBIM &amp; 5D İhale Masası</span>
+          <div className="flex min-w-0 flex-col">
+            <span className="truncate font-display-serif text-xl leading-none tracking-tight sm:text-2xl">BIMMetraj</span>
+            <span className="mt-1 hidden truncate text-[10px] text-muted-foreground font-mono tracking-widest uppercase sm:block lg:hidden xl:block">openBIM &amp; 5D İhale Masası</span>
           </div>
         </a>
 
         {/* Desktop Nav */}
-        <div className="hidden items-center gap-6 md:flex">
+        <div className="hidden shrink-0 items-center gap-4 whitespace-nowrap lg:flex xl:gap-6">
           <a href="#on-kayit" className="text-xs font-semibold text-primary transition-colors hover:opacity-80">Ön Kayıt</a>
           <a href="#workflow" className="text-xs font-medium text-muted-foreground transition-colors hover:text-primary">Nasıl Çalışır?</a>
           <a href="#features" className="text-xs font-medium text-muted-foreground transition-colors hover:text-primary">Özellikler</a>
-          <a href="#pricing" className="text-xs font-medium text-muted-foreground transition-colors hover:text-primary">Paketler</a>
+          {PRICING_SECTION_ENABLED && <a href="#pricing" className="text-xs font-medium text-muted-foreground transition-colors hover:text-primary">Paketler</a>}
           <Link to="/smartcheck" className="text-xs font-medium text-muted-foreground transition-colors hover:text-primary">SmartCheck Demo</Link>
+          {ACADEMY_LIBRARY_ENABLED && <Link to="/academy" className="text-xs font-medium text-muted-foreground transition-colors hover:text-primary">Akademi</Link>}
 
           <div className="h-5 w-px bg-border mx-1" />
 
@@ -179,7 +181,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
           <button
             type="button"
             onClick={() => navigate('/register')}
-            className="pafta-button !min-h-9 !py-2 !px-4"
+            className="pafta-button !min-h-9 !py-2 !px-4 whitespace-nowrap"
           >
             <span>Teklif Hazırlayın</span>
             <ArrowRight size={14} />
@@ -187,13 +189,14 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
         </div>
 
         {/* Mobile Nav Toggle */}
-        <div className="flex items-center gap-2 md:hidden">
-          <ThemeToggle showLabel={false} />
+        <div className="flex shrink-0 items-center gap-1 sm:gap-2 lg:hidden">
+          {/* Below 400 px the dropdown carries the theme switch and "Giriş Yap" (WCAG 1.4.10 reflow at 320 px). */}
+          <ThemeToggle showLabel={false} className="hidden min-[400px]:inline-flex" />
           <Button
             size="sm"
             variant="ghost"
             onClick={onGetStarted}
-            className="text-xs"
+            className="hidden text-xs min-[400px]:inline-flex"
           >
             Giriş
           </Button>
@@ -202,7 +205,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
             onClick={() => navigate('/register')}
             className="bg-primary text-xs text-primary-foreground px-3 font-semibold"
           >
-            Ücretsiz Başla
+            {TRIAL_SECTION_ENABLED ? 'Ücretsiz Başla' : 'Kayıt Ol'}
           </Button>
           <button
             type="button"
@@ -217,7 +220,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
 
       {/* Mobile Dropdown Menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-b border-border bg-card px-6 py-4 space-y-3 sticky top-20 z-40">
+        <div className="lg:hidden border-b border-border bg-card px-4 py-4 space-y-3 sticky top-20 z-40 sm:px-6">
           <a
             href="#on-kayit"
             onClick={() => setMobileMenuOpen(false)}
@@ -239,13 +242,15 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
           >
             Özellikler
           </a>
-          <a
-            href="#pricing"
-            onClick={() => setMobileMenuOpen(false)}
-            className="block text-sm text-muted-foreground py-1 hover:text-foreground"
-          >
-            Paketler
-          </a>
+          {PRICING_SECTION_ENABLED && (
+            <a
+              href="#pricing"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block text-sm text-muted-foreground py-1 hover:text-foreground"
+            >
+              Paketler
+            </a>
+          )}
           <Link
             to="/smartcheck"
             onClick={() => setMobileMenuOpen(false)}
@@ -253,12 +258,22 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
           >
             SmartCheck Demo
           </Link>
+          {ACADEMY_LIBRARY_ENABLED && (
+            <Link
+              to="/academy"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block text-sm text-muted-foreground py-1 hover:text-foreground"
+            >
+              Akademi
+            </Link>
+          )}
           <div className="pt-2 flex flex-col gap-2 border-t border-border">
+            <ThemeToggle className="w-full justify-center min-[400px]:hidden" />
             <Button variant="outline" className="w-full" onClick={() => { setMobileMenuOpen(false); onGetStarted(); }}>
               Giriş Yap
             </Button>
             <Button className="w-full bg-primary text-primary-foreground font-medium" onClick={() => { setMobileMenuOpen(false); navigate('/register'); }}>
-              14 Gün Ücretsiz Başla
+              {TRIAL_SECTION_ENABLED ? '14 Gün Ücretsiz Başla' : 'Kayıt Ol'}
             </Button>
           </div>
         </div>
@@ -293,7 +308,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
                     onClick={() => navigate('/register')}
                     className="pafta-button"
                   >
-                    <span>14 Gün Ücretsiz Başlayın</span>
+                    <span>{TRIAL_SECTION_ENABLED ? '14 Gün Ücretsiz Başlayın' : 'Kayıt Olun'}</span>
                     <ArrowRight size={15} />
                   </button>
                   <button
@@ -630,7 +645,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
                 <strong className="text-foreground font-semibold">Şeffaf Ürün Vitrini (Kanıt Kapısı L3):</strong>{' '}
                 Pilot özellikler kural motorları ve altın testlerle kontrol edilir; bağımsız uzman onayı henüz yoktur. Geliştirme aşamasındaki modüller yol haritası rozetiyle ayrı gösterilir.
               </div>
-              <div className="flex flex-wrap items-center gap-2 shrink-0 text-[11px] font-mono">
+              <div className="flex min-w-0 flex-wrap items-center gap-2 text-[11px] font-mono sm:justify-end">
                 <span className="rounded-xs border border-amber-500/40 bg-amber-500/10 px-2.5 py-1 text-amber-300">
                   Pilot/L2 · Hakediş Çekirdeği Varsayılan Kapalı · Resmî EKAP Gönderimi Yok
                 </span>
@@ -752,7 +767,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
           </div>
         </section>
 
-        <PublicPricingSection />
+        {PRICING_SECTION_ENABLED && <PublicPricingSection />}
 
         {/* EVIDENCE SECTION */}
         <section className="border-b border-border bg-background px-6 py-20 md:px-8">
@@ -771,26 +786,28 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
         </section>
 
         {/* FREE TRIAL CALLOUT SECTION */}
-        <section id="trial" className="border-b border-border bg-card/50 px-6 py-16 md:px-8">
-          <div className="mx-auto flex max-w-6xl flex-col gap-6 md:flex-row md:items-center md:justify-between">
-            <div className="max-w-2xl">
-              <div className="mb-2 inline-flex items-center gap-2 text-xs font-mono font-semibold text-primary uppercase">
-                <span className="h-1.5 w-1.5 rounded-full bg-primary" /> Kredi Kartı Gerekmez
+        {TRIAL_SECTION_ENABLED && (
+          <section id="trial" className="border-b border-border bg-card/50 px-6 py-16 md:px-8">
+            <div className="mx-auto flex max-w-6xl flex-col gap-6 md:flex-row md:items-center md:justify-between">
+              <div className="max-w-2xl">
+                <div className="mb-2 inline-flex items-center gap-2 text-xs font-mono font-semibold text-primary uppercase">
+                  <span className="h-1.5 w-1.5 rounded-full bg-primary" /> Kredi Kartı Gerekmez
+                </div>
+                <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">Kendi Projenizle 14 Gün Ücretsiz Deneyin.</h2>
+                <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
+                  Allplan, Revit veya Archicad IFC modelinizi ya da Excel metrajınızı hemen yükleyin. 14 gün boyunca teklif oluşturma, model miktar incelemesi ve e-PYS denetiminizi taahhüt olmadan test edin.
+                </p>
               </div>
-              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">Kendi Projenizle 14 Gün Ücretsiz Deneyin.</h2>
-              <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
-                Allplan, Revit veya Archicad IFC modelinizi ya da Excel metrajınızı hemen yükleyin. 14 gün boyunca teklif oluşturma, model miktar incelemesi ve e-PYS denetiminizi taahhüt olmadan test edin.
-              </p>
+              <Button 
+                onClick={() => navigate('/register')}
+                size="lg" 
+                className="h-11 shrink-0 bg-primary px-7 text-primary-foreground hover:bg-primary/90 font-semibold shadow-xs"
+              >
+                Hemen Ücretsiz Başlayın <ArrowRight size={16} className="ml-2" />
+              </Button>
             </div>
-            <Button 
-              onClick={() => navigate('/register')}
-              size="lg" 
-              className="h-11 shrink-0 bg-primary px-7 text-primary-foreground hover:bg-primary/90 font-semibold shadow-xs"
-            >
-              Hemen Ücretsiz Başlayın <ArrowRight size={16} className="ml-2" />
-            </Button>
-          </div>
-        </section>
+          </section>
+        )}
       </main>
 
       {/* FOOTER */}
@@ -810,11 +827,12 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
             <div className="space-y-2">
               <a href="#workflow" className="block hover:text-foreground">Nasıl Çalışır?</a>
               <a href="#features" className="block hover:text-foreground">Özellikler</a>
-              <a href="#pricing" className="block hover:text-foreground">Paketler</a>
+              {PRICING_SECTION_ENABLED && <a href="#pricing" className="block hover:text-foreground">Paketler</a>}
               <Link to="/smartcheck" className="block hover:text-foreground">SmartCheck Doğrulama</Link>
+              {ACADEMY_LIBRARY_ENABLED && <Link to="/academy" className="block hover:text-foreground">Akademi</Link>}
               <Link to="/bim-sozlugu" className="block hover:text-foreground">BIM & e-PYS Sözlüğü</Link>
               <Link to="/hesaplayicilar" className="block hover:text-foreground">Ücretsiz Hesaplayıcılar</Link>
-              <Link to="/register" className="block text-primary hover:underline">14 Gün Ücretsiz Deneme</Link>
+              {TRIAL_SECTION_ENABLED && <Link to="/register" className="block text-primary hover:underline">14 Gün Ücretsiz Deneme</Link>}
             </div>
           </div>
           <div>

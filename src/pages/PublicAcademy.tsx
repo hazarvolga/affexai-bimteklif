@@ -25,7 +25,7 @@ const tracks: AcademyTrack[] = [
     title: '4D / 5D maliyet mühendisliği',
     summary: 'Metraj, zaman, maliyet ve teklif riskinin aynı karar çerçevesinde nasıl okunacağını gösterir.',
     topics: ['GUID & Primavera/MS Project 4D Lojistik', 'EVM Monitörü: PV, EV, AC Göstergeleri', 'Götürü Bedel vs Teklif Birim Fiyat Risk Motoru', 'Minha Kuralları: Türkiye ÇŞB vs Almanya DIN 18350'],
-    label: 'TeklifPro ile bağlantılı',
+    label: 'BIMMetraj ile bağlantılı',
     tone: 'blue',
   },
   {
@@ -140,13 +140,13 @@ export function PublicAcademy() {
           <div className="mx-auto grid max-w-7xl gap-10 md:grid-cols-3">
             <InfoBlock icon={<Workflow />} title="Öğren → uygula" text="Her konu yalnızca tanım olarak kalmaz; teklif, model veya teslim akışındaki karşılığıyla ele alınır." />
             <InfoBlock icon={<ShieldCheck />} title="Kaynağı görünür tut" text="Standart, senaryo ve demo verisini ayırırız. Eğitim içeriği mühendislik onayının yerine geçmez." />
-            <InfoBlock icon={<FileCheck2 />} title="İş akışına bağla" text="Academy’de öğrenilen yaklaşım, SmartCheck kontrolü ve TeklifPro çalışma alanıyla gerçek sürece taşınır." />
+            <InfoBlock icon={<FileCheck2 />} title="İş akışına bağla" text="Academy’de öğrenilen yaklaşım, SmartCheck kontrolü ve BIMMetraj çalışma alanıyla gerçek sürece taşınır." />
           </div>
         </section>
 
         <section className="bg-orange-500/[0.06] px-6 py-20 md:px-8">
           <div className="mx-auto flex max-w-7xl flex-col gap-7 md:flex-row md:items-center md:justify-between">
-            <div className="max-w-2xl"><p className="mb-3 text-sm font-medium text-orange-400">BİR SONRAKİ ADIM</p><h2 className="text-3xl font-semibold tracking-tight text-foreground md:text-4xl">Bilgiyi gerçek bir teklif akışında deneyin.</h2><p className="mt-4 leading-relaxed text-foreground dark:text-muted-foreground">Academy öğrenme katmanıdır. TeklifPro ise metraj, teklif, PDF ve kârlılık sürecinin çalışma alanıdır.</p></div>
+            <div className="max-w-2xl"><p className="mb-3 text-sm font-medium text-orange-400">BİR SONRAKİ ADIM</p><h2 className="text-3xl font-semibold tracking-tight text-foreground md:text-4xl">Bilgiyi gerçek bir teklif akışında deneyin.</h2><p className="mt-4 leading-relaxed text-foreground dark:text-muted-foreground">Academy öğrenme katmanıdır. BIMMetraj ise metraj, teklif, PDF ve kârlılık sürecinin çalışma alanıdır.</p></div>
             <Link to="/pilot" className="inline-flex h-12 shrink-0 items-center justify-center rounded-md bg-orange-600 px-6 text-sm font-medium text-white transition-colors hover:bg-orange-700">Pilot başvurusu <ArrowRight size={17} className="ml-2" /></Link>
           </div>
         </section>

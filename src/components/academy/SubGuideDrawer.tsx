@@ -223,12 +223,12 @@ export const SubGuideDrawer: React.FC<SubGuideDrawerProps> = ({ guide, onClose }
               </div>
             )}
 
-            {/* TeklifPro Integration Banner */}
+            {/* BIMMetraj integration banner */}
             {guide.teklifProIntegrationNote && (
               <div className="rounded-xl border border-orange-500/30 bg-gradient-to-br from-orange-500/[0.08] to-transparent p-5 space-y-4">
                 <div className="flex items-center gap-2 text-sm font-semibold text-orange-300">
                   <BookOpen size={17} />
-                  <span>TeklifPro openBIM Engine Entegrasyonu</span>
+                  <span>BIMMetraj Entegrasyonu</span>
                 </div>
                 <p className="text-sm text-foreground dark:text-muted-foreground leading-relaxed">{guide.teklifProIntegrationNote}</p>
                 <div className="pt-1">
@@ -236,7 +236,7 @@ export const SubGuideDrawer: React.FC<SubGuideDrawerProps> = ({ guide, onClose }
                     href="/pilot"
                     className="inline-flex items-center justify-center gap-2 rounded-lg bg-orange-600 px-4 py-2 text-xs font-semibold text-white hover:bg-orange-500 transition-colors shadow-lg shadow-orange-600/20"
                   >
-                    <span>TeklifPro'da Canlı Test Et</span>
+                    <span>BIMMetraj'da Canlı Test Et</span>
                     <ArrowRight size={14} />
                   </a>
                 </div>
