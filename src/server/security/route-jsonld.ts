@@ -3,6 +3,8 @@
  * puan (aggregateRating), fiyat teklifi veya uzman onayı gibi alanlar üretilmez.
  */
 import { PUBLIC_GLOSSARY_TERMS } from './public-glossary';
+import { ACADEMY_TOPICS, findAcademyTopic } from '../../academy/library/topics';
+import { findAcademyGuide } from '../../academy/library/guides';
 
 interface Crumb {
   name: string;
@@ -11,6 +13,7 @@ interface Crumb {
 
 const HOME: Crumb = { name: 'Ana Sayfa', path: '/' };
 const CALCULATORS: Crumb = { name: 'Ücretsiz Hesaplayıcılar', path: '/hesaplayicilar' };
+const ACADEMY_CRUMB: Crumb = { name: 'Akademi', path: '/academy' };
 
 const BREADCRUMBS: Readonly<Record<string, readonly Crumb[]>> = {
   '/bim-sozlugu': [HOME, { name: 'BIM ve Mevzuat Sözlüğü', path: '/bim-sozlugu' }],
@@ -73,6 +76,74 @@ function calculatorApplication(origin: string, path: string, name: string, descr
   };
 }
 
+function articleSchema(origin: string, path: string, headline: string, description: string) {
+  return {
+    '@type': 'Article',
+    headline,
+    description,
+    url: absolute(origin, path),
+    inLanguage: 'tr',
+    isAccessibleForFree: true,
+    publisher: { '@id': `${origin}/#organization` },
+  };
+}
+
+function academyJsonLd(pathname: string, origin: string, title: string, description: string): Record<string, unknown> | null {
+  const parts = pathname.split('/').filter(Boolean);
+
+  if (parts.length === 1) {
+    // /academy — konu listesi
+    return {
+      '@context': 'https://schema.org',
+      '@graph': [{
+        '@type': 'ItemList',
+        name: 'BIMMetraj Akademi',
+        description,
+        url: absolute(origin, '/academy'),
+        inLanguage: 'tr',
+        numberOfItems: ACADEMY_TOPICS.length,
+        itemListElement: ACADEMY_TOPICS.map((topic, index) => ({
+          '@type': 'ListItem',
+          position: index + 1,
+          name: topic.title,
+          url: absolute(origin, `/academy/${topic.slug}`),
+        })),
+      }],
+    };
+  }
+
+  if (parts.length === 2) {
+    // /academy/{topicSlug}
+    const topic = findAcademyTopic(parts[1]);
+    if (!topic) return null;
+    const crumbs: Crumb[] = [HOME, ACADEMY_CRUMB, { name: topic.title, path: `/academy/${topic.slug}` }];
+    return {
+      '@context': 'https://schema.org',
+      '@graph': [
+        breadcrumbList(origin, crumbs),
+        articleSchema(origin, pathname, title || topic.title, description || topic.summary),
+      ],
+    };
+  }
+
+  if (parts.length === 3) {
+    // /academy/{topicSlug}/{guideSlug}
+    const topic = findAcademyTopic(parts[1]);
+    const guide = findAcademyGuide(parts[1], parts[2]);
+    if (!topic || !guide) return null;
+    const crumbs: Crumb[] = [HOME, ACADEMY_CRUMB, { name: topic.title, path: `/academy/${topic.slug}` }, { name: guide.title, path: pathname }];
+    return {
+      '@context': 'https://schema.org',
+      '@graph': [
+        breadcrumbList(origin, crumbs),
+        articleSchema(origin, pathname, title || guide.title, description || guide.summary),
+      ],
+    };
+  }
+
+  return null;
+}
+
 export interface RouteJsonLdInput {
   pathname: string;
   origin: string;
@@ -82,6 +153,9 @@ export interface RouteJsonLdInput {
 
 /** Rotaya özgü JSON-LD grafiği; uygun şema yoksa `null`. */
 export function routeJsonLd({ pathname, origin, title, description }: RouteJsonLdInput): Record<string, unknown> | null {
+  if (pathname === '/academy' || pathname.startsWith('/academy/')) {
+    return academyJsonLd(pathname, origin, title, description);
+  }
   const crumbs = BREADCRUMBS[pathname];
   if (!crumbs) return null;
   const graph: Record<string, unknown>[] = [breadcrumbList(origin, crumbs)];

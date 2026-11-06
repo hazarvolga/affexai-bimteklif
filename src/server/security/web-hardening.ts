@@ -6,7 +6,7 @@ import {
   getRoadmapCapabilities,
 } from '../../capabilities/registry';
 import { ACADEMY_ENABLED, ACADEMY_LIBRARY_ENABLED } from '../../config/features';
-import { ACADEMY_LIBRARY_PATHS } from '../../academy/library/topics';
+import { ACADEMY_TOPICS, ACADEMY_LIBRARY_PATHS } from '../../academy/library/topics';
 import { PLAN_CATALOG_VERSION } from '../../services/billing/plan-catalog';
 import type { PublicPlanView } from '../../services/billing/public-plans';
 
@@ -120,9 +120,18 @@ export function disabledFeatureRedirect(pathname: string): string | null {
  * SEO-03 / T47: sayfa başına gerçek bir içerik değişiklik tarihi tutulmadığı için `lastmod` yazılmaz.
  * Tüm sayfalara aynı (derleme veya sabit) tarihi vermek, arama motorlarına yanlış güncelleme sinyali olurdu.
  */
+function sitemapPriority(page: string): string {
+  if (page === '/') return '1.0';
+  if (page === '/features' || page === '/smartcheck' || page === '/pricing') return '0.9';
+  if (page === '/bim-sozlugu' || page === '/academy' || page === '/hesaplayicilar') return '0.8';
+  if (page.startsWith('/hesaplayicilar/')) return '0.7';
+  if (page.startsWith('/academy/')) return page.split('/').filter(Boolean).length === 2 ? '0.7' : '0.6';
+  return '0.5';
+}
+
 export function sitemapXml(publicAppUrl: string): string {
   const origin = new URL(publicAppUrl).origin;
-  const urls = PUBLIC_PAGES.map(page => `  <url><loc>${origin}${page}</loc></url>`).join('\n');
+  const urls = PUBLIC_PAGES.map(page => `  <url><loc>${origin}${page}</loc><priority>${sitemapPriority(page)}</priority></url>`).join('\n');
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`;
 }
 
@@ -221,6 +230,11 @@ export function llmsTxt(publicAppUrl: string, publicPlans: readonly PublicPlanVi
     `- [Pilot Başvurusu](${origin}/pilot): Kurumsal teknik ofisler için gerçek proje dosyalarıyla pilot çalışma başvurusu.`,
     `- [Kullanım Koşulları](${origin}/terms): Mühendislik sorumluluğu, ön-kontrol niteliği ve abonelik koşulları.`,
     `- [KVKK ve Gizlilik Bildirimi](${origin}/privacy): 6698 sayılı KVKK aydınlatma metni ve proje dosyalarında kişisel veri maskeleme politikası.`,
+    '',
+    '## Akademi — Yazılımdan Bağımsız BIM Bilgi Kütüphanesi',
+    '> Allplan, Revit, ArchiCAD, Tekla Structures, Vectorworks ve diğer openBIM araçlarından bağımsız; IFC 2x3 / IFC4 / IFC4.3, TS EN ISO 19650-2, EN 17412-1 (LOIN) ve ÇŞB 2026 kapsamında içerik. Kayıt gerekmez.',
+    `- [Akademi Kütüphanesi](${origin}/academy): BIM, ISO 19650, 4D/5D maliyet, sürdürülebilirlik, Scan-to-BIM ve saha konularında açık eğitim kütüphanesi.`,
+    ...ACADEMY_TOPICS.map(t => `- [${t.title}](${origin}/academy/${t.slug}): ${t.summary}`),
     '',
   ].join('\n');
 }

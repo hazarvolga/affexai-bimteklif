@@ -83,6 +83,9 @@ test('sitemap lists public pages on the canonical origin and robots/llms/securit
   }
   assert.equal(isKnownSpaRoute('/hesaplayicilar/olmayan'), false);
   assert.equal(llms.includes('L3 CANLI'), false);
+  // GEO-02: academy section in llms.txt
+  assert.ok(llms.includes(`https://bimmetraj.com/academy`), 'llms.txt: akademi kütüphanesi');
+  assert.ok(llms.includes(`https://bimmetraj.com/academy/bim-temelleri`), 'llms.txt: BIM Temelleri konusu');
 });
 
 
