@@ -86,6 +86,16 @@ test('sitemap lists public pages on the canonical origin and robots/llms/securit
   // GEO-02: academy section in llms.txt
   assert.ok(llms.includes(`https://bimmetraj.com/academy`), 'llms.txt: akademi kütüphanesi');
   assert.ok(llms.includes(`https://bimmetraj.com/academy/bim-temelleri`), 'llms.txt: BIM Temelleri konusu');
+
+  // SEO-04: sitemap priority values
+  assert.ok(xml.includes('<loc>https://bimmetraj.com/</loc><priority>1.0</priority>'), 'ana sayfa önceliği 1.0');
+  assert.ok(xml.includes('<loc>https://bimmetraj.com/smartcheck</loc><priority>0.9</priority>'), 'smartcheck önceliği 0.9');
+  assert.ok(xml.includes('<loc>https://bimmetraj.com/academy</loc><priority>0.8</priority>'), 'akademi önceliği 0.8');
+  assert.ok(xml.includes('<loc>https://bimmetraj.com/hesaplayicilar</loc><priority>0.8</priority>'), 'hesaplayıcılar önceliği 0.8');
+  assert.ok(xml.includes('<loc>https://bimmetraj.com/hesaplayicilar/kik-asiri-dusuk-teklif</loc><priority>0.7</priority>'), 'alt hesaplayıcı önceliği 0.7');
+  // akademi konu sayfaları (derinlik 2) → 0.7, rehber sayfaları (derinlik 3) → 0.6
+  assert.ok(xml.includes('<priority>0.7</priority>'), 'konu sayfası önceliği 0.7 var');
+  assert.ok(xml.includes('<priority>0.6</priority>'), 'rehber sayfası önceliği 0.6 var');
 });
 
 

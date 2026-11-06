@@ -3,6 +3,7 @@ import test from 'node:test';
 import { getRouteMeta, injectRouteMeta } from './route-meta';
 import { PUBLIC_GLOSSARY_TERMS } from './public-glossary';
 import { llmsFullTxt } from './web-hardening';
+import { routeJsonLd } from './route-jsonld';
 
 const SHELL = [
   '<html><head>',
@@ -234,4 +235,38 @@ test('Akademi rehberleri: her rehber sayfası indekslenebilir, kendi başlığı
     assert.equal(/name="robots"/.test(html), false, `${path} indekslenebilir`);
     assert.ok(html.includes(guide.takeaways[0].replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;')), `${path} ön-render`);
   }
+});
+
+test('SEO-05/GEO-02: academyJsonLd tüm rota derinliklerinde doğru şema üretir; geçersiz slug null döner', () => {
+  const origin = 'https://bimmetraj.com';
+
+  // /academy — ItemList
+  const list = routeJsonLd({ pathname: '/academy', origin, title: 'Akademi', description: 'BIM kütüphanesi' });
+  assert.ok(list, '/academy JSON-LD üretilmeli');
+  const itemList = (list!['@graph'] as any[])[0];
+  assert.equal(itemList['@type'], 'ItemList');
+  assert.ok(itemList.numberOfItems > 0);
+
+  // /academy/{topicSlug} — BreadcrumbList + Article
+  const topicData = routeJsonLd({ pathname: '/academy/bim-temelleri', origin, title: 'BIM Temelleri', description: 'Temel konu' });
+  assert.ok(topicData, '/academy/bim-temelleri JSON-LD üretilmeli');
+  const topicGraph = topicData!['@graph'] as any[];
+  assert.ok(topicGraph.some((n: any) => n['@type'] === 'BreadcrumbList'), 'BreadcrumbList');
+  assert.ok(topicGraph.some((n: any) => n['@type'] === 'Article'), 'Article');
+
+  // /academy/{topicSlug}/{guideSlug} — BreadcrumbList + Article
+  const guideData = routeJsonLd({ pathname: '/academy/bim-temelleri/pim-aim-cobie', origin, title: 'PIM/AIM/COBie', description: 'Rehber' });
+  assert.ok(guideData, '/academy/bim-temelleri/pim-aim-cobie JSON-LD üretilmeli');
+  const guideGraph = guideData!['@graph'] as any[];
+  assert.ok(guideGraph.some((n: any) => n['@type'] === 'BreadcrumbList'));
+  assert.ok(guideGraph.some((n: any) => n['@type'] === 'Article'));
+
+  // Geçersiz topic slug → null
+  assert.equal(routeJsonLd({ pathname: '/academy/olmayan-konu', origin, title: '', description: '' }), null);
+
+  // Geçersiz guide slug (geçerli topic) → null
+  assert.equal(routeJsonLd({ pathname: '/academy/bim-temelleri/olmayan-rehber', origin, title: '', description: '' }), null);
+
+  // Derinlik > 3 → null
+  assert.equal(routeJsonLd({ pathname: '/academy/bim-temelleri/pim-aim-cobie/extra', origin, title: '', description: '' }), null);
 });
