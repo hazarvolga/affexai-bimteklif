@@ -281,10 +281,12 @@ export function injectRouteMeta(html: string, options: InjectOptions): string {
     out = out.replace('</head>', '    <meta name="robots" content="noindex, follow" />\n  </head>');
   }
 
-  // Bilinmeyen rota ana sayfaya canonical vermemeli (kopya içerik sinyali); noindex ile birlikte kaldırılır.
-  if (notFound) out = out.replace(/\s*<link\s+rel="canonical"\s+href="[^"]*"\s*\/?>/, '');
+  // Bilinmeyen rota ve meta kaydı olmayan özel/token rotaları (SEO-01: /app, /admin, /reset-password/…)
+  // ana sayfaya canonical vermemeli (kopya içerik sinyali); noindex ile birlikte kaldırılır.
+  const unindexable = notFound || !meta;
+  if (unindexable) out = out.replace(/\s*<link\s+rel="canonical"\s+href="[^"]*"\s*\/?>/, '');
 
-  if (notFound && out.includes('</head>') && !/name="robots"/.test(out)) {
+  if (unindexable && out.includes('</head>') && !/name="robots"/.test(out)) {
     out = out.replace('</head>', '    <meta name="robots" content="noindex, nofollow" />\n  </head>');
   }
   return out;

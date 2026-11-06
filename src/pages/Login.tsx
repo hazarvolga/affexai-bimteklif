@@ -122,7 +122,7 @@ export function Login() {
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
                   <label htmlFor="login-password" className="font-mono text-[10px] uppercase tracking-wider text-foreground">Şifre</label>
-                  <Link to="/forgot-password" className="font-mono text-[10px] text-muted-foreground hover:text-primary transition-colors">
+                  <Link to="/forgot-password" className="inline-flex min-h-6 items-center px-1 font-mono text-[11px] text-muted-foreground hover:text-primary transition-colors">
                     Şifrenizi mi unuttunuz?
                   </Link>
                 </div>

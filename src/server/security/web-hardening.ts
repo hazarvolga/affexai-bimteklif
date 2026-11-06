@@ -103,6 +103,15 @@ export function isKnownSpaRoute(pathname: string): boolean {
 }
 
 /**
+ * SEO-02: Academy kapalıyken `/academy*` 200 + istemci yönlendirmesi yerine sunucuda kalıcı yönlenir
+ * (soft-404 ve çift yönlendirme olmaz). Yönlendirme gerekmiyorsa `null`.
+ */
+export function disabledFeatureRedirect(pathname: string): string | null {
+  if (ACADEMY_ENABLED) return null;
+  return pathname === '/academy' || pathname.startsWith('/academy/') ? '/' : null;
+}
+
+/**
  * SEO-03 / T47: sayfa başına gerçek bir içerik değişiklik tarihi tutulmadığı için `lastmod` yazılmaz.
  * Tüm sayfalara aynı (derleme veya sabit) tarihi vermek, arama motorlarına yanlış güncelleme sinyali olurdu.
  */
@@ -119,7 +128,8 @@ export const AI_TRAINING_CRAWLERS = ['GPTBot', 'ClaudeBot', 'Google-Extended', '
 
 export type AiTrainingPolicy = 'allow' | 'disallow';
 
-const PRIVATE_DISALLOWS = ['Disallow: /app/', 'Disallow: /admin/', 'Disallow: /api/'];
+// Token-bearing links (reset, verify, invite) must not be crawled or indexed if shared (SEO-01).
+const PRIVATE_DISALLOWS = ['Disallow: /app/', 'Disallow: /admin/', 'Disallow: /api/', 'Disallow: /reset-password/', 'Disallow: /verify-email/', 'Disallow: /accept-invite/'];
 
 /** `ROBOTS_AI_TRAINING=disallow` eğitim tarayıcılarını kapatır; tanımsız veya başka değer varsayılanı (izin) korur. */
 export function aiTrainingPolicyFromEnv(value: string | undefined): AiTrainingPolicy {

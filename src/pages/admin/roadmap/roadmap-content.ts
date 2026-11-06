@@ -185,8 +185,9 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
   },
   {
     id: "durum",
-    title: "Uygulama durumu (6 Kasım 2026 · Rev. 159 geliştirme kaydı)",
+    title: "Uygulama durumu (6 Kasım 2026 · Rev. 160 geliştirme kaydı)",
     blocks: [
+      { type: "callout", tone: "info", title: "Rev. 160 · Yayın hijyeni", text: "İlk yüklemede grafik paketi artık inmez (126 KB yerine 8,7 KB). Özel ve token rotaları indekslenmez, kapalı Academy rotaları ana sayfaya kalıcı yönlenir. Ana sayfa, paketler ve kayıt ekranı 320 px'te yatay taşmaz. Ana sayfadaki Paketler bölümü geçici olarak, 14 gün deneme bölümü uzman testleri bitene kadar gizlidir. Hesap değişmez." },
       { type: "callout", tone: "info", title: "Rev. 159 · Firebase kaldırıldı", text: "Kullanılmayan Firebase katmanı, iki proje yapılandırması ve bağımlılığı kaldırıldı; Academy tipleri ayrı dosyaya taşındı. CSP'de Firebase adresi yok. Uygulama davranışı değişmez." },
       { type: "callout", tone: "info", title: "Rev. 158 · TÜİK akış yapısı isteği", text: "Yapıyı göster düğmesi TÜİK belgesindeki biçimle (SDMX-CSV) veri ister; önceki SDMX-JSON isteği 406 ile reddediliyordu. Veri kaydedilmez." },
       { type: "callout", tone: "info", title: "Rev. 157 · Düşey kesit", text: "3B görüntüleyicide kesit yönü seçilir (yatay, sağ-sol düşey, ön-arka düşey) ve oynat düğmesiyle kesit kendiliğinden kayar. Metraj etkilenmez." },
@@ -1238,6 +1239,9 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
           [
             "Rev. 159", "6 Kasım 2026 · Firebase kaldırıldı", "BIM-CALC-2026-11-06.17", "Kullanılmayan Firebase katmanı ve bağımlılığı silindi. Uygulama davranışı ve hesap değişmez.",
           ],
+          [
+            "Rev. 160", "6 Kasım 2026 · Yayın hijyeni", "BIM-CALC-2026-11-06.18", "İlk yükleme, indeksleme ve 320 px yerleşim düzeltmeleri. Hesap değişmez.",
+          ],
         ],
       },
       {
@@ -2134,6 +2138,9 @@ export const ROADMAP_SOURCE_SECTIONS: DocSection[] = [
           ],
           [
             "Rev. 159 · 6 Kasım 2026 (Güvenlik)", "Firebase kaldırıldı", "Hiç çağrılmayan Firestore katmanı, public repodaki iki Firebase yapılandırması ve firebase bağımlılığı silindi; CSP testi beş Firebase adresinin yokluğunu doğrular.", "src/features/academy/types.ts; src/server/security/web-hardening.ts; package.json; pnpm-workspace.yaml",
+          ],
+          [
+            "Rev. 160 · 6 Kasım 2026 (Yayın hijyeni)", "İlk yükleme, SEO ve 320 px", "Entry dosyası charts chunk'ını statik çekmez (T45-2 kontrolü); meta kaydı olmayan rotalar noindex alır, token yolları robots.txt'de kapalı; Academy kapalıyken /academy 301; ana sayfa, kayıt ve giriş ekranı 320 px'te taşmaz ve dokunma hedefleri en az 24 px.", "vite.config.ts; src/server/security/route-meta.ts; src/server/security/web-hardening.ts; src/server/app.ts; src/pages/LandingPage.tsx; src/pages/Register.tsx; src/pages/Login.tsx",
           ],
           [
             "Rev. 112 · 28 Ekim 2026 (Faz 0 güven ve ticari doğruluk)",

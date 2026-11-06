@@ -106,7 +106,7 @@ function robotsGroups(robots: string): Map<string, string[]> {
 
 test('GEO-01: robots.txt names AI search and training crawlers and keeps private routes closed for each', () => {
   const groups = robotsGroups(robotsTxt('https://bimmetraj.com'));
-  const privateRules = ['Disallow: /app/', 'Disallow: /admin/', 'Disallow: /api/'];
+  const privateRules = ['Disallow: /app/', 'Disallow: /admin/', 'Disallow: /api/', 'Disallow: /reset-password/', 'Disallow: /verify-email/', 'Disallow: /accept-invite/'];
   for (const agent of ['*', ...AI_SEARCH_CRAWLERS, ...AI_TRAINING_CRAWLERS]) {
     assert.deepEqual(groups.get(agent), privateRules, agent);
   }
@@ -132,5 +132,17 @@ test('T46: llms.txt describes capabilities only through the registry and package
   for (const capability of CAPABILITY_REGISTRY) assert.ok(llms.includes(capability.title), capability.id);
   for (const plan of canonicalPlans.filter(p => p.isActive && p.isPublished)) {
     assert.ok(llms.includes(`**${plan.name}**: ${plan.monthlyPrice.toLocaleString('tr-TR')} ₺/ay`), plan.name);
+  }
+});
+
+test('SEO-02: Academy kapalıyken /academy rotaları sunucuda ana sayfaya kalıcı yönlenir', async () => {
+  const { disabledFeatureRedirect } = await import('./web-hardening');
+  const { ACADEMY_ENABLED } = await import('../../config/features');
+  const expected = ACADEMY_ENABLED ? null : '/';
+  for (const pathname of ['/academy', '/academy/', '/academy/complete', '/academy/allplan']) {
+    assert.equal(disabledFeatureRedirect(pathname), expected, pathname);
+  }
+  for (const pathname of ['/', '/academyx', '/app/academy', '/pricing']) {
+    assert.equal(disabledFeatureRedirect(pathname), null, pathname);
   }
 });

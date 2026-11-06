@@ -37,6 +37,16 @@ test('bilinmeyen rota noindex alır ve başlığı bozulmaz', () => {
   assert.equal(html.includes('rel="canonical"'), false, '404 sayfası ana sayfaya canonical vermemeli');
 });
 
+test('SEO-01: meta kaydı olmayan özel ve token rotaları ana sayfa canonical almaz ve indekslenmez', () => {
+  for (const pathname of ['/app', '/app/quotes/new', '/admin/roadmap', '/reset-password/abc', '/verify-email/abc', '/accept-invite/abc']) {
+    const html = injectRouteMeta(SHELL, { pathname, origin: 'https://bimmetraj.com' });
+    assert.equal(html.includes('rel="canonical"'), false, `${pathname} ana sayfaya canonical vermemeli`);
+    assert.match(html, /<meta name="robots" content="noindex, nofollow" \/>/, pathname);
+  }
+  const publicHtml = injectRouteMeta(SHELL, { pathname: '/pricing', origin: 'https://bimmetraj.com' });
+  assert.equal(/name="robots"/.test(publicHtml), false, 'genel sayfa indekslenebilir kalır');
+});
+
 test('paylaşım görseli yalnız verildiğinde ve bir kez eklenir', () => {
   const once = injectRouteMeta(SHELL, { pathname: '/', origin: 'https://bimmetraj.com', ogImagePath: '/og-image.png' });
   assert.match(once, /property="og:image" content="https:\/\/bimmetraj\.com\/og-image\.png"/);
