@@ -232,9 +232,14 @@ export function llmsTxt(publicAppUrl: string, publicPlans: readonly PublicPlanVi
     `- [KVKK ve Gizlilik Bildirimi](${origin}/privacy): 6698 sayılı KVKK aydınlatma metni ve proje dosyalarında kişisel veri maskeleme politikası.`,
     '',
     '## Akademi — Yazılımdan Bağımsız BIM Bilgi Kütüphanesi',
-    '> Allplan, Revit, ArchiCAD, Tekla Structures, Vectorworks ve diğer openBIM araçlarından bağımsız; IFC 2x3 / IFC4 / IFC4.3, TS EN ISO 19650-2, EN 17412-1 (LOIN) ve ÇŞB 2026 kapsamında içerik. Kayıt gerekmez.',
+    '> Nemetschek Allplan / Solibri / Vectorworks, Autodesk Revit / Navisworks / Civil 3D, Graphisoft ArchiCAD, Trimble Tekla Structures / Trimble Connect, Bentley OpenBuildings / OpenBridge, Bricsys BricsCAD BIM, AVEVA, Synchro ve diğer IFC uyumlu openBIM araçlarından bağımsız; IFC 2x3 / IFC4 / IFC4.3, TS EN ISO 19650-2, EN 17412-1 (LOIN) ve ÇŞB 2026 kapsamında içerik. Kayıt gerekmez.',
     `- [Akademi Kütüphanesi](${origin}/academy): BIM, ISO 19650, 4D/5D maliyet, sürdürülebilirlik, Scan-to-BIM ve saha konularında açık eğitim kütüphanesi.`,
     ...ACADEMY_TOPICS.map(t => `- [${t.title}](${origin}/academy/${t.slug}): ${t.summary}`),
+    '',
+    '## English Summary — BIMMetraj for International Users',
+    '> BIMMetraj is a Turkish-language BIM quantity takeoff (QTO) and 5D cost estimation SaaS platform for the Turkish construction and architecture market. It processes IFC 2x3 / IFC4 / IFC4.3 files exported from any IFC-compliant application, including: Nemetschek Allplan, Nemetschek Solibri, Nemetschek Vectorworks; Autodesk Revit, Autodesk Navisworks, Autodesk Civil 3D; Graphisoft ArchiCAD; Trimble Tekla Structures, Trimble Connect; Bentley OpenBuildings Designer, Bentley OpenBridge; Bricsys BricsCAD BIM; AVEVA; Synchro 4D.',
+    '> Key capabilities: IFC-based automated quantity takeoff (QTO), Turkish public procurement calculators (KİK 4734 / 4735), TS EN ISO 19650-2 digital delivery metadata compliance, SmartCheck 3×3 quality gate (cover, STR, tolerance), e-PYS digital building permit pre-check (RG 33331, Aug 2026), 5D BIM cost benchmarking. Free Academy with vendor-neutral BIM education in Turkish.',
+    `> Platform: ${origin} — Turkish-language SaaS, subscription-based, runs in any browser.`,
     '',
   ].join('\n');
 }
