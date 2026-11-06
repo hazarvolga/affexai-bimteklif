@@ -25,3 +25,10 @@ export const TRIAL_SECTION_ENABLED = false;
  * src/pages/Register.tsx is untouched; flip to true to bring it back for real customers.
  */
 export const REGISTER_PLAN_PICKER_ENABLED = false;
+
+/**
+ * Lean Academy v1 (Hazar, 2026-11-06): only /academy and /academy/:slug, five vendor-neutral topics
+ * from src/academy/library/topics.ts. Exams, certificates, profiles, Allplan track and the old
+ * Academy pages stay behind ACADEMY_ENABLED. Old /academy/* paths redirect to /academy.
+ */
+export const ACADEMY_LIBRARY_ENABLED = true;
