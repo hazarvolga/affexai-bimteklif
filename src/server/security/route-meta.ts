@@ -143,7 +143,13 @@ const ACADEMY_ROUTE_BODY: Readonly<Record<string, readonly string[]>> = ACADEMY_
   ? {
       '/academy': ACADEMY_TOPICS.map(topic => `${topic.title}: ${topic.summary}`),
       ...Object.fromEntries(ACADEMY_TOPICS.map(topic => [`/academy/${topic.slug}`, [topic.why, ...topic.modules.map(module => `${module.title}: ${module.body}`)]])),
-      ...Object.fromEntries(ACADEMY_GUIDES.map(guide => [`/academy/${guide.topicSlug}/${guide.slug}`, [...(guide.rule ? [guide.rule] : []), ...guide.takeaways, guide.example]])),
+      ...Object.fromEntries(ACADEMY_GUIDES.map(guide => [`/academy/${guide.topicSlug}/${guide.slug}`, [
+        ...(guide.rule ? [guide.rule] : []),
+        ...guide.takeaways,
+        guide.example,
+        ...(guide.table ? [guide.table.title, ...guide.table.rows.map(row => row.join(' — '))] : []),
+        ...(guide.calculation ? [guide.calculation.note] : []),
+      ]])),
     }
   : {};
 

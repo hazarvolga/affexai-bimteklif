@@ -246,12 +246,16 @@ function academyJsonLd(pathname: string, origin: string, title: string, descript
     const guide = findAcademyGuide(parts[1], parts[2]);
     if (!topic || !guide) return null;
     const crumbs: Crumb[] = [HOME, ACADEMY_CRUMB, { name: topic.title, path: `/academy/${topic.slug}` }, { name: guide.title, path: pathname }];
+    const article: Record<string, unknown> = {
+      ...articleSchema(origin, pathname, title || guide.title, description || guide.summary),
+      '@type': ['Article', 'LearningResource'],
+      educationalLevel: 'professional',
+      ...(guide.sources.length > 0 ? { isBasedOn: guide.sources.map(src => ({ '@type': 'CreativeWork', name: src })) } : {}),
+      ...(guide.takeaways.length > 0 ? { teaches: guide.takeaways[0] } : {}),
+    };
     return {
       '@context': 'https://schema.org',
-      '@graph': [
-        breadcrumbList(origin, crumbs),
-        articleSchema(origin, pathname, title || guide.title, description || guide.summary),
-      ],
+      '@graph': [breadcrumbList(origin, crumbs), article],
     };
   }
 
