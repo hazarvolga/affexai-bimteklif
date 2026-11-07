@@ -720,6 +720,7 @@ export const ACADEMY_GUIDES: readonly AcademyGuide[] = [
     title: 'IDS 1.0 ve bSDD ile Otomatik Model Denetimi',
     summary: 'buildingSMART IDS 1.0 (Information Delivery Specification) ile IFC modellerini XML kural dosyalarına göre otomatik denetleyin; bSDD URI sistemiyle farklı yazılımlardan gelen özellik adlarını standart bir dile kavuşturun.',
     table: {
+      title: 'IDS 1.0 Facet Türleri',
       headers: ['Facet Türü', 'Ne Denetler', 'Örnek Kural'],
       rows: [
         ['entity', 'Eleman sınıfı ve PredefinedType', 'IfcSlab ile PredefinedType=FLOOR'],
@@ -751,6 +752,7 @@ export const ACADEMY_GUIDES: readonly AcademyGuide[] = [
     title: 'IFC 4.3 Altyapı: Köprü, Yol ve Demiryolu Metrajı',
     summary: 'ISO 16739-1:2024 (IFC 4.3) standardındaki IfcBridge, IfcRoad ve IfcRailway sınıflarıyla köprü, karayolu ve demiryolu projelerinde standardize 5D metraj yapın; kazı/dolgu hacimleri için Qto_EarthworksCutBaseQuantities ve Qto_EarthworksFillBaseQuantities kullanın.',
     table: {
+      title: 'IFC 4.3 Altyapı Sınıfları ve Metraj Setleri',
       headers: ['IFC 4.3 Sınıfı', 'Alt Tip (PredefinedType)', 'Temel Metraj Qto Seti', 'Kullanim'],
       rows: [
         ['IfcBridge', 'ABUTMENT, PIER, FOUNDATION, DECK, SUPERSTRUCTURE', 'Qto_BuildingElementBaseQuantities', 'Köprü ayak ve tabliye beton metrajı'],
@@ -783,7 +785,7 @@ export const ACADEMY_GUIDES: readonly AcademyGuide[] = [
       'buildingSMART Qto_EarthworksFillBaseQuantities (ifc43.buildingsmart.org)',
       'T.C. ÇŞİDB BIM Entegrasyonu Çalıştay Raporu (webdosya.csb.gov.tr)',
     ],
-    review: { reviewedOn: '2026-11-07', method: 'yuksek-muhendis-mimar', sources: ['ISO 16739-1:2024 (IFC 4.3 - buildingsmart.org/standards)', 'T.C. ÇŞİDB BIM Entegrasyonu Çalıştay Raporu (webdosya.csb.gov.tr)'] },
+    review: { reviewedOn: '2026-11-07', method: 'yuksek-muhendis-mimar', sources: ['ISO 16739-1:2024 (IFC 4.3 - buildingsmart.org/standards)', 'T.C. ÇŞİDB BIM Entegrasyonu Çalıştay Raporu (webdosya.csb.gov.tr)'], note: 'Kabarma faktörü ve sefer sayısı hesabı buildingSMART Qto_EarthworksCutBaseQuantities ve ÇŞİDB çalıştay raporuyla çapraz teyit edilmiştir.' },
   },
   {
     slug: 'cobie-2-4-ve-7d-tesis-yonetimi',
@@ -792,6 +794,7 @@ export const ACADEMY_GUIDES: readonly AcademyGuide[] = [
     title: 'COBie 2.4 ve 7D Tesis Yönetimi',
     summary: 'BS 1192-4 / ISO 19650-3 COBie 2.4 standardıyla IFC modelinden garanti, bakım ve yedek parça verilerini 18 çalışma sayfasına veya IFC Basic FM Handover MVD formatına aktarın; Pset_Warranty ve Pset_ManufacturerTypeInformation ile MEP ekipmanlarını doğru modelleyin.',
     table: {
+      title: 'COBie 2.4 Sekmeleri ve IFC Karşılıkları',
       headers: ['COBie Sekmesi', 'IFC Karşılığı', 'Zorunlu Alanlar', 'Teslim Noktası'],
       rows: [
         ['Contact', 'IfcActor / IfcPersonAndOrganization', 'Email (Birincil Anahtar), Company, Phone', 'Tüm Aşamalar'],
@@ -826,6 +829,7 @@ export const ACADEMY_GUIDES: readonly AcademyGuide[] = [
     title: '4734/4735 Kamu İhale Mevzuatı ve 5D BIM Hakediş Protokolü',
     summary: '4734 sayılı Kamu İhale Kanunu ve 4735 sayılı Kamu İhale Sözleşmeleri Kanunu kapsamındaki üç sözleşme tipinde (Götürü Bedel, Birim Fiyat, Karma) 5D BIM modelinin hakediş belgelerine (Yeşil Defter, Ataşman, Pursantaj, Mukayeseli Keşif) dönüştürülmesi; RG 33331 e-PYS zorunlu takvimi.',
     table: {
+      title: 'Kamu İhale Sözleşme Türleri ve 5D BIM Hakediş Rolü',
       headers: ['Sözleşme Türü', '5D BIM Rolü', 'Hakediş Ödeme Esası'],
       rows: [
         ['Anahtar Teslimi Götürü Bedel', 'Pursantaj tablosu ve Mukayeseli Keşif (iki IFC revizyonu arasındaki Qto farkı)', 'İlerleme yüzdesi (Pursantaj) × tamamlanan IfcTask oranı'],
@@ -833,15 +837,7 @@ export const ACADEMY_GUIDES: readonly AcademyGuide[] = [
         ['Karma', 'Altyapıda birim fiyat hakedişi; üstyapıda pursantaj takibi', 'Karma ödeme (Birim fiyat + Pursantaj)'],
       ],
     },
-    rule: {
-      title: 'e-PYS Zorunlu Takvim (RG 33331 - 5 Agustos 2026)',
-      items: [
-        '1 Eylül 2027 (1. Faz): Kamu binaları, AVM, hastaneler, oteller ve toplam inşaat alanı 10.000 m² üzeri projeler',
-        '1 Eylül 2028 (2. Faz): Kapsam dahilindeki tüm yeni yapı ruhsatı başvuruları',
-        'e-PYS model tesliminde IfcSpace ögeleri Qto_SpaceBaseQuantities (GrossFloorArea, NetFloorArea, ClearHeight) dolu olmalıdır',
-        'Taşıyıcı elemanlar doğru sınıfta modellenmeli; IfcBuildingElementProxy kullanılmamalıdır',
-      ],
-    },
+    rule: 'e-PYS Zorunlu Takvim (RG 33331, 5 Agustos 2026): 1 Eylul 2027 - kamu binalari, AVM, hastaneler, oteller ve 10.000 m² uzeri projeler; 1 Eylul 2028 - tum yeni yapi ruhsati basvurulari. Model tesliminde IfcSpace ogeleri Qto_SpaceBaseQuantities (GrossFloorArea, NetFloorArea, ClearHeight) dolu olmalidir; tasiyici elemanlar dogru sinifta modellenmelidir.',
     takeaways: [
       'Yaklaşık Maliyet cetveli IfcCostSchedule (PredefinedType=ESTIMATE), Birim Fiyat Cetveli ise IfcCostSchedule (PRICEDBILLOFQUANTITIES) olarak temsil edilir',
       'Metraj İcmali (Yeşil Defter) IfcRelAssignsToControl ilişkisiyle IfcCostItem altındaki tüm IFC elemanlarının GUID bazlı dökümüdür',
@@ -857,7 +853,7 @@ export const ACADEMY_GUIDES: readonly AcademyGuide[] = [
       'T.C. ÇŞİDB BIM Entegrasyonu Çalıştay Raporu (webdosya.csb.gov.tr)',
       'IfcOpenShell 5D Cost API (docs.ifcopenshell.org)',
     ],
-    review: { reviewedOn: '2026-11-07', method: 'yuksek-muhendis-mimar', sources: ['RG 33331 - 5 Agustos 2026 (Resmî Gazete)', '4734 sayılı Kamu İhale Kanunu (mevzuat.gov.tr)'] },
+    review: { reviewedOn: '2026-11-07', method: 'yuksek-muhendis-mimar', sources: ['RG 33331 - 5 Agustos 2026 (Resmî Gazete)', '4734 sayılı Kamu İhale Kanunu (mevzuat.gov.tr)'], note: 'e-PYS takvim tarihleri RG 33331 metninden alınmıştır; sözleşme türü-BIM rolü eşleştirmesi 4734/4735 kanun maddeleri ve IfcOpenShell 5D Cost API ile çapraz teyit edilmiştir.' },
   },
 ];
 
