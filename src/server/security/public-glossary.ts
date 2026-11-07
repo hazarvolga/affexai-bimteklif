@@ -103,4 +103,74 @@ export const PUBLIC_GLOSSARY_TERMS: readonly PublicGlossaryTerm[] = [
     description:
       '4734 sayılı Kanun kapsamında ihale öncesinde idarenin hazırladığı ve gizli tutulan maliyet tahminidir. Rayiç birim fiyatlar (ÇŞB, TSE, piyasa) ve metraj cetveli kullanılarak hesaplanır; sınır değer ve aşırı düşük teklif analizlerinin temel parametresidir. BIMMetraj\'ın 5D modülü YM taslağını IFC QTO\'dan otomatik üretir.',
   },
+  {
+    name: 'IDS (Bilgi Teslim Şartnamesi — Information Delivery Specification)',
+    description:
+      'buildingSMART tarafından geliştirilen, bir IFC modelinde hangi elemanların hangi özellik seti (Pset), miktar (Qto), sınıflandırma ve malzemeye sahip olması gerektiğini XML formatında tanımlayan ve otomatik denetleyen standarttır. İdare veya işverenin EIR ve LOIN gereksinimlerini insan gözüyle değil, yazılım aracılığıyla saniyeler içinde doğrulamasını sağlar.',
+  },
+  {
+    name: 'bSDD (buildingSMART Veri Sözlüğü — buildingSMART Data Dictionary)',
+    description:
+      'Yapı elemanları, malzeme özellikleri, sınıflandırma sistemleri ve miktar tanımları için uluslararası benzersiz URI kimlikleri sunan çevrimiçi semantik sözlük servisidir. Farklı dillerde ve yazılımlarda üretilen modellerin aynı kavramı (örn. yangın dayanımı veya C30/37 beton) aynı kodla ifade etmesini sağlar.',
+  },
+  {
+    name: 'Qto BaseQuantities (IFC Temel Metraj Miktar Setleri)',
+    description:
+      'IFC şemasında yapı elemanlarının yazılım bağımsız standart ölçülerini (NetVolume, GrossSideArea, NetArea, Weight vb.) taşıyan resmi özellik kümesidir. Örnekler: Qto_WallBaseQuantities (IfcWall), Qto_SlabBaseQuantities (IfcSlab), Qto_ReinforcingElementBaseQuantities (IfcReinforcingBar). 5D BIM metraj hesabında geometrik yorum farklarını ortadan kaldırarak kanıtlanabilir miktar okumasının temelini oluşturur.',
+  },
+  {
+    name: 'LOIN (Bilgi İhtiyacı Seviyesi — Level of Information Need, EN 17412-1)',
+    description:
+      'EN 17412-1 ve ISO 19650 kapsamında, tek bir LOD numarası yerine her teslim aşaması ve kullanım amacı için Geometrik Ayrıntı (LOG), Alfanümerik Bilgi (LOI) ve Dokümantasyon (DOC) gereksinimlerini ayrı ayrı tanımlayan çerçevedir. Modelin gereksiz geometriyle ağırlaşmasını önler ve ihale ile ruhsat için tam gereken veriyi zorunlu kılar.',
+  },
+  {
+    name: 'LOA (Scan-to-BIM Doğruluk Seviyesi — Level of Accuracy, USIBD)',
+    description:
+      'USIBD tarafından tanımlanan, lazer tarama (nokta bulutu) verisinin ölçüm doğruluğu ile bu veriden üretilen BIM modelinin temsil doğruluğunu standart sapma bantlarıyla (LOA 10–LOA 50) sınıflandıran standarttır. Rölöve ve güçlendirme projelerinde nokta bulutu ile model arasındaki kabul edilebilir sapma sınırını sözleşmeye bağlar.',
+  },
+  {
+    name: 'BCF (BIM İşbirliği ve Sorun Takip Formatı — BIM Collaboration Format)',
+    description:
+      '3B modeli tekrar göndermeden, model üzerindeki çakışma veya revizyon notlarını eleman kimliği (GlobalId), kamera bakış açısı ve ekran görüntüsüyle yazılımlar arasında aktaran buildingSMART açık standardıdır. Disiplinlerarası çakışma ve e-PYS ön kontrol bulgularının sorumlu müellife kanıt iziyle atanmasını sağlar.',
+  },
+  {
+    name: 'TIDP ve MIDP (Görev ve Ana Bilgi Teslim Planları)',
+    description:
+      'ISO 19650-2 kapsamında her disiplinin kendi üreteceği bilgi konteynerlerini listelediği görev bazlı plan (TIDP) ile tüm disiplinlerin teslimatlarının birleştirildiği ana takvim ve sorumluluk tablosudur (MIDP). Projede hangi modelin kim tarafından, hangi tarihte ve hangi LOIN seviyesinde teslim edileceğini takip eder.',
+  },
+  {
+    name: 'AIR (Varlık Bilgi Gereksinimleri — Asset Information Requirements)',
+    description:
+      'ISO 19650-3 kapsamında binanın işletme, bakım ve tesis yönetimi aşamasında ihtiyaç duyulan teknik, ticari ve yönetsel verileri tanımlayan şartnamedir. İnşaat sonunda teslim edilen PIM modelinin işletme modeli olan AIM ve COBie verisine eksiksiz dönüşmesini sağlar.',
+  },
+  {
+    name: 'EPD (Çevresel Ürün Beyanı — Environmental Product Declaration, ISO 14025 / EN 15804)',
+    description:
+      'Bir yapı malzemesinin yaşam döngüsü boyunca birim başına küresel ısınma potansiyeli ve çevresel etkilerini bağımsız doğrulamayla belgeleyen resmi sertifikadır. 6D BIM sürdürülebilirlik ve gömülü karbon hesaplarında gerçek üretici verisi olarak kullanılır.',
+  },
+  {
+    name: 'EN 15978 (Bina Yaşam Döngüsü Değerlendirme Standardı, A1–D Modülleri)',
+    description:
+      'Binaların çevresel etkilerini Ürün (A1–A3), İnşaat Süreci (A4–A5), Kullanım (B1–B7), Ömür Sonu (C1–C4) ve Sistem Sınırı Ötesi Geri Kazanım (D) aşamalarına ayırarak hesaplayan Avrupa standardıdır. Gömülü karbon ile işletme karbonunun birbirine karıştırılmadan standart sınırlarla raporlanmasını sağlar.',
+  },
+  {
+    name: 'EVM (Kazanılmış Değer Yönetimi — Earned Value Management)',
+    description:
+      'Planlanan Değer (PV), Kazanılmış Değer (EV) ve Gerçekleşen Maliyet (AC) verilerini karşılaştırarak projenin Maliyet Performans İndeksini (CPI) ve Süre Performans İndeksini (SPI) ölçen yönetim yöntemidir. 4D/5D BIM modelindeki saha ilerlemesini bütçe sapması ve iş programı gecikmesiyle tek formülde birleştirir.',
+  },
+  {
+    name: 'Yeşil Defter ve Ataşman (Hakediş Metraj İcmali ve Saha Ölçü Belgesi)',
+    description:
+      'Yapım işlerinde sahada gerçekleştirilen imalatların proje veya yerinde ölçümlerine dayalı kroki ve hesap tutanakları (Ataşman) ile bu miktarların poz bazında hakedişe aktarıldığı kümülatif icmal defteridir (Yeşil Defter). BIM modelinden alınan metrajın resmi kamu ve özel sektör hakediş ödemesine dönüşmesindeki yasal köprüdür.',
+  },
+  {
+    name: '4735 Fiyat Farkı (Pn Katsayısı Eskalasyon Hesabı)',
+    description:
+      '4735 sayılı Kamu İhale Sözleşmeleri Kanunu kapsamında sözleşme süresince işçilik, malzeme, akaryakıt ve makine amortismanı endekslerindeki değişimi ağırlık katsayılarıyla hesaplayarak hakedişe F = A × B × (Pn − 1) formülüyle yansıtan yasal mekanizmadır. Uzun süreli inşaat projelerinde enflasyon ve maliyet artışlarının nakit akışına etkisini öngörmeyi sağlar.',
+  },
+  {
+    name: 'YAMBİS (Yapı Müteahhitliği Bilişim Sistemi — Yetki Belgesi Grupları A–H)',
+    description:
+      'ÇŞİDB tarafından yapı müteahhitlerinin ekonomik ve mali yeterlik ile mesleki ve teknik deneyim kriterlerine göre A\'dan H\'ye kadar gruplandırıldığı resmi kayıt sistemidir. Müteahhidin üstlenebileceği maksimum yapı inşaat alanı ve yaklaşık maliyet sınırını belirler.',
+  },
 ];

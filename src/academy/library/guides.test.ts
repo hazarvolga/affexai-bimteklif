@@ -15,8 +15,8 @@ const guideText = (guide: (typeof ACADEMY_GUIDES)[number]) => [
   ...(guide.calculation ? [guide.calculation.title, guide.calculation.note, ...guide.calculation.results.map(result => `${result.label} ${result.formula}`)] : []),
 ].join('\n');
 
-test('üç pakette yirmi iki rehber vardır ve her biri bir konunun bir modülüne bağlıdır', () => {
-  assert.equal(ACADEMY_GUIDES.length, 22);
+test('dört pakette yirmi üç rehber vardır ve her biri bir konunun bir modülüne bağlıdır', () => {
+  assert.equal(ACADEMY_GUIDES.length, 23);
   const keys = new Set<string>();
   for (const guide of ACADEMY_GUIDES) {
     const topic = ACADEMY_TOPICS.find(item => item.slug === guide.topicSlug);
