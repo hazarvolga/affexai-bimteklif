@@ -134,8 +134,26 @@ export const ACADEMY_TOPICS: readonly AcademyTopic[] = [
           'Varsayımlar kesin sonuç değil, izlenebilir senaryo olarak sunulur',
         ],
       },
+      {
+        title: 'IFC 4.3 altyapı: köprü, yol ve demiryolu metrajı',
+        body: 'ISO 16739-1:2024 (IFC 4.3) ile köprü, yol ve demiryolu projelerinde IfcBridge, IfcRoad, IfcRailway ve Qto_EarthworksCut/FillBaseQuantities kullanımı.',
+        points: [
+          'IfcBridge: kenar ayak (ABUTMENT), orta ayak (PIER), temel (FOUNDATION) ve tabliye (DECK) bazlı bölümleme',
+          'IfcAlignment ve IfcReferent: kilometraj tabanlı metraj ve hakediş',
+          'Qto_EarthworksCutBaseQuantities: doğal kazı (UndisturbedVolume) ve kabarmış hacim (ExpandedVolume)',
+        ],
+      },
+      {
+        title: '4734 / 4735 kamu ihale ve e-PYS hakediş protokolü',
+        body: '4734 ve 4735 sayılı kanunlar çerçevesinde götürü bedel, birim fiyat ve karma sözleşme tiplerinin 5D BIM ile hakediş belgeleri (Yeşil Defter, Ataşman, Mukayeseli Keşif) üretimine etkisi.',
+        points: [
+          'Götürü bedel: pursantaj tablosu ve iki IFC revizyonu arasındaki mukayeseli keşif',
+          'Birim fiyat: IfcCostItem GUID bazlı yeşil defter ve ataşman üretimi',
+          'RG 33331 e-PYS: zorunlu IFC model teslim takvimi ve kapsam',
+        ],
+      },
     ],
-    sources: ['ISO 19650-2 (teslim aşaması)', 'Kazanılmış değer yönetimi (EVM) ilkeleri', 'ÇŞB birim fiyat analizleri, ölçü maddeleri', '4734 ve 4735 sayılı kanunlar'],
+    sources: ['ISO 19650-2 (teslim aşaması)', 'Kazanılmış değer yönetimi (EVM) ilkeleri', 'ÇŞB birim fiyat analizleri, ölçü maddeleri', '4734 ve 4735 sayılı kanunlar', 'ISO 16739-1:2024 (IFC 4.3)', 'RG 33331 (5 Agustos 2026) e-PYS'],
     tryIn: { label: 'Ücretsiz hesaplayıcıları deneyin', href: '/hesaplayicilar' },
   },
   {
@@ -266,6 +284,25 @@ export const ACADEMY_TOPICS: readonly AcademyTopic[] = [
     ],
     sources: ['ISO 19650-5', 'buildingSMART BCF', '3194 sayılı İmar Kanunu ve ilgili yönetmelikler', 'TS 500'],
     tryIn: { label: 'SmartCheck demosunu açın', href: '/smartcheck' },
+  },
+  {
+    slug: 'openbim',
+    title: 'OpenBIM: IDS, bSDD ve IFC Standartları',
+    summary: 'buildingSMART açık standartlarını (IDS 1.0, bSDD, MVD) model kalite denetimi ve yazılımdan bağımsız veri alışverişi perspektifinden ele alır.',
+    why: 'Teslim alınan model, kural ve kalite kontrolünden geçirilmeden metraj ve hakediş süreçlerine alınamaz. IDS standartı bu kontrolü otomatize ederken bSDD, farklı yazılımlardan gelen özellikleri ortak bir dile çevirir.',
+    modules: [
+      {
+        title: 'IDS ve bSDD ile otomatik model denetimi',
+        body: 'IDS 1.0 (Information Delivery Specification) XML kural dosyaları ile IFC modelleri otomatik olarak denetlenir; bSDD ise dil ve yazılım farklarını URI ile çözer.',
+        points: [
+          'IDS kural dosyası: applicability (kapsam) ve requirements (gereksinim) bölümleri',
+          '6 Facet türü: entity, attribute, property, material, classification, partOf',
+          'bSDD URI: farklı yazılımlardan gelen özellik adları tek standartta buluşur',
+        ],
+      },
+    ],
+    sources: ['buildingSMART IDS 1.0 (github.com/buildingSMART/IDS)', 'buildingSMART Data Dictionary bSDD (github.com/buildingSMART/bSDD)', 'BS EN 17412-1:2020 (LOIN)'],
+    tryIn: { label: 'Akademi rehberlerini inceleyin', href: '/academy' },
   },
 ];
 

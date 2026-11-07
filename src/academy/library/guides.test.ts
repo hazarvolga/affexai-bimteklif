@@ -16,7 +16,7 @@ const guideText = (guide: (typeof ACADEMY_GUIDES)[number]) => [
 ].join('\n');
 
 test('dört pakette yirmi üç rehber vardır ve her biri bir konunun bir modülüne bağlıdır', () => {
-  assert.equal(ACADEMY_GUIDES.length, 23);
+  assert.equal(ACADEMY_GUIDES.length, 27);
   const keys = new Set<string>();
   for (const guide of ACADEMY_GUIDES) {
     const topic = ACADEMY_TOPICS.find(item => item.slug === guide.topicSlug);
@@ -42,7 +42,7 @@ test('rehber içeriği yayın kurallarına uyar; sayı yalnız inceleme kaydı o
 
 test('sayı içeren rehberlerin inceleme kaydı tarihli, yöntemli ve kaynaklıdır', () => {
   const reviewed = ACADEMY_GUIDES.filter(guide => guide.review);
-  assert.deepEqual(reviewed.map(guide => guide.slug).sort(), ['donati-detaylandirma', 'gomulu-karbon', 'loa-seviyeleri', 'minha-kurallari']);
+  assert.deepEqual(reviewed.map(guide => guide.slug).sort(), ['donati-detaylandirma', 'gomulu-karbon', 'ifc-4-3-altyapi-kopru-yol-metraji', 'kamu-ihale-4734-4735-ve-bim-hakedis', 'loa-seviyeleri', 'minha-kurallari']);
   for (const guide of reviewed) {
     assert.match(guide.review!.reviewedOn, /^\d{4}-\d{2}-\d{2}$/, guide.slug);
     assert.match(guide.review!.method, /yuksek-muhendis-mimar/, guide.slug);
