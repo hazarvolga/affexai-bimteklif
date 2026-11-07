@@ -68,4 +68,39 @@ export const PUBLIC_GLOSSARY_TERMS: readonly PublicGlossaryTerm[] = [
     description:
       'Kamu yapım ihalelerinde yaklaşık maliyet (YM) ve geçerli tekliflerden Tort1, standart sapma (σ), Tort2, C, K ve N katsayılarıyla sınır değer (SD) hesaplanması ve toplam teklifin %80\'ini oluşturan açıklama istenecek sıralı iş kalemlerinin belirlenmesi sürecidir.',
   },
+  {
+    name: '5D BIM (Maliyet Boyutu)',
+    description:
+      '3B geometri (1D–3D) ve inşaat programına (4D) ek olarak maliyet bilgisini model elemanlarına bağlayan BIM olgunluk boyutudur. Her IfcElement\'e poz numarası, birim fiyat ve metraj atanır; böylece model değiştiğinde teklif/yaklaşık maliyet otomatik güncellenir. BIMMetraj bu ilişkilendirmeyi IFC QTO ve ÇŞB poz sözlüğü aracılığıyla kurar.',
+  },
+  {
+    name: '4D BIM (Zaman / İnşaat Programı Boyutu)',
+    description:
+      '3B modeldeki imalat sıralamasının Gantt veya CPM programına bağlanmasıyla oluşturulan simülasyon boyutudur. IfcTask ve IfcRelSequence ilişkileriyle hangi elemanın ne zaman inşa edileceği görselleştirilir; Synchro, Navisworks TimeLiner ve Trimble Connect bu entegrasyonu destekler.',
+  },
+  {
+    name: 'openBIM',
+    description:
+      'buildingSMART International tarafından savunulan; projenin yaşam döngüsü boyunca yazılımdan bağımsız, açık standartlar (IFC, BCF, bSDD) üzerinden veri alışverişini öngören tasarım ve yapım yaklaşımıdır. Allplan, Revit, ArchiCAD ve Tekla gibi BIM araçlarından IFC formatında ihraç edilen modeller openBIM iş akışının temelidir.',
+  },
+  {
+    name: 'BIM Olgunluk Seviyeleri (BIM Level 0–3)',
+    description:
+      '2011 tarihli İngiltere BIM olgunluk modelinde tanımlanan ve dünyada yaygınlaşan sınıflandırmadır: Level 0 (2B CAD, kâğıt teslim), Level 1 (3B CAD + standart kütüphane), Level 2 (federe modeller, CDE ile disiplinler arası koordinasyon, IFC teslimi), Level 3 / iBIM (tam entegrasyon, ISO 19650 uyumu). Türkiye kamu ihaleleri BIM Level 2 tabanını hedefler.',
+  },
+  {
+    name: 'ISO 19650 (TS EN ISO 19650)',
+    description:
+      'Yapı varlıklarına ilişkin bilgi yönetiminin uluslararası standardıdır. Bölüm 1 kavramları, Bölüm 2 teslimat sürecini (EIR → BEP → CDE → teslim), Bölüm 3 varlık yönetimini kapsar. Türkiye\'de TS EN ISO 19650-2 ve EN 17412-1 (LOIN) birlikte uygulanmakta; e-PYS pilot kapsamında BIM teslimat gereksinimleri bu standardı referans almaktadır.',
+  },
+  {
+    name: 'Hakediş (İş İlerleme Ödemesi)',
+    description:
+      'Yüklenicinin belirli dönemlerde tamamladığı imalat miktarlarını 4735 sayılı Kamu İhale Sözleşmeleri Kanunu\'na göre idareye beyan ettiği ve onay sonrasında ödeme hakkı doğuran belgedir. BIM tabanlı hakediş süreçlerinde IFC modeli üzerindeki tamamlanma yüzdeleri gerçek metrajla karşılaştırılarak hakediş cetveli oluşturulur.',
+  },
+  {
+    name: 'Yaklaşık Maliyet (YM)',
+    description:
+      '4734 sayılı Kanun kapsamında ihale öncesinde idarenin hazırladığı ve gizli tutulan maliyet tahminidir. Rayiç birim fiyatlar (ÇŞB, TSE, piyasa) ve metraj cetveli kullanılarak hesaplanır; sınır değer ve aşırı düşük teklif analizlerinin temel parametresidir. BIMMetraj\'ın 5D modülü YM taslağını IFC QTO\'dan otomatik üretir.',
+  },
 ];

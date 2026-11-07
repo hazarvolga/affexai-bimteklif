@@ -140,6 +140,20 @@ test('GEO-01: ROBOTS_AI_TRAINING=disallow closes the site only for training craw
   assert.match(robots, /Sitemap: https:\/\/bimmetraj\.com\/sitemap\.xml/);
 });
 
+test('GEO-07: llms.txt IFC yazılım entegrasyonu ve anahtar kelime bölümlerini içerir', () => {
+  const llms = llmsTxt('https://bimmetraj.com');
+  // Marka+IFC entegrasyon bölümü
+  assert.match(llms, /## IFC Yazılım Entegrasyonu/);
+  for (const brand of ['Allplan', 'Revit', 'ArchiCAD', 'Tekla Structures', 'BricsCAD']) {
+    assert.ok(llms.includes(brand), `llms.txt: ${brand} marka entegrasyonu`);
+  }
+  // Anahtar kelime bölümü
+  assert.match(llms, /## Anahtar Kelime Kapsamı/);
+  for (const kw of ['bim metraj yazılımı', '5d bim', 'allplan metraj', 'openbim nedir', 'e-pys bim']) {
+    assert.ok(llms.includes(kw), `llms.txt: "${kw}" anahtar kelimesi`);
+  }
+});
+
 test('T46: llms.txt describes capabilities only through the registry and packages only through the plan catalog', async () => {
   const { canonicalPlans } = await import('../../services/billing/plan-catalog');
   const { CAPABILITY_REGISTRY } = await import('../../capabilities/registry');

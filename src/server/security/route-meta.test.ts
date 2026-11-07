@@ -270,3 +270,66 @@ test('SEO-05/GEO-02: academyJsonLd tüm rota derinliklerinde doğru şema üreti
   // Derinlik > 3 → null
   assert.equal(routeJsonLd({ pathname: '/academy/bim-temelleri/pim-aim-cobie/extra', origin, title: '', description: '' }), null);
 });
+
+test('GEO-04: ana sayfa Organization ve WebSite schema içerir; sameAs veya aggregateRating yazılmaz', () => {
+  const origin = 'https://bimmetraj.com';
+  const data = routeJsonLd({ pathname: '/', origin, title: 'BIMMetraj', description: 'Ana sayfa' });
+  assert.ok(data, 'ana sayfa JSON-LD üretilmeli');
+  const graph = data!['@graph'] as any[];
+  const org = graph.find((n: any) => n['@type'] === 'Organization');
+  const site = graph.find((n: any) => n['@type'] === 'WebSite');
+  assert.ok(org, 'Organization bulunmalı');
+  assert.ok(site, 'WebSite bulunmalı');
+  assert.equal(org['@id'], `${origin}/#organization`);
+  assert.equal(site['@id'], `${origin}/#website`);
+  assert.ok(site.potentialAction?.['@type'] === 'SearchAction', 'SearchAction bulunmalı');
+  assert.ok(site.potentialAction?.target?.urlTemplate?.includes('/bim-sozlugu'), 'SearchAction bim-sozlugu arar');
+  const json = JSON.stringify(data);
+  for (const forbidden of ['sameAs', 'aggregateRating', 'review', 'offers']) {
+    assert.equal(json.includes(forbidden), false, `${forbidden} üretilmemeli`);
+  }
+});
+
+test('GEO-05: /smartcheck sayfası BreadcrumbList ve SoftwareApplication alır; IFC marka listesi featureList içerir', () => {
+  const origin = 'https://bimmetraj.com';
+  const data = routeJsonLd({ pathname: '/smartcheck', origin, title: 'SmartCheck', description: 'Kalite kontrol' });
+  assert.ok(data, '/smartcheck JSON-LD üretilmeli');
+  const graph = data!['@graph'] as any[];
+  const crumbs = graph.find((n: any) => n['@type'] === 'BreadcrumbList');
+  const app = graph.find((n: any) => n['@type'] === 'SoftwareApplication');
+  assert.ok(crumbs, 'BreadcrumbList bulunmalı');
+  assert.ok(app, 'SoftwareApplication bulunmalı');
+  assert.equal(app.url, `${origin}/smartcheck`);
+  assert.equal(app.isAccessibleForFree, true);
+  assert.ok(Array.isArray(app.featureList), 'featureList dizi olmalı');
+  assert.ok(app.featureList.some((f: string) => f.includes('Allplan')), 'featureList Allplan içermeli');
+  assert.ok(app.featureList.some((f: string) => f.includes('Revit')), 'featureList Revit içermeli');
+  const json = JSON.stringify(data);
+  for (const forbidden of ['aggregateRating', 'review', 'price', 'offers']) {
+    assert.equal(json.includes(forbidden), false, `${forbidden} üretilmemeli`);
+  }
+});
+
+test('GEO-06: /bim-sozlugu FAQPage içerir; Allplan+Revit+ArchiCAD+Tekla IFC export sorularını ve 5D BIM+openBIM+ISO19650 cevaplarını kapsar', () => {
+  const origin = 'https://bimmetraj.com';
+  const data = routeJsonLd({ pathname: '/bim-sozlugu', origin, title: 'BIM Sözlüğü', description: 'Terimler' });
+  assert.ok(data, '/bim-sozlugu JSON-LD üretilmeli');
+  const graph = data!['@graph'] as any[];
+  const faq = graph.find((n: any) => n['@type'] === 'FAQPage');
+  assert.ok(faq, 'FAQPage bulunmalı');
+  assert.ok(Array.isArray(faq.mainEntity), 'mainEntity dizi olmalı');
+  const questions = faq.mainEntity.map((q: any) => q.name as string);
+  const answers = faq.mainEntity.map((q: any) => q.acceptedAnswer?.text as string);
+  for (const brand of ['Allplan', 'Revit', 'ArchiCAD', 'Tekla']) {
+    assert.ok(questions.some((q: string) => q.includes(brand)), `${brand} sorusu bulunmalı`);
+    assert.ok(answers.some((a: string) => a?.includes(brand)), `${brand} cevabı bulunmalı`);
+  }
+  for (const concept of ['5D BIM', 'openBIM', 'ISO 19650']) {
+    assert.ok(questions.some((q: string) => q.includes(concept)), `${concept} sorusu bulunmalı`);
+  }
+  for (const q of faq.mainEntity) {
+    assert.equal(q['@type'], 'Question');
+    assert.equal(q.acceptedAnswer['@type'], 'Answer');
+    assert.ok(q.acceptedAnswer.text?.length > 20, 'cevap metni yeterince uzun olmalı');
+  }
+});
