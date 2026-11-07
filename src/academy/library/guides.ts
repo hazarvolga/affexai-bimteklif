@@ -22,6 +22,21 @@ export interface AcademyGuide {
   summary: string;
   /** Rule or relation in plain text. */
   rule?: string;
+  /** Inline figure: either an SVG markup string or a licensed static image. */
+  figure?: {
+    type: 'svg';
+    markup: string;
+    caption: string;
+  } | {
+    type: 'image';
+    src: string;
+    alt: string;
+    caption: string;
+    /** SPDX expression or free-text license. Must not be empty. */
+    license: string;
+    /** Author / source attribution. Must not be empty. */
+    credit: string;
+  };
   table?: AcademyGuideTable;
   takeaways: readonly string[];
   /** A short illustrative case without invented statistics. */
@@ -102,6 +117,11 @@ export const ACADEMY_GUIDES: readonly AcademyGuide[] = [
     title: 'Nesneler ve ilişkiler: IFC mekânsal yapısı',
     summary: 'BIM’in çizimden çok nesneler ve aralarındaki ilişkilerden oluştuğunu, IFC’de bu ilişkilerin nasıl kurulduğunu anlatır.',
     rule: 'Yapı nesnesi = geometri + özellikler + ilişkiler. Proje → arsa → bina → kat → eleman zinciri IFC ilişki nesneleriyle kurulur.',
+    figure: {
+      type: 'svg' as const,
+      markup: `<svg viewBox="0 0 540 200" xmlns="http://www.w3.org/2000/svg" font-family="system-ui,sans-serif" font-size="12"><defs><marker id="a" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3z" fill="#484d46"/></marker></defs><rect x="170" y="8" width="200" height="36" rx="4" fill="#a13c1b" stroke="#a13c1b"/><text x="270" y="31" text-anchor="middle" font-weight="600" fill="#fcfbf7">IfcProject</text><line x1="270" y1="44" x2="270" y2="58" stroke="#484d46" stroke-width="1.5" marker-end="url(#a)"/><rect x="170" y="58" width="200" height="36" rx="4" fill="#fcfbf7" stroke="#bec1b6" stroke-width="1.5"/><text x="270" y="81" text-anchor="middle" fill="#181f1c">IfcSite</text><line x1="270" y1="94" x2="270" y2="108" stroke="#484d46" stroke-width="1.5" marker-end="url(#a)"/><rect x="170" y="108" width="200" height="36" rx="4" fill="#fcfbf7" stroke="#bec1b6" stroke-width="1.5"/><text x="270" y="131" text-anchor="middle" fill="#181f1c">IfcBuilding</text><line x1="270" y1="144" x2="270" y2="158" stroke="#484d46" stroke-width="1.5" marker-end="url(#a)"/><rect x="170" y="158" width="200" height="36" rx="4" fill="#e8e5db" stroke="#bec1b6" stroke-width="1.5"/><text x="270" y="181" text-anchor="middle" fill="#181f1c">IfcBuildingStorey</text><line x1="200" y1="194" x2="96" y2="194" stroke="#484d46" stroke-width="1"/><line x1="340" y1="194" x2="444" y2="194" stroke="#484d46" stroke-width="1"/><line x1="96" y1="194" x2="96" y2="206" stroke="#484d46" stroke-width="1" marker-end="url(#a)"/><line x1="444" y1="194" x2="444" y2="206" stroke="#484d46" stroke-width="1" marker-end="url(#a)"/></svg>`,
+      caption: 'IFC mekânsal hiyerarşisi: IfcProject en üst kapsayicidan IfcBuildingStorey\'e inen zincir. Elemanlar (IfcWall, IfcColumn vb.) kata IfcRelContainedInSpatialStructure iliskisiyle baglanir.',
+    },
     table: {
       title: 'IFC eleman sınıfları, resmi Qto setleri ve ÇŞB birim karşılıkları',
       headers: ['IFC Sınıfı', 'Mekânsal / Boşluk İlişkisi', 'Resmi Qto Seti (buildingSMART IFC4)', 'Kritik Metraj Özellikleri', 'ÇŞB Birim Karşılığı'],
@@ -366,6 +386,11 @@ export const ACADEMY_GUIDES: readonly AcademyGuide[] = [
     title: 'Bilgi gereksinimleri ve sekiz adımlı teslim süreci',
     summary: 'Kurumun hedeflerinden yüklenicinin teslim planına uzanan bilgi gereksinimleri zincirini ve ISO 19650-2’nin teslim sürecini adım adım anlatır.',
     rule: 'OIR → PIR → AIR → EIR → BEP → TIDP ve MIDP → PIM → AIM. Her halka bir öncekinden türetilir ve bir sonrakinin girdisidir.',
+    figure: {
+      type: 'svg' as const,
+      markup: `<svg viewBox="0 0 540 118" xmlns="http://www.w3.org/2000/svg" font-family="system-ui,sans-serif" font-size="11"><defs><marker id="a" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3z" fill="#484d46"/></marker></defs><rect x="8" y="8" width="60" height="34" rx="3" fill="#fcfbf7" stroke="#bec1b6" stroke-width="1.5"/><text x="38" y="29" text-anchor="middle" fill="#181f1c" font-weight="600">OIR</text><line x1="68" y1="25" x2="80" y2="25" stroke="#484d46" stroke-width="1.5" marker-end="url(#a)"/><rect x="80" y="8" width="60" height="34" rx="3" fill="#fcfbf7" stroke="#bec1b6" stroke-width="1.5"/><text x="110" y="29" text-anchor="middle" fill="#181f1c" font-weight="600">PIR</text><line x1="140" y1="25" x2="152" y2="25" stroke="#484d46" stroke-width="1.5" marker-end="url(#a)"/><rect x="152" y="8" width="60" height="34" rx="3" fill="#fcfbf7" stroke="#bec1b6" stroke-width="1.5"/><text x="182" y="29" text-anchor="middle" fill="#181f1c" font-weight="600">AIR</text><line x1="212" y1="25" x2="224" y2="25" stroke="#484d46" stroke-width="1.5" marker-end="url(#a)"/><rect x="224" y="8" width="60" height="34" rx="3" fill="#a13c1b" stroke="#a13c1b"/><text x="254" y="29" text-anchor="middle" fill="#fcfbf7" font-weight="600">EIR</text><line x1="254" y1="42" x2="254" y2="56" stroke="#484d46" stroke-width="1.5" marker-end="url(#a)"/><rect x="224" y="56" width="60" height="34" rx="3" fill="#e8e5db" stroke="#bec1b6" stroke-width="1.5"/><text x="254" y="77" text-anchor="middle" fill="#181f1c" font-weight="600">BEP</text><line x1="224" y1="73" x2="212" y2="73" stroke="#484d46" stroke-width="1.5" marker-end="url(#a)"/><rect x="152" y="56" width="60" height="34" rx="3" fill="#fcfbf7" stroke="#bec1b6" stroke-width="1.5"/><text x="182" y="77" text-anchor="middle" fill="#181f1c" font-weight="600">MIDP</text><line x1="152" y1="73" x2="140" y2="73" stroke="#484d46" stroke-width="1.5" marker-end="url(#a)"/><rect x="80" y="56" width="60" height="34" rx="3" fill="#fcfbf7" stroke="#bec1b6" stroke-width="1.5"/><text x="110" y="77" text-anchor="middle" fill="#181f1c" font-weight="600">PIM</text><line x1="80" y1="73" x2="68" y2="73" stroke="#484d46" stroke-width="1.5" marker-end="url(#a)"/><rect x="8" y="56" width="60" height="34" rx="3" fill="#fcfbf7" stroke="#bec1b6" stroke-width="1.5"/><text x="38" y="77" text-anchor="middle" fill="#181f1c" font-weight="600">AIM</text><text x="8" y="108" font-size="10" fill="#484d46">Kaynak: ISO 19650-1 / ISO 19650-2</text></svg>`,
+      caption: 'ISO 19650 bilgi gereksinimleri zinciri: OIR\'dan AIM\'e iki satirda. EIR ihale sinirini, BEP yuklenicinin yanit planini, MIDP toplu teslim takvimini tanimlar.',
+    },
     table: {
       title: 'ISO 19650-2 teslim süreci',
       headers: ['Adım', 'Ne yapılır', 'Ana çıktı'],
@@ -692,6 +717,11 @@ export const ACADEMY_GUIDES: readonly AcademyGuide[] = [
     title: 'Ortak veri ortamı (CDE): bilgi durumları ve uygunluk kodları',
     summary: 'ISO 19650-2 kapsamında bir bilgi konteynerinin CDE içindeki dört durumunu (WIP, Shared, Published, Archived), uygunluk kodlarını (S0–S4, A1–A4) ve revizyon izinin ihale ile hakedişte neden zorunlu olduğunu anlatır.',
     rule: 'İhale ve hakediş hesabına yalnızca Published (Yayımlanan) durumundaki bilgi konteynerleri esas alınabilir. P revizyonu (Preliminary) taşıyan hiçbir model kesin hakedişe bağlanamaz; yalnızca C revizyonuna (Contractual) geçmiş ve A1–A4 uygunluk kodu almış modeller kesin hesaba alınır.',
+    figure: {
+      type: 'svg' as const,
+      markup: `<svg viewBox="0 0 540 90" xmlns="http://www.w3.org/2000/svg" font-family="system-ui,sans-serif" font-size="12"><defs><marker id="a" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3z" fill="#484d46"/></marker></defs><rect x="10" y="20" width="110" height="48" rx="4" fill="#fcfbf7" stroke="#bec1b6" stroke-width="1.5"/><text x="65" y="41" text-anchor="middle" font-weight="600" fill="#181f1c">WIP</text><text x="65" y="58" text-anchor="middle" font-size="10" fill="#484d46">Çalışma (S0)</text><line x1="120" y1="44" x2="140" y2="44" stroke="#484d46" stroke-width="1.5" marker-end="url(#a)"/><rect x="140" y="20" width="110" height="48" rx="4" fill="#fcfbf7" stroke="#bec1b6" stroke-width="1.5"/><text x="195" y="41" text-anchor="middle" font-weight="600" fill="#181f1c">Shared</text><text x="195" y="58" text-anchor="middle" font-size="10" fill="#484d46">Paylaşılan (S1-S4)</text><line x1="250" y1="44" x2="270" y2="44" stroke="#484d46" stroke-width="1.5" marker-end="url(#a)"/><rect x="270" y="20" width="130" height="48" rx="4" fill="#a13c1b" stroke="#a13c1b"/><text x="335" y="41" text-anchor="middle" font-weight="600" fill="#fcfbf7">Published</text><text x="335" y="58" text-anchor="middle" font-size="10" fill="#fcfbf7">Yayımlanan (A1-A4)</text><line x1="400" y1="44" x2="420" y2="44" stroke="#484d46" stroke-width="1.5" marker-end="url(#a)"/><rect x="420" y="20" width="110" height="48" rx="4" fill="#e8e5db" stroke="#bec1b6" stroke-width="1.5"/><text x="475" y="41" text-anchor="middle" font-weight="600" fill="#181f1c">Archived</text><text x="475" y="58" text-anchor="middle" font-size="10" fill="#484d46">Arşiv</text></svg>`,
+      caption: 'CDE bilgi durumu zinciri: Published (Yayimlanan, A1-A4) hakedis ve ihaleye esas tek gecerli durumdur. WIP ve Shared durumundaki modeller tahminde kullanilabilir, kesin hesaba alinamaz.',
+    },
     table: {
       title: 'CDE durum ve uygunluk kodu tablosu (ISO 19650-2 NA)',
       headers: ['CDE Durumu', 'Uygunluk Kodu', 'Kullanım Amacı', 'Revizyon Biçimi', 'Metraj / Hakedişte Kullanım'],
@@ -719,6 +749,11 @@ export const ACADEMY_GUIDES: readonly AcademyGuide[] = [
     moduleTitle: 'IDS ve bSDD ile otomatik model denetimi',
     title: 'IDS 1.0 ve bSDD ile Otomatik Model Denetimi',
     summary: 'buildingSMART IDS 1.0 (Information Delivery Specification) ile IFC modellerini XML kural dosyalarına göre otomatik denetleyin; bSDD URI sistemiyle farklı yazılımlardan gelen özellik adlarını standart bir dile kavuşturun.',
+    figure: {
+      type: 'svg' as const,
+      markup: `<svg viewBox="0 0 540 108" xmlns="http://www.w3.org/2000/svg" font-family="system-ui,sans-serif" font-size="12"><defs><marker id="a" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3z" fill="#484d46"/></marker></defs><rect x="10" y="24" width="140" height="58" rx="4" fill="#fcfbf7" stroke="#bec1b6" stroke-width="1.5"/><text x="80" y="49" text-anchor="middle" font-weight="600" fill="#181f1c">IDS 1.0</text><text x="80" y="67" text-anchor="middle" font-size="11" fill="#484d46">XML kural</text><text x="80" y="80" text-anchor="middle" font-size="11" fill="#484d46">dosyasi</text><line x1="150" y1="53" x2="192" y2="53" stroke="#484d46" stroke-width="1.5" marker-end="url(#a)"/><rect x="192" y="24" width="140" height="58" rx="4" fill="#fcfbf7" stroke="#bec1b6" stroke-width="1.5"/><text x="262" y="49" text-anchor="middle" font-weight="600" fill="#181f1c">IFC Model</text><text x="262" y="67" text-anchor="middle" font-size="11" fill="#484d46">.ifc /</text><text x="262" y="80" text-anchor="middle" font-size="11" fill="#484d46">.ifcXML</text><line x1="332" y1="53" x2="374" y2="53" stroke="#484d46" stroke-width="1.5" marker-end="url(#a)"/><rect x="374" y="24" width="156" height="58" rx="4" fill="#a13c1b" stroke="#a13c1b" stroke-width="1.5"/><text x="452" y="49" text-anchor="middle" font-weight="600" fill="#fcfbf7">IfcTester</text><text x="452" y="67" text-anchor="middle" font-size="11" fill="#fcfbf7">PASS /</text><text x="452" y="80" text-anchor="middle" font-size="11" fill="#fcfbf7">FAIL Raporu</text></svg>`,
+      caption: 'IDS 1.0 kural dosyası ve IFC modeli birlikte IfcTester aracına girilir; araç PASS/FAIL raporu üretir.',
+    },
     table: {
       title: 'IDS 1.0 Facet Türleri',
       headers: ['Facet Türü', 'Ne Denetler', 'Örnek Kural'],
@@ -751,6 +786,11 @@ export const ACADEMY_GUIDES: readonly AcademyGuide[] = [
     moduleTitle: 'IFC 4.3 altyapı: köprü, yol ve demiryolu metrajı',
     title: 'IFC 4.3 Altyapı: Köprü, Yol ve Demiryolu Metrajı',
     summary: 'ISO 16739-1:2024 (IFC 4.3) standardındaki IfcBridge, IfcRoad ve IfcRailway sınıflarıyla köprü, karayolu ve demiryolu projelerinde standardize 5D metraj yapın; kazı/dolgu hacimleri için Qto_EarthworksCutBaseQuantities ve Qto_EarthworksFillBaseQuantities kullanın.',
+    figure: {
+      type: 'svg' as const,
+      markup: `<svg viewBox="0 0 500 168" xmlns="http://www.w3.org/2000/svg" font-family="system-ui,sans-serif" font-size="12"><defs><marker id="b" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3z" fill="#484d46"/></marker></defs><rect x="160" y="8" width="180" height="44" rx="4" fill="#a13c1b" stroke="#a13c1b" stroke-width="1.5"/><text x="250" y="27" text-anchor="middle" font-weight="700" fill="#fcfbf7">IfcAlignment</text><text x="250" y="44" text-anchor="middle" font-size="11" fill="#fcfbf7">Kilometraj ekseni (aks)</text><line x1="210" y1="52" x2="130" y2="90" stroke="#484d46" stroke-width="1.5" marker-end="url(#b)"/><line x1="290" y1="52" x2="370" y2="90" stroke="#484d46" stroke-width="1.5" marker-end="url(#b)"/><rect x="20" y="90" width="210" height="68" rx="4" fill="#e8e5db" stroke="#bec1b6" stroke-width="1.5"/><text x="125" y="115" text-anchor="middle" font-weight="600" fill="#181f1c">IfcEarthworksCut</text><text x="125" y="133" text-anchor="middle" font-size="11" fill="#484d46">UndisturbedVolume (dogal)</text><text x="125" y="149" text-anchor="middle" font-size="11" fill="#484d46">ExpandedVolume (kabarmis)</text><rect x="270" y="90" width="210" height="68" rx="4" fill="#fcfbf7" stroke="#bec1b6" stroke-width="1.5"/><text x="375" y="115" text-anchor="middle" font-weight="600" fill="#181f1c">IfcEarthworksFill</text><text x="375" y="133" text-anchor="middle" font-size="11" fill="#484d46">CompactedVolume (sikismis)</text><text x="375" y="149" text-anchor="middle" font-size="11" fill="#484d46">SubgradeVolume (tesviye)</text></svg>`,
+      caption: 'IfcAlignment kilometraj eksenine IfcEarthworksCut (kazı) ve IfcEarthworksFill (dolgu) elemanları bagli olarak tanimlanir.',
+    },
     table: {
       title: 'IFC 4.3 Altyapı Sınıfları ve Metraj Setleri',
       headers: ['IFC 4.3 Sınıfı', 'Alt Tip (PredefinedType)', 'Temel Metraj Qto Seti', 'Kullanim'],
@@ -793,6 +833,11 @@ export const ACADEMY_GUIDES: readonly AcademyGuide[] = [
     moduleTitle: 'Teslimden işletmeye: PIM, AIM ve COBie',
     title: 'COBie 2.4 ve 7D Tesis Yönetimi',
     summary: 'BS 1192-4 / ISO 19650-3 COBie 2.4 standardıyla IFC modelinden garanti, bakım ve yedek parça verilerini 18 çalışma sayfasına veya IFC Basic FM Handover MVD formatına aktarın; Pset_Warranty ve Pset_ManufacturerTypeInformation ile MEP ekipmanlarını doğru modelleyin.',
+    figure: {
+      type: 'svg' as const,
+      markup: `<svg viewBox="0 0 580 108" xmlns="http://www.w3.org/2000/svg" font-family="system-ui,sans-serif" font-size="12"><defs><marker id="c" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3z" fill="#484d46"/></marker></defs><rect x="10" y="20" width="150" height="68" rx="4" fill="#e8e5db" stroke="#bec1b6" stroke-width="1.5"/><text x="85" y="47" text-anchor="middle" font-weight="700" fill="#181f1c">PIM</text><text x="85" y="65" text-anchor="middle" font-size="11" fill="#484d46">Proje Bilgi</text><text x="85" y="79" text-anchor="middle" font-size="11" fill="#484d46">Modeli</text><line x1="160" y1="54" x2="196" y2="54" stroke="#484d46" stroke-width="1.5" marker-end="url(#c)"/><rect x="196" y="20" width="196" height="68" rx="4" fill="#a13c1b" stroke="#a13c1b" stroke-width="1.5"/><text x="294" y="47" text-anchor="middle" font-weight="700" fill="#fcfbf7">COBie 2.4</text><text x="294" y="65" text-anchor="middle" font-size="11" fill="#fcfbf7">Pset_Warranty +</text><text x="294" y="79" text-anchor="middle" font-size="11" fill="#fcfbf7">ManufacturerTypeInfo</text><line x1="392" y1="54" x2="428" y2="54" stroke="#484d46" stroke-width="1.5" marker-end="url(#c)"/><rect x="428" y="20" width="142" height="68" rx="4" fill="#fcfbf7" stroke="#bec1b6" stroke-width="1.5"/><text x="499" y="47" text-anchor="middle" font-weight="700" fill="#181f1c">AIM</text><text x="499" y="65" text-anchor="middle" font-size="11" fill="#484d46">Varlik Bilgi</text><text x="499" y="79" text-anchor="middle" font-size="11" fill="#484d46">Modeli (CMMS)</text></svg>`,
+      caption: 'PIM (tasarim ve yapim modeli), COBie 2.4 teslim paketiyle AIM (varlik bilgi modeli) ve CMMS entegrasyonuna donusur.',
+    },
     table: {
       title: 'COBie 2.4 Sekmeleri ve IFC Karşılıkları',
       headers: ['COBie Sekmesi', 'IFC Karşılığı', 'Zorunlu Alanlar', 'Teslim Noktası'],
@@ -828,6 +873,11 @@ export const ACADEMY_GUIDES: readonly AcademyGuide[] = [
     moduleTitle: '4734 / 4735 kamu ihale ve e-PYS hakediş protokolü',
     title: '4734/4735 Kamu İhale Mevzuatı ve 5D BIM Hakediş Protokolü',
     summary: '4734 sayılı Kamu İhale Kanunu ve 4735 sayılı Kamu İhale Sözleşmeleri Kanunu kapsamındaki üç sözleşme tipinde (Götürü Bedel, Birim Fiyat, Karma) 5D BIM modelinin hakediş belgelerine (Yeşil Defter, Ataşman, Pursantaj, Mukayeseli Keşif) dönüştürülmesi; RG 33331 e-PYS zorunlu takvimi.',
+    figure: {
+      type: 'svg' as const,
+      markup: `<svg viewBox="0 0 560 118" xmlns="http://www.w3.org/2000/svg" font-family="system-ui,sans-serif" font-size="12"><line x1="50" y1="48" x2="520" y2="48" stroke="#bec1b6" stroke-width="2"/><circle cx="90" cy="48" r="10" fill="#bec1b6" stroke="#fcfbf7" stroke-width="2"/><text x="90" y="29" text-anchor="middle" font-weight="700" fill="#484d46">Ags 2026</text><text x="90" y="74" text-anchor="middle" font-size="11" fill="#484d46">RG 33331</text><text x="90" y="88" text-anchor="middle" font-size="10" fill="#484d46">Yonetmelik</text><circle cx="275" cy="48" r="12" fill="#a13c1b" stroke="#fcfbf7" stroke-width="2"/><text x="275" y="27" text-anchor="middle" font-weight="700" fill="#a13c1b">Eyl 2027</text><text x="275" y="74" text-anchor="middle" font-size="11" fill="#181f1c">e-PYS 1. Asama</text><text x="275" y="88" text-anchor="middle" font-size="10" fill="#484d46">Kamu binalari, AVM</text><text x="275" y="102" text-anchor="middle" font-size="10" fill="#484d46">Hastane, 10.000 m2+</text><circle cx="460" cy="48" r="12" fill="#181f1c" stroke="#fcfbf7" stroke-width="2"/><text x="460" y="27" text-anchor="middle" font-weight="700" fill="#181f1c">Eyl 2028</text><text x="460" y="74" text-anchor="middle" font-size="11" fill="#181f1c">e-PYS 2. Asama</text><text x="460" y="88" text-anchor="middle" font-size="10" fill="#484d46">Tum yeni yapi</text><text x="460" y="102" text-anchor="middle" font-size="10" fill="#484d46">ruhsati basvurulari</text></svg>`,
+      caption: 'RG 33331 (5 Agustos 2026) e-PYS zorunlu takvimi: 1 Eylul 2027 ve 1 Eylul 2028 asama tarihleri.',
+    },
     table: {
       title: 'Kamu İhale Sözleşme Türleri ve 5D BIM Hakediş Rolü',
       headers: ['Sözleşme Türü', '5D BIM Rolü', 'Hakediş Ödeme Esası'],

@@ -36,6 +36,24 @@ export function AcademyGuide() {
         </section>
       )}
 
+      {guide.figure && (
+        <figure className="mt-8 max-w-3xl">
+          <img
+            src={guide.figure.type === 'svg'
+              ? `data:image/svg+xml;utf8,${encodeURIComponent(guide.figure.markup)}`
+              : guide.figure.src}
+            alt={guide.figure.type === 'svg' ? guide.figure.caption : guide.figure.alt}
+            className="w-full rounded border border-border bg-card"
+          />
+          <figcaption className="mt-2 text-xs leading-relaxed text-muted-foreground">
+            {guide.figure.caption}
+            {guide.figure.type === 'image' && (
+              <span className="ml-1">({guide.figure.credit} · {guide.figure.license})</span>
+            )}
+          </figcaption>
+        </figure>
+      )}
+
       {guide.table && (
         <section className="mt-10" aria-labelledby="table">
           <h2 id="table" className="text-xl font-semibold text-foreground">{guide.table.title}</h2>
